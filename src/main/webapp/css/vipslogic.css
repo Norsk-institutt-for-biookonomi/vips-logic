@@ -1,0 +1,13 @@
+/* 
+    Document   : stylesheet
+    Created on : Aug 28, 2013, 10:55:15 AM
+    Author     : Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+    Description:
+        Main stylesheet of the VIPSLogic web app. Cusomizes the bootstrap.css
+*/
+
+.navbar-brand{
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
