@@ -1,9 +1,0 @@
-<#include "master.ftl">
-<#macro page_head>
-        <title>Welcome to VIPSLogic</title>
-</#macro>
-<#macro page_contents>
-        <h1>Welcome to VIPSLogic</h1>
-        
-</#macro>
-<@page_html/>
