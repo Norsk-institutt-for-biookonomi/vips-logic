@@ -40,7 +40,7 @@
 	    <form class="navbar-form navbar-right"  action="/logout" method="POST" role="logout">
 	      <div class="form-group">
 	      	<input type="hidden" name="logout" value="true"/>
-		${i18nBundle.loggedinas} ${user.firstName} ${user.lastName}
+		${i18nBundle.loggedinas} ${user.firstName} ${user.lastName} (${user.organizationId.organizationName})
 	      </div>
 	      <button type="submit" class="btn btn-default">${i18nBundle.logout}</button>
 	    </form>
@@ -52,7 +52,7 @@
 			<h2>En sidemeny?</h2>
 			<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit...</p>
 			<ul>
-				<li><a href="#">Link 1</a></li>
+				<li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
 				<li><a href="#">Link 2</a></li>
 			</ul>
 		</div>

@@ -2,11 +2,9 @@ package no.bioforsk.vips.logic.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +18,7 @@ import no.bioforsk.vips.logic.util.ServletUtil;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
- * Logs a user in
+ * Logs a user in or out
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
@@ -40,9 +38,6 @@ public class LoginController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        System.out.println("Request Locale=" + request.getLocale().toString());
-        System.out.println("Current locale=" + ((Locale)request.getSession().getAttribute("currentLocale")).toString());
         
         // Resetting messages
         request.getSession().removeAttribute("messageKey");

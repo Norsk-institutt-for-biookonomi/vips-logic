@@ -1,0 +1,82 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package no.bioforsk.vips.logic.entity;
+
+import java.io.Serializable;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.validation.constraints.NotNull;
+
+/**
+ * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ */
+@Embeddable
+public class UserPointOfInterestPK implements Serializable {
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "point_of_interest_id")
+    private int pointOfInterestId;
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "user_id")
+    private int userId;
+
+    public UserPointOfInterestPK() {
+    }
+
+    public UserPointOfInterestPK(int pointOfInterestId, int userId) {
+        this.pointOfInterestId = pointOfInterestId;
+        this.userId = userId;
+    }
+
+    public int getPointOfInterestId() {
+        return pointOfInterestId;
+    }
+
+    public void setPointOfInterestId(int pointOfInterestId) {
+        this.pointOfInterestId = pointOfInterestId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (int) pointOfInterestId;
+        hash += (int) userId;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof UserPointOfInterestPK)) {
+            return false;
+        }
+        UserPointOfInterestPK other = (UserPointOfInterestPK) object;
+        if (this.pointOfInterestId != other.pointOfInterestId) {
+            return false;
+        }
+        if (this.userId != other.userId) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "no.bioforsk.vips.logic.entity.UserPointOfInterestPK[ pointOfInterestId=" + pointOfInterestId + ", userId=" + userId + " ]";
+    }
+
+}

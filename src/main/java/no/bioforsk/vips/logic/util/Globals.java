@@ -19,4 +19,7 @@ public class Globals {
         "/404"
     };
     
+    // Point of interest type IDs
+    public static final Integer POI_TYPE_WEATHERSTATION=1;
+    
 }
