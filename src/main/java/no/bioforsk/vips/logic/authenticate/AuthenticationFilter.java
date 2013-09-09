@@ -2,9 +2,11 @@ package no.bioforsk.vips.logic.authenticate;
 
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpUtils;
 import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.ServletUtil;
 
@@ -25,19 +27,25 @@ public class AuthenticationFilter implements Filter{
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        if(isUnprivilegedURL((HttpServletRequest)request))
+        HttpServletRequest httpRequest = (HttpServletRequest)request;
+        if(isUnprivilegedURL(httpRequest))
         {
             chain.doFilter(request, response);
             //return;
         }
         else
         {
-            boolean redirectToLogin = ((HttpServletRequest)request).getSession().getAttribute("user") == null;
+            boolean redirectToLogin = httpRequest.getSession().getAttribute("user") == null;
             if(redirectToLogin)
             {
-                //System.out.println("Could not find user");
-                ((HttpServletResponse)response).sendRedirect("http://" + ServletUtil.getServerName((HttpServletRequest)request) + "/login");
-                //((HttpServletResponse)response).sendError(HttpServletResponse.SC_FORBIDDEN);
+                String nextPageDirective = "";
+                if(!httpRequest.getServletPath().equals("/login"));
+                {
+                    StringBuilder nextPage=new StringBuilder(httpRequest.getServletPath())
+                            .append(httpRequest.getQueryString() != null ? "?" + httpRequest.getQueryString() : "");
+                    nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage.toString(), "UTF-8");
+                }
+                ((HttpServletResponse)response).sendRedirect("http://" + ServletUtil.getServerName(httpRequest) + "/login" + nextPageDirective);
             }
             else
             {

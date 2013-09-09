@@ -2,6 +2,7 @@ package no.bioforsk.vips.logic.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -65,7 +66,6 @@ public class LoginController extends HttpServlet {
                     nextPage="/";
                 }
                 Map<String,String> creds = new HashMap();
-                //System.out.println("request.getun=" + request.getParameter("username"));
                 creds.put("username", username);
                 creds.put("password", password);
 

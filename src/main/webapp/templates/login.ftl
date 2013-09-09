@@ -11,6 +11,9 @@
 <#macro page_contents>
 <div class="container">
 	<form class="form-signin" action="/login" method="POST">
+		<#if RequestParameters.nextPage?has_content>
+		<input type="hidden" name="nextPage" value="${RequestParameters.nextPage}"/>
+		</#if>
 		<#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 		</#if>
