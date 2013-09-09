@@ -22,4 +22,8 @@ public class Globals {
     // Point of interest type IDs
     public static final Integer POI_TYPE_WEATHERSTATION=1;
     
+    // User roles
+    public static final Integer ROLE_SUPERUSER = 1;
+    public static final Integer ROLE_ORGANIZATION_ADMINISTRATOR = 2;
+    
 }

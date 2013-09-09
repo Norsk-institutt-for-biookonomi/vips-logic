@@ -1,11 +1,13 @@
 package no.bioforsk.vips.logic.controller;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
 
 /**
@@ -39,7 +41,15 @@ public class PointOfInterestController extends HttpServlet {
             String pointOfInterestId = request.getParameter("pointOfInterestId");
             if(pointOfInterestId == null)
             {
-                request.getSession().setAttribute("weatherStations", SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(userId));
+                List<PointOfInterestWeatherStation> weatherStations;
+                if(SessionControllerGetter.getUserBean().isSuperUser(userInfo)){
+                    weatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+                }
+                else
+                {
+                    weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(userId);
+                }
+                request.getSession().setAttribute("weatherStations", weatherStations);
                 request.getRequestDispatcher("/weatherstationlist.ftl").forward(request, response);
             }
             else

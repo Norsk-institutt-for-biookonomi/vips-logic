@@ -3,6 +3,7 @@ package no.bioforsk.vips.logic.controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -14,6 +15,8 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
+import no.bioforsk.vips.logic.entity.UserVipslogicRole;
+import no.bioforsk.vips.logic.session.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.ServletUtil;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
@@ -72,6 +75,8 @@ public class LoginController extends HttpServlet {
                     Map user = resp.readEntity(HashMap.class);
                     if(user != null)
                     {
+                        List<UserVipslogicRole> roles = SessionControllerGetter.getUserBean().getUserVipslogicRole((Integer)user.get("vipsCoreUserId"));
+                        user.put("roles", roles);
                         request.getSession().setAttribute("user", user);
                         response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                     }

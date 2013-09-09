@@ -26,6 +26,21 @@ public class SessionControllerGetter {
         }
     }
     
+    public static UserBean getUserBean()
+    {
+        try
+        {
+            InitialContext ic = new InitialContext();
+            UserBean retVal = (UserBean) ic.lookup(SessionControllerGetter.getJndiPath(UserBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + UserBean.class.getSimpleName());
+            return null;
+        }
+    }
+    
     private static String getJndiPath(Class obj)
     {
         String retVal = SessionControllerGetter.JNDI_PATH + obj.getSimpleName();

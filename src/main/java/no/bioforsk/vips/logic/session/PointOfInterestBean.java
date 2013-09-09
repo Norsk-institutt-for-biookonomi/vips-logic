@@ -42,6 +42,12 @@ public class PointOfInterestBean {
         return q.getResultList();
     }
     
+    public List<PointOfInterestWeatherStation> getAllWeatherStations()
+    {
+        Query q = em.createNamedQuery("PointOfInterestWeatherStation.findAll");
+        return q.getResultList();
+    }
+    
     /**
      * 
      * @param pointOfInterestId
