@@ -13,6 +13,7 @@ public class Globals {
      */
     public static final String[] UNPRIVILEGED_URLS = {
         "/favicon.ico",
+        "/js",
         "/login",
         "/css",
         "/403",
