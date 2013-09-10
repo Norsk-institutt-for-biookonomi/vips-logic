@@ -84,10 +84,10 @@ public class AuthenticationFilter implements Filter{
     }
 
     /**
-     * @param upriviligerteURLer the upriviligerteURLer to set
+     * @param unprivilegedURLs the upriviligerteURLer to set
      */
-    public void setUnprivilegedURLs(String[] upriviligerteURLer) {
-        this.unprivilegedURLs = upriviligerteURLer;
+    public void setUnprivilegedURLs(String[] unprivilegedURLs) {
+        this.unprivilegedURLs = unprivilegedURLs;
     }
 
     

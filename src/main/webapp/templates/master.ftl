@@ -5,6 +5,9 @@
         <!-- Custom styles for VIPSLogic -->
 	<link href="css/vipslogic.css" rel="stylesheet" media="screen" />
 </#macro>
+<#macro custom_js>
+
+</#macro>
 <#macro page_contentwrap_start>
 <!-- start contentwrapper-->
 <div class="container">
@@ -75,6 +78,7 @@
 <!-- end contentwrapper-->
 </#macro>
 
+
 <#macro page_html>
 <!DOCTYPE html>
 <html lang="no">
@@ -99,6 +103,7 @@
 	<script src="http://code.jquery.com/jquery.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<script src="js/bootstrap.min.js"></script>
+	<@custom_js/>
 </body>
 </html>
 </#macro> 

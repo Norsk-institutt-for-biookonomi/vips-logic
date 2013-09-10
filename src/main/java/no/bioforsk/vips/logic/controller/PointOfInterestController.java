@@ -1,12 +1,14 @@
 package no.bioforsk.vips.logic.controller;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
 
@@ -54,15 +56,25 @@ public class PointOfInterestController extends HttpServlet {
             }
             else
             {
-                request.getSession().setAttribute("weatherStation", SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId)));
+                PointOfInterest weatherStation = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
+                if(weatherStation instanceof PointOfInterestWeatherStation)
+                {
+                    PointOfInterestWeatherStation stationWithDataSource = (PointOfInterestWeatherStation) weatherStation;
+                    String[] formatParam = new String[1];
+                    formatParam[0] = stationWithDataSource.getWeatherStationRemoteId();
+                    String dataRequestUri = new MessageFormat(stationWithDataSource.getWeatherStationDataSourceId().getDatafetchUriExpression()).format(formatParam);
+                    request.getSession().setAttribute("weatherStation", stationWithDataSource);
+                    request.getSession().setAttribute("dataRequestUri", dataRequestUri);
+                }
+                else
+                {
+                    request.getSession().setAttribute("weatherStation", weatherStation);
+                }
                 request.getRequestDispatcher("/weatherstation.ftl").forward(request, response);
             }
         }
-        
-        
     }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP
      * <code>GET</code> method.
