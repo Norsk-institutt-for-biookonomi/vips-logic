@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -70,6 +71,8 @@ public class PointOfInterestController extends HttpServlet {
                 {
                     request.getSession().setAttribute("weatherStation", weatherStation);
                 }
+                request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                request.getSession().setAttribute("defaultTimeZoneId", TimeZone.getDefault().getID());
                 request.getRequestDispatcher("/weatherstation.ftl").forward(request, response);
             }
         }

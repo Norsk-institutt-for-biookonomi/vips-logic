@@ -38,6 +38,7 @@
 				<select name="elementMeasurementTypes[]" multiple="multiple" cols="10" size="5">
 					<option value="TM">TM</option>
 					<option value="RR">RR</option>
+					<option value="BT">BT</option>
 				</select>
 			</div>
 		</div>
@@ -76,8 +77,13 @@
 			<label class="col-lg-4 control-label" for="endDate">${i18nBundle.timeZone}</label>
 			<div class="col-lg-8">
 				<select name="timeZone">
+				<!--
 				<#list -12..12 as offset>
-					<option value="${offset}"<#if offset == 0> selected="selected"</#if>><#if (offset >= 0)>+</#if>${offset?string("00")}</option>
+					<option value="<#if (offset >= 0)>+</#if>${offset?string("00")}"<#if offset == 0> selected="selected"</#if>><#if (offset >= 0)>+</#if>${offset?string("00")}</option>
+				</#list>
+				-->
+				<#list availableTimeZones as timeZoneId>
+				<option value="${timeZoneId}"<#if timeZoneId == defaultTimeZoneId> selected="selected"</#if>>${timeZoneId}</option>
 				</#list>
 				</select>
 			</div>
