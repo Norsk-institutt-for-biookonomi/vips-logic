@@ -18,7 +18,7 @@ import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
 import no.bioforsk.vips.logic.entity.UserVipslogicRole;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
-import no.bioforsk.vips.logic.util.ServletUtil;
+import no.bioforsk.vips.util.ServletUtil;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
@@ -28,7 +28,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
  */
 public class LoginController extends HttpServlet {
     
-    private final static String VIPSCOREMANAGER_URL = "https://localhost:8443/VIPSCoreManager";
+    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.bioforsk.vips.coremanager.VIPSCOREMANAGER_URL");
 
     /**
      * Processes requests for both HTTP

@@ -17,7 +17,7 @@ import org.jboss.resteasy.spi.HttpRequest;
  */
 @Path("")
 public class LogicService {
-    private final static String VIPSCOREMANAGER_URL = "https://localhost:8443/VIPSCoreManager";
+    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.bioforsk.vips.coremanager.VIPSCOREMANAGER_URL");
     
     @Context
     private HttpRequest httpRequest;

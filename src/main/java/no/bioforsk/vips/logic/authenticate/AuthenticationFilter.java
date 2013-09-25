@@ -6,9 +6,8 @@ import java.net.URLEncoder;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpUtils;
 import no.bioforsk.vips.logic.util.Globals;
-import no.bioforsk.vips.logic.util.ServletUtil;
+import no.bioforsk.vips.util.ServletUtil;
 
 /**
  * Ensures that user accessing a restricted resource is actually logged in. Redirects to login page if not
