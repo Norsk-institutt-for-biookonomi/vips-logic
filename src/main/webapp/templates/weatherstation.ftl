@@ -23,6 +23,9 @@
 		<li>${i18nBundle.longitude}: ${weatherStation.longitude!i18nBundle.missing}</li>
 		<li>${i18nBundle.altitude}: ${weatherStation.altitude!i18nBundle.missing}</li>
 	</ul>
+	<!--iframe src="http://maps.google.com/?t=m&q=loc:${weatherStation.latitude?c},${weatherStation.longitude?c}&z=14" style="height: 200px;width:300px;"></iframe-->
+	<iframe width="300" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.google.com/maps?t=m&amp;q=loc:${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;iwloc=near&amp;ie=UTF8&amp;z=14&amp;ll=${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;output=embed"></iframe><br/>
+	<a href="https://www.google.com/maps?t=m&amp;q=loc:${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;iwloc=near&amp;ie=UTF8&amp;z=14&amp;ll=${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;source=embed" target="new">${i18nBundle.viewFullScreen}</a>
 	<h2>${i18nBundle.dataSource}</h2>
 	<#if weatherStation.weatherStationDataSourceId??>
 	<ul>
