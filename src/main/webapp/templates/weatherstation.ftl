@@ -3,18 +3,7 @@
         <title>${weatherStation.name}</title>
         
 </#macro>
-<#macro custom_js>
-<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
-<link href="http://code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
-<script type="text/javascript" src="/js/modernizr_custom.js"></script>
-<script type="text/javascript">
-	// Make sure that there is a date picker present for HTML5 
-	// date input fields
-	if (!Modernizr.inputtypes.date) {
-	    $('input[type=date]').datepicker({ dateFormat: 'yy-mm-dd' });
-	}
-</script>
-</#macro>
+
 <#macro page_contents>
         <h1>${weatherStation.name}</h1>
         <h2>${i18nBundle.position}</h2>
@@ -23,9 +12,10 @@
 		<li>${i18nBundle.longitude}: ${weatherStation.longitude!i18nBundle.missing}</li>
 		<li>${i18nBundle.altitude}: ${weatherStation.altitude!i18nBundle.missing}</li>
 	</ul>
-	<!--iframe src="http://maps.google.com/?t=m&q=loc:${weatherStation.latitude?c},${weatherStation.longitude?c}&z=14" style="height: 200px;width:300px;"></iframe-->
-	<iframe width="300" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.google.com/maps?t=m&amp;q=loc:${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;iwloc=near&amp;ie=UTF8&amp;z=14&amp;ll=${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;output=embed"></iframe><br/>
-	<a href="https://www.google.com/maps?t=m&amp;q=loc:${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;iwloc=near&amp;ie=UTF8&amp;z=14&amp;ll=${weatherStation.latitude?c},${weatherStation.longitude?c}&amp;source=embed" target="new">${i18nBundle.viewFullScreen}</a>
+	<iframe width="300" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
+	src="http://www.openstreetmap.org/export/embed.html?bbox=${(weatherStation.longitude-0.037722588)?c}%2C${(weatherStation.latitude-0.016374048)?c}%2C${(weatherStation.longitude+0.037722588)?c}%2C${(weatherStation.latitude+0.016374048)?c}&amp;layer=mapnik&amp;marker=${weatherStation.latitude?c}%2C${weatherStation.longitude?c}" 
+	style="border: 1px solid black"></iframe><br/>
+	<a href="http://www.openstreetmap.org/?mlat=${weatherStation.latitude?c}&amp;mlon=${weatherStation.longitude?c}#map=14/${weatherStation.latitude?c}/${weatherStation.longitude?c}&amp;layers=N" target="new">${i18nBundle.viewFullScreen}</a>
 	<h2>${i18nBundle.dataSource}</h2>
 	<#if weatherStation.weatherStationDataSourceId??>
 	<ul>
@@ -42,6 +32,8 @@
 					<option value="TM">TM</option>
 					<option value="RR">RR</option>
 					<option value="BT">BT</option>
+					<option value="Q0">Q0</option>
+					<option value="UM">UM</option>
 				</select>
 			</div>
 		</div>

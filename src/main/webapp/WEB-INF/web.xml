@@ -12,8 +12,8 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
-        <url-pattern>/poi</url-pattern>
-        <url-pattern>/weatherStation</url-pattern>
+        <url-pattern>/poi/*</url-pattern>
+        <url-pattern>/weatherStation/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
