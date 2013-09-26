@@ -39,9 +39,19 @@ public class PointOfInterestController extends HttpServlet {
         Map userInfo = (Map) request.getSession().getAttribute("user");
         Integer userId = (Integer) userInfo.get("vipsCoreUserId");
         
+        /*
+        System.out.println("PathInfo=" + request.getPathInfo());
+        System.out.println("PathTranslated=" + request.getPathTranslated());
+        System.out.println("ServletPath=" + request.getServletPath());
+        System.out.println("RequestURI=" + request.getRequestURI());
+        System.out.println("RequestURL=" + request.getRequestURL());
+        */
+        
         if(request.getServletPath().equals("/weatherStation"))
         {
+            // Decide if requsted view is list view or single view
             String pointOfInterestId = request.getParameter("pointOfInterestId");
+            // List view
             if(pointOfInterestId == null)
             {
                 List<PointOfInterestWeatherStation> weatherStations;
@@ -55,6 +65,7 @@ public class PointOfInterestController extends HttpServlet {
                 request.getSession().setAttribute("weatherStations", weatherStations);
                 request.getRequestDispatcher("/weatherstationlist.ftl").forward(request, response);
             }
+            // Single view
             else
             {
                 PointOfInterest weatherStation = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
@@ -73,7 +84,16 @@ public class PointOfInterestController extends HttpServlet {
                 }
                 request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
                 request.getSession().setAttribute("defaultTimeZoneId", TimeZone.getDefault().getID());
-                request.getRequestDispatcher("/weatherstation.ftl").forward(request, response);
+                
+                // Dispatch to read or write view?
+                if(request.getPathInfo() != null && request.getPathInfo().equals("/edit"))
+                {
+                    request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
+                }
+                else
+                {
+                    request.getRequestDispatcher("/weatherstation.ftl").forward(request, response);
+                }
             }
         }
     }
