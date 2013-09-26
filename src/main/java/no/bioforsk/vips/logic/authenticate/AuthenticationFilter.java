@@ -40,9 +40,8 @@ public class AuthenticationFilter implements Filter{
                 String nextPageDirective = "";
                 if(!httpRequest.getServletPath().equals("/login"));
                 {
-                    StringBuilder nextPage=new StringBuilder(httpRequest.getServletPath())
-                            .append(httpRequest.getQueryString() != null ? "?" + httpRequest.getQueryString() : "");
-                    nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage.toString(), "UTF-8");
+                    String nextPage = ServletUtil.getFullRequestURI(httpRequest);
+                    nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
                 }
                 ((HttpServletResponse)response).sendRedirect("http://" + ServletUtil.getServerName(httpRequest) + "/login" + nextPageDirective);
             }
