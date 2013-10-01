@@ -41,6 +41,21 @@ public class SessionControllerGetter {
         }
     }
     
+    public static SchedulingBean getSchedulingBean()
+    {
+        try
+        {
+            InitialContext ic = new InitialContext();
+            SchedulingBean retVal = (SchedulingBean) ic.lookup(SessionControllerGetter.getJndiPath(SchedulingBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + SchedulingBean.class.getSimpleName());
+            return null;
+        }
+    }
+    
     private static String getJndiPath(Class obj)
     {
         String retVal = SessionControllerGetter.JNDI_PATH + obj.getSimpleName();
