@@ -3,6 +3,7 @@ package no.bioforsk.vips.logic.session;
 import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.SchedulingPattern;
 import it.sauronsoftware.cron4j.TaskCollector;
+import it.sauronsoftware.cron4j.TaskExecutor;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
@@ -43,12 +44,19 @@ public class SchedulingBean {
         // Real life: Get stuff from database
         // Idea: One TaskCollector per organization? Then we can
         // manipulate tasks per org pretty neatly (?)
+        
+        // Also: the Task may be configured _here_ (since we use the Tasks constructor), 
+        // at creation time.
         List<TaskCollector> definedTasks = new ArrayList<>();
         VIPSLogicTaskCollector testCollector = new VIPSLogicTaskCollector(-1);
         SchedulingPattern schedulingPattern = new SchedulingPattern("* * * * *");
         testCollector.getTasks().add(schedulingPattern, new SchedulingTest());
         definedTasks.add(testCollector);
         return definedTasks;
+    }
+    
+    public TaskExecutor[] getRunningTasks(){
+        return this.getSystemScheduler().getExecutingTasks();
     }
 
 }
