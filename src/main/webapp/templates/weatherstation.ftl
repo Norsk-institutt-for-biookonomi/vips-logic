@@ -4,6 +4,19 @@
         
 </#macro>
 
+<#macro custom_js>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+<link href="http://code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
+<script type="text/javascript" src="/js/modernizr_custom.js"></script>
+<script type="text/javascript">
+	// Make sure that there is a date picker present for HTML5 
+	// date input fields
+	if (!Modernizr.inputtypes.date) {
+	    $('input[type=date]').datepicker({ dateFormat: 'yy-mm-dd' });
+	}
+</script>
+</#macro>
+
 <#macro page_contents>
         <h1>${weatherStation.name}</h1>
         <h2>${i18nBundle.position}</h2>
