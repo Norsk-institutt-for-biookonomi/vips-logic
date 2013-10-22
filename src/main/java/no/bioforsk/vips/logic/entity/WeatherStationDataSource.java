@@ -90,7 +90,7 @@ public class WeatherStationDataSource implements Serializable {
     public String getDatafetchUriExpression() {
         return datafetchUriExpression;
     }
-
+    
     public void setDatafetchUriExpression(String datafetchUriExpression) {
         this.datafetchUriExpression = datafetchUriExpression;
     }
@@ -109,10 +109,7 @@ public class WeatherStationDataSource implements Serializable {
             return false;
         }
         WeatherStationDataSource other = (WeatherStationDataSource) object;
-        if ((this.weatherStationDataSourceId == null && other.weatherStationDataSourceId != null) || (this.weatherStationDataSourceId != null && !this.weatherStationDataSourceId.equals(other.weatherStationDataSourceId))) {
-            return false;
-        }
-        return true;
+        return (this.weatherStationDataSourceId != null || other.weatherStationDataSourceId == null) && (this.weatherStationDataSourceId == null || this.weatherStationDataSourceId.equals(other.weatherStationDataSourceId));
     }
 
     @Override
