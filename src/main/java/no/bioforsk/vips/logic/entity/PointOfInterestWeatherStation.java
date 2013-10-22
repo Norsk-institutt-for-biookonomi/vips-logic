@@ -1,6 +1,7 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
+import java.text.MessageFormat;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -12,7 +13,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import no.bioforsk.vips.logic.util.Globals;
 
 /**
  * Extension of {@see PointOfInterest}, with additional info for weather stations
@@ -100,4 +100,17 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
         return "no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation[ pointOfInterestId=" + this.getPointOfInterestId() + " ]";
     }
 
+    /**
+     * Returns the complete URI for fetching weather data from the given
+     * weather data source and weather station
+     * @return 
+     */
+    public String getDataFetchUri()
+    {
+        String[] formatParam = new String[1];
+        formatParam[0] = this.getWeatherStationRemoteId();
+        String dataRequestUri = new MessageFormat(this.getWeatherStationDataSourceId().getDatafetchUriExpression()).format(formatParam);
+        return dataRequestUri;
+    }
+    
 }
