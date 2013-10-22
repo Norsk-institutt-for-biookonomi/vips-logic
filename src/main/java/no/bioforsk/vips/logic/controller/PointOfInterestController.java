@@ -1,7 +1,6 @@
 package no.bioforsk.vips.logic.controller;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -72,11 +71,7 @@ public class PointOfInterestController extends HttpServlet {
                 if(weatherStation instanceof PointOfInterestWeatherStation)
                 {
                     PointOfInterestWeatherStation stationWithDataSource = (PointOfInterestWeatherStation) weatherStation;
-                    String[] formatParam = new String[1];
-                    formatParam[0] = stationWithDataSource.getWeatherStationRemoteId();
-                    String dataRequestUri = new MessageFormat(stationWithDataSource.getWeatherStationDataSourceId().getDatafetchUriExpression()).format(formatParam);
                     request.getSession().setAttribute("weatherStation", stationWithDataSource);
-                    request.getSession().setAttribute("dataRequestUri", dataRequestUri);
                 }
                 else
                 {
