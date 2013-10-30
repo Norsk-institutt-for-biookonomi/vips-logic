@@ -20,6 +20,7 @@ import no.bioforsk.vips.coremanager.service.ManagerResource;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.ModelRunRequest;
 import no.bioforsk.vips.entity.Result;
+import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.scheduling.SchedulingTest;
 import no.bioforsk.vips.logic.scheduling.VIPSLogicTaskCollector;
 import no.bioforsk.vips.logic.scheduling.model.AppleScabModelPreprocessor;
@@ -93,7 +94,11 @@ public class SchedulingBean {
             
             Response resp = this.getManagerResource().runModel("APPLESCABM", request);
             List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
-
+            for(Result result:results)
+            {
+                ForecastResult fResult = new ForecastResult(result);
+                em.persist(fResult);
+            }
             return results;
     }
     

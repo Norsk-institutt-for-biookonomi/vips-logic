@@ -56,6 +56,20 @@ public class SessionControllerGetter {
         }
     }
     
+    public static ForecastBean getForecastBean(){
+        try
+        {
+            InitialContext ic = new InitialContext();
+            ForecastBean retVal = (ForecastBean) ic.lookup(SessionControllerGetter.getJndiPath(ForecastBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + ForecastBean.class.getSimpleName());
+            return null;
+        }
+    }
+    
     private static String getJndiPath(Class obj)
     {
         String retVal = SessionControllerGetter.JNDI_PATH + obj.getSimpleName();

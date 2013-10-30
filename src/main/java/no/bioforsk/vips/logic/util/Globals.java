@@ -17,7 +17,8 @@ public class Globals {
         "/login",
         "/css",
         "/403",
-        "/404"
+        "/404",
+        "/rest"
     };
     
     // Point of interest type IDs
