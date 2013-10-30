@@ -1,8 +1,6 @@
 package no.bioforsk.vips.logic.startup;
 
-import it.sauronsoftware.cron4j.Scheduler;
 import javax.servlet.ServletContextEvent;
-import no.bioforsk.vips.logic.scheduling.SchedulingTest;
 import no.bioforsk.vips.logic.session.SchedulingBean;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
 
@@ -25,7 +23,16 @@ public class StartupListener implements javax.servlet.ServletContextListener{
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("VIPSLogic system initializing");
         // Testing startup of scheduling
-        SessionControllerGetter.getSchedulingBean().startSystemScheduler();
+        // Temporarily disabled
+        //SessionControllerGetter.getSchedulingBean().startSystemScheduler();
+        /*try
+        {
+            SessionControllerGetter.getSchedulingBean().testPreprocessor();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }*/
         
     }
 
@@ -37,6 +44,6 @@ public class StartupListener implements javax.servlet.ServletContextListener{
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("VIPSLogic system shutting down");
         // Shutting down scheduler
-        SessionControllerGetter.getSchedulingBean().stopSystemScheduler();
+        //SessionControllerGetter.getSchedulingBean().stopSystemScheduler();
     }
 }

@@ -17,7 +17,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -43,10 +42,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "PointOfInterest.findByAltitude", query = "SELECT p FROM PointOfInterest p WHERE p.altitude = :altitude")
 })
 public class PointOfInterest implements Serializable, Comparable {
-    /*@OneToOne(cascade = CascadeType.ALL, mappedBy = "pointOfInterest")
-    private PointOfInterestWeatherStation pointOfInterestWeatherStation;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "pointOfInterest")
-    private Set<PointOfInterestWeatherStation> pointOfInterestWeatherStationSet;*/
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,6 +52,9 @@ public class PointOfInterest implements Serializable, Comparable {
     @Size(max = 255)
     @Column(name = "name")
     private String name;
+    @Size(max = 255)
+    @Column(name = "time_zone")
+    private String timeZone;
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "longitude")
     private Double longitude;
@@ -191,23 +190,19 @@ public class PointOfInterest implements Serializable, Comparable {
         return this.getName().compareToIgnoreCase(other.getName());
     }
 
-    /*
-    @XmlTransient
-    @JsonIgnore
-    public Set<PointOfInterestWeatherStation> getPointOfInterestWeatherStationSet() {
-        return pointOfInterestWeatherStationSet;
+    
+
+    /**
+     * @return the timeZone
+     */
+    public String getTimeZone() {
+        return timeZone;
     }
 
-    public void setPointOfInterestWeatherStationSet(Set<PointOfInterestWeatherStation> pointOfInterestWeatherStationSet) {
-        this.pointOfInterestWeatherStationSet = pointOfInterestWeatherStationSet;
+    /**
+     * @param timeZone the timeZone to set
+     */
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
-
-    public PointOfInterestWeatherStation getPointOfInterestWeatherStation() {
-        return pointOfInterestWeatherStation;
-    }
-
-    public void setPointOfInterestWeatherStation(PointOfInterestWeatherStation pointOfInterestWeatherStation) {
-        this.pointOfInterestWeatherStation = pointOfInterestWeatherStation;
-    }
-*/
 }

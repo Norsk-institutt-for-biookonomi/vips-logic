@@ -6,7 +6,6 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
-import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -16,13 +15,10 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -38,8 +34,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "PointOfInterestType.findByPointOfInterestTypeId", query = "SELECT p FROM PointOfInterestType p WHERE p.pointOfInterestTypeId = :pointOfInterestTypeId"),
     @NamedQuery(name = "PointOfInterestType.findByDefaultName", query = "SELECT p FROM PointOfInterestType p WHERE p.defaultName = :defaultName")})
 public class PointOfInterestType implements Serializable {
-    /*@OneToMany(mappedBy = "pointOfInterestTypeId")
-    private Set<PointOfInterest> pointOfInterestSet;*/
+
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
@@ -98,15 +93,7 @@ public class PointOfInterestType implements Serializable {
         return "no.bioforsk.vips.logic.entity.PointOfInterestType[ pointOfInterestTypeId=" + pointOfInterestTypeId + " ]";
     }
 
-    /*
-    @XmlTransient
-    @JsonIgnore
-    public Set<PointOfInterest> getPointOfInterestSet() {
-        return pointOfInterestSet;
-    }
-
-    public void setPointOfInterestSet(Set<PointOfInterest> pointOfInterestSet) {
-        this.pointOfInterestSet = pointOfInterestSet;
-    }*/
+    
+    
 
 }

@@ -37,7 +37,7 @@
 		<li>${i18nBundle.weatherStationRemoteId}: ${weatherStation.weatherStationRemoteId!i18nBundle.weatherStationRemoteIdMissing}</li>
 	</ul>
 	<h3>${i18nBundle.test} ${i18nBundle.dataSource?lower_case}</h3>
-	<form action="${dataRequestUri}" method="POST" target="new" class="form-horizontal" role="form">
+	<form action="${weatherStation.dataFetchUri}" method="POST" target="new" class="form-horizontal" role="form">
 		<div class="form-group">
 			<label class="col-lg-4 control-label" for="elementMeasurementTypes[]">${i18nBundle.elementMeasurementTypes}</label>
 			<div class="col-lg-8">
@@ -91,7 +91,7 @@
 				</#list>
 				-->
 				<#list availableTimeZones as timeZoneId>
-				<option value="${timeZoneId}"<#if timeZoneId == defaultTimeZoneId> selected="selected"</#if>>${timeZoneId}</option>
+				<option value="${timeZoneId}"<#if timeZoneId == weatherStation.timeZone> selected="selected"</#if>>${timeZoneId}</option>
 				</#list>
 				</select>
 			</div>
