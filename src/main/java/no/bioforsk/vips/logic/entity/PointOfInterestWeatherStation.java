@@ -13,6 +13,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * Extension of {@see PointOfInterest}, with additional info for weather stations
@@ -35,6 +36,7 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
     @JoinColumn(name = "weather_station_data_source_id", referencedColumnName = "weather_station_data_source_id")
     @ManyToOne
     private WeatherStationDataSource weatherStationDataSourceId;
+    @JsonIgnore
     @JoinColumn(name = "point_of_interest_id", referencedColumnName = "point_of_interest_id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     private PointOfInterest pointOfInterest;
