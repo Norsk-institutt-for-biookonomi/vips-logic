@@ -46,7 +46,7 @@ public class ForecastConfiguration implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "forecast_configuration_id")
-    private Integer forecastConfigurationId;
+    private Long forecastConfigurationId;
     @Size(max = 10)
     @Column(name = "model_id")
     private String modelId;
@@ -65,15 +65,15 @@ public class ForecastConfiguration implements Serializable {
     public ForecastConfiguration() {
     }
 
-    public ForecastConfiguration(Integer forecastConfigurationId) {
+    public ForecastConfiguration(Long forecastConfigurationId) {
         this.forecastConfigurationId = forecastConfigurationId;
     }
 
-    public Integer getForecastConfigurationId() {
+    public Long getForecastConfigurationId() {
         return forecastConfigurationId;
     }
 
-    public void setForecastConfigurationId(Integer forecastConfigurationId) {
+    public void setForecastConfigurationId(Long forecastConfigurationId) {
         this.forecastConfigurationId = forecastConfigurationId;
     }
 

@@ -15,13 +15,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import no.bioforsk.vips.entity.Result;
+import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -37,6 +37,7 @@ import org.codehaus.jackson.type.TypeReference;
 @NamedQueries({
     @NamedQuery(name = "ForecastResult.findAll", query = "SELECT f FROM ForecastResult f ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByForecastResultId", query = "SELECT f FROM ForecastResult f WHERE f.forecastResultId = :forecastResultId ORDER BY f.resultValidTime ASC"),
+    @NamedQuery(name = "ForecastResult.findByForecastConfigurationId", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByResultValidTime", query = "SELECT f FROM ForecastResult f WHERE f.resultValidTime = :resultValidTime ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByWarningStatus", query = "SELECT f FROM ForecastResult f WHERE f.warningStatus = :warningStatus ORDER BY f.resultValidTime ASC")})
 public class ForecastResult implements Serializable, Comparable {
@@ -53,6 +54,8 @@ public class ForecastResult implements Serializable, Comparable {
     private Integer warningStatus;
     @Column(name = "all_values")
     private String allValues;
+    @Column(name = "forecast_configuration_id")
+    private ForecastConfiguration forecastConfigurationId;
 
     public ForecastResult() {
     }
@@ -169,5 +172,19 @@ public class ForecastResult implements Serializable, Comparable {
     public int compareTo(ForecastResult other)
     {
         return this.getResultValidTime().compareTo(other.getResultValidTime());
+    }
+
+    /**
+     * @return the forecastConfigurationId
+     */
+    public ForecastConfiguration getForecastConfigurationId() {
+        return forecastConfigurationId;
+    }
+
+    /**
+     * @param forecastConfigurationId the forecastConfigurationId to set
+     */
+    public void setForecastConfigurationId(ForecastConfiguration forecastConfigurationId) {
+        this.forecastConfigurationId = forecastConfigurationId;
     }
 }

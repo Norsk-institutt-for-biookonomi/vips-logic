@@ -50,6 +50,25 @@ public class LogicService {
         return Response.ok().entity(results).build();
     }
     
+    /**
+     * Returns the requested forecast configuration
+     * @param forecastConfigurationId
+     * @return 
+     */
+    @GET
+    @Path("forecastconfigurations/{forecastConfigurationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
+    {
+        ForecastConfiguration forecastConfiguration = SessionControllerGetter.getForecastBean().getForecastConfiguration(forecastConfigurationId);
+        return Response.ok().entity(forecastConfiguration).build();
+    }
+    
+    /**
+     * Returns a list of forecasts for given organization
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("organizationforecastconfigurations/{organizationId}")
     @Produces("application/json;charset=UTF-8")
@@ -71,6 +90,16 @@ public class LogicService {
         }
         
         return Response.ok().entity(forecasts).build();
+    }
+    
+    
+    
+    @GET
+    @Path("blah")
+    @Produces("text/plain;charset=UTF-8")
+    public Response test()
+    {
+        return Response.ok().entity("Blah").build();
     }
     
     private ManagerResource getManagerResource()
