@@ -1,14 +1,18 @@
 package no.bioforsk.vips.logic.session;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Properties;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import no.bioforsk.vips.logic.entity.UserVipslogicRole;
-import no.bioforsk.vips.logic.util.Globals;
+import no.bioforsk.vips.logic.entity.UserAuthentication;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.util.MD5Encrypter;
 
 /**
  * Handles user stuff, credentials
@@ -18,29 +22,49 @@ import no.bioforsk.vips.logic.util.Globals;
 @LocalBean
 @Stateless
 public class UserBean {
+    
+    
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
     
-    /**
-     * 
-     * @param userId
-     * @return list of roles for this user
-     */
-    public List<UserVipslogicRole> getUserVipslogicRole(Integer userId)
+    private Properties serverProperties;
+    
+    public VipsLogicUser authenticateUser(Map loginInfo)
     {
-        Query q = em.createNamedQuery("UserVipslogicRole.findByUserId", UserVipslogicRole.class);
-        q.setParameter("userId", userId);
-        return q.getResultList();
+        
+        try
+        {
+            Query q = em.createNamedQuery("UserAuthentication.findByUsernameAndPassword", UserAuthentication.class);
+            q.setParameter("username", loginInfo.get("username"));
+            String salt = this.getVIPSLogicServerProperties().getProperty("MD5_SALT");
+            q.setParameter("password", MD5Encrypter.getMD5HexString((String)loginInfo.get("password"),salt));
+            UserAuthentication result = (UserAuthentication) q.getSingleResult();
+            return result.getVipsLogicUser();
+        }
+        catch(NoResultException | IOException ex)
+        {
+            if(ex instanceof IOException)
+            {
+                // TODO Throw an error instead
+                ex.printStackTrace();
+            }
+            // TODO sensible handling
+            return null;
+        }
     }
     
-    public boolean isSuperUser(Map userInfo)
+    /**
+     * @return Properties for this server
+     */
+    private Properties getVIPSLogicServerProperties() throws IOException
     {
-        List<UserVipslogicRole> roles = (List<UserVipslogicRole>) userInfo.get("roles");
-        for(UserVipslogicRole role : roles)
+        if(this.serverProperties == null)
         {
-            if(role.getVipslogicRole().getVipslogicRoleId().equals(Globals.ROLE_SUPERUSER))
-                return true;
+            this.serverProperties = new Properties();
+            try (InputStream in = this.getClass().getResourceAsStream("/server.properties")) {
+                this.serverProperties.load(in);
+            } 
         }
-        return false;
+        return this.serverProperties;
     }
 }

@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.util.ServletUtil;
 
@@ -34,11 +35,11 @@ public class AuthenticationFilter implements Filter{
         }
         else
         {
-            boolean redirectToLogin = httpRequest.getSession().getAttribute("user") == null;
+            boolean redirectToLogin = (httpRequest.getSession().getAttribute("user") == null || !( httpRequest.getSession().getAttribute("user")  instanceof VipsLogicUser));
             if(redirectToLogin)
             {
                 String nextPageDirective = "";
-                if(!httpRequest.getServletPath().equals("/login"));
+                if(!httpRequest.getServletPath().equals("/login"))
                 {
                     String nextPage = ServletUtil.getFullRequestURI(httpRequest);
                     nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");

@@ -1,0 +1,180 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package no.bioforsk.vips.logic.entity;
+
+import java.io.Serializable;
+import java.util.Set;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+/**
+ * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ */
+@Entity
+@Table(name = "organization")
+@XmlRootElement
+@NamedQueries({
+    @NamedQuery(name = "Organization.findAll", query = "SELECT o FROM Organization o"),
+    @NamedQuery(name = "Organization.findByOrganizationId", query = "SELECT o FROM Organization o WHERE o.organizationId = :organizationId"),
+    @NamedQuery(name = "Organization.findByOrganizationName", query = "SELECT o FROM Organization o WHERE o.organizationName = :organizationName"),
+    @NamedQuery(name = "Organization.findByAddress1", query = "SELECT o FROM Organization o WHERE o.address1 = :address1"),
+    @NamedQuery(name = "Organization.findByAddress2", query = "SELECT o FROM Organization o WHERE o.address2 = :address2"),
+    @NamedQuery(name = "Organization.findByPostalCode", query = "SELECT o FROM Organization o WHERE o.postalCode = :postalCode")})
+public class Organization implements Serializable {
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "organization_id")
+    private Integer organizationId;
+    @Size(max = 255)
+    @Column(name = "organization_name")
+    private String organizationName;
+    @Size(max = 255)
+    @Column(name = "address1")
+    private String address1;
+    @Size(max = 255)
+    @Column(name = "address2")
+    private String address2;
+    @Size(max = 63)
+    @Column(name = "postal_code")
+    private String postalCode;
+    @OneToMany(mappedBy = "parentOrganizationId")
+    private Set<Organization> organizationSet;
+    @JoinColumn(name = "parent_organization_id", referencedColumnName = "organization_id")
+    @ManyToOne
+    private Organization parentOrganizationId;
+    @JoinColumn(name = "country_code", referencedColumnName = "country_code")
+    @ManyToOne
+    private Country countryCode;
+    @OneToMany(mappedBy = "organizationId")
+    private Set<VipsLogicUser> vipsLogicUserSet;
+
+    public Organization() {
+    }
+
+    public Organization(Integer organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public Integer getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(Integer organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public String getAddress1() {
+        return address1;
+    }
+
+    public void setAddress1(String address1) {
+        this.address1 = address1;
+    }
+
+    public String getAddress2() {
+        return address2;
+    }
+
+    public void setAddress2(String address2) {
+        this.address2 = address2;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    @XmlTransient
+    @JsonIgnore
+    public Set<Organization> getOrganizationSet() {
+        return organizationSet;
+    }
+
+    public void setOrganizationSet(Set<Organization> organizationSet) {
+        this.organizationSet = organizationSet;
+    }
+
+    public Organization getParentOrganizationId() {
+        return parentOrganizationId;
+    }
+
+    public void setParentOrganizationId(Organization parentOrganizationId) {
+        this.parentOrganizationId = parentOrganizationId;
+    }
+
+    public Country getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(Country countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    @XmlTransient
+    @JsonIgnore
+    public Set<VipsLogicUser> getVipsLogicUserSet() {
+        return vipsLogicUserSet;
+    }
+
+    public void setVipsLogicUserSet(Set<VipsLogicUser> vipsLogicUserSet) {
+        this.vipsLogicUserSet = vipsLogicUserSet;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (organizationId != null ? organizationId.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Organization)) {
+            return false;
+        }
+        Organization other = (Organization) object;
+        if ((this.organizationId == null && other.organizationId != null) || (this.organizationId != null && !this.organizationId.equals(other.organizationId))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "no.bioforsk.vips.logic.entity.Organization[ organizationId=" + organizationId + " ]";
+    }
+
+}

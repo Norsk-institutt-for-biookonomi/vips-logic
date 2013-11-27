@@ -2,7 +2,6 @@ package no.bioforsk.vips.logic.controller;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -10,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
 
 /**
@@ -35,8 +35,7 @@ public class PointOfInterestController extends HttpServlet {
         request.getSession().removeAttribute("weatherStations");
         request.getSession().removeAttribute("weatherStation");
         
-        Map userInfo = (Map) request.getSession().getAttribute("user");
-        Integer userId = (Integer) userInfo.get("vipsCoreUserId");
+        VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
         
         /*
         System.out.println("PathInfo=" + request.getPathInfo());
@@ -54,12 +53,12 @@ public class PointOfInterestController extends HttpServlet {
             if(pointOfInterestId == null)
             {
                 List<PointOfInterestWeatherStation> weatherStations;
-                if(SessionControllerGetter.getUserBean().isSuperUser(userInfo)){
+                if(user.isSuperUser()){
                     weatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
                 }
                 else
                 {
-                    weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(userId);
+                    weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(user.getUserId());
                 }
                 request.getSession().setAttribute("weatherStations", weatherStations);
                 request.getRequestDispatcher("/weatherstationlist.ftl").forward(request, response);

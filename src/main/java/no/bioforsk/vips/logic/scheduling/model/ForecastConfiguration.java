@@ -58,9 +58,12 @@ public class ForecastConfiguration implements Serializable {
     private Date dateEnd;
     @Column(name = "vips_core_user_id")
     private Integer vipsCoreUserId;
-    @JoinColumn(name = "point_of_interest_id", referencedColumnName = "point_of_interest_id")
+    @JoinColumn(name = "location_point_of_interest_id", referencedColumnName = "point_of_interest_id")
     @ManyToOne
-    private PointOfInterest pointOfInterestId;
+    private PointOfInterest locationPointOfInterestId;
+    @JoinColumn(name = "weather_station_point_of_interest_id", referencedColumnName = "point_of_interest_id")
+    @ManyToOne
+    private PointOfInterest weatherStationPointOfInterestId;
 
     public ForecastConfiguration() {
     }
@@ -109,12 +112,12 @@ public class ForecastConfiguration implements Serializable {
         this.vipsCoreUserId = vipsCoreUserId;
     }
 
-    public PointOfInterest getPointOfInterestId() {
-        return pointOfInterestId;
+    public PointOfInterest getLocationPointOfInterestId() {
+        return locationPointOfInterestId;
     }
 
-    public void setPointOfInterestId(PointOfInterest pointOfInterestId) {
-        this.pointOfInterestId = pointOfInterestId;
+    public void setLocationPointOfInterestId(PointOfInterest locationPointOfInterestId) {
+        this.locationPointOfInterestId = locationPointOfInterestId;
     }
 
     @Override
@@ -167,6 +170,20 @@ public class ForecastConfiguration implements Serializable {
             }
         }
         return null;
+    }
+
+    /**
+     * @return the weatherStationPointOfInterestId
+     */
+    public PointOfInterest getWeatherStationPointOfInterestId() {
+        return weatherStationPointOfInterestId;
+    }
+
+    /**
+     * @param weatherStationPointOfInterestId the weatherStationPointOfInterestId to set
+     */
+    public void setWeatherStationPointOfInterestId(PointOfInterest weatherStationPointOfInterestId) {
+        this.weatherStationPointOfInterestId = weatherStationPointOfInterestId;
     }
 
 }

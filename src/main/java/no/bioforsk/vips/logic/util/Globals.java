@@ -18,7 +18,9 @@ public class Globals {
         "/css",
         "/403",
         "/404",
-        "/rest"
+        "/rest",
+        "/test/testlogin.jsp",
+        "/test/testloginsuccess.jsp"
     };
     
     // Point of interest type IDs

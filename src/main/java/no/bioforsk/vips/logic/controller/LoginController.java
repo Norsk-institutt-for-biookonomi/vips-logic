@@ -14,7 +14,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
-import no.bioforsk.vips.logic.entity.UserVipslogicRole;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -67,28 +67,19 @@ public class LoginController extends HttpServlet {
                 creds.put("username", username);
                 creds.put("password", password);
 
-                Response resp = this.getManagerResource().getUserInfo(creds);
-                if(resp.getStatus() == Response.Status.OK.getStatusCode())
+                VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
+
+                if(user != null)
                 {
-                    Map user = resp.readEntity(HashMap.class);
-                    if(user != null)
-                    {
-                        List<UserVipslogicRole> roles = SessionControllerGetter.getUserBean().getUserVipslogicRole((Integer)user.get("vipsCoreUserId"));
-                        user.put("roles", roles);
-                        request.getSession().setAttribute("user", user);
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
-                    }
-                    else
-                    {
-                        request.setAttribute("errorMessageKey", "invalidcredentials");
-                        request.getRequestDispatcher("/login.ftl").forward(request, response);
-                    }
+                    request.getSession().setAttribute("user", user);
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                 }
                 else
                 {
                     request.setAttribute("errorMessageKey", "invalidcredentials");
                     request.getRequestDispatcher("/login.ftl").forward(request, response);
                 }
+                
 
             }
         }

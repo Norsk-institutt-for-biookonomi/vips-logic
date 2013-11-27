@@ -23,7 +23,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) {
         //configuration.getDateStart();
-        PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getPointOfInterestId();
+        PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getLocationPointOfInterestId();
         // What timezone is the calculation for
         TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
         System.out.println("timeZone ID in preprocessor=" + timeZone.getID());
