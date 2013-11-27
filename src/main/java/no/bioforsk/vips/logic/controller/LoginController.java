@@ -3,21 +3,20 @@ package no.bioforsk.vips.logic.controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-import no.bioforsk.vips.coremanager.service.ManagerResource;
+import no.bioforsk.vips.logic.authenticate.OpenIdAuthAttributes;
+import no.bioforsk.vips.logic.authenticate.OpenIdRelyingParty;
+import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.openid4java.consumer.ConsumerException;
 
 /**
  * Logs a user in or out
@@ -26,8 +25,6 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
  */
 public class LoginController extends HttpServlet {
     
-    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.bioforsk.vips.coremanager.VIPSCOREMANAGER_URL");
-
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -41,63 +38,149 @@ public class LoginController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        // Resetting messages
+        //System.out.println("QueryString=" + request.getQueryString());
+        
+        // Resetting messages and other template stuff
         request.getSession().removeAttribute("messageKey");
         request.getSession().removeAttribute("errorMessageKey");
         
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        String logout = request.getParameter("logout");
+        // Assigning nextpage to request, so that login.ftl gets access it
+        String nextPage = request.getParameter("nextPage");
+        if(nextPage == null)
+        {
+            nextPage="/";
+        }
+        request.setAttribute("nextPage", nextPage);
         
-        if(logout != null && logout.equals("true"))
+        // This means that an OpenId authentication has returned the user to this URL
+        // See code below
+        if(request.getServletPath().indexOf("remoteloginsuccess") >= 0)
+        {
+            try 
+            {
+                Integer userAuthenticationTypeId = Integer.valueOf(request.getParameter("userAuthenticationTypeId"));
+                OpenIdRelyingParty relP = new OpenIdRelyingParty();
+                OpenIdAuthAttributes attributes = relP.verifyResponse(request);
+                if(attributes != null)
+                {
+                    VipsLogicUser user = SessionControllerGetter.getUserBean().getUser(attributes.getOpenId(), userAuthenticationTypeId);
+                    if(user != null)
+                    {
+                        request.getSession().setAttribute("user", user);
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                    }
+                    else
+                    {
+                        // This might be a new user!
+                        // TODO: Register the user
+                        request.setAttribute("errorMessageKey", "invalidcredentials");
+                        request.getRequestDispatcher("/login.ftl").forward(request, response);
+                    }
+                }
+                else
+                {
+                    request.setAttribute("errorMessageKey", "remoteloginfailed");
+                    request.getRequestDispatcher("/login.ftl").forward(request, response);
+                }
+            } 
+            catch (ConsumerException | NullPointerException | NumberFormatException ex) {
+                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        //String logout = request.getParameter("logout");
+        // A log out request
+        else if(request.getServletPath().indexOf("logout") >= 0)
         {
             request.getSession().removeAttribute("user");
             request.getSession().setAttribute("messageKey","logoutsuccess");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
-        else if(username != null && password != null)
+        // A login attempt
+        else if(request.getServletPath().indexOf("loginsubmit") >= 0)
         {
-            try (PrintWriter out = response.getWriter()) {
-                String nextPage = request.getParameter("nextPage");
-                if(nextPage == null)
-                {
-                    nextPage="/";
-                }
-                Map<String,String> creds = new HashMap();
-                creds.put("username", username);
-                creds.put("password", password);
+            // Which login method?
+            Integer userAuthenticationTypeId = -1;
+            try
+            {
+                userAuthenticationTypeId = Integer.valueOf(request.getParameter("userAuthenticationTypeId"));
+            }
+            // No method found, redirect to form again
+            catch(NumberFormatException | NullPointerException ex)
+            {
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
+                return;
+            }
+            
+            // Standard username/password login
+            if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_PASSWORD))
+            {
+                String username = request.getParameter("username");
+                String password = request.getParameter("password");
+                try (PrintWriter out = response.getWriter()) {
+                    
+                    Map<String,String> creds = new HashMap();
+                    creds.put("username", username);
+                    creds.put("password", password);
 
-                VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
+                    VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
 
-                if(user != null)
-                {
-                    request.getSession().setAttribute("user", user);
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                    if(user != null)
+                    {
+                        request.getSession().setAttribute("user", user);
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                    }
+                    else
+                    {
+                        request.setAttribute("errorMessageKey", "invalidcredentials");
+                        request.getRequestDispatcher("/login.ftl").forward(request, response);
+                    }
+
+
                 }
-                else
+            }
+            // Login with OpenId (Including Google's version)
+            else if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID) || userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID_GOOGLE))
+            {
+                try
                 {
-                    request.setAttribute("errorMessageKey", "invalidcredentials");
+                    // configure the return_to URL where your application will receive
+                    // the authentication responses from the OpenID provider
+                    String serverName = ServletUtil.getServerName(request);
+                    String returnToUrl = "http://" + serverName + "/remoteloginsuccess?userAuthenticationTypeId=" + userAuthenticationTypeId + "&nextPage=" + nextPage;
+                    
+                    String openIdStr;
+                    // Google is of course special....
+                    if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID_GOOGLE))
+                    {
+                        openIdStr = "https://www.google.com/accounts/o8/id";
+                    }
+                    else
+                    {
+                        openIdStr= request.getParameter("openIdStr");
+                    }
+                    // Send the authentication request to third party
+                    OpenIdRelyingParty openId = new OpenIdRelyingParty();
+                    openId.authRequest(openIdStr, returnToUrl, request, response);
+                }
+                catch(ConsumerException ex)
+                {
+                    request.setAttribute("errorMessageKey", ex.getMessage());
                     request.getRequestDispatcher("/login.ftl").forward(request, response);
                 }
-                
-
+            }
+            // Authentication method not recognized, redirect to standard form
+            else
+            {
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
             }
         }
+        // No login attempt. Show form
         else
         {
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
     }
-
-    private ManagerResource getManagerResource()
-    {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(VIPSCOREMANAGER_URL);
-        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-        ManagerResource resource = rTarget.proxy(ManagerResource.class);
-        return resource;
-    }
-    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP

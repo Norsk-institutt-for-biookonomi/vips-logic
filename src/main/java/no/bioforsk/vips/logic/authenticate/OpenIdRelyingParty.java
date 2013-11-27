@@ -57,26 +57,13 @@ public class OpenIdRelyingParty {
 
     // --- placing the authentication request for first time registration ---
     public String authRequest(String userSuppliedString,
+                              String returnToUrl,
                               HttpServletRequest httpReq,
                               HttpServletResponse httpResp)
             throws IOException
     {
         try
         {
-            // Overriding, using Google
-            //userSuppliedString = "https://www.google.com/accounts/o8/id";
-            // configure the return_to URL where your application will receive
-            // the authentication responses from the OpenID provider
-            String returnToUrl = "http://vipslogic/test/testloginsuccess.jsp";
-
-            // --- Forward proxy setup (only if needed) ---
-            // ProxyProperties proxyProps = new ProxyProperties();
-            // proxyProps.setProxyName("proxy.example.com");
-            // proxyProps.setProxyPort(8080);
-            // HttpClientFactory.setProxyProperties(proxyProps);
-
-            
-            
             // perform discovery on the user-supplied identifier
             // The list is a list of DiscoveryInformation objects
             List discoveries = getConsumerManager().discover(userSuppliedString);
@@ -85,14 +72,8 @@ public class OpenIdRelyingParty {
             // and retrieve one service endpoint for authentication
             DiscoveryInformation discovered = getConsumerManager().associate(discoveries);
             
-            System.out.println("DiscoveryInformation=" + discovered.toString());
+            //System.out.println("DiscoveryInformation=" + discovered.toString());
             
-            Set types = discovered.getTypes();
-            for(Object type : types)
-            {
-                System.out.println("Type=####" + type.toString() + " \n[" + type.getClass().getName() + "]\n####");
-            }
-
             // store the discovery information in the user's session
             httpReq.getSession().setAttribute("openid-disc", discovered);
 
@@ -104,7 +85,9 @@ public class OpenIdRelyingParty {
              * OpenId Providers are VERY diverse when it comes to attributes
              * We attempt to get email address (and other attributes) in diverse ways
              */
-
+            /*
+            
+            We skip this for now... (2013-11-27)
             // This works with Symantec Personal Identity Portal
             SRegRequest sRegRequest = SRegRequest.createFetchRequest();
             sRegRequest.addAttribute("email", true);
@@ -118,6 +101,7 @@ public class OpenIdRelyingParty {
             fetch.addAttribute("email3", "http://axschema.org/contact/email", true);
             // attach the extension to the authentication request
             authReq.addExtension(fetch);
+            */
 
             httpResp.sendRedirect(authReq.getDestinationUrl(true));
             return null;
@@ -144,7 +128,7 @@ public class OpenIdRelyingParty {
             // retrieve the previously stored discovery information
             DiscoveryInformation discovered = (DiscoveryInformation)
                     httpReq.getSession().getAttribute("openid-disc");
-            System.out.println("discovered = " + discovered.toString());
+            //System.out.println("discovered = " + discovered.toString());
 
             // verify the response; ConsumerManager needs to be the same
             // (static) instance used to place the authentication request
@@ -152,13 +136,13 @@ public class OpenIdRelyingParty {
                     ServletUtil.getCompleteRequestURL(httpReq),
                     response, discovered);
 
-            System.out.println("Verification finished. Verification = " + verification.toString());
+            //System.out.println("Verification finished. Verification = " + verification.toString());
             
             // examine the verification result and extract the verified identifier
             Identifier verified = verification.getVerifiedId();
             if (verified != null)
             {
-                System.out.println("Verified = " + verified.getIdentifier());
+                //System.out.println("Verified = " + verified.getIdentifier());
                 
                 AuthSuccess authSuccess =
                         (AuthSuccess) verification.getAuthResponse();

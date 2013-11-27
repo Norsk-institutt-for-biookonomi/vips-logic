@@ -124,5 +124,5 @@ public class UserAuthentication implements Serializable {
     public String toString() {
         return "no.bioforsk.vips.logic.entity.UserAuthentication[ userAuthenticationPK=" + userAuthenticationPK + " ]";
     }
-
+    
 }

@@ -36,6 +36,11 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "UserAuthenticationType.findByName", query = "SELECT u FROM UserAuthenticationType u WHERE u.name = :name"),
     @NamedQuery(name = "UserAuthenticationType.findByDescription", query = "SELECT u FROM UserAuthenticationType u WHERE u.description = :description")})
 public class UserAuthenticationType implements Serializable {
+    
+    public static Integer TYPE_PASSWORD = 1;
+    public static Integer TYPE_OPENID = 2;
+    public static Integer TYPE_OPENID_GOOGLE = 3;
+    
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)

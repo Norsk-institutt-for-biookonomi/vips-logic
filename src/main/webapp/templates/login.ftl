@@ -10,10 +10,11 @@
 <#macro page_contentwrap_end></#macro>
 <#macro page_contents>
 <div class="container">
-	<form class="form-signin" action="/login" method="POST">
+	<form class="form-signin" action="/loginsubmit" method="POST">
 		<#if RequestParameters.nextPage?has_content>
 		<input type="hidden" name="nextPage" value="${RequestParameters.nextPage}"/>
 		</#if>
+		<input type="hidden" name="userAuthenticationTypeId" value="1"/>
 		<#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 		</#if>
@@ -26,6 +27,20 @@
 		<input type="password" class="form-control" placeholder="${i18nBundle.password}" name="password" size="15"/>
 		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.login}</button>
 	</form>
+	<form class="form-signin" action="/loginsubmit" method="POST">
+		<input type="hidden" name="userAuthenticationTypeId" value="3"/>
+		<input type="hidden" name="nextPage" value="${nextPage!"/"}"/>
+		<h2 class="form-signin-heading">Or</h2>
+		<button type="submit"><img src="/images/btn_sign_in_with_google.png" alt="Sign in with Google"/></button>
+	</form>
+	<form class="form-signin" action="/loginsubmit" method="POST">
+		<input type="hidden" name="userAuthenticationTypeId" value="2"/>
+		<input type="hidden" name="nextPage" value="${nextPage!"/"}"/>
+		<h2 class="form-signin-heading">Or</h2>
+		<input id="openid_identifier" class="openid_login" type="text" size="22" name="openIdStr">
+		<button class="btn btn-lg btn-primary btn-block" type="submit">OpenId</button>
+	</form>
+
 </div>
 </#macro>
 <@page_html/>

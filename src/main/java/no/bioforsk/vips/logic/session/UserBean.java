@@ -2,6 +2,7 @@ package no.bioforsk.vips.logic.session;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.ejb.LocalBean;
@@ -11,6 +12,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
+import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.util.MD5Encrypter;
 
@@ -51,6 +53,35 @@ public class UserBean {
             // TODO sensible handling
             return null;
         }
+    }
+    
+    /**
+     * Gets a user with get given userName and type of authentication
+     * @param userName
+     * @param userAuthenticationTypeId
+     * @return 
+     */
+    public VipsLogicUser getUser(String username, Integer userAuthenticationTypeId)
+    {
+        // If type of authentication is PASSWORD, we return nothing
+        if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_PASSWORD))
+        {
+            return null;
+        }
+        
+        // We find the authentication with given name
+        Query q = em.createNamedQuery("UserAuthentication.findByUsername");
+        q.setParameter("username", username);
+        List<UserAuthentication> userAuthentications = q.getResultList();
+        for(UserAuthentication userAuth:userAuthentications)
+        {
+            // We check that only the given combination of user name and authentication type is a full match
+            if(userAuth.getUserAuthenticationType().getUserAuthenticationTypeId().equals(userAuthenticationTypeId))
+            {
+                return userAuth.getVipsLogicUser();
+            }
+        }
+        return null;
     }
     
     /**

@@ -47,3 +47,9 @@ body {
   border-top-right-radius: 0;
 }
 
+input.openid_login {
+    background: url("../images/openid-logo.gif") no-repeat scroll 0 50% #FFFFFF;
+    color: #000000;
+    padding-left: 18px;
+    text-transform: lowercase;
+}

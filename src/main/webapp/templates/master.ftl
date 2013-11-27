@@ -42,7 +42,7 @@
 	    </ul>
 	    <form class="navbar-form navbar-right"  action="/logout" method="POST" role="logout">
 	      <div class="form-group">
-	      	<input type="hidden" name="logout" value="true"/>
+	      	<!--input type="hidden" name="logout" value="true"/-->
 		${i18nBundle.loggedinas} ${user.firstName} ${user.lastName} (${user.organizationId.organizationName})
 	      </div>
 	      <button type="submit" class="btn btn-default">${i18nBundle.logout}</button>
