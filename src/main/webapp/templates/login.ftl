@@ -30,14 +30,14 @@
 	<form class="form-signin" action="/loginsubmit" method="POST">
 		<input type="hidden" name="userAuthenticationTypeId" value="3"/>
 		<input type="hidden" name="nextPage" value="${nextPage!"/"}"/>
-		<h2 class="form-signin-heading">Or</h2>
-		<button type="submit"><img src="/images/btn_sign_in_with_google.png" alt="Sign in with Google"/></button>
+		<h2 class="form-signin-heading">${i18nBundle.or}</h2>
+		<input type="image"src="/images/btn_sign_in_with_google.png" alt="${i18nBundle.signInWith} Google"/>
 	</form>
 	<form class="form-signin" action="/loginsubmit" method="POST">
 		<input type="hidden" name="userAuthenticationTypeId" value="2"/>
 		<input type="hidden" name="nextPage" value="${nextPage!"/"}"/>
-		<h2 class="form-signin-heading">Or</h2>
-		<input id="openid_identifier" class="openid_login" type="text" size="22" name="openIdStr">
+		<h2 class="form-signin-heading">${i18nBundle.or}</h2>
+		<input id="openid_identifier" class="form-control openid_login" placeholder=" ${i18nBundle.your} OpenId" type="text" size="15" name="openIdStr">
 		<button class="btn btn-lg btn-primary btn-block" type="submit">OpenId</button>
 	</form>
 
