@@ -13,6 +13,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
+import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
 import no.bioforsk.vips.logic.session.SessionControllerGetter;
@@ -95,11 +96,20 @@ public class LogicService {
     
     
     @GET
-    @Path("blah")
+    @Path("evaluatepassword/{password}")
     @Produces("text/plain;charset=UTF-8")
-    public Response test()
+    public Response evaluatePassord(@PathParam("password") String password)
     {
-        return Response.ok().entity("Blah").build();
+        try
+        {
+            boolean isPasswordValid = SessionControllerGetter.getUserBean().isPasswordValid(password);
+            return Response.ok().entity("true").build();
+            
+        }
+        catch(PasswordValidationException ex)
+        {
+            return Response.ok().entity(ex.getMessage()).build();
+        }
     }
     
     private ManagerResource getManagerResource()
@@ -110,4 +120,6 @@ public class LogicService {
         ManagerResource resource = rTarget.proxy(ManagerResource.class);
         return resource;
     }
+    
+
 }
