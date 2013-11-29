@@ -1,7 +1,19 @@
 package no.bioforsk.vips.logic.session;
 
+import edu.vt.middleware.password.CharacterCharacteristicsRule;
+import edu.vt.middleware.password.DigitCharacterRule;
+import edu.vt.middleware.password.LengthRule;
+import edu.vt.middleware.password.LowercaseCharacterRule;
+import edu.vt.middleware.password.Password;
+import edu.vt.middleware.password.PasswordData;
+import edu.vt.middleware.password.PasswordValidator;
+import edu.vt.middleware.password.Rule;
+import edu.vt.middleware.password.RuleResult;
+import edu.vt.middleware.password.UppercaseCharacterRule;
+import edu.vt.middleware.password.WhitespaceRule;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -11,6 +23,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
+import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
@@ -30,6 +44,7 @@ public class UserBean {
     EntityManager em;
     
     private Properties serverProperties;
+    private PasswordValidator passwordValidator;
     
     public VipsLogicUser authenticateUser(Map loginInfo)
     {
@@ -97,5 +112,81 @@ public class UserBean {
             } 
         }
         return this.serverProperties;
+    }
+    
+    public List<Organization> getOrganizations()
+    {
+        return em.createNamedQuery("Organization.findAll").getResultList();
+    }
+    
+    public boolean isPasswordValid(String password) throws PasswordValidationException
+    {
+        PasswordData passwordData = new PasswordData(new Password(password));
+        RuleResult result = this.getPasswordValidator().validate(passwordData);
+        if(result.isValid())
+        {
+            return true;
+        }
+        else
+        {
+            StringBuilder errorMsg = new StringBuilder();
+            for(String msg:this.getPasswordValidator().getMessages(result))
+            {
+                errorMsg.append(msg).append("\n");
+            }
+            throw new PasswordValidationException(errorMsg.toString());
+        }
+    }
+    
+    /**
+     * Ensures access to a properly (and uniformly) configured
+     * PasswordValidator object
+     */
+    private PasswordValidator getPasswordValidator()
+    {
+        if(this.passwordValidator == null)
+        {
+            this.passwordValidator = this.createPasswordValidator();
+        }
+        return this.passwordValidator;
+    }
+    
+    /**
+     * Creates a PasswordValidator with with these criteria:
+     * <ul>
+     * <li>password must be between 8 and 16 chars long<li>
+     * <li>don't allow whitespace</li>
+     * <li>require at least 1 digit in passwords</li>
+     * <li>require at least 1 upper case char</li>
+     * <li>require at least 1 lower case char</li>
+     * </ul>
+     * @return 
+     */
+    private PasswordValidator createPasswordValidator()
+    {
+        // password must be between 8 and 16 chars long
+        LengthRule lengthRule = new LengthRule(8, 16);
+
+        // don't allow whitespace
+        WhitespaceRule whitespaceRule = new WhitespaceRule();
+
+        // control allowed characters
+        CharacterCharacteristicsRule charRule = new CharacterCharacteristicsRule();
+        // require at least 1 digit in passwords
+        charRule.getRules().add(new DigitCharacterRule(1));
+        // require at least 1 upper case char
+        charRule.getRules().add(new UppercaseCharacterRule(1));
+        // require at least 1 lower case char
+        charRule.getRules().add(new LowercaseCharacterRule(1));
+        // require all the previous rules be met
+        charRule.setNumberOfCharacteristics(3);
+        
+        // group all rules together in a List
+        List<Rule> ruleList = new ArrayList<>();
+        ruleList.add(lengthRule);
+        ruleList.add(whitespaceRule);
+        ruleList.add(charRule);
+
+        return new PasswordValidator(ruleList);
     }
 }
