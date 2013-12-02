@@ -38,12 +38,6 @@ public class LoginController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        //System.out.println("QueryString=" + request.getQueryString());
-        
-        // Resetting messages and other template stuff
-        request.getSession().removeAttribute("messageKey");
-        request.getSession().removeAttribute("errorMessageKey");
-        
         // Assigning nextpage to request, so that login.ftl gets access it
         String nextPage = request.getParameter("nextPage");
         if(nextPage == null)
@@ -93,7 +87,7 @@ public class LoginController extends HttpServlet {
         else if(request.getServletPath().indexOf("logout") >= 0)
         {
             request.getSession().removeAttribute("user");
-            request.getSession().setAttribute("messageKey","logoutsuccess");
+            request.setAttribute("messageKey","logoutsuccess");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
         // A login attempt
