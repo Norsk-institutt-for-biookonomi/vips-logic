@@ -1,4 +1,4 @@
-package no.bioforsk.vips.logic.controller;
+package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,7 +14,7 @@ import no.bioforsk.vips.logic.authenticate.OpenIdAuthAttributes;
 import no.bioforsk.vips.logic.authenticate.OpenIdRelyingParty;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
-import no.bioforsk.vips.logic.session.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
 import org.openid4java.consumer.ConsumerException;
 

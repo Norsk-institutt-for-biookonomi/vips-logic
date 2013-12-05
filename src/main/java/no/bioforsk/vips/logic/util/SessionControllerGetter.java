@@ -1,5 +1,9 @@
-package no.bioforsk.vips.logic.session;
+package no.bioforsk.vips.logic.util;
 
+import no.bioforsk.vips.logic.controller.session.SchedulingBean;
+import no.bioforsk.vips.logic.controller.session.ForecastBean;
+import no.bioforsk.vips.logic.controller.session.UserBean;
+import no.bioforsk.vips.logic.controller.session.PointOfInterestBean;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 

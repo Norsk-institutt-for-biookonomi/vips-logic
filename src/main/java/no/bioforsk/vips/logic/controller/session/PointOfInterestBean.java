@@ -1,4 +1,4 @@
-package no.bioforsk.vips.logic.session;
+package no.bioforsk.vips.logic.controller.session;
 
 import java.util.List;
 import javax.ejb.LocalBean;

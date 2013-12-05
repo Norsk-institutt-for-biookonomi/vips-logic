@@ -1,8 +1,8 @@
 package no.bioforsk.vips.logic.startup;
 
 import javax.servlet.ServletContextEvent;
-import no.bioforsk.vips.logic.session.SchedulingBean;
-import no.bioforsk.vips.logic.session.SessionControllerGetter;
+import no.bioforsk.vips.logic.controller.session.SchedulingBean;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
 
 /**
  * This class is created and method contextInitialized called when the application

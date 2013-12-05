@@ -1,0 +1,250 @@
+package no.bioforsk.web.forms;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+/**
+ * Represents a (web) form field
+ * Life cycle:
+ * <ol>
+ *  <li>Parsed from JSON form definition file in [WARFILE]/formdefinitions</li>
+ *  <li>Validated with FormValidator, added validation result values</li>
+ *  <li>Sent back to web client in a FormValidation object</li>
+ * </ol>
+ * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ */
+public class FormField {
+    public static String FORM_FIELD_TYPE_STRING = "STRING";
+    public static String FORM_FIELD_TYPE_INTEGER = "INTEGER";
+    public static String FORM_FIELD_TYPE_DOUBLE = "DOUBLE";
+    public static String FORM_FIELD_TYPE_PASSWORD = "PASSWORD";
+    public static String FORM_FIELD_TYPE_EMAIL = "EMAIL";
+    public static String FORM_FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
+    
+    
+    private String name;
+    private String label;
+    private String repeatField;
+    private String type;
+    private boolean required;
+    private String webValue;
+    private Integer maxLength;
+    private boolean valid;
+    private String validationMessage;
+    private Integer minValue;
+    private Integer maxValue;
+    private String nullValue;
+    
+    
+    public Integer getValueAsInteger()
+    {
+        return Integer.valueOf(this.webValue);
+    }
+    
+    public Long getValueAsLong()
+    {
+        return Long.valueOf(this.webValue);
+    }
+    
+    public Double getValueAsDouble()
+    {
+        return Double.valueOf(this.webValue);
+    }
+    
+    
+    
+    /**
+     * Default state is valid
+     */
+    public FormField()
+    {
+        this.valid = true;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    /**
+     * @return the required
+     */
+    public boolean isRequired() {
+        return required;
+    }
+
+    /**
+     * @param required the required to set
+     */
+    public void setRequired(boolean required) {
+        this.required = required;
+    }
+
+    /**
+     * @return the webValue
+     */
+    public String getWebValue() {
+        return webValue;
+    }
+
+    /**
+     * @param webValue the webValue to set
+     */
+    public void setWebValue(String webValue) {
+        this.webValue = webValue;
+    }
+
+    /**
+     * @return the maxLength
+     */
+    public Integer getMaxLength() {
+        return maxLength;
+    }
+
+    /**
+     * @param maxLength the maxLength to set
+     */
+    public void setMaxLength(Integer maxLength) {
+        this.maxLength = maxLength;
+    }
+
+    /**
+     * @return the repeatField
+     */
+    public String getRepeatField() {
+        return repeatField;
+    }
+
+    /**
+     * @param repeatField the repeatField to set
+     */
+    public void setRepeatField(String repeatField) {
+        this.repeatField = repeatField;
+    }
+
+    /**
+     * @return the valid
+     */
+    @JsonIgnore
+    public boolean isValid() {
+        return valid;
+    }
+
+    /**
+     * @param valid the valid to set
+     */
+    @JsonIgnore
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+    /**
+     * @return the validationMessage
+     */
+    @JsonIgnore
+    public String getValidationMessage() {
+        return validationMessage;
+    }
+
+    /**
+     * @param validationMessage the validationMessage to set
+     */
+    @JsonIgnore
+    public void setValidationMessage(String validationMessage) {
+        this.validationMessage = validationMessage;
+    }
+
+    /**
+     * @return the label
+     */
+    @JsonIgnore
+    public String getLabel() {
+        return label;
+    }
+
+    /**
+     * @param label the label to set
+     */
+    @JsonIgnore
+    public void setLabel(String label) {
+        this.label = label;
+    }
+    
+    @Override
+    public String toString()
+    {
+        StringBuilder retVal = new StringBuilder()
+                .append(this.getClass().getSimpleName()).append(":\n")
+                .append("Name=").append(this.getName()).append("\n")
+                .append("WebValue=").append(this.getWebValue());
+        
+        return retVal.toString();
+    }
+
+    /**
+     * @return the minValue
+     */
+    public Integer getMinValue() {
+        return minValue;
+    }
+
+    /**
+     * @param minValue the minValue to set
+     */
+    public void setMinValue(Integer minValue) {
+        this.minValue = minValue;
+    }
+
+    /**
+     * @return the maxValue
+     */
+    public Integer getMaxValue() {
+        return maxValue;
+    }
+
+    /**
+     * @param maxValue the maxValue to set
+     */
+    public void setMaxValue(Integer maxValue) {
+        this.maxValue = maxValue;
+    }
+
+    /**
+     * @return the nullValue
+     */
+    public String getNullValue() {
+        return nullValue;
+    }
+
+    /**
+     * @param nullValue the nullValue to set
+     */
+    public void setNullValue(String nullValue) {
+        this.nullValue = nullValue;
+    }
+
+    
+}

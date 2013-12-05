@@ -1,5 +1,7 @@
 package no.bioforsk.vips.logic.util;
 
+import java.util.Locale;
+
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
@@ -21,6 +23,7 @@ public class Globals {
         "/403",
         "/404",
         "/rest",
+        "/user",
         "/test/testlogin.jsp",
         "/test/testloginsuccess.jsp"
     };
@@ -31,5 +34,7 @@ public class Globals {
     // User roles
     public static final Integer ROLE_SUPERUSER = 1;
     public static final Integer ROLE_ORGANIZATION_ADMINISTRATOR = 2;
+    
+
     
 }

@@ -2,7 +2,6 @@ package no.bioforsk.vips.logic.i18n;
 
 import java.io.IOException;
 import java.util.Locale;
-import java.util.ResourceBundle;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -18,6 +17,8 @@ import javax.servlet.http.HttpServletRequest;
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class LocalizationFilter implements Filter{
+    
+    
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -27,7 +28,7 @@ public class LocalizationFilter implements Filter{
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        Locale currentLocale = (Locale) ((HttpServletRequest)request).getSession().getAttribute("currentLocale");
+        Locale currentLocale = SessionLocaleUtil.getCurrentLocale((HttpServletRequest)request);
         Locale browserRequestedLocale = ((HttpServletRequest)request).getLocale();
         String userRequestedLocaleStr = ((HttpServletRequest)request).getParameter("userRequestedLocale");
         Locale userRequestedLocale = userRequestedLocaleStr != null ? new Locale(userRequestedLocaleStr) : null;
@@ -39,14 +40,14 @@ public class LocalizationFilter implements Filter{
          */ 
         if(currentLocale == null)
         {
-            setSessionLocale((HttpServletRequest)request, userRequestedLocale != null ? userRequestedLocale : browserRequestedLocale != null ? browserRequestedLocale : Locale.getDefault());   
+            SessionLocaleUtil.setCurrentLocale((HttpServletRequest)request, userRequestedLocale != null ? userRequestedLocale : browserRequestedLocale != null ? browserRequestedLocale : Locale.getDefault());   
         }
         /*
          * If userRequestedLocale is set and differs from current, activate it
          */
         else if(userRequestedLocale != null && ! userRequestedLocale.equals(currentLocale))
         {
-            setSessionLocale((HttpServletRequest)request,userRequestedLocale);
+            SessionLocaleUtil.setCurrentLocale((HttpServletRequest)request,userRequestedLocale);
             // Store it for comparison with browserRequestedLocale
             ((HttpServletRequest)request).getSession().setAttribute("currentUserRequestedLocale", userRequestedLocale);
         }
@@ -62,7 +63,7 @@ public class LocalizationFilter implements Filter{
             {
                 if(!browserRequestedLocale.equals(currentLocale))
                 {
-                    setSessionLocale((HttpServletRequest)request,browserRequestedLocale);
+                    SessionLocaleUtil.setCurrentLocale((HttpServletRequest)request,browserRequestedLocale);
                 }
             }
         }
@@ -77,9 +78,5 @@ public class LocalizationFilter implements Filter{
         
     }
 
-    private void setSessionLocale(HttpServletRequest request, Locale newLocale)
-    {
-        ((HttpServletRequest)request).getSession().setAttribute("currentLocale", newLocale);
-            ((HttpServletRequest)request).getSession().setAttribute("i18nBundle", ResourceBundle.getBundle("no.bioforsk.vips.logic.i18n.vipslogictexts",newLocale));
-    }
+    
 }

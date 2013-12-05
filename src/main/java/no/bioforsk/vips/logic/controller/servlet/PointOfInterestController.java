@@ -1,4 +1,4 @@
-package no.bioforsk.vips.logic.controller;
+package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
 import java.util.List;
@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
-import no.bioforsk.vips.logic.session.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
 
 /**
  * Handles transactions for POIs

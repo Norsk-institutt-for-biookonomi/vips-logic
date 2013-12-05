@@ -1,6 +1,7 @@
 package no.bioforsk.vips.logic.service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -15,8 +16,10 @@ import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
 import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
 import no.bioforsk.vips.logic.entity.ForecastResult;
+import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
-import no.bioforsk.vips.logic.session.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.Globals;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
@@ -100,9 +103,10 @@ public class LogicService {
     @Produces("text/plain;charset=UTF-8")
     public Response evaluatePassord(@PathParam("password") String password)
     {
+        Locale currentLocale = SessionLocaleUtil.getCurrentLocale(httpServletRequest);
         try
         {
-            boolean isPasswordValid = SessionControllerGetter.getUserBean().isPasswordValid(password);
+            boolean isPasswordValid = SessionControllerGetter.getUserBean().isPasswordValid(password, currentLocale);
             return Response.ok().entity("true").build();
             
         }

@@ -1,4 +1,4 @@
-package no.bioforsk.vips.logic.session;
+package no.bioforsk.vips.logic.controller.session;
 
 import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.SchedulingPattern;

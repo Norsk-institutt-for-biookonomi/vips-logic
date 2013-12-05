@@ -6,11 +6,19 @@
     </listener>
     <servlet>
         <servlet-name>PointOfInterestController</servlet-name>
-        <servlet-class>no.bioforsk.vips.logic.controller.PointOfInterestController</servlet-class>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.PointOfInterestController</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>SchedulingController</servlet-name>
-        <servlet-class>no.bioforsk.vips.logic.controller.SchedulingController</servlet-class>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.SchedulingController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>UserControllerServlet</servlet-name>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.UserControllerServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ResourceBundleJSServlet</servlet-name>
+        <servlet-class>no.bioforsk.vips.logic.i18n.ResourceBundleJSServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
@@ -28,6 +36,15 @@
         <url-pattern>/logout</url-pattern>
         <url-pattern>/loginsubmit</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UserControllerServlet</servlet-name>
+        <url-pattern>/user</url-pattern>
+        <url-pattern>/user/new</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ResourceBundleJSServlet</servlet-name>
+        <url-pattern>/js/resourcebundle.js</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
@@ -37,7 +54,7 @@
     </filter-mapping>
     <servlet>
         <servlet-name>FrontpageController</servlet-name>
-        <servlet-class>no.bioforsk.vips.logic.controller.FrontpageController</servlet-class>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.FrontpageController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>FrontpageController</servlet-name>
@@ -45,11 +62,11 @@
     </servlet-mapping>
     <servlet>
         <servlet-name>LoginController</servlet-name>
-        <servlet-class>no.bioforsk.vips.logic.controller.LoginController</servlet-class>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.LoginController</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>TestFreemarker</servlet-name>
-        <servlet-class>no.bioforsk.vips.logic.controller.TestFreemarker</servlet-class>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.TestFreemarker</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>TestFreemarker</servlet-name>

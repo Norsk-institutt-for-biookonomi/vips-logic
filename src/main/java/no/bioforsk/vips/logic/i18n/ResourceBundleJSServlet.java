@@ -1,26 +1,22 @@
-package no.bioforsk.vips.logic.controller;
+package no.bioforsk.vips.logic.i18n;
 
-import it.sauronsoftware.cron4j.TaskExecutor;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ResourceBundle;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import no.bioforsk.vips.logic.session.SchedulingBean;
-import no.bioforsk.vips.logic.session.SessionControllerGetter;
 
 /**
- * Handles scheduling of jobs
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
- * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ *
+ * @author treinar
  */
-public class SchedulingController extends HttpServlet {
+public class ResourceBundleJSServlet extends HttpServlet {
 
     /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
      *
      * @param request servlet request
      * @param response servlet response
@@ -29,26 +25,27 @@ public class SchedulingController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // temporarily spitting out information in the simplest fashion
-        response.setContentType("text/html");
-        response.setHeader("Refresh","5");
+        response.setContentType("text/javascript;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            out.print("<h1>Running tasks</h1>");
-            SchedulingBean schedulingBean = SessionControllerGetter.getSchedulingBean();
-            TaskExecutor[] runningTasks = schedulingBean.getRunningTasks();
-            for(TaskExecutor runningTask:runningTasks)
+            StringBuilder output = new StringBuilder();
+            output.append("var i18Texts={");
+            ResourceBundle i18nTexts = SessionLocaleUtil.getI18nBundle(request);
+            boolean first = true;
+            for(String key:i18nTexts.keySet())
             {
-                out.println("Task ID=" + runningTask.getGuid() + ", statusMessage=" + runningTask.getStatusMessage() + "<progress value=\"" + runningTask.getCompleteness()+ "\"></progress><br/>");
+                if(first) first = false;
+                else output.append(",");
+                output.append("\n\"").append(key).append("\":\"").append(i18nTexts.getString(key)).append("\"");
             }
+            output.append("\n};");
+            
+            out.print(output.toString());
         }
-        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
-     * Handles the HTTP
-     * <code>GET</code> method.
+     * Handles the HTTP <code>GET</code> method.
      *
      * @param request servlet request
      * @param response servlet response
@@ -62,8 +59,7 @@ public class SchedulingController extends HttpServlet {
     }
 
     /**
-     * Handles the HTTP
-     * <code>POST</code> method.
+     * Handles the HTTP <code>POST</code> method.
      *
      * @param request servlet request
      * @param response servlet response
@@ -85,4 +81,5 @@ public class SchedulingController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
 }

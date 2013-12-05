@@ -1,9 +1,10 @@
-package no.bioforsk.vips.logic.session;
+package no.bioforsk.vips.logic.controller.session;
 
 import edu.vt.middleware.password.CharacterCharacteristicsRule;
 import edu.vt.middleware.password.DigitCharacterRule;
 import edu.vt.middleware.password.LengthRule;
 import edu.vt.middleware.password.LowercaseCharacterRule;
+import edu.vt.middleware.password.MessageResolver;
 import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import javax.ejb.LocalBean;
@@ -28,6 +30,7 @@ import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.util.MD5Encrypter;
 
 /**
@@ -44,7 +47,7 @@ public class UserBean {
     EntityManager em;
     
     private Properties serverProperties;
-    private PasswordValidator passwordValidator;
+    private List<Rule> defaultPasswordValidatorRuleList;
     
     public VipsLogicUser authenticateUser(Map loginInfo)
     {
@@ -119,10 +122,32 @@ public class UserBean {
         return em.createNamedQuery("Organization.findAll").getResultList();
     }
     
-    public boolean isPasswordValid(String password) throws PasswordValidationException
+    public boolean isPasswordValid(String password, Locale errorMessageLocale) throws PasswordValidationException
     {
+        // Check if we need localization of error messages
+        String propertiesFileSuffix = "";
+        if(!errorMessageLocale.equals(SessionLocaleUtil.DEFAULT_LOCALE))
+        {
+            propertiesFileSuffix = "_" + errorMessageLocale.getLanguage();
+        }
+        Properties props = new Properties();
+        PasswordValidator validator;
+        
+        // Try to load localized error messages
+        try
+        {
+            props.load(this.getClass().getResourceAsStream("/no/bioforsk/vips/logic/i18n/vtpassword" + propertiesFileSuffix + ".properties"));
+            MessageResolver resolver = new MessageResolver(props);
+            validator = new PasswordValidator(resolver, this.getDefaultPasswordValidatorRuleList());
+        }
+        // Something went wrong when attempting to get localized error messages. Skip that.
+        catch(IOException ex)
+        {
+            validator = new PasswordValidator(this.getDefaultPasswordValidatorRuleList());
+        }
+
         PasswordData passwordData = new PasswordData(new Password(password));
-        RuleResult result = this.getPasswordValidator().validate(passwordData);
+        RuleResult result = validator.validate(passwordData);
         if(result.isValid())
         {
             return true;
@@ -130,7 +155,7 @@ public class UserBean {
         else
         {
             StringBuilder errorMsg = new StringBuilder();
-            for(String msg:this.getPasswordValidator().getMessages(result))
+            for(String msg:validator.getMessages(result))
             {
                 errorMsg.append(msg).append("\n");
             }
@@ -140,19 +165,19 @@ public class UserBean {
     
     /**
      * Ensures access to a properly (and uniformly) configured
-     * PasswordValidator object
+     * Rule list for the PasswordValidator object
      */
-    private PasswordValidator getPasswordValidator()
+    private List<Rule> getDefaultPasswordValidatorRuleList()
     {
-        if(this.passwordValidator == null)
+        if(this.defaultPasswordValidatorRuleList == null)
         {
-            this.passwordValidator = this.createPasswordValidator();
+            this.defaultPasswordValidatorRuleList = this.createPasswordValidatorRuleList();
         }
-        return this.passwordValidator;
+        return this.defaultPasswordValidatorRuleList;
     }
     
     /**
-     * Creates a PasswordValidator with with these criteria:
+     * Creates a list of rules for a PasswordValidator with with these criteria:
      * <ul>
      * <li>password must be between 8 and 16 chars long<li>
      * <li>don't allow whitespace</li>
@@ -162,7 +187,7 @@ public class UserBean {
      * </ul>
      * @return 
      */
-    private PasswordValidator createPasswordValidator()
+    private List<Rule> createPasswordValidatorRuleList()
     {
         // password must be between 8 and 16 chars long
         LengthRule lengthRule = new LengthRule(8, 16);
@@ -187,6 +212,6 @@ public class UserBean {
         ruleList.add(whitespaceRule);
         ruleList.add(charRule);
 
-        return new PasswordValidator(ruleList);
+        return ruleList;
     }
 }
