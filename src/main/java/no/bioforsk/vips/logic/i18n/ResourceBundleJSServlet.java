@@ -9,8 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
- * @author treinar
+ * Provides translation strings in current session language for JavaScript
+ * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class ResourceBundleJSServlet extends HttpServlet {
 
