@@ -26,9 +26,9 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "VipsLogicRole.findByDefaultDescription", query = "SELECT v FROM VipsLogicRole v WHERE v.defaultDescription = :defaultDescription")})
 public class VipsLogicRole implements Serializable {
     
-    /** Static definitions */
-    public static Integer VIPS_LOGIC_ROLE_SUPERUSER = 1;
-    public static Integer VIPS_LOGIC_ROLE_ORGNANIZATION_ADMINISTRATOR = 2;
+    /** Static role definitions */
+    public static Integer SUPERUSER = 1;
+    public static Integer ORGANIZATION_ADMINISTRATOR = 2;
 
     private static final long serialVersionUID = 1L;
     @Id
