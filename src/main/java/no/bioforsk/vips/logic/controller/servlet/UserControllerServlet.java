@@ -1,16 +1,23 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.util.HashSet;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
+import no.bioforsk.vips.logic.util.Globals;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.util.MD5Encrypter;
 import no.bioforsk.vips.util.ServletUtil;
+import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
 import no.bioforsk.web.forms.FormValidator;
 
@@ -93,16 +100,38 @@ public class UserControllerServlet extends HttpServlet {
             catch(Exception e)
             {
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
+                return;
             }
             if(userAuthenticationType.getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD))
             {
-                auth.setUsername(request.getParameter("username"));
+                // Standard form validation
                 FormValidation formValidation = FormValidator.validateForm("userRegistrationForm",request,getServletContext());
+                // Extra check: That user's email is not already in use
+                FormField emailField = formValidation.getFormField("email");
+                if(SessionControllerGetter.getUserBean().getUserByEmail(emailField.getWebValue()) != null)
+                {
+                    emailField.setValid(false);
+                    emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
+                }
+                
                 if(formValidation.isValid())
                 {
-                    // Populate object etc.
-                    // Are there special fields??
-                    System.out.println("Valid, presumably...");
+                    
+                    // Setting authentication info first
+                    auth.setUserAuthenticationType(userAuthenticationType);
+                    auth.setUsername(formValidation.getFormField("username").getWebValue());
+                    auth.setPassword(SessionControllerGetter.getUserBean().getMD5EncryptedString(formValidation.getFormField("password").getWebValue()));
+                    
+                    // Adding user info
+                    user.setEmail(formValidation.getFormField("email").getWebValue());
+                    user.setFirstName(formValidation.getFormField("firstName").getWebValue());
+                    user.setLastName(formValidation.getFormField("lastName").getWebValue());
+                    Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
+                    user.setOrganizationId(organization);
+                    user.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
+                    user.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
+                    SessionControllerGetter.getUserBean().storeUserFirstTime(user, auth);
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
                 }
                 else
                 {
@@ -113,60 +142,13 @@ public class UserControllerServlet extends HttpServlet {
                     return;
                 }
                 
-                /*
-                String password = request.getParameter("password");
-                String password2 = request.getParameter("password2");
-                if(password == null || password2 == null || ! password.equals(password2))
-                {
-                    request.setAttribute("errorMessageKey", password == null || password2 == null ? "passwordNotRepeated" : "passwordsDoNotMatch");
-                    // Get available organizations, add for select list
-                    request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                    request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
-                    request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
-                    return;
-                }
-                // Evaluate password strength
-                try
-                {
-                    Locale currentLocale = SessionLocaleUtil.getCurrentLocale(request);
-                    SessionControllerGetter.getUserBean().isPasswordValid(password, currentLocale);
-                }
-                catch(PasswordValidationException ex)
-                {
-                    request.setAttribute("errorMessage", ex.getMessage());
-                    // Get available organizations, add for select list
-                    request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                    request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
-                    request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
-                    return;
-                }
-                auth.setPassword(password);
-                
-                // Validate email
-                String email = request.getParameter("email");
-                if(email == null || !WebUtil.isValidEmailAddress(email))
-                {
-                    request.setAttribute("errorMessageKey", "invalidEmailAddress");
-                    // Get available organizations, add for select list
-                    request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                    request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
-                    request.getRequestDispatcher("/userRegistrationForm").forward(request, response);
-                    return;
-                }
-                
-                String firstName = request.getParameter("firstName");
-                String lastName = request.getParameter("lastName");
-                
-                if(lastName == null)
-                {
-                    request.setAttribute("errorMessageKey", "missingValues");
-                }
-                
-                PrintWriter out = response.getWriter();
-                out.print("Tjobing!!!!");
-                */
             }
                 
+        }
+        else if(action.equals("registerNewUserFormReceipt"))
+        {
+            request.setAttribute("messageKey","registerNewUserReceipt");
+            request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
         
     }

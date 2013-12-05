@@ -67,9 +67,8 @@ public class VipsLogicUser implements Serializable {
     @JoinColumn(name = "organization_id", referencedColumnName = "organization_id")
     @ManyToOne
     private Organization organizationId;
-    @JoinColumn(name = "user_status_id", referencedColumnName = "user_status_id")
-    @ManyToOne
-    private UserStatus userStatusId;
+    @Column(name = "user_status_id")
+    private Integer userStatusId;
     @ManyToMany(fetch=FetchType.EAGER)
     @JoinTable(
             name = "user_vips_logic_role",
@@ -191,14 +190,14 @@ public class VipsLogicUser implements Serializable {
     /**
      * @return the userStatusId
      */
-    public UserStatus getUserStatusId() {
+    public Integer getUserStatusId() {
         return userStatusId;
     }
 
     /**
      * @param userStatusId the userStatusId to set
      */
-    public void setUserStatusId(UserStatus userStatusId) {
+    public void setUserStatusId(Integer userStatusId) {
         this.userStatusId = userStatusId;
     }
 

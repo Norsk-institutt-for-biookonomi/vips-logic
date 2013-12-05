@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -28,6 +30,7 @@ import javax.persistence.Query;
 import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
+import no.bioforsk.vips.logic.entity.UserAuthenticationPK;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
@@ -56,8 +59,9 @@ public class UserBean {
         {
             Query q = em.createNamedQuery("UserAuthentication.findByUsernameAndPassword", UserAuthentication.class);
             q.setParameter("username", loginInfo.get("username"));
-            String salt = this.getVIPSLogicServerProperties().getProperty("MD5_SALT");
-            q.setParameter("password", MD5Encrypter.getMD5HexString((String)loginInfo.get("password"),salt));
+            
+            q.setParameter("password", this.getMD5EncryptedString((String)loginInfo.get("password")));
+            System.out.println(this.getMD5EncryptedString((String)loginInfo.get("password")));
             UserAuthentication result = (UserAuthentication) q.getSingleResult();
             return result.getVipsLogicUser();
         }
@@ -100,6 +104,39 @@ public class UserBean {
             }
         }
         return null;
+    }
+    
+    public void storeUserFirstTime(VipsLogicUser user,UserAuthentication auth)
+    {
+        em.persist(user);
+        auth.setVipsLogicUser(user);
+        UserAuthenticationPK pk = new UserAuthenticationPK(user.getUserId(), auth.getUserAuthenticationType().getUserAuthenticationTypeId());
+        auth.setUserAuthenticationPK(pk);
+        em.persist(auth);
+    }
+    
+    /**
+     * 
+     * @param email
+     * @return The user, or null if no user with given email is registered
+     */
+    public VipsLogicUser getUserByEmail(String email)
+    {
+        Query q = em.createNamedQuery("VipsLogicUser.findByEmail",VipsLogicUser.class);
+        q.setParameter("email", email);
+        try
+        {
+            return (VipsLogicUser) q.getSingleResult();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
+    
+    public String getMD5EncryptedString(String str) throws IOException
+    {
+        return MD5Encrypter.getMD5HexString(str,this.getVIPSLogicServerProperties().getProperty("MD5_SALT"));   
     }
     
     /**
