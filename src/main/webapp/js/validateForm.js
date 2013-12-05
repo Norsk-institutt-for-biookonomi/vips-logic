@@ -67,7 +67,7 @@ function validateFormActual(theForm)
     for(var i in formDefinition.fields){
         var fieldDefinition = formDefinition.fields[i];
         if(!validateFieldActual(theForm[fieldDefinition.name], theForm)){
-            console.log("Validation failed for " + fieldDefinition.name);
+            //console.log("Validation failed for " + fieldDefinition.name);
             isValid = false;
         }
     }
@@ -93,7 +93,7 @@ function validateFormActual(theForm)
         //console.log(item.primaryField);
     }
 
-    console.log("isValid=" + isValid);
+    //console.log("isValid=" + isValid);
     return isValid;
 }
 
@@ -258,7 +258,7 @@ function validateFieldActual(fieldEl, theForm)
         return true;
     }
     
-    console.log("ERROR: Field " + fieldEl.name + " is of type " + fieldDefinition.type + ", and evaluation of that type is not implemented.");
+    alert("ERROR: Field " + fieldEl.name + " is of type " + fieldDefinition.type + ", and evaluation of that type is not implemented.");
     return false;
 }
 
