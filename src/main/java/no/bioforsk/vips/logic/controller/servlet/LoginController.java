@@ -2,6 +2,7 @@ package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -141,7 +142,7 @@ public class LoginController extends HttpServlet {
                     // configure the return_to URL where your application will receive
                     // the authentication responses from the OpenID provider
                     String serverName = ServletUtil.getServerName(request);
-                    String returnToUrl = "http://" + serverName + "/remoteloginsuccess?userAuthenticationTypeId=" + userAuthenticationTypeId + "&nextPage=" + nextPage;
+                    String returnToUrl = "http://" + serverName + "/remoteloginsuccess?userAuthenticationTypeId=" + userAuthenticationTypeId + "&nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
                     
                     String openIdStr;
                     // Google is of course special....
