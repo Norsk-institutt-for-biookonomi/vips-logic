@@ -1,7 +1,9 @@
 package no.bioforsk.vips.logic.authenticate;
 
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +30,14 @@ public class AuthenticationFilter implements Filter{
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest)request;
+        /*
+        // For debugging
+        BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        String line;
+        while((line = reader.readLine()) != null)
+        {
+            System.out.println(line);
+        }*/
         if(isUnprivilegedURL(httpRequest))
         {
             chain.doFilter(request, response);

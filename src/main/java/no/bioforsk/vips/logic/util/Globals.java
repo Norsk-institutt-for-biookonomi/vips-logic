@@ -37,7 +37,7 @@ public class Globals {
     
     // User statuses
     public static Integer USER_STATUS_AWAITING_EMAIL_VERIFICATION = 1;
-    public static Integer USER_STATUS_AWATING_APPROVAL = 2;
+    public static Integer USER_STATUS_AWAITING_APPROVAL = 2;
     public static Integer USER_STATUS_REJECTED = 3;
     public static Integer USER_STATUS_APPROVED = 4;
     public static Integer USER_STATUS_DISABLED = 5;

@@ -38,7 +38,7 @@
 		<div><input type="text" class="form-control" placeholder="${i18nBundle.lastName}" name="lastName" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("lastName").webValue}</#if>" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_lastName_validation"></span>
 		<div>
-			<select class="form-control" placeholder="test" name="organizationId" onblur="validateField(this);">
+			<select class="form-control" name="organizationId" onblur="validateField(this);">
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organizationId?lower_case}</option>
 			<#list organizations?sort_by("organizationName") as organization>
 				<option value="${organization.organizationId}"
@@ -52,7 +52,7 @@
 		<span class="help-block" id="${formId}_organizationId_validation"></span>
 		<div><textarea class="form-control" placeholder="${i18nBundle.approvalApplication}" name="approvalApplication" cols="15" rows="5" onblur="validateField(this);"><#if formValidation?has_content>${formValidation.getFormField("approvalApplication").webValue}</#if></textarea></div>
 		<span class="help-block" id="${formId}_approvalApplication_validation"></span>
-		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.login}</button>
+		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.submit}</button>
 	</form>
 
 </div>

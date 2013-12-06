@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -32,8 +30,10 @@ import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationPK;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
+import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
+import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.util.MD5Encrypter;
 
 /**
@@ -113,6 +113,11 @@ public class UserBean {
         UserAuthenticationPK pk = new UserAuthenticationPK(user.getUserId(), auth.getUserAuthenticationType().getUserAuthenticationTypeId());
         auth.setUserAuthenticationPK(pk);
         em.persist(auth);
+    }
+    
+    public void storeUser(VipsLogicUser user)
+    {
+        em.merge(user);
     }
     
     /**
@@ -250,5 +255,47 @@ public class UserBean {
         ruleList.add(charRule);
 
         return ruleList;
+    }
+    
+    public List<VipsLogicUser> getAllUsers()
+    {
+        return em.createNamedQuery("VipsLogicUser.findAll").getResultList();
+    }
+    
+    public List<VipsLogicUser> getUsers(Organization organization)
+    {
+        return em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", organization).getResultList();
+    }
+    
+    /**
+     * Checks if user has one of the given roles
+     * @param user
+     * @param roles
+     * @return true if user has a role, false otherwise (including if user == null)
+     */
+    public boolean authorizeUser(VipsLogicUser user, Integer... roles)
+    {
+        if(user == null)
+        {
+            return false;
+        }
+        
+        return user.hasRole(roles);
+        
+    }
+    
+    /**
+     * Returns the available user status Ids
+     * @return 
+     */
+    public Integer[] getUserStatusIds()
+    {
+        return new Integer []{
+            Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION,
+            Globals.USER_STATUS_AWAITING_APPROVAL,
+            Globals.USER_STATUS_REJECTED,
+            Globals.USER_STATUS_APPROVED,
+            Globals.USER_STATUS_DISABLED
+            };
     }
 }

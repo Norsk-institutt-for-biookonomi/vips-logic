@@ -20,6 +20,8 @@ public class FormField {
     public static String FORM_FIELD_TYPE_PASSWORD = "PASSWORD";
     public static String FORM_FIELD_TYPE_EMAIL = "EMAIL";
     public static String FORM_FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
+    public static String FORM_FIELD_TYPE_SELECT_MULTIPLE = "SELECT_MULTIPLE";
+
     
     
     private String name;
@@ -27,7 +29,7 @@ public class FormField {
     private String repeatField;
     private String type;
     private boolean required;
-    private String webValue;
+    private String[] webValue;
     private Integer maxLength;
     private boolean valid;
     private String validationMessage;
@@ -38,17 +40,17 @@ public class FormField {
     
     public Integer getValueAsInteger()
     {
-        return Integer.valueOf(this.webValue);
+        return Integer.valueOf(this.webValue[0]);
     }
     
     public Long getValueAsLong()
     {
-        return Long.valueOf(this.webValue);
+        return Long.valueOf(this.webValue[0]);
     }
     
     public Double getValueAsDouble()
     {
-        return Double.valueOf(this.webValue);
+        return Double.valueOf(this.webValue[0]);
     }
     
     
@@ -107,13 +109,18 @@ public class FormField {
      * @return the webValue
      */
     public String getWebValue() {
+        return webValue != null ? webValue[0] : null;
+    }
+    
+    public String[] getWebValues()
+    {
         return webValue;
     }
 
     /**
      * @param webValue the webValue to set
      */
-    public void setWebValue(String webValue) {
+    public void setWebValue(String... webValue) {
         this.webValue = webValue;
     }
 

@@ -1,0 +1,45 @@
+{
+    "_comment" : "Structure of the userForm and how to validate it",
+    "fields": [
+        {
+            "name" : "email",
+            "type" : "EMAIL",
+            "required" : true
+        },
+        {
+            "name" : "firstName",
+            "type" : "STRING",
+            "maxLength" : 255
+        },
+        {
+            "name" : "lastName",
+            "type" : "STRING",
+            "required" : true,
+            "maxLength" : 255
+        },
+        {
+            "name" : "vipsLogicRoles",
+            "type" : "SELECT_MULTIPLE",
+            "required" : false
+        },
+        {
+            "name" : "organizationId",
+            "type" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
+        },
+        {
+            "name" : "userStatusId",
+            "type" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
+        },
+        {
+            "name" : "remarks",
+            "type" : "STRING",
+            "required" : false,
+            "maxLength" : 2147483647
+        }
+        
+    ]
+}

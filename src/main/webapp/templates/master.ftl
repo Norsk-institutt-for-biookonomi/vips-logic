@@ -20,25 +20,25 @@
 	      <span class="icon-bar"></span>
 	      <span class="icon-bar"></span>
 	    </button>
-	    <a class="navbar-brand" href="#"><img src="/images/logo_vips.png" alt="VIPS logo"/> VIPSLogic</a>
+	    <a class="navbar-brand" href="/"><img src="/images/logo_vips.png" alt="VIPS logo"/> VIPSLogic</a>
 	  </div>
-	
-	  <!-- Collect the nav links, forms, and other content for toggling -->
+	<!-- Collect the nav links, forms, and other content for toggling -->
 	  <div class="collapse navbar-collapse navbar-ex1-collapse">
 	    <ul class="nav navbar-nav">
 	      <li class="active"><a href="#">Link</a></li>
 	      <li><a href="#">Link</a></li>
+	      <#if user.isOrganizationAdmin() || user.isSuperUser() >
 	      <li class="dropdown">
-		<a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 		<ul class="dropdown-menu">
-		  <li><a href="#">Action</a></li>
+		  <li><a href="/user">Users</a></li>
 		  <li><a href="#">Another action</a></li>
 		  <li><a href="#">Something else here</a></li>
 		  <li><a href="#">Separated link</a></li>
 		  <li><a href="#">One more separated link</a></li>
 		</ul>
 	      </li>
-	      
+	      </#if>
 	    </ul>
 	    <form class="navbar-form navbar-right"  action="/logout" method="POST" role="logout">
 	      <div class="form-group">
@@ -48,6 +48,7 @@
 	      <button type="submit" class="btn btn-default">${i18nBundle.logout}</button>
 	    </form>
 	  </div><!-- /.navbar-collapse -->
+	  
 	</nav>
 
 	<div class="row">

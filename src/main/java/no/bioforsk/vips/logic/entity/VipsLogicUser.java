@@ -219,8 +219,50 @@ public class VipsLogicUser implements Serializable {
     public boolean isSuperUser()
     {
         for(VipsLogicRole role:this.getVipsLogicRoles()){
-            if(role.getVipsLogicRoleId().equals(VipsLogicRole.VIPS_LOGIC_ROLE_SUPERUSER))
+            if(role.getVipsLogicRoleId().equals(VipsLogicRole.SUPERUSER))
                 return true;
+        }
+        return false;
+    }
+    
+    @JsonIgnore
+    public boolean isOrganizationAdmin()
+    {
+        for(VipsLogicRole role:this.getVipsLogicRoles()){
+            if(role.getVipsLogicRoleId().equals(VipsLogicRole.ORGANIZATION_ADMINISTRATOR))
+                return true;
+        }
+        return false;
+    }
+    
+    @JsonIgnore
+    public boolean hasRole(Integer... roles)
+    {
+        for(VipsLogicRole userRole: this.getVipsLogicRoles())
+        {
+            for(Integer roleId: roles)
+            {
+                if(userRole.getVipsLogicRoleId().equals(roleId))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    @JsonIgnore
+    public boolean hasRole(VipsLogicRole... roles)
+    {
+        for(VipsLogicRole userRole: this.getVipsLogicRoles())
+        {
+            for(VipsLogicRole role: roles)
+            {
+                if(userRole.equals(role))
+                {
+                    return true;
+                }
+            }
         }
         return false;
     }

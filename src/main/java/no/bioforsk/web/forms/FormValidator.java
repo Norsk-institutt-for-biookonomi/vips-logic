@@ -42,7 +42,7 @@ public class FormValidator {
         {
             retVal.addFormField(field);
             field.setLabel(SessionLocaleUtil.getI18nText(request, field.getName()));
-            field.setWebValue(request.getParameter(field.getName()));
+            field.setWebValue(request.getParameterValues(field.getName()));
             if(field.getWebValue() == null || field.getWebValue().isEmpty())
             {
                 if(field.isRequired())
@@ -52,7 +52,6 @@ public class FormValidator {
                 }
                 continue;
             }
-            
             // STRINGS
             // Strings are checked for length
             if(field.getType().equals(FormField.FORM_FIELD_TYPE_STRING))
@@ -134,6 +133,13 @@ public class FormValidator {
                 }
             }
             
+            // MULTIPLE SELECT
+            // If required, check that at least one option is selected
+            if(field.getType().equals(FormField.FORM_FIELD_TYPE_SELECT_SINGLE))
+            {
+                
+            }
+            
             // TODO: Add dates (and others??)
             
             
@@ -142,26 +148,29 @@ public class FormValidator {
         
         // Check repeats
         JsonNode repeatFields = formDefinition.findValue("repeatFields");
-        for(JsonNode item: repeatFields)
+        if(repeatFields != null)
         {
-            String primaryFieldName = item.findValue("primaryField").getTextValue();
-            String repeatFieldName = item.findValue("repeatField").getTextValue();
-            FormField primaryField = retVal.getFormField(primaryFieldName);
-            FormField repeatField = retVal.getFormField(repeatFieldName);
-            if(primaryField == null || repeatField == null)
+            for(JsonNode item: repeatFields)
             {
-                continue;
-            }
-            
-            if(!primaryField.getWebValue().equals(repeatField.getWebValue()))
-            {
-                repeatField.setValid(false);
-                repeatField.setValidationMessage(
-                        MessageFormat.format(SessionLocaleUtil.getI18nText(request, "xIsNotEqualToY"),
-                                SessionLocaleUtil.getI18nText(request, repeatFieldName),
-                                SessionLocaleUtil.getI18nText(request, primaryFieldName)
-                                )
-                );
+                String primaryFieldName = item.findValue("primaryField").getTextValue();
+                String repeatFieldName = item.findValue("repeatField").getTextValue();
+                FormField primaryField = retVal.getFormField(primaryFieldName);
+                FormField repeatField = retVal.getFormField(repeatFieldName);
+                if(primaryField == null || repeatField == null)
+                {
+                    continue;
+                }
+
+                if(!primaryField.getWebValue().equals(repeatField.getWebValue()))
+                {
+                    repeatField.setValid(false);
+                    repeatField.setValidationMessage(
+                            MessageFormat.format(SessionLocaleUtil.getI18nText(request, "xIsNotEqualToY"),
+                                    SessionLocaleUtil.getI18nText(request, repeatFieldName),
+                                    SessionLocaleUtil.getI18nText(request, primaryFieldName)
+                                    )
+                    );
+                }
             }
         }
         

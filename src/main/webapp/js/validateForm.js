@@ -11,7 +11,8 @@ var formFieldTypes = {
     TYPE_DOUBLE: "DOUBLE",
     TYPE_PASSWORD: "PASSWORD",
     TYPE_EMAIL: "EMAIL",
-    TYPE_SELECT_SINGLE: "SELECT_SINGLE"
+    TYPE_SELECT_SINGLE: "SELECT_SINGLE",
+    TYPE_SELECT_MULTIPLE: "SELECT_MULTIPLE"
 };
 
 // Storage for all form definitions for current page
@@ -248,6 +249,34 @@ function validateFieldActual(fieldEl, theForm)
         else
         {
             validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+    
+    // Multiple select field
+    // If required - check that at least one item has been selected
+    if(fieldDefinition.type === formFieldTypes.TYPE_SELECT_MULTIPLE)
+    {
+        if(fieldDefinition.required)
+        {
+            var selectedOptions = 0;
+            for(var i=0;i<fieldEl.options.length;i++)
+            {
+                selectedOptions += fieldEl.options[i].selected ? 1 : 0;
+            }
+            if(selectedOptions === 0)
+            {
+                invalidizeField(fieldEl, theForm, getI18nMsg("fieldIsRequired",null));
+            return false;
+            }
+            else
+            {
+                validizeField(fieldEl, theForm);
+                return true;
+            }
+        }
+        else
+        {
             return true;
         }
     }

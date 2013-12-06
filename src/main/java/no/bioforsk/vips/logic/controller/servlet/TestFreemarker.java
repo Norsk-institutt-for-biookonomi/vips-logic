@@ -4,7 +4,10 @@
  */
 package no.bioforsk.vips.logic.controller.servlet;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -29,7 +32,15 @@ public class TestFreemarker extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/testfreemarker.ftl").forward(request, response);
+        System.out.println("Here we are!!!");
+        /*BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        String line;
+        while((line = reader.readLine()) != null)
+        {
+            System.out.println(line);
+        }*/
+        System.out.println("remarks=" + request.getParameter("remarks"));
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

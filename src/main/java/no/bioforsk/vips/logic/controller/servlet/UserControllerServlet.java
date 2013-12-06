@@ -1,21 +1,25 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
+import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
-import no.bioforsk.vips.util.MD5Encrypter;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
@@ -43,15 +47,144 @@ public class UserControllerServlet extends HttpServlet {
             throws ServletException, IOException {
         
         String action = request.getParameter("action");
+        VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
+        UserBean userBean = SessionControllerGetter.getUserBean();
         
+        // Default: View list of users
+        // for SUPERUSERS and ORGANIZATION ADMINS
         if(action == null)
         {
-            response.sendRedirect("/");
-            return;
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                List<VipsLogicUser> users;
+                if(user.isSuperUser())
+                {
+                    users = userBean.getAllUsers();
+                }
+                else
+                {
+                    users = userBean.getUsers(user.getOrganizationId());
+                }
+                request.setAttribute("users", users);
+                request.getRequestDispatcher("/userList.ftl").forward(request, response);
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+      
         }
         
+        // View one user
+        // Authorization: SUPERUSERS and ORGANIZATION ADMINS
+        else if(action.equals("viewUser"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                try
+                {
+                    Integer userId = Integer.valueOf(request.getParameter("userId"));
+                    VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                    // Only superusers may view users from different organizations
+                    if(! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
+                    {
+                        response.sendError(403,"Only super users can view users outside their own organization"); // HTTP Forbidden
+                    }
+                    else
+                    {
+                        request.setAttribute("viewUser", viewUser);
+                        request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                        request.setAttribute("userStatusIds", userBean.getUserStatusIds());
+                        request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
+                        // In case this is a redirect from another action, and a message should be forwarded
+                        request.setAttribute("messageKey", request.getParameter("messageKey")); 
+                        request.getRequestDispatcher("/userForm.ftl").forward(request, response);
+                    }
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, "Invalid userId " + request.getParameter("userId"));
+                }
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+            
+        }
+        
+        // Store information about user
+        // Authorization: SUPERUSERS and ORGANIZATION ADMINS
+        else if(action.equals("userFormSubmit"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                try
+                {
+                    Integer userId = Integer.valueOf(request.getParameter("userId"));
+                    VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                    // Only superusers may view users from different organizations
+                    if(! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
+                    {
+                        response.sendError(403); // HTTP Forbidden
+                    }
+                    else
+                    {
+                        // Standard form validation
+                        FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
+                        if(formValidation.isValid())
+                        {
+                            viewUser.setEmail(formValidation.getFormField("email").getWebValue());
+                            viewUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
+                            viewUser.setLastName(formValidation.getFormField("lastName").getWebValue());
+                            if(user.isSuperUser())
+                            {
+                                Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
+                                viewUser.setOrganizationId(organization);
+                            }
+                            viewUser.setUserStatusId(formValidation.getFormField("userStatusId").getValueAsInteger());
+                            viewUser.setRemarks(formValidation.getFormField("remarks").getWebValue());
+                            FormField roles = formValidation.getFormField("vipsLogicRoles");
+                            
+                            
+                            Set<VipsLogicRole> vipsLogicRoles = new HashSet();
+                            for(String roleId :roles.getWebValues())
+                            {
+                                vipsLogicRoles.add(em.find(VipsLogicRole.class, Integer.valueOf(roleId)));
+                            }
+                            viewUser.setVipsLogicRoles(vipsLogicRoles);
+                            userBean.storeUser(viewUser);
+                            // Add confirmation message
+                            request.setAttribute("messageKey", "userUpdated");
+                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append("userUpdated").toString());
+                        }
+                        else
+                        {
+                            request.setAttribute("formValidation", formValidation);
+                            request.setAttribute("viewUser", viewUser);
+                            request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                            request.setAttribute("userStatusIds", userBean.getUserStatusIds());
+                            request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
+                            request.getRequestDispatcher("/userForm.ftl").forward(request, response);
+                        }
+                        
+                    }
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, ex.getMessage());
+                }
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+        }
+
+        
         // Show user application form
-        if(action.equals("registerNewUserForm"))
+        // FOR ANY USER
+        else if(action.equals("registerNewUserForm"))
         {
             Integer userAuthenticationTypeId = ServletUtil.getIntegerParameter(request, "userAuthenticationTypeId");
             if(userAuthenticationTypeId == null)
@@ -88,9 +221,10 @@ public class UserControllerServlet extends HttpServlet {
         }
         
         // Register the new user
+        // FOR ANY USER
         else if(action.equals("registerNewUserFormSubmit"))
         {
-            VipsLogicUser user = new VipsLogicUser();
+            VipsLogicUser newUser = new VipsLogicUser();
             UserAuthentication auth = new UserAuthentication();
             // What kind of authetication type is this?
             UserAuthenticationType userAuthenticationType = null;
@@ -108,7 +242,7 @@ public class UserControllerServlet extends HttpServlet {
                 FormValidation formValidation = FormValidator.validateForm("userRegistrationForm",request,getServletContext());
                 // Extra check: That user's email is not already in use
                 FormField emailField = formValidation.getFormField("email");
-                if(SessionControllerGetter.getUserBean().getUserByEmail(emailField.getWebValue()) != null)
+                if(userBean.getUserByEmail(emailField.getWebValue()) != null)
                 {
                     emailField.setValid(false);
                     emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
@@ -120,17 +254,17 @@ public class UserControllerServlet extends HttpServlet {
                     // Setting authentication info first
                     auth.setUserAuthenticationType(userAuthenticationType);
                     auth.setUsername(formValidation.getFormField("username").getWebValue());
-                    auth.setPassword(SessionControllerGetter.getUserBean().getMD5EncryptedString(formValidation.getFormField("password").getWebValue()));
+                    auth.setPassword(userBean.getMD5EncryptedString(formValidation.getFormField("password").getWebValue()));
                     
                     // Adding user info
-                    user.setEmail(formValidation.getFormField("email").getWebValue());
-                    user.setFirstName(formValidation.getFormField("firstName").getWebValue());
-                    user.setLastName(formValidation.getFormField("lastName").getWebValue());
+                    newUser.setEmail(formValidation.getFormField("email").getWebValue());
+                    newUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
+                    newUser.setLastName(formValidation.getFormField("lastName").getWebValue());
                     Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
-                    user.setOrganizationId(organization);
-                    user.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
-                    user.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
-                    SessionControllerGetter.getUserBean().storeUserFirstTime(user, auth);
+                    newUser.setOrganizationId(organization);
+                    newUser.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
+                    newUser.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
+                    userBean.storeUserFirstTime(newUser, auth);
                     response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
                 }
                 else
@@ -150,6 +284,7 @@ public class UserControllerServlet extends HttpServlet {
             request.setAttribute("messageKey","registerNewUserReceipt");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
+        
         
     }
 

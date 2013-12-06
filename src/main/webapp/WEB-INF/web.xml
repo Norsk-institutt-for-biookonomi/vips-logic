@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
     <display-name>VIPSLogic</display-name>
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>*</url-pattern>
+    </filter-mapping>
     <listener>
         <listener-class>no.bioforsk.vips.logic.startup.StartupListener</listener-class>
     </listener>
@@ -19,6 +23,10 @@
     <servlet>
         <servlet-name>ResourceBundleJSServlet</servlet-name>
         <servlet-class>no.bioforsk.vips.logic.i18n.ResourceBundleJSServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>HttpErrorServlet</servlet-name>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.HttpErrorServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
@@ -45,9 +53,22 @@
         <servlet-name>ResourceBundleJSServlet</servlet-name>
         <url-pattern>/js/resourcebundle.js</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>HttpErrorServlet</servlet-name>
+        <url-pattern>/error/404</url-pattern>
+        <url-pattern>/error/403</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>no.bioforsk.vips.logic.i18n.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </filter>
     <filter-mapping>
         <filter-name>LocalizationFilter</filter-name>
         <url-pattern>*</url-pattern>
@@ -71,6 +92,7 @@
     <servlet-mapping>
         <servlet-name>TestFreemarker</servlet-name>
         <url-pattern>/testfreemarker</url-pattern>
+        <url-pattern>/userTEST</url-pattern>
     </servlet-mapping>
     <filter>
         <description>Authenticates users</description>
@@ -130,6 +152,11 @@
             <!-- The encoding of the template files. -->
         </init-param>
         <init-param>
+            <param-name>output_encoding</param-name>
+            <param-value>UTF-8</param-value>
+            <!-- Freemarker builtin ?url requires this to be set. -->
+        </init-param>
+        <init-param>
             <param-name>number_format</param-name>
             <param-value>0.##########</param-value>
         </init-param>
@@ -161,4 +188,12 @@
         <param-name>LOCALE</param-name>
         <param-value>no_NO_B</param-value>
     </context-param>
+    <error-page>
+        <error-code>403</error-code>
+        <location>/error/403</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error/404</location>
+    </error-page>
 </web-app>
