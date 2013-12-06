@@ -4,6 +4,9 @@
 </#macro>
 <#macro page_contents>
         <h1>${i18nBundle.users}</h1>
+        <#if messageKey?has_content>
+		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
+	</#if>
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>

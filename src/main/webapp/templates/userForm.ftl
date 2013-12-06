@@ -82,6 +82,7 @@
 	  	<span class="help-block" id="${formId}_remarks_validation"></span>
 	  </div>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
+	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/user?action=deleteUser&userId=${viewUser.userId}';}">${i18nBundle.delete}</button>
 	</form>
 
 </#macro>

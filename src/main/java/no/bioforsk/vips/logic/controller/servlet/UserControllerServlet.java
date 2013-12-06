@@ -1,7 +1,6 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,6 +65,8 @@ public class UserControllerServlet extends HttpServlet {
                     users = userBean.getUsers(user.getOrganizationId());
                 }
                 request.setAttribute("users", users);
+                // If this is a redirect from a controller, with a message to be passed on
+                request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/userList.ftl").forward(request, response);
             }
             else
@@ -146,13 +147,15 @@ public class UserControllerServlet extends HttpServlet {
                             viewUser.setRemarks(formValidation.getFormField("remarks").getWebValue());
                             FormField roles = formValidation.getFormField("vipsLogicRoles");
                             
-                            
-                            Set<VipsLogicRole> vipsLogicRoles = new HashSet();
-                            for(String roleId :roles.getWebValues())
+                            if(roles.getWebValues() != null)
                             {
-                                vipsLogicRoles.add(em.find(VipsLogicRole.class, Integer.valueOf(roleId)));
+                                Set<VipsLogicRole> vipsLogicRoles = new HashSet();
+                                for(String roleId :roles.getWebValues())
+                                {
+                                    vipsLogicRoles.add(em.find(VipsLogicRole.class, Integer.valueOf(roleId)));
+                                }
+                                viewUser.setVipsLogicRoles(vipsLogicRoles);
                             }
-                            viewUser.setVipsLogicRoles(vipsLogicRoles);
                             userBean.storeUser(viewUser);
                             // Add confirmation message
                             request.setAttribute("messageKey", "userUpdated");
@@ -172,6 +175,7 @@ public class UserControllerServlet extends HttpServlet {
                 }
                 catch(NullPointerException | NumberFormatException ex)
                 {
+                    ex.printStackTrace();
                     response.sendError(500, ex.getMessage());
                 }
             }
@@ -180,7 +184,32 @@ public class UserControllerServlet extends HttpServlet {
                 response.sendError(403,"Access not authorized"); // HTTP Forbidden
             }
         }
-
+        
+        // DELETE user
+        // Authorization: SUPERUSERS and ORGANIZATION ADMINS
+        else if(action.equals("deleteUser"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                try
+                {
+                    Integer userId = Integer.valueOf(request.getParameter("userId"));
+                    VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                    //em.remove(viewUser);
+                    userBean.deleteUser(viewUser);
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userDeleted").toString());
+                    
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, ex.getMessage());
+                }
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+        }
         
         // Show user application form
         // FOR ANY USER

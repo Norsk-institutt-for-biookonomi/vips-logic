@@ -120,6 +120,21 @@ public class UserBean {
         em.merge(user);
     }
     
+    public void deleteUser(VipsLogicUser user)
+    {
+        user = em.find(VipsLogicUser.class, user.getUserId());
+        
+        // Remove dependent stuff
+        /* User authentication for this user
+        for(UserAuthentication auth: user.getUserAuthenticationSet())
+        {
+            System.out.println("Auth[DEBUG]=" + auth.getUsername());
+            em.remove(auth);
+        }
+        */
+        em.remove(user);
+    }
+    
     /**
      * 
      * @param email
