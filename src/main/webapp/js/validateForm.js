@@ -9,10 +9,23 @@ var formFieldTypes = {
     TYPE_STRING: "STRING",
     TYPE_INTEGER: "INTEGER",
     TYPE_DOUBLE: "DOUBLE",
+    TYPE_DATE: "DATE",
     TYPE_PASSWORD: "PASSWORD",
     TYPE_EMAIL: "EMAIL",
     TYPE_SELECT_SINGLE: "SELECT_SINGLE",
     TYPE_SELECT_MULTIPLE: "SELECT_MULTIPLE"
+    
+};
+
+
+var defaultValues = {
+    DEFAULT_DATE_FORMAT: "yyyy-MM-dd"
+};
+
+// Primary field relates to secondary field as TYPE
+var relationTypes = {
+    RELATION_TYPE_EQUALS: "EQUALS",
+    RELATION_TYPE_AFTER: "AFTER"
 };
 
 // Storage for all form definitions for current page
@@ -35,6 +48,7 @@ var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
  *  <li>The form must have an id that corresponds to a JSON file accessible in "/formdefinitions/[form_id].json"</li>
  *  <li>A DOM element with id "errorMsgEl" for where to put validation error messages</li>
  *  <li>jQuery for Ajax calls</li>
+ *  <li><a href="http://momentjs.com/">moment.js</a> for date validation</li>
  * </ul>
  * 
  * This function prepares for the validateFormActual function.
@@ -73,23 +87,41 @@ function validateFormActual(theForm)
         }
     }
     
-    // Check repeats
-    for(var i in formDefinition.repeatFields)
+    // Check relations
+    for(var i in formDefinition.relations)
     {
-        var item = formDefinition.repeatFields[i];
+        var item = formDefinition.relations[i];
         var primaryFieldWebValue = theForm[item.primaryField].value;
-        var repeatFieldWebValue = theForm[item.repeatField].value;
-        if(primaryFieldWebValue === null || repeatFieldWebValue === null)
+        var secondaryFieldWebValue = theForm[item.secondaryField].value;
+        if(primaryFieldWebValue === null || secondaryFieldWebValue === null)
         {
             continue;
         }
-        if(primaryFieldWebValue !== repeatFieldWebValue)
+        
+        // String equality NOW!
+        console.log("relationTYpe=" + item.relationType);
+        if(item.relationType === relationTypes.RELATION_TYPE_EQUALS)
         {
-            isValid = false;
-            invalidizeField(theForm[item.repeatField], theForm, getI18nMsg("xIsNotEqualToY",[
-                getI18nMsg(item.repeatField),
-                getI18nMsg(item.primaryField).toLowerCase()
-            ]));
+            if(primaryFieldWebValue !== secondaryFieldWebValue)
+            {
+                isValid = false;
+                invalidizeField(theForm[item.primaryField], theForm, getI18nMsg("xIsNotEqualToY",[
+                    getI18nMsg(item.primaryField),
+                    getI18nMsg(item.secondaryField).toLowerCase()
+                ]));
+            }
+        }
+        // Primary field is expected to be a date AFTER secondary key
+        else if(item.relationType === relationTypes.RELATION_TYPE_AFTER)
+        {
+            if(!moment(primaryFieldWebValue).isAfter(moment(secondaryFieldWebValue)))
+            {
+                isValid = false;
+                invalidizeField(theForm[item.primaryField], theForm, getI18nMsg("xIsNotAfterY",[
+                    getI18nMsg(item.primaryField),
+                    getI18nMsg(item.secondaryField).toLowerCase()
+                ]));
+            }
         }
         //console.log(item.primaryField);
     }
@@ -185,6 +217,22 @@ function validateFieldActual(fieldEl, theForm)
         if(fieldDefinition.maxLength !== null && fieldDefinition.maxLength < webValue.length)
         {
             invalidizeField(fieldEl, theForm, getI18nMsg("exceedsMaxLengthOf",[fieldDefinition.maxLength]));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+    
+    // Dates: check date format
+    if(fieldDefinition.type === formFieldTypes.TYPE_DATE)
+    {
+        var validFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
+        if(!moment(webValue, validFormat.toUpperCase(),true).isValid())
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchDateFormat",[validFormat]));
             return false;
         }
         else
@@ -368,6 +416,11 @@ function evaluatePassword(passwordEl)
  */
 function invalidizeField(inputEl, theForm, message)
 {
+    // Make sure we don't try to manipulate hidden fields
+    if(inputEl.type === "hidden")
+    {
+        return;
+    }
     styleInvalid(theForm[inputEl.name]);
     getValidationOutputEl(inputEl, theForm).innerHTML = message;
 }
@@ -380,6 +433,11 @@ function invalidizeField(inputEl, theForm, message)
  */
 function validizeField(inputEl, theForm)
 {
+    // Make sure we don't try to manipulate hidden fields
+    if(inputEl.type === "hidden")
+    {
+        return;
+    }
     styleValid(theForm[inputEl.name]);
     getValidationOutputEl(inputEl, theForm).innerHTML = "";
 }

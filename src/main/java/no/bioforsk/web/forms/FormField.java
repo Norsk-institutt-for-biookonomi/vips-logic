@@ -1,5 +1,8 @@
 package no.bioforsk.web.forms;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
@@ -17,12 +20,14 @@ public class FormField {
     public static String FORM_FIELD_TYPE_STRING = "STRING";
     public static String FORM_FIELD_TYPE_INTEGER = "INTEGER";
     public static String FORM_FIELD_TYPE_DOUBLE = "DOUBLE";
+    public static String FORM_FIELD_TYPE_DATE = "DATE";
     public static String FORM_FIELD_TYPE_PASSWORD = "PASSWORD";
     public static String FORM_FIELD_TYPE_EMAIL = "EMAIL";
     public static String FORM_FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
     public static String FORM_FIELD_TYPE_SELECT_MULTIPLE = "SELECT_MULTIPLE";
 
-    
+    // Standard format for dates is the ISO-8861-format
+    public static String DATE_DEFAULT_FORMAT = "yyyy-MM-dd";
     
     private String name;
     private String label;
@@ -36,6 +41,7 @@ public class FormField {
     private Integer minValue;
     private Integer maxValue;
     private String nullValue;
+    private String dateFormat;
     
     
     public Integer getValueAsInteger()
@@ -53,6 +59,17 @@ public class FormField {
         return Double.valueOf(this.webValue[0]);
     }
     
+    public Date getValueAsDate()
+    {
+        try
+        {
+            return new SimpleDateFormat(this.getDateFormat()).parse(this.getWebValue());
+        }
+        catch(ParseException ex)
+        {
+            return null;
+        }
+    }
     
     
     /**
@@ -251,6 +268,27 @@ public class FormField {
      */
     public void setNullValue(String nullValue) {
         this.nullValue = nullValue;
+    }
+
+    /**
+     * @return the dateFormat (if not set, it returns FormField.DATE_DEFAULT_FORMAT
+     */
+    public String getDateFormat() {
+        if(this.dateFormat != null)
+        {
+            return dateFormat;
+        }
+        else
+        {
+            return DATE_DEFAULT_FORMAT;
+        }
+    }
+
+    /**
+     * @param dateFormat the dateFormat to set
+     */
+    public void setDateFormat(String dateFormat) {
+        this.dateFormat = dateFormat;
     }
 
     

@@ -15,7 +15,7 @@
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
         <#assign formId = "userForm">
-        <form id="${formId}" role="form" action="/user?action=userFormSubmit" method="POST" onsubmit="return validateForm(this);" accept-charset="UTF-8">
+        <form id="${formId}" role="form" action="/user?action=userFormSubmit" method="POST" onsubmit="return validateForm(this);">
           <input type="hidden" name="userId" value="${viewUser.userId}"/>
 	  <!-- Authentication info should be dealt with outside this form -->
 	  <div class="form-group">

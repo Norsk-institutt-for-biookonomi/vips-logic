@@ -22,6 +22,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
@@ -37,7 +38,9 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "ForecastConfiguration.findByModelId", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId = :modelId"),
     @NamedQuery(name = "ForecastConfiguration.findByDateStart", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart = :dateStart"),
     @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsCoreUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsCoreUserId = :vipsCoreUserId")})
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds)")
+})
 public class ForecastConfiguration implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration")
     private Set<ForecastModelConfiguration> forecastModelConfigurationSet;
@@ -56,8 +59,9 @@ public class ForecastConfiguration implements Serializable {
     @Column(name = "date_end")
     @Temporal(TemporalType.DATE)
     private Date dateEnd;
-    @Column(name = "vips_core_user_id")
-    private Integer vipsCoreUserId;
+    @JoinColumn(name = "vips_logic_user_id", referencedColumnName = "user_id")
+    @ManyToOne(optional = false)
+    private VipsLogicUser vipsLogicUserId;
     @JoinColumn(name = "location_point_of_interest_id", referencedColumnName = "point_of_interest_id")
     @ManyToOne
     private PointOfInterest locationPointOfInterestId;
@@ -104,12 +108,12 @@ public class ForecastConfiguration implements Serializable {
         this.dateEnd = dateEnd;
     }
 
-    public Integer getVipsCoreUserId() {
-        return vipsCoreUserId;
+    public VipsLogicUser getVipsLogicUserId() {
+        return vipsLogicUserId;
     }
 
-    public void setVipsCoreUserId(Integer vipsCoreUserId) {
-        this.vipsCoreUserId = vipsCoreUserId;
+    public void setVipsCoreUserId(VipsLogicUser vipsLogicUserId) {
+        this.vipsLogicUserId = vipsLogicUserId;
     }
 
     public PointOfInterest getLocationPointOfInterestId() {

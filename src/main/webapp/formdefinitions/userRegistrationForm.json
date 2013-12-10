@@ -49,7 +49,7 @@
         }
         
     ],
-    "repeatFields":[
-        {"primaryField":"password","repeatField":"password2"}
+    "relations":[
+        {"primaryField":"password2","secondaryField":"password", "relationType": "EQUALS"}
     ]
 }

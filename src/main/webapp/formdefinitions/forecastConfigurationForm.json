@@ -1,0 +1,51 @@
+{
+    "_comment" : "Structure of the forecastConfigurationForm and how to validate it",
+    "fields": [
+        {
+            "name" : "forecastConfigurationId",
+            "type" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "vipsLogicUserId",
+            "type" : "INTEGER",
+            "type" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "modelId",
+            "type" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "locationPointOfInterestId",
+            "type" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "weatherStationPointOfInterestId",
+            "type" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "dateStart",
+            "type" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "dateEnd",
+            "type" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        }
+        
+    ],
+    "relations":[
+        {"primaryField":"dateEnd","secondaryField":"dateStart", "relationType": "AFTER"}
+    ]
+}

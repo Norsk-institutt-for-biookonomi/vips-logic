@@ -29,7 +29,7 @@ import no.bioforsk.web.forms.FormValidator;
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
-public class UserControllerServlet extends HttpServlet {
+public class UserController extends HttpServlet {
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
