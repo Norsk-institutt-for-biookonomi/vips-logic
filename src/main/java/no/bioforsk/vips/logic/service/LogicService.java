@@ -18,8 +18,8 @@ import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
+import no.bioforsk.vips.logic.scheduling.model.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
-import no.bioforsk.vips.logic.util.Globals;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
@@ -114,6 +114,15 @@ public class LogicService {
         {
             return Response.ok().entity(ex.getMessage()).build();
         }
+    }
+    
+    @GET
+    @Path("forecastmodelconfiguration/{forecastConfigurationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastModelConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
+    {
+        List<ForecastModelConfiguration> forecastModelConfigurations = SessionControllerGetter.getForecastBean().getForecastModelConfigurations(forecastConfigurationId);
+        return Response.ok().entity(forecastModelConfigurations).build();
     }
     
     private ManagerResource getManagerResource()

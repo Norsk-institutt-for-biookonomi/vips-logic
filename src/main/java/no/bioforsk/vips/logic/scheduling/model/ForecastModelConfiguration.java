@@ -10,6 +10,7 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -17,6 +18,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -38,7 +40,7 @@ public class ForecastModelConfiguration implements Serializable {
     @Column(name = "parameter_value")
     private String parameterValue;
     @JoinColumn(name = "forecast_configuration_id", referencedColumnName = "forecast_configuration_id", insertable = false, updatable = false)
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch=FetchType.LAZY)
     private ForecastConfiguration forecastConfiguration;
 
     public ForecastModelConfiguration() {
@@ -48,7 +50,7 @@ public class ForecastModelConfiguration implements Serializable {
         this.forecastModelConfigurationPK = forecastModelConfigurationPK;
     }
 
-    public ForecastModelConfiguration(int forecastConfigurationId, String modelConfigParameter) {
+    public ForecastModelConfiguration(long forecastConfigurationId, String modelConfigParameter) {
         this.forecastModelConfigurationPK = new ForecastModelConfigurationPK(forecastConfigurationId, modelConfigParameter);
     }
 
@@ -68,6 +70,7 @@ public class ForecastModelConfiguration implements Serializable {
         this.parameterValue = parameterValue;
     }
 
+    @JsonIgnore
     public ForecastConfiguration getForecastConfiguration() {
         return forecastConfiguration;
     }

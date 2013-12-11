@@ -1,0 +1,11 @@
+{
+    "_comment" : "Structure of the specific fields for APPLESCABM",
+    "fields": [
+        {
+            "name" : "startDateAscosporeMaturity",
+            "type" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        }
+    ]
+}

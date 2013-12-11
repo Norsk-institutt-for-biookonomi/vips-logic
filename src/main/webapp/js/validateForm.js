@@ -1,4 +1,23 @@
 /*
+ * Copyright (c) 2013 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
+/*
  * This validator has its Java counterpart in no.bioforsk.web.forms.FormValidator.java 
  * (for server side validation). They use the same JSON file for form validation. 
  * Changes in logic client side should be reflected server side
@@ -10,6 +29,7 @@ var formFieldTypes = {
     TYPE_INTEGER: "INTEGER",
     TYPE_DOUBLE: "DOUBLE",
     TYPE_DATE: "DATE",
+    TYPE_TIMESTAMP: "TIMESTAMP",
     TYPE_PASSWORD: "PASSWORD",
     TYPE_EMAIL: "EMAIL",
     TYPE_SELECT_SINGLE: "SELECT_SINGLE",
@@ -99,7 +119,7 @@ function validateFormActual(theForm)
         }
         
         // String equality NOW!
-        console.log("relationTYpe=" + item.relationType);
+        //console.log("relationTYpe=" + item.relationType);
         if(item.relationType === relationTypes.RELATION_TYPE_EQUALS)
         {
             if(primaryFieldWebValue !== secondaryFieldWebValue)
@@ -136,12 +156,16 @@ function validateFormActual(theForm)
  * @param {DOMElement} fieldEl
  * @returns {void}
  */
-function validateField(fieldEl)
+function validateField(fieldEl, formDefinitionKey)
 {
     // Which form does this element belong to?
     var theForm = getFormForField(fieldEl);
+    if(formDefinitionKey === null || formDefinitionKey === undefined)
+    {    
+        formDefinitionKey = theForm.id;
+    }
     // If form definition is null, get it before we proceed
-    if(formDefinitions[theForm.id] === undefined)
+    if(formDefinitions[formDefinitionKey] === undefined)
     {
         $.getJSON( "/formdefinitions/" + theForm.id + ".json")
         .done(function(json){
@@ -151,7 +175,7 @@ function validateField(fieldEl)
     }
     else
     {
-        validateFieldActual(fieldEl, theForm);
+        validateFieldActual(fieldEl, theForm, formDefinitionKey);
     }
 }
 
@@ -190,10 +214,10 @@ function getValidationOutputEl(fieldEl, theForm)
  * @param {Element} theForm the form
  * @returns {void}
  */
-function validateFieldActual(fieldEl, theForm)
+function validateFieldActual(fieldEl, theForm, formDefinitionKey)
 {
     var webValue = fieldEl.value;
-    var fieldDefinition = getFieldDefinition(fieldEl.name, formDefinitions[theForm.id]);
+    var fieldDefinition = getFieldDefinition(fieldEl.name, formDefinitions[formDefinitionKey !== null ? formDefinitionKey : theForm.id]);
         
     // Empty?
     if(webValue === null || webValue === "")

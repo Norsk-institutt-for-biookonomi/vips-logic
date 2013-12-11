@@ -16,7 +16,7 @@ public class ForecastModelConfigurationPK implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "forecast_configuration_id")
-    private int forecastConfigurationId;
+    private long forecastConfigurationId;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
@@ -26,16 +26,16 @@ public class ForecastModelConfigurationPK implements Serializable {
     public ForecastModelConfigurationPK() {
     }
 
-    public ForecastModelConfigurationPK(int forecastConfigurationId, String modelConfigParameter) {
+    public ForecastModelConfigurationPK(long forecastConfigurationId, String modelConfigParameter) {
         this.forecastConfigurationId = forecastConfigurationId;
         this.modelConfigParameter = modelConfigParameter;
     }
 
-    public int getForecastConfigurationId() {
+    public long getForecastConfigurationId() {
         return forecastConfigurationId;
     }
 
-    public void setForecastConfigurationId(int forecastConfigurationId) {
+    public void setForecastConfigurationId(long forecastConfigurationId) {
         this.forecastConfigurationId = forecastConfigurationId;
     }
 

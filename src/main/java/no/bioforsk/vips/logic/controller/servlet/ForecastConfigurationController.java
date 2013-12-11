@@ -151,22 +151,24 @@ public class ForecastConfigurationController extends HttpServlet {
                     {
                         // Standard form validation
                         FormValidation formValidation = FormValidator.validateForm("forecastConfigurationForm",request,getServletContext());
-                        if(formValidation.isValid())
+                        // Also validation the model specific fields
+                        String modelId = formValidation.getFormField("modelId").getWebValue();
+                        FormValidation modelFieldFormValidation = FormValidator.validateForm("models/" + modelId, request, getServletContext());
+                        
+                        if(formValidation.isValid() && modelFieldFormValidation.isValid())
                         {
+                            forecastBean.storeForecastConfiguration(forecastConfiguration, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
                             // Store form config
-                            forecastConfiguration.setModelId(formValidation.getFormField("modelId").getWebValue());
-                            PointOfInterest locationPoi = em.find(PointOfInterest.class, formValidation.getFormField("locationPointOfInterestId").getValueAsInteger());
-                            forecastConfiguration.setLocationPointOfInterestId(locationPoi);
-                            PointOfInterest weatherStationPoi = em.find(PointOfInterestWeatherStation.class, formValidation.getFormField("weatherStationPointOfInterestId").getValueAsInteger());
-                            forecastConfiguration.setWeatherStationPointOfInterestId(weatherStationPoi);
-                            forecastConfiguration.setDateStart(formValidation.getFormField("dateStart").getValueAsDate());
-                            forecastConfiguration.setDateEnd(formValidation.getFormField("dateEnd").getValueAsDate());
-                            VipsLogicUser forecastConfigurationUser = em.find(VipsLogicUser.class, formValidation.getFormField("vipsLogicUserId").getValueAsInteger());
-                            forecastConfiguration.setVipsCoreUserId(forecastConfigurationUser);
-                            forecastBean.storeForecastConfiguration(forecastConfiguration);
+                            
+
+                            //forecastBean.storeForecastModelConfigurations(forecastConfiguration, modelFieldFormValidation.getFormFields());
+                            // TODO: Store model specific fields
+                            // First: Delete all o
+                            
                             
                             request.setAttribute("messageKey", request.getParameter("formConfigurationUpdated"));
                             response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=").append(forecastConfiguration.getForecastConfigurationId()).append("&messageKey=").append("forecastConfigurationUpdated").toString());
+
                         }
                         else
                         {

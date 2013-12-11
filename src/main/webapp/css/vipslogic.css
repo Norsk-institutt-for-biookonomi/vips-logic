@@ -11,3 +11,18 @@
     padding-bottom: 6px;
 }
 
+fieldset {
+    border: 1px solid #C0C0C0;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+fieldset#modelSpecificFields{
+    display: none;
+}
+
+legend {
+    width: auto; /* Or auto */
+    padding: 0 10px; /* To give a bit of padding on the left and right */
+    border-bottom:none;
+}

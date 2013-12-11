@@ -16,8 +16,12 @@ import no.bioforsk.vips.coremanager.service.ManagerResource;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.entity.ModelInformation;
 import no.bioforsk.vips.logic.entity.Organization;
+import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
+import no.bioforsk.vips.logic.scheduling.model.ForecastModelConfiguration;
+import no.bioforsk.web.forms.FormField;
 import org.codehaus.jackson.JsonNode;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
@@ -32,7 +36,7 @@ public class ForecastBean {
     EntityManager em;
     
     /**
-     * Returns all forecast results. TODO: put out of use!
+     * Returns all forecast results.
      * @return 
      */
     public List<ForecastResult> getForecastResults()
@@ -139,9 +143,63 @@ public class ForecastBean {
         return retVal;
     }
     
-    public void storeForecastConfiguration(ForecastConfiguration forecastConfiguration)
+    public void storeForecastConfiguration(ForecastConfiguration forecastConfiguration, Map<String, FormField> formFields, Map<String, FormField> modelSpecificFormFields)
     {
+        
+        forecastConfiguration.setModelId(formFields.get("modelId").getWebValue());
+        PointOfInterest locationPoi = em.find(PointOfInterest.class, formFields.get("locationPointOfInterestId").getValueAsInteger());
+        forecastConfiguration.setLocationPointOfInterestId(locationPoi);
+        PointOfInterest weatherStationPoi = em.find(PointOfInterestWeatherStation.class, formFields.get("weatherStationPointOfInterestId").getValueAsInteger());
+        forecastConfiguration.setWeatherStationPointOfInterestId(weatherStationPoi);
+        forecastConfiguration.setDateStart(formFields.get("dateStart").getValueAsDate());
+        forecastConfiguration.setDateEnd(formFields.get("dateEnd").getValueAsDate());
+        VipsLogicUser forecastConfigurationUser = em.find(VipsLogicUser.class, formFields.get("vipsLogicUserId").getValueAsInteger());
+        forecastConfiguration.setVipsCoreUserId(forecastConfigurationUser);
+        
         em.merge(forecastConfiguration);
+        
+        // Reset all model configurations, then store the new ones
+        // As for now: We keep the old ones.
+        // Reason: If anybody screws up by changing a form, old configurations could get lost
+        /*List<ForecastModelConfiguration> configsToRemove = em.createNamedQuery("ForecastModelConfiguration.findByForecastConfigurationId").setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId()).getResultList();
+        for(ForecastModelConfiguration configToRemove: configsToRemove)
+        {
+            em.remove(configToRemove);
+        }
+        em.flush();*/
+        
+        // Store new values
+        for(FormField field : modelSpecificFormFields.values())
+        {
+            String deCamelizedFieldName = getDeCamelizedFieldName(forecastConfiguration.getModelId(), field.getName());
+            ForecastModelConfiguration forecastModelConfiguration = new ForecastModelConfiguration(forecastConfiguration.getForecastConfigurationId(), deCamelizedFieldName);
+            forecastModelConfiguration.setParameterValue(field.getWebValue());
+            em.merge(forecastModelConfiguration);
+        }
+        
+    }
+    
+    /**
+     * 
+     * @param modelId
+     * @param camelCaseName
+     * @return MODELID_CAMEL_CASE_NAME
+     */
+    private String getDeCamelizedFieldName(String modelId, String camelCaseName)
+    {
+        StringBuilder deCamelizedFieldName = new StringBuilder(modelId.toUpperCase());
+        for(String phrase : camelCaseName.split("(?=\\p{Lu})"))
+        {
+            deCamelizedFieldName.append("_").append(phrase.toUpperCase());
+        }
+        
+        return deCamelizedFieldName.toString();
+    }
+    
+    
+    public List<ForecastModelConfiguration> getForecastModelConfigurations(Long forecastConfigurationId)
+    {
+        return em.createNamedQuery("ForecastModelConfiguration.findByForecastConfigurationId").setParameter("forecastConfigurationId", forecastConfigurationId).getResultList();
     }
     
     

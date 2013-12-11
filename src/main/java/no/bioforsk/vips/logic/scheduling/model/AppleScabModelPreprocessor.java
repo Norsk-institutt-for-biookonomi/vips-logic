@@ -12,7 +12,8 @@ import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.util.SystemTime;
 
 /**
- * Gathers necessary data to run the Apple Scab Model (APPLESCABM)
+ * Gathers necessary data to run the Apple Scab Model (APPLESCABM).
+ * Also responsible for providing forecast configuration form with the correct input parameters
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */

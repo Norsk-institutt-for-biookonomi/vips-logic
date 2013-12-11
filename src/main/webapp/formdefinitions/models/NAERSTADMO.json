@@ -1,0 +1,17 @@
+{
+    "_comment" : "Structure of the specific fields for NAERSTADMO",
+    "fields": [
+        {
+            "name" : "calculationStart",
+            "type" : "TIMESTAMP",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "calculationEnd",
+            "type" : "TIMESTAMP",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        }
+    ]
+}
