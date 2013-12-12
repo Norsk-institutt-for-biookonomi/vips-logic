@@ -97,9 +97,11 @@
 	  <fieldset id="modelSpecificFields">
 	  	
 	  </fieldset>
-	  <button onclick="alert('validate=' + (validateForm(document.getElementById('forecastConfigurationForm')) && validateForm(document.getElementById('forecastConfigurationForm'), document.getElementById('forecastConfigurationForm').modelId.options[document.getElementById('forecastConfigurationForm').modelId.selectedIndex].value)));">Test submit</button>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
-	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){alert('Not implemented');}">${i18nBundle.delete}</button>
+	  <button type="button" class="btn btn-warning" onclick="if(confirm('${i18nBundle.confirmLeaveForm}')){window.location.href='/forecastConfiguration';}">${i18nBundle.leaveForm}</button>
+	  <#if forecastConfiguration.forecastConfigurationId?has_content>
+	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/forecastConfiguration?action=deleteForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';}">${i18nBundle.delete}</button>
+	  </#if>
         </form>
 </#macro>
 <@page_html/>

@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.controller.session.ForecastBean;
 import no.bioforsk.vips.logic.controller.session.UserBean;
-import no.bioforsk.vips.logic.entity.PointOfInterest;
-import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
@@ -157,7 +155,7 @@ public class ForecastConfigurationController extends HttpServlet {
                         
                         if(formValidation.isValid() && modelFieldFormValidation.isValid())
                         {
-                            forecastBean.storeForecastConfiguration(forecastConfiguration, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
+                            forecastConfiguration = forecastBean.storeForecastConfiguration(forecastConfiguration, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
                             // Store form config
                             
 
@@ -192,6 +190,40 @@ public class ForecastConfigurationController extends HttpServlet {
                 {
                     response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
                 }
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+        }
+        // Delete forecast configuration
+        // Authorization: SUPERUSERS and ORGANIZATION ADMINS
+        else if(action.equals("deleteForecastConfiguration"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                try
+                {
+                    Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
+                    ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
+
+                    // Only superusers can delete forecasts from other organizations
+                    if(! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getOrganizationId().equals(user.getOrganizationId()))
+                    {
+                        response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                    }
+                    else
+                    {
+                        forecastBean.deleteForecastConfiguration(forecastConfigurationId);
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?").append("&messageKey=").append("forecastConfigurationDeleted").toString());
+                       
+                    }
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
+                }
+                
             }
             else
             {

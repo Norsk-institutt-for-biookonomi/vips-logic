@@ -143,9 +143,15 @@ public class ForecastBean {
         return retVal;
     }
     
-    public void storeForecastConfiguration(ForecastConfiguration forecastConfiguration, Map<String, FormField> formFields, Map<String, FormField> modelSpecificFormFields)
+    /**
+     * Stores a forecast configuration, including model specific form fields
+     * @param forecastConfiguration
+     * @param formFields
+     * @param modelSpecificFormFields
+     * @return the updated (or freshly created, with brand new Id) forecast configuration
+     */
+    public ForecastConfiguration storeForecastConfiguration(ForecastConfiguration forecastConfiguration, Map<String, FormField> formFields, Map<String, FormField> modelSpecificFormFields)
     {
-        
         forecastConfiguration.setModelId(formFields.get("modelId").getWebValue());
         PointOfInterest locationPoi = em.find(PointOfInterest.class, formFields.get("locationPointOfInterestId").getValueAsInteger());
         forecastConfiguration.setLocationPointOfInterestId(locationPoi);
@@ -156,7 +162,7 @@ public class ForecastBean {
         VipsLogicUser forecastConfigurationUser = em.find(VipsLogicUser.class, formFields.get("vipsLogicUserId").getValueAsInteger());
         forecastConfiguration.setVipsCoreUserId(forecastConfigurationUser);
         
-        em.merge(forecastConfiguration);
+        forecastConfiguration = em.merge(forecastConfiguration);
         
         // Reset all model configurations, then store the new ones
         // As for now: We keep the old ones.
@@ -177,6 +183,7 @@ public class ForecastBean {
             em.merge(forecastModelConfiguration);
         }
         
+        return forecastConfiguration;
     }
     
     /**
@@ -202,6 +209,14 @@ public class ForecastBean {
         return em.createNamedQuery("ForecastModelConfiguration.findByForecastConfigurationId").setParameter("forecastConfigurationId", forecastConfigurationId).getResultList();
     }
     
+    /**
+     * Deletes a forecast configuration and all results
+     * @param forecastConfigurationId 
+     */
+    public void deleteForecastConfiguration(Long forecastConfigurationId)
+    {
+        em.remove(em.find(ForecastConfiguration.class, forecastConfigurationId));
+    }
     
     /**
      * Get the interface for REST resources in VIPSCoreManager
