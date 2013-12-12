@@ -303,6 +303,15 @@ public class FormField {
             return DATE_DEFAULT_FORMAT;
         }
     }
+    
+    /**
+     * 
+     * @return Timestampformat (adds hour,minute,second and timezone to getDateFormat())
+     */
+    public String getTimestampFormat()
+    {
+        return this.getDateFormat() + "'T'HH:mm:ssX";
+    }
 
     /**
      * @param dateFormat the dateFormat to set

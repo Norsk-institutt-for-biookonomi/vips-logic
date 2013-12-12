@@ -16,15 +16,14 @@
 		if (!Modernizr.inputtypes.date) {
 		    $('input[type=date]').datepicker({ dateFormat: 'yy-mm-dd' });
 		}
+		
+		// Load main form definition (for validation)
+		loadFormDefinition("forecastConfigurationForm");
+		
 		// Show specific fields for model
 		if(document.getElementById('modelId').options.selectedIndex > 0)
 		{
 			renderModelSpecificFields();
-			// Fetch values for fields if existing forecastConfiguration
-			if(document.getElementById('forecastConfigurationId').value !== "-1")
-			{
-				fetchModelSpecificFieldValues();
-			}
 		}
 	</script>
 </#macro>
@@ -37,7 +36,7 @@
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
         <#assign formId = "forecastConfigurationForm">
-        <form id="${formId}" role="form" action="/forecastConfiguration?action=forecastConfigurationFormSubmit" method="POST" onsubmit="try{return validateForm(this);}catch(err){alert(err);return false;}">
+        <form id="${formId}" role="form" action="/forecastConfiguration?action=forecastConfigurationFormSubmit" method="POST" onsubmit2="return false;" onsubmit="try{ return (validateForm(this) && validateForm(this, this.modelId.options[this.modelId.selectedIndex].value));}catch(err){alert(err);return false;}">
           <input type="hidden" id="forecastConfigurationId" name="forecastConfigurationId" value="${forecastConfiguration.forecastConfigurationId!"-1"}"/>
           <div class="form-group">
 	    <label for="modelId">${i18nBundle.modelId}</label>
@@ -98,6 +97,7 @@
 	  <fieldset id="modelSpecificFields">
 	  	
 	  </fieldset>
+	  <button onclick="alert('validate=' + (validateForm(document.getElementById('forecastConfigurationForm')) && validateForm(document.getElementById('forecastConfigurationForm'), document.getElementById('forecastConfigurationForm').modelId.options[document.getElementById('forecastConfigurationForm').modelId.selectedIndex].value)));">Test submit</button>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){alert('Not implemented');}">${i18nBundle.delete}</button>
         </form>

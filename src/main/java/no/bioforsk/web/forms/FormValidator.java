@@ -68,7 +68,7 @@ public class FormValidator {
             }
             
             // Dates
-            // We try to conver to date using the given format
+            // We try to convert to date using the given format
             if(field.getType().equals(FormField.FORM_FIELD_TYPE_DATE))
             {
                 SimpleDateFormat format = new SimpleDateFormat(field.getDateFormat());
@@ -79,7 +79,24 @@ public class FormValidator {
                 catch(ParseException ex)
                 {
                     field.setValid(false);
-                    field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "doesNotMatchDateFormat"), field.getDateFormat()));
+                    field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "doesNotMatchFormatX"), field.getDateFormat()));
+                }
+                
+            }
+            
+            // Timestamps
+            // We try to convert to date using the given format
+            if(field.getType().equals(FormField.FORM_FIELD_TYPE_TIMESTAMP))
+            {
+                SimpleDateFormat format = new SimpleDateFormat(field.getTimestampFormat());
+                try
+                {
+                    Date date = format.parse(field.getWebValue());
+                }
+                catch(ParseException ex)
+                {
+                    field.setValid(false);
+                    field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "doesNotMatchFormatX"), field.getTimestampFormat()));
                 }
                 
             }

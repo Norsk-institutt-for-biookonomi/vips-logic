@@ -74,86 +74,92 @@ var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
  * This function prepares for the validateFormActual function.
  * 
  * @param {DOMElement} theForm the form to validate
+ * @param {String} formDefinitionKey
  * @return {boolean} If the form is valid or not
  */
-function validateForm(theForm)
-{
-    if(formDefinitions[theForm.id] === undefined)
-    {
-        $.getJSON( "/formdefinitions/" + theForm.id + ".json")
-        .done(function(json){
-            formDefinitions[theForm.id] = json;
-            return validateFormActual(theForm);
-        });
-        //return false;
-    }
-    else
-    {
-        return validateFormActual(theForm);
-    }
-}
-
-function validateFormActual(theForm)
+function validateForm(theForm, formDefinitionKey)
 {
     var isValid = true;
-    var formDefinition = formDefinitions[theForm.id];
-
+    if(formDefinitionKey === null || formDefinitionKey === undefined)
+    {
+        formDefinitionKey = theForm.id;
+    }
+    var formDefinition = formDefinitions[formDefinitionKey];
     // Iterate through fields in form definition
     for(var i in formDefinition.fields){
         var fieldDefinition = formDefinition.fields[i];
-        if(!validateFieldActual(theForm[fieldDefinition.name], theForm)){
+        if(!validateFieldActual(theForm[fieldDefinition.name], theForm, formDefinitionKey)){
             //console.log("Validation failed for " + fieldDefinition.name);
             isValid = false;
         }
     }
     
     // Check relations
-    for(var i in formDefinition.relations)
+    if(formDefinition.relations !== undefined && formDefinition.relations !== null)
     {
-        var item = formDefinition.relations[i];
-        var primaryFieldWebValue = theForm[item.primaryField].value;
-        var secondaryFieldWebValue = theForm[item.secondaryField].value;
-        if(primaryFieldWebValue === null || secondaryFieldWebValue === null)
+        for(var i in formDefinition.relations)
         {
-            continue;
-        }
-        
-        // String equality NOW!
-        //console.log("relationTYpe=" + item.relationType);
-        if(item.relationType === relationTypes.RELATION_TYPE_EQUALS)
-        {
-            if(primaryFieldWebValue !== secondaryFieldWebValue)
+            var item = formDefinition.relations[i];
+            var primaryFieldWebValue = theForm[item.primaryField].value;
+            var secondaryFieldWebValue = theForm[item.secondaryField].value;
+            if(primaryFieldWebValue === null || secondaryFieldWebValue === null)
             {
-                isValid = false;
-                invalidizeField(theForm[item.primaryField], theForm, getI18nMsg("xIsNotEqualToY",[
-                    getI18nMsg(item.primaryField),
-                    getI18nMsg(item.secondaryField).toLowerCase()
-                ]));
+                continue;
             }
-        }
-        // Primary field is expected to be a date AFTER secondary key
-        else if(item.relationType === relationTypes.RELATION_TYPE_AFTER)
-        {
-            if(!moment(primaryFieldWebValue).isAfter(moment(secondaryFieldWebValue)))
+
+            // String equality NOW!
+            //console.log("relationTYpe=" + item.relationType);
+            if(item.relationType === relationTypes.RELATION_TYPE_EQUALS)
             {
-                isValid = false;
-                invalidizeField(theForm[item.primaryField], theForm, getI18nMsg("xIsNotAfterY",[
-                    getI18nMsg(item.primaryField),
-                    getI18nMsg(item.secondaryField).toLowerCase()
-                ]));
+                if(primaryFieldWebValue !== secondaryFieldWebValue)
+                {
+                    isValid = false;
+                    invalidizeField(theForm[item.primaryField], theForm, getI18nMsg("xIsNotEqualToY",[
+                        getI18nMsg(item.primaryField),
+                        getI18nMsg(item.secondaryField).toLowerCase()
+                    ]));
+                }
             }
+            // Primary field is expected to be a date AFTER secondary key
+            else if(item.relationType === relationTypes.RELATION_TYPE_AFTER)
+            {
+                if(!moment(primaryFieldWebValue).isAfter(moment(secondaryFieldWebValue)))
+                {
+                    isValid = false;
+                    invalidizeField(theForm[item.primaryField], theForm, getI18nMsg("xIsNotAfterY",[
+                        getI18nMsg(item.primaryField),
+                        getI18nMsg(item.secondaryField).toLowerCase()
+                    ]));
+                }
+            }
+            //console.log(item.primaryField);
         }
-        //console.log(item.primaryField);
     }
 
     //console.log("isValid=" + isValid);
     return isValid;
 }
 
+/**
+ * Attempts to load and index the requested form definition
+ * @param {type} formDefinitionKey
+ * @returns {void}
+ */
+function loadFormDefinition(formDefinitionKey)
+{
+    $.getJSON( "/formdefinitions/" + formDefinitionKey + ".json")
+        .done(function(json){
+            formDefinitions[formDefinitionKey] = json;
+        })
+        .fail(function() {
+            alert("Error getting form definition with key=" + formDefinitionKey);
+        });
+}
 
 /**
  * Prepares for the validation of a field
  * @param {DOMElement} fieldEl
+ * @param {String} formDefinitionKey
  * @returns {void}
  */
 function validateField(fieldEl, formDefinitionKey)
@@ -170,7 +176,7 @@ function validateField(fieldEl, formDefinitionKey)
         $.getJSON( "/formdefinitions/" + theForm.id + ".json")
         .done(function(json){
             formDefinitions[theForm.id] = json;
-            validateFieldActual(fieldEl, theForm);
+            validateFieldActual(fieldEl, theForm, formDefinitionKey);
         });
     }
     else
@@ -212,6 +218,7 @@ function getValidationOutputEl(fieldEl, theForm)
  * Performs the actual field validation
  * @param {Element} fieldEl the form element to be validated
  * @param {Element} theForm the form
+ * @param {String} formDefinitionKey optional key to a formdefinition for a part of the form that has been dynamically added to the main form
  * @returns {void}
  */
 function validateFieldActual(fieldEl, theForm, formDefinitionKey)
@@ -256,7 +263,23 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
         var validFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
         if(!moment(webValue, validFormat.toUpperCase(),true).isValid())
         {
-            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchDateFormat",[validFormat]));
+            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchFormatX",[validFormat]));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+    
+    if(fieldDefinition.type === formFieldTypes.TYPE_TIMESTAMP)
+    {
+        var validDateFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
+        var validTimestampFormat = validDateFormat.toUpperCase() + "THH:mm:ssZZ";
+        if(!moment(webValue, validTimestampFormat, true).isValid())
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchFormatX",[validTimestampFormat]));
             return false;
         }
         else
