@@ -6,9 +6,9 @@
 <%@page import="no.bioforsk.vips.entity.Result"%>
 <%@page import="java.util.List"%>
 <%@page import="no.bioforsk.vips.logic.util.SystemTime"%>
-<%@page import="no.bioforsk.vips.logic.session.SessionControllerGetter"%>
-<%@page import="no.bioforsk.vips.logic.session.SchedulingBean"%>
-<%@page import="no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration"%>
+<%@page import="no.bioforsk.vips.logic.util.SessionControllerGetter"%>
+<%@page import="no.bioforsk.vips.logic.controller.session.SchedulingBean"%>
+<%@page import="no.bioforsk.vips.logic.entity.ForecastConfiguration"%>
 <%@page import="no.bioforsk.vips.logic.scheduling.model.AppleScabModelPreprocessor"%>
 <%
     SchedulingBean sBean = SessionControllerGetter.getSchedulingBean();
