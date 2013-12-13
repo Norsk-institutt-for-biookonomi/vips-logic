@@ -13,6 +13,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
+import no.bioforsk.vips.entity.Result;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.entity.ModelInformation;
 import no.bioforsk.vips.logic.entity.Organization;
@@ -53,6 +54,23 @@ public class ForecastBean {
         
     }
     
+    /**
+     * Deletes all former results for this forecast configuration, stores the new ones
+     * @param forecastConfiguration
+     * @param results 
+     */
+    public void storeResults(ForecastConfiguration forecastConfiguration, List<Result> results)
+    {
+        System.out.println("forecastConfigurationId=" + forecastConfiguration.getForecastConfigurationId());
+        Query q = em.createNativeQuery("DELETE FROM public.forecast_result WHERE forecast_configuration_id=:forecastConfigurationId");
+        q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
+        q.executeUpdate();
+        for(Result result:results)
+        {
+            ForecastResult fResult = new ForecastResult(forecastConfiguration,result);
+            em.persist(fResult);
+        }
+    }
     
     
     /**
