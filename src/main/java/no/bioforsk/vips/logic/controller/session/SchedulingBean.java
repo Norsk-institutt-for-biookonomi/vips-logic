@@ -25,6 +25,8 @@ import no.bioforsk.vips.logic.scheduling.SchedulingTest;
 import no.bioforsk.vips.logic.scheduling.VIPSLogicTaskCollector;
 import no.bioforsk.vips.logic.scheduling.model.AppleScabModelPreprocessor;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.scheduling.tasks.RunAllForecastConfigurationsTask;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
@@ -48,7 +50,7 @@ public class SchedulingBean {
     
     public void startSystemScheduler(){
         initSystemScheduler();
-        getSystemScheduler().schedule("* * * * *", new SchedulingTest());
+        getSystemScheduler().schedule("* * * * *", new RunAllForecastConfigurationsTask());
         getSystemScheduler().start();
     }
     
@@ -83,7 +85,7 @@ public class SchedulingBean {
     {
 
             AppleScabModelPreprocessor p = new AppleScabModelPreprocessor();
-            ForecastConfiguration c = em.find(ForecastConfiguration.class, 1);
+            ForecastConfiguration c = em.find(ForecastConfiguration.class, 1l);
             ModelConfiguration config = p.getModelConfiguration(c);
 
             ModelRunRequest request = new ModelRunRequest(config);
@@ -94,15 +96,16 @@ public class SchedulingBean {
             
             Response resp = this.getManagerResource().runModel("APPLESCABM", request);
             List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
-            for(Result result:results)
-            {
-                ForecastResult fResult = new ForecastResult(result);
-                em.persist(fResult);
-            }
+            
+            // We delete all former results before we store the new ones
+            SessionControllerGetter.getForecastBean().storeResults(c,results);
+            
+            
+            
             return results;
     }
     
-    private ManagerResource getManagerResource()
+    public ManagerResource getManagerResource()
     {
         Client client = ClientBuilder.newClient();
         WebTarget target = client.target(System.getProperty("no.bioforsk.vips.coremanager.VIPSCOREMANAGER_URL"));

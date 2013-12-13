@@ -7,6 +7,7 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -21,8 +22,6 @@ import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import no.bioforsk.vips.logic.entity.PointOfInterest;
-import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
@@ -42,7 +41,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds)")
 })
 public class ForecastConfiguration implements Serializable {
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration", fetch = FetchType.EAGER)
     private Set<ForecastModelConfiguration> forecastModelConfigurationSet;
     private static final long serialVersionUID = 1L;
     @Id
@@ -166,7 +165,7 @@ public class ForecastConfiguration implements Serializable {
      */
     public String getForecastModelConfigurationValue(String modelConfigParameter)
     {
-        for(ForecastModelConfiguration conf:this.forecastModelConfigurationSet)
+        for(ForecastModelConfiguration conf:this.getForecastModelConfigurationSet())
         {
             if(conf.getForecastModelConfigurationPK().getModelConfigParameter().equals(modelConfigParameter))
             {

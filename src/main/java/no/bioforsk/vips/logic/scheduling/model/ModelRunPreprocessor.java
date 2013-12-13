@@ -21,6 +21,8 @@ public abstract class ModelRunPreprocessor {
     
     public abstract ModelConfiguration getModelConfiguration(ForecastConfiguration configuration);
     
+    public abstract String getModelId();
+    
     /**
      * Collects weather observations from a data source
      * @param fetchURI Base URI. E.g. http://lmt.bioforsk.no/agrometbase/export/getVIPS3JSONWeatherData.php?weatherStationId=13

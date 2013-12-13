@@ -24,7 +24,7 @@ public class StartupListener implements javax.servlet.ServletContextListener{
         System.out.println("VIPSLogic system initializing");
         // Testing startup of scheduling
         // Temporarily disabled
-        //SessionControllerGetter.getSchedulingBean().startSystemScheduler();
+        SessionControllerGetter.getSchedulingBean().startSystemScheduler();
         /*try
         {
             SessionControllerGetter.getSchedulingBean().testPreprocessor();

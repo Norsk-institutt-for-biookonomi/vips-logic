@@ -41,6 +41,7 @@ public class ForecastModelConfiguration implements Serializable {
     private String parameterValue;
     @JoinColumn(name = "forecast_configuration_id", referencedColumnName = "forecast_configuration_id", insertable = false, updatable = false)
     @ManyToOne(optional = false, fetch=FetchType.LAZY)
+    //@ManyToOne(optional = false)
     private ForecastConfiguration forecastConfiguration;
 
     public ForecastModelConfiguration() {

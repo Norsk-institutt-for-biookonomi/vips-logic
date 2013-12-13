@@ -289,6 +289,11 @@ public class UserBean {
         
     }
     
+    public Organization getOrganization(Integer organizationId)
+    {
+        return em.find(Organization.class, organizationId);
+    }
+    
     /**
      * Returns the available user status Ids
      * @return 

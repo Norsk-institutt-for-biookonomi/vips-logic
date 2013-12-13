@@ -29,12 +29,9 @@ import java.util.logging.Logger;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -75,14 +72,15 @@ public class ForecastResult implements Serializable, Comparable {
     private Integer warningStatus;
     @Column(name = "all_values")
     private String allValues;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="forecast_configuration_id",referencedColumnName="forecast_configuration_id")
-    private ForecastConfiguration forecastConfigurationId;
+    //@ManyToOne(fetch = FetchType.LAZY,optional=true)
+    //@JoinColumn(name="forecast_configuration_id",referencedColumnName="forecast_configuration_id")    
+    @Column(name = "forecast_configuration_id")
+    private Long forecastConfigurationId;
 
     public ForecastResult() {
     }
     
-    public ForecastResult(ForecastConfiguration forecastConfigurationId, Result result){
+    public ForecastResult(Long forecastConfigurationId, Result result){
         try {
             this.forecastConfigurationId = forecastConfigurationId;
             this.allValues = new ObjectMapper().writeValueAsString(result.getAllValues());
@@ -200,14 +198,14 @@ public class ForecastResult implements Serializable, Comparable {
     /**
      * @return the forecastConfigurationId
      */
-    public ForecastConfiguration getForecastConfigurationId() {
+    public Long getForecastConfigurationId() {
         return forecastConfigurationId;
     }
 
     /**
      * @param forecastConfigurationId the forecastConfigurationId to set
      */
-    public void setForecastConfigurationId(ForecastConfiguration forecastConfigurationId) {
+    public void setForecastConfigurationId(Long forecastConfigurationId) {
         this.forecastConfigurationId = forecastConfigurationId;
     }
 }

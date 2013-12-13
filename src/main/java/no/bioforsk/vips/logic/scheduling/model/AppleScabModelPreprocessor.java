@@ -65,4 +65,9 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         return retVal;
     }
 
+    @Override
+    public String getModelId() {
+        return "APPLESCABM";
+    }
+
 }

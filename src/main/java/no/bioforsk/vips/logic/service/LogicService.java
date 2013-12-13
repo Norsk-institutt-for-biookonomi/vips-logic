@@ -46,11 +46,11 @@ public class LogicService {
     }
     
     @GET
-    @Path("forecastresults/{forecastResultId}")
+    @Path("forecastresults/{forecastConfigurationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getForecastResults(@PathParam("forecastResultId") Long forecastResultId)
+    public Response getForecastResults(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
     {
-        List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults();
+        List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId);
         return Response.ok().entity(results).build();
     }
     

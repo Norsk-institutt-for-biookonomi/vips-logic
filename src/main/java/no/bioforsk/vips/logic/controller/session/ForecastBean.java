@@ -11,8 +11,11 @@ import javax.persistence.Query;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
+import no.bioforsk.vips.entity.ModelConfiguration;
+import no.bioforsk.vips.entity.ModelRunRequest;
 import no.bioforsk.vips.entity.Result;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.entity.ModelInformation;
@@ -22,6 +25,10 @@ import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
+import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
+import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
 import org.codehaus.jackson.JsonNode;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -49,7 +56,7 @@ public class ForecastBean {
     {
         ForecastConfiguration config = this.getForecastConfiguration(forecastConfigurationId);
         Query q = em.createNamedQuery("ForecastResult.findByForecastConfigurationId");
-        q.setParameter("forecastConfigurationId", config);
+        q.setParameter("forecastConfigurationId", forecastConfigurationId);
         return q.getResultList();
         
     }
@@ -67,7 +74,7 @@ public class ForecastBean {
         q.executeUpdate();
         for(Result result:results)
         {
-            ForecastResult fResult = new ForecastResult(forecastConfiguration,result);
+            ForecastResult fResult = new ForecastResult(forecastConfiguration.getForecastConfigurationId(),result);
             em.persist(fResult);
         }
     }
@@ -81,8 +88,9 @@ public class ForecastBean {
      */
     public List<ForecastConfiguration> getForecastConfigurationsForUser(Integer userId)
     {
-        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsCoreUserId");
-        q.setParameter("vipsCoreUserId", userId);
+        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
+        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserId");
+        q.setParameter("vipsLogicUserId", user);
         return q.getResultList();
     }
     
@@ -234,6 +242,39 @@ public class ForecastBean {
     public void deleteForecastConfiguration(Long forecastConfigurationId)
     {
         em.remove(em.find(ForecastConfiguration.class, forecastConfigurationId));
+    }
+    
+    public List<ForecastConfiguration> getForecastConfigurationsValidAtTime(Organization organization, Date time)
+    {
+        Query q = em.createNativeQuery(
+                        "SELECT * FROM public.forecast_configuration "
+                        + "WHERE vips_logic_user_id IN (SELECT user_id FROM public.vips_logic_user WHERE organization_id=:organizationId) "
+                        + "AND :time BETWEEN date_start AND date_end"
+        ,ForecastConfiguration.class);
+        q.setParameter("organizationId", organization.getOrganizationId());
+        q.setParameter("time", time);
+        return q.getResultList();
+    }
+    
+    public void runForecast(ForecastConfiguration forecastConfiguration)
+    {
+        // TODO: Pack this into one method residing in some session bean.
+        ModelRunPreprocessor preprocessor = ModelRunPreprocessorFactory.getModelRunPreprocessor(forecastConfiguration.getModelId());
+        if(preprocessor != null)
+        {
+            ModelConfiguration config = preprocessor.getModelConfiguration(forecastConfiguration);
+            ModelRunRequest request = new ModelRunRequest(config);
+            Map<String,String> loginInfo = new HashMap<>();
+            // TODO: Add the username and password for the actual organization
+            loginInfo.put("username","testuser");
+            loginInfo.put("password","testpass");
+            request.setLoginInfo(loginInfo);
+            Response resp = this.getManagerResource().runModel("APPLESCABM", request);
+            List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
+
+            // We delete all former results before we store the new ones
+            SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
+        }
     }
     
     /**
