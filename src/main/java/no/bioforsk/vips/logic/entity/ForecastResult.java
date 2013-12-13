@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2013 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package no.bioforsk.vips.logic.entity;
 
 import java.io.IOException;
@@ -10,9 +29,12 @@ import java.util.logging.Logger;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -45,7 +67,7 @@ public class ForecastResult implements Serializable, Comparable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "forecast_result_id")
-    private Integer forecastResultId;
+    private Long forecastResultId;
     @Column(name = "result_valid_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date resultValidTime;
@@ -53,14 +75,16 @@ public class ForecastResult implements Serializable, Comparable {
     private Integer warningStatus;
     @Column(name = "all_values")
     private String allValues;
-    @Column(name = "forecast_configuration_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="forecast_configuration_id",referencedColumnName="forecast_configuration_id")
     private ForecastConfiguration forecastConfigurationId;
 
     public ForecastResult() {
     }
     
-    public ForecastResult(Result result){
+    public ForecastResult(ForecastConfiguration forecastConfigurationId, Result result){
         try {
+            this.forecastConfigurationId = forecastConfigurationId;
             this.allValues = new ObjectMapper().writeValueAsString(result.getAllValues());
             this.resultValidTime = result.getResultValidTime();
             this.warningStatus = result.getWarningStatus();
@@ -69,15 +93,15 @@ public class ForecastResult implements Serializable, Comparable {
         }
     }
 
-    public ForecastResult(Integer forecastResultId) {
+    public ForecastResult(Long forecastResultId) {
         this.forecastResultId = forecastResultId;
     }
 
-    public Integer getForecastResultId() {
+    public Long getForecastResultId() {
         return forecastResultId;
     }
 
-    public void setForecastResultId(Integer forecastResultId) {
+    public void setForecastResultId(Long forecastResultId) {
         this.forecastResultId = forecastResultId;
     }
 
