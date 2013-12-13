@@ -76,12 +76,12 @@
 	  </div>
           <div class="form-group">
 	    <label for="dateStart">${i18nBundle.dateStart}</label>
-	    <input type="date" class="form-control" name="dateStart" placeholder="${i18nBundle.dateStart}" value="${(forecastConfiguration.dateStart?string(dateStart_dateFormat))!""}" onblur="validateField(this);" />
+	    <input type="date" class="form-control" name="dateStart" placeholder="${i18nBundle.dateStart}" value="${(forecastConfiguration.dateStart)!""}" onblur="validateField(this);" />
 	    <span class="help-block" id="${formId}_dateStart_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="dateEnd">${i18nBundle.dateEnd}</label>
-	    <input type="date" class="form-control" name="dateEnd" placeholder="${i18nBundle.dateEnd}" value="${(forecastConfiguration.dateEnd?string(dateEnd_dateFormat))!""}" onblur="validateField(this);" />
+	    <input type="date" class="form-control" name="dateEnd" placeholder="${i18nBundle.dateEnd}" value="${(forecastConfiguration.dateEnd)!""}" onblur="validateField(this);" />
 	    <span class="help-block" id="${formId}_dateEnd_validation"></span>
 	  </div>
 	  <div class="form-group">

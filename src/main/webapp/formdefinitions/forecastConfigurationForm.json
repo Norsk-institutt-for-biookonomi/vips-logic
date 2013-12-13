@@ -34,13 +34,11 @@
         {
             "name" : "dateStart",
             "type" : "DATE",
-            "dateFormat" : "yyyy-MM-dd",
             "required" : true
         },
         {
             "name" : "dateEnd",
             "type" : "DATE",
-            "dateFormat" : "yyyy-MM-dd",
             "required" : true
         }
         

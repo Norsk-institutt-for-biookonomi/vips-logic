@@ -169,6 +169,10 @@
             <param-value>0.##########</param-value>
         </init-param>
         <init-param>
+            <param-name>date_format</param-name>
+            <param-value>yyyy-MM-dd</param-value>
+        </init-param>
+        <init-param>
             <param-name>locale</param-name>
             <param-value>no</param-value>
         </init-param>

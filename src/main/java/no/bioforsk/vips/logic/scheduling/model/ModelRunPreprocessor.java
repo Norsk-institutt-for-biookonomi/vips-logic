@@ -1,5 +1,6 @@
 package no.bioforsk.vips.logic.scheduling.model;
 
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;

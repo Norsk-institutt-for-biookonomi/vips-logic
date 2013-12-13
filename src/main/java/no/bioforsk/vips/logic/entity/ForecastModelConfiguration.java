@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package no.bioforsk.vips.logic.scheduling.model;
+package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
 import javax.persistence.Column;

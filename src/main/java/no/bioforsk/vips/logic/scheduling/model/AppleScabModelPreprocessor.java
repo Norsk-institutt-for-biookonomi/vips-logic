@@ -1,5 +1,6 @@
 package no.bioforsk.vips.logic.scheduling.model;
 
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

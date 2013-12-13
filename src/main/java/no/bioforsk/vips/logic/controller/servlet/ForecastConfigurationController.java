@@ -13,7 +13,7 @@ import no.bioforsk.vips.logic.controller.session.ForecastBean;
 import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
-import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
@@ -98,14 +98,10 @@ public class ForecastConfigurationController extends HttpServlet {
                     }
                     else
                     {
-                        // We must get date formats!
-                        Map<String, FormField> formFields = FormValidator.getFormFields("forecastConfigurationForm",getServletContext());
                         // TODO: More intelligent selection of locations, weather stations and users
                         request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
                         request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList());
                         request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
-                        request.setAttribute("dateStart_dateFormat", formFields.get("dateStart").getDateFormat());
-                        request.setAttribute("dateEnd_dateFormat", formFields.get("dateEnd").getDateFormat());
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
                         request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));

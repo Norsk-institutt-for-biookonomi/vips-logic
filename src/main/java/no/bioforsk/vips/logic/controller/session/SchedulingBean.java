@@ -24,7 +24,7 @@ import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.scheduling.SchedulingTest;
 import no.bioforsk.vips.logic.scheduling.VIPSLogicTaskCollector;
 import no.bioforsk.vips.logic.scheduling.model.AppleScabModelPreprocessor;
-import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**

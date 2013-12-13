@@ -21,7 +21,6 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import no.bioforsk.vips.entity.Result;
-import no.bioforsk.vips.logic.scheduling.model.ForecastConfiguration;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
