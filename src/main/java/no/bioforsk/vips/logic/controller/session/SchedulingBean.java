@@ -23,8 +23,9 @@ import no.bioforsk.vips.entity.Result;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.scheduling.SchedulingTest;
 import no.bioforsk.vips.logic.scheduling.VIPSLogicTaskCollector;
-import no.bioforsk.vips.logic.scheduling.model.AppleScabModelPreprocessor;
+import no.bioforsk.vips.logic.scheduling.model.preprocessor.AppleScabModelPreprocessor;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.scheduling.model.preprocessor.NaerstadModelPreprocessor;
 import no.bioforsk.vips.logic.scheduling.tasks.RunAllForecastConfigurationsTask;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -84,8 +85,9 @@ public class SchedulingBean {
     public List<Result> testPreprocessor()
     {
 
-            AppleScabModelPreprocessor p = new AppleScabModelPreprocessor();
-            ForecastConfiguration c = em.find(ForecastConfiguration.class, 1l);
+            //AppleScabModelPreprocessor p = new AppleScabModelPreprocessor();
+            NaerstadModelPreprocessor p = new NaerstadModelPreprocessor();
+            ForecastConfiguration c = em.find(ForecastConfiguration.class, 7l);
             ModelConfiguration config = p.getModelConfiguration(c);
 
             ModelRunRequest request = new ModelRunRequest(config);
@@ -94,7 +96,7 @@ public class SchedulingBean {
             loginInfo.put("password","testpass");
             request.setLoginInfo(loginInfo);
             
-            Response resp = this.getManagerResource().runModel("APPLESCABM", request);
+            Response resp = this.getManagerResource().runModel(p.getModelId(), request);
             List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
             
             // We delete all former results before we store the new ones

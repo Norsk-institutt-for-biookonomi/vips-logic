@@ -9,7 +9,7 @@
 <%@page import="no.bioforsk.vips.logic.util.SessionControllerGetter"%>
 <%@page import="no.bioforsk.vips.logic.controller.session.SchedulingBean"%>
 <%@page import="no.bioforsk.vips.logic.entity.ForecastConfiguration"%>
-<%@page import="no.bioforsk.vips.logic.scheduling.model.AppleScabModelPreprocessor"%>
+<%@page import="no.bioforsk.vips.logic.scheduling.model.preprocessor.NaerstadModelPreprocessor"%>
 <%
     SchedulingBean sBean = SessionControllerGetter.getSchedulingBean();
     List<Result> results = sBean.testPreprocessor();

@@ -258,7 +258,6 @@ public class ForecastBean {
     
     public void runForecast(ForecastConfiguration forecastConfiguration)
     {
-        // TODO: Pack this into one method residing in some session bean.
         ModelRunPreprocessor preprocessor = ModelRunPreprocessorFactory.getModelRunPreprocessor(forecastConfiguration.getModelId());
         if(preprocessor != null)
         {
@@ -269,7 +268,7 @@ public class ForecastBean {
             loginInfo.put("username","testuser");
             loginInfo.put("password","testpass");
             request.setLoginInfo(loginInfo);
-            Response resp = this.getManagerResource().runModel("APPLESCABM", request);
+            Response resp = this.getManagerResource().runModel(config.getModelId(), request);
             List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
 
             // We delete all former results before we store the new ones

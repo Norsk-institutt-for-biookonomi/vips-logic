@@ -1,4 +1,4 @@
-package no.bioforsk.vips.logic.scheduling.model;
+package no.bioforsk.vips.logic.scheduling.model.preprocessor;
 
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import java.text.ParseException;
@@ -10,6 +10,7 @@ import java.util.TimeZone;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.util.SystemTime;
 
 /**
@@ -28,7 +29,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getLocationPointOfInterestId();
         // What timezone is the calculation for
         TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
-        System.out.println("timeZone ID in preprocessor=" + timeZone.getID());
+        //System.out.println("timeZone ID in preprocessor=" + timeZone.getID());
         // When do we start calculation ascospore maturity
         // Normally the date for "green tip"
         Date startDateAscosporeMaturity = null;
@@ -56,7 +57,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         
         // Create the complete model configuration object
         ModelConfiguration retVal = new ModelConfiguration();
-        retVal.setModelId("APPLESCABM");
+        retVal.setModelId(this.getModelId());
         
         retVal.setConfigParameter("startDateAscosporeMaturity", new SimpleDateFormat("yyyy-MM-dd").format(startDateAscosporeMaturity));
         retVal.setConfigParameter("timeZone", timeZone.getID());
