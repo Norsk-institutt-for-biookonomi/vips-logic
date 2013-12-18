@@ -36,18 +36,18 @@ import org.codehaus.jackson.annotate.JsonIgnore;
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class FormField {
-    public static String FORM_FIELD_TYPE_STRING = "STRING";
-    public static String FORM_FIELD_TYPE_INTEGER = "INTEGER";
-    public static String FORM_FIELD_TYPE_DOUBLE = "DOUBLE";
-    public static String FORM_FIELD_TYPE_DATE = "DATE";
-    public static String FORM_FIELD_TYPE_TIMESTAMP = "TIMESTAMP";
-    public static String FORM_FIELD_TYPE_PASSWORD = "PASSWORD";
-    public static String FORM_FIELD_TYPE_EMAIL = "EMAIL";
-    public static String FORM_FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
-    public static String FORM_FIELD_TYPE_SELECT_MULTIPLE = "SELECT_MULTIPLE";
+    public final static String FORM_FIELD_TYPE_STRING = "STRING";
+    public final static String FORM_FIELD_TYPE_INTEGER = "INTEGER";
+    public final static String FORM_FIELD_TYPE_DOUBLE = "DOUBLE";
+    public final static String FORM_FIELD_TYPE_DATE = "DATE";
+    public final static String FORM_FIELD_TYPE_TIMESTAMP = "TIMESTAMP";
+    public final static String FORM_FIELD_TYPE_PASSWORD = "PASSWORD";
+    public final static String FORM_FIELD_TYPE_EMAIL = "EMAIL";
+    public final static String FORM_FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
+    public final static String FORM_FIELD_TYPE_SELECT_MULTIPLE = "SELECT_MULTIPLE";
 
     // Standard format for dates is the ISO-8861-format
-    public static String DATE_DEFAULT_FORMAT = "yyyy-MM-dd";
+    public final static String DATE_DEFAULT_FORMAT = "yyyy-MM-dd";
     
     private String name;
     private String label;
