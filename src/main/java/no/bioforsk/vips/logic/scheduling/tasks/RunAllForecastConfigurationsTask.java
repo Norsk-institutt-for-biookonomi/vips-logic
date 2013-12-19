@@ -20,8 +20,6 @@
 package no.bioforsk.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -37,8 +35,6 @@ import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
-import no.bioforsk.web.forms.HTMLFormGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -49,6 +45,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         tec.setStatusMessage("Oh yes, we're running!!!");
+        System.out.println("Running, running!!!");
         tec.setCompleteness(0d);
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         for(Organization organization : SessionControllerGetter.getUserBean().getOrganizations())

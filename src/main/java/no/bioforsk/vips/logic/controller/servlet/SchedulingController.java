@@ -1,5 +1,6 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
+import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.TaskExecutor;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -13,6 +14,7 @@ import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
+import no.bioforsk.vips.logic.scheduling.TerminateSchedulerListener;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTask;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
@@ -129,9 +131,23 @@ public class SchedulingController extends HttpServlet {
                     if(formValidation.isValid())
                     {
                         // RUN THE JOB!!!
-                        // How to pass on the form fields to the task??
                         task.setConfiguration(request.getParameterMap());
-                        schedulingBean.getSystemScheduler().launch(task);
+                        // If system scheduler is running, launch task there
+                        if(schedulingBean.getSystemScheduler().isStarted())
+                        {
+                            schedulingBean.getSystemScheduler().launch(task);
+                        }
+                        // Otherwise, create one time scheduler that terminates
+                        // upon task termination
+                        // TODO: Make task appear in scheduling overview.
+                        else
+                        {
+                            Scheduler oneTimeScheduler = new Scheduler();
+                            oneTimeScheduler.addSchedulerListener(new TerminateSchedulerListener());
+                            oneTimeScheduler.start();
+                            oneTimeScheduler.launch(task);
+                            schedulingBean.getOneOffSchedulers().add(oneTimeScheduler);
+                        }
                         String message = MessageFormat.format(SessionLocaleUtil.getI18nText(request, "taskXWasLaunched"), task.getName(SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                         response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
                     }

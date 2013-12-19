@@ -8,10 +8,13 @@ import it.sauronsoftware.cron4j.TaskExecutor;
 import it.sauronsoftware.cron4j.TaskTable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.ejb.Stateless;
@@ -48,10 +51,26 @@ public class SchedulingBean {
     // There can be only one systemScheduler!
     private static Scheduler systemScheduler;
     
+    // But there may be one or more one-off schedulers
+    private static Set<Scheduler> oneOffSchedulers;
+    
+    /**
+     * Get the system scheduler
+     * @return 
+     */
     public Scheduler getSystemScheduler(){
         if(systemScheduler == null)
             systemScheduler = new Scheduler();
         return systemScheduler;
+    }
+    
+    public Set<Scheduler> getOneOffSchedulers()
+    {
+        if(oneOffSchedulers == null)
+        {
+            oneOffSchedulers = new HashSet<>();
+        }
+        return oneOffSchedulers;
     }
     
     /**
@@ -121,11 +140,16 @@ public class SchedulingBean {
     }
     
     public TaskExecutor[] getRunningTasks(){
+        List<TaskExecutor> runningTaskExecutors = new ArrayList<>();
+        for(Scheduler oneOffScheduler:this.getOneOffSchedulers())
+        {
+            runningTaskExecutors.addAll(Arrays.asList(oneOffScheduler.getExecutingTasks()));
+        }
         if(this.getSystemScheduler().isStarted())
         {
-            return this.getSystemScheduler().getExecutingTasks();
+            runningTaskExecutors.addAll(Arrays.asList(this.getSystemScheduler().getExecutingTasks()));
         }
-        return null;
+        return runningTaskExecutors.toArray(new TaskExecutor[runningTaskExecutors.size()]);
     }
     
     public List<Result> testPreprocessor() throws PreprocessorException
