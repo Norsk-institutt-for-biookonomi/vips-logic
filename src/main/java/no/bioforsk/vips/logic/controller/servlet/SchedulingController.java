@@ -139,7 +139,6 @@ public class SchedulingController extends HttpServlet {
                         }
                         // Otherwise, create one time scheduler that terminates
                         // upon task termination
-                        // TODO: Make task appear in scheduling overview.
                         else
                         {
                             Scheduler oneTimeScheduler = new Scheduler();
