@@ -8,8 +8,6 @@ import it.sauronsoftware.cron4j.TaskExecutor;
 import it.sauronsoftware.cron4j.TaskTable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -56,9 +54,24 @@ public class SchedulingBean {
         return systemScheduler;
     }
     
-    public void startSystemScheduler(){
-        initSystemScheduler();
-        //getSystemScheduler().schedule("* * * * *", new RunAllForecastConfigurationsTask());
+    /**
+     * Initiates and starts the system scheduler
+     */
+    public void initSystemScheduler(){
+
+        // In case this is called for a second (or later) time after system boot
+        // we remove all existing tasks (in task collectors) before we add the
+        // ones that are configured for starting.
+        TaskCollector[] existingTaskCollectors = getSystemScheduler().getTaskCollectors();
+        if(existingTaskCollectors != null)
+        {
+            for(TaskCollector existingTaskCollector:existingTaskCollectors)
+            {
+                getSystemScheduler().removeTaskCollector(existingTaskCollector);
+            }
+        }
+        
+        // Getting tasks from database (?)
         for(TaskCollector taskCollector: this.getDefinedTasks())
         {
             getSystemScheduler().addTaskCollector(taskCollector);
@@ -66,15 +79,26 @@ public class SchedulingBean {
         getSystemScheduler().start();
     }
     
+    /**
+     * Stops scheduling of all tasks
+     */
     public void stopSystemScheduler(){
-        getSystemScheduler().stop();
+        if(getSystemScheduler().isStarted())
+        {
+            getSystemScheduler().stop();
+        }
     }
     
-    private void initSystemScheduler(){
-        
+    /**
+     * Start scheduling of tasks. No initiating,
+     * starts same schedule as when it was stopped
+     */
+    public void startSystemScheduler(){
+        if(!getSystemScheduler().isStarted())
+        {
+            getSystemScheduler().start();
+        }
     }
-    
-    
     
     private List<TaskCollector> getDefinedTasks(){
         // Real life: Get stuff from database
@@ -97,7 +121,11 @@ public class SchedulingBean {
     }
     
     public TaskExecutor[] getRunningTasks(){
-        return this.getSystemScheduler().getExecutingTasks();
+        if(this.getSystemScheduler().isStarted())
+        {
+            return this.getSystemScheduler().getExecutingTasks();
+        }
+        return null;
     }
     
     public List<Result> testPreprocessor() throws PreprocessorException
@@ -182,4 +210,6 @@ public class SchedulingBean {
         ManagerResource resource = rTarget.proxy(ManagerResource.class);
         return resource;
     }
+
+    
 }

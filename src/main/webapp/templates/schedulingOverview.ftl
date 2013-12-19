@@ -14,23 +14,35 @@
 	<#if message?has_content>
 		<div class="alert alert-success">${message}</div>
 	</#if>
-	<h2>${i18nBundle.runningTasks}</h2>
-        <div class="table-responsive">
-	<table class="table table-striped">
-		<thead>
-			<th>${i18nBundle.name}</th>
-			<th>${i18nBundle.progress}</th>
-		</thead>
-		<tbody>
-		<#list taskExecutors as taskExecutor>
-		    <tr>
-		    	<td>${taskExecutor.getTask().getName(currentLocale)}</td>
-		    	<td><progress max="1" value="${taskExecutor.completeness}">Progress</progress></td>
-		    </tr>
-		</#list>
-		</tbody>
-        </table>
-        </div>
+	<#if taskExecutors?has_content>
+		<h2>${i18nBundle.runningTasks}</h2>
+		<div class="table-responsive">
+		<table class="table table-striped">
+			<thead>
+				<th>${i18nBundle.name}</th>
+				<th>${i18nBundle.progress}</th>
+			</thead>
+			<tbody>
+			<#list taskExecutors as taskExecutor>
+			    <tr>
+				<td>${taskExecutor.getTask().getName(currentLocale)}</td>
+				<td><progress max="1" value="${taskExecutor.completeness}">Progress</progress></td>
+			    </tr>
+			</#list>
+			</tbody>
+		</table>
+		</div>
+	<#else>
+		<div class="alert alert-info">${i18nBundle.noTasksRunning}</div>
+        </#if>
+        <#if user.isSuperUser()>
+        	<#if schedulingStarted>
+        	<button type="button" class="btn btn-danger" onclick="window.location.href='/scheduling?action=stopScheduling'">${i18nBundle.stopScheduling}</button>
+        	<#else>
+        	<div class="alert alert-info">${i18nBundle.schedulingStoppedExplanation}</div>
+        	<button type="button" class="btn btn-success" onclick="window.location.href='/scheduling?action=startScheduling'">${i18nBundle.startScheduling}</button>
+        	</#if>
+        </#if>
         <h2>${i18nBundle.scheduledTasks}</h2>
         <div class="table-responsive">
         <table class="table table-striped">

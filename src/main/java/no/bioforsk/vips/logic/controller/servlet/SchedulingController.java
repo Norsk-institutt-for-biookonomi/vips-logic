@@ -1,21 +1,9 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
-import it.sauronsoftware.cron4j.Predictor;
-import it.sauronsoftware.cron4j.Scheduler;
-import it.sauronsoftware.cron4j.SchedulingPattern;
-import it.sauronsoftware.cron4j.TaskCollector;
 import it.sauronsoftware.cron4j.TaskExecutor;
-import it.sauronsoftware.cron4j.TaskTable;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URLEncoder;
-import java.security.Timestamp;
 import java.text.MessageFormat;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -66,6 +54,7 @@ public class SchedulingController extends HttpServlet {
             {
                 TaskExecutor[] taskExecutors = schedulingBean.getRunningTasks();
                 request.setAttribute("taskExecutors", taskExecutors);
+                request.setAttribute("schedulingStarted", Boolean.valueOf(schedulingBean.getSystemScheduler().isStarted()));
                 request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks());
                 // If this is a redirect from a controller, with a message to be passed on
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
@@ -168,7 +157,36 @@ public class SchedulingController extends HttpServlet {
                 response.sendError(403,"Access not authorized"); // HTTP Forbidden
             }
         }
-        
+        // Stopping system scheduling
+        // Authorization: SUPERUSER ONLY
+        else if(action.equals("stopScheduling"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER))
+            {
+                schedulingBean.stopSystemScheduler();
+                String message = SessionLocaleUtil.getI18nText(request, "schedulingStopped");
+                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+        }
+        // Starting system scheduling
+        // Authorization: SUPERUSER ONLY
+        else if(action.equals("startScheduling"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER))
+            {
+                schedulingBean.startSystemScheduler();
+                String message = SessionLocaleUtil.getI18nText(request, "schedulingStarted");
+                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+        }
         
     }
 
