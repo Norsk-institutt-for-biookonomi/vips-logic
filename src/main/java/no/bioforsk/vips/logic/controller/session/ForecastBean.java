@@ -69,7 +69,7 @@ public class ForecastBean {
      */
     public void storeResults(ForecastConfiguration forecastConfiguration, List<Result> results)
     {
-        System.out.println("forecastConfigurationId=" + forecastConfiguration.getForecastConfigurationId());
+        //System.out.println("forecastConfigurationId=" + forecastConfiguration.getForecastConfigurationId());
         Query q = em.createNativeQuery("DELETE FROM public.forecast_result WHERE forecast_configuration_id=:forecastConfigurationId");
         q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
         q.executeUpdate();
@@ -242,7 +242,16 @@ public class ForecastBean {
      */
     public void deleteForecastConfiguration(Long forecastConfigurationId)
     {
-        em.remove(em.find(ForecastConfiguration.class, forecastConfigurationId));
+        // The entity relationship between ForecastConfiguration and ForecastResult
+        // is not explicit in EJB model, but in the database there is a foreign key 
+        // in forecast_result referencing the forecast_configuration
+        // Explicit deletion of forecast_results rows is therefore necessary.
+        ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
+        Query q = em.createNativeQuery("DELETE FROM public.forecast_result WHERE forecast_configuration_id=:forecastConfigurationId");
+        q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
+        q.executeUpdate();
+        em.remove(forecastConfiguration);
+        
     }
     
     public List<ForecastConfiguration> getForecastConfigurationsValidAtTime(Organization organization, Date time)
