@@ -24,18 +24,23 @@
  */
 
 // Constant defs for field types. Also found in no.bioforsk.web.forms.FormField
-var formFieldTypes = {
+var dataTypes = {
     TYPE_STRING: "STRING",
     TYPE_INTEGER: "INTEGER",
     TYPE_DOUBLE: "DOUBLE",
     TYPE_DATE: "DATE",
     TYPE_TIMESTAMP: "TIMESTAMP",
     TYPE_PASSWORD: "PASSWORD",
-    TYPE_EMAIL: "EMAIL",
-    TYPE_SELECT_SINGLE: "SELECT_SINGLE",
-    TYPE_SELECT_MULTIPLE: "SELECT_MULTIPLE"
+    TYPE_EMAIL: "EMAIL"
+    
     
 };
+
+var fieldTypes= {
+    TYPE_SELECT_SINGLE: "SELECT_SINGLE",
+    TYPE_SELECT_MULTIPLE: "SELECT_MULTIPLE",
+    TYPE_INPUT: "INPUT"
+}
 
 
 var defaultValues = {
@@ -73,7 +78,7 @@ var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
  * 
  * This function prepares for the validateFormActual function.
  * 
- * @param {DOMElement} theForm the form to validate
+ * @param {Element} theForm the form to validate
  * @param {String} formDefinitionKey
  * @return {boolean} If the form is valid or not
  */
@@ -89,7 +94,7 @@ function validateForm(theForm, formDefinitionKey)
     for(var i in formDefinition.fields){
         var fieldDefinition = formDefinition.fields[i];
         if(!validateFieldActual(theForm[fieldDefinition.name], theForm, formDefinitionKey)){
-            //console.log("Validation failed for " + fieldDefinition.name);
+            //alert("Validation failed for " + fieldDefinition.name);
             isValid = false;
         }
     }
@@ -142,12 +147,18 @@ function validateForm(theForm, formDefinitionKey)
 
 /**
  * Attempts to load and index the requested form definition
- * @param {type} formDefinitionKey
+ * @param {String} formDefinitionKey
+ * @param {String} path if set, the form is placed outside the standard path
  * @returns {void}
  */
-function loadFormDefinition(formDefinitionKey)
+function loadFormDefinition(formDefinitionKey, path)
 {
-    $.getJSON( "/formdefinitions/" + formDefinitionKey + ".json")
+    if(path === null || path === undefined)
+    {
+        path = "/formdefinitions/";
+    }
+    
+    $.getJSON( path + formDefinitionKey + ".json")
         .done(function(json){
             formDefinitions[formDefinitionKey] = json;
         })
@@ -223,6 +234,7 @@ function getValidationOutputEl(fieldEl, theForm)
  */
 function validateFieldActual(fieldEl, theForm, formDefinitionKey)
 {
+    
     var webValue = fieldEl.value;
     var fieldDefinition = getFieldDefinition(fieldEl.name, formDefinitions[formDefinitionKey !== null ? formDefinitionKey : theForm.id]);
         
@@ -240,100 +252,9 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
             return true;
         }
     }
-
-    // STRINGS
-    // Strings are checked for length
-    if(fieldDefinition.type === formFieldTypes.TYPE_STRING)
-    {
-        if(fieldDefinition.maxLength !== null && fieldDefinition.maxLength < webValue.length)
-        {
-            invalidizeField(fieldEl, theForm, getI18nMsg("exceedsMaxLengthOf",[fieldDefinition.maxLength]));
-            return false;
-        }
-        else
-        {
-            validizeField(fieldEl, theForm);
-            return true;
-        }
-    }
-    
-    // Dates: check date format
-    if(fieldDefinition.type === formFieldTypes.TYPE_DATE)
-    {
-        var validFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
-        if(!moment(webValue, validFormat.toUpperCase(),true).isValid())
-        {
-            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchFormatX",[validFormat]));
-            return false;
-        }
-        else
-        {
-            validizeField(fieldEl, theForm);
-            return true;
-        }
-    }
-    
-    if(fieldDefinition.type === formFieldTypes.TYPE_TIMESTAMP)
-    {
-        var validDateFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
-        var validTimestampFormat = validDateFormat.toUpperCase() + "THH:mm:ssZZ";
-        if(!moment(webValue, validTimestampFormat, true).isValid())
-        {
-            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchFormatX",[validTimestampFormat]));
-            return false;
-        }
-        else
-        {
-            validizeField(fieldEl, theForm);
-            return true;
-        }
-    }
-
-    // Check email format
-    // We use a simple regExp for this
-    // TODO: This may acutally call a REST service for uniform checking with Java code
-    if(fieldDefinition.type === formFieldTypes.TYPE_EMAIL)
-    {
-        if(!emailReg.test(webValue))
-        {
-            invalidizeField(fieldEl, theForm, getI18nMsg("invalidFormat",null));
-            return false;
-        }
-        else
-        {
-            validizeField(fieldEl, theForm);
-            return true;
-        }
-    }
-
-    // NUMBERS
-    // TODO: INTEGERS should not have decimal values
-    if(fieldDefinition.type === formFieldTypes.TYPE_INTEGER || fieldDefinition.type === formFieldTypes.TYPE_DOUBLE)
-    {
-        if(!$.isNumeric(webValue.replace(",",".")))
-        {
-            invalidizeField(fieldEl, theForm, getI18nMsg("numberRequired",null));
-            return false;
-        }
-        else if(fieldDefinition.minValue !== null && webValue < fieldDefinition.minValue)
-        {
-            invalidizeField(fieldEl, theForm, getI18nMsg("lowerThanMinimum",[fieldDefinition.minValue]));
-            return false;
-        }
-        else if(fieldDefinition.maxValue !== null && webValue > fieldDefinition.maxValue)
-        {
-            invalidizeField(fieldEl, theForm, getI18nMsg("higherThanMaximum",[fieldDefinition.maxValue]));
-            return false;
-        }
-        else
-        {
-            validizeField(fieldEl, theForm);
-            return true;
-        }
-    }
     
     // Single select field - check for nullValue
-    if(fieldDefinition.type === formFieldTypes.TYPE_SELECT_SINGLE)
+    if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE)
     {
         webValue = fieldEl.options[fieldEl.selectedIndex].value;
         if(fieldDefinition.nullValue === webValue)
@@ -344,13 +265,13 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
         else
         {
             validizeField(fieldEl, theForm);
-            return true;
+            // We don't return yet, because we want to validate the data type
         }
     }
     
     // Multiple select field
     // If required - check that at least one item has been selected
-    if(fieldDefinition.type === formFieldTypes.TYPE_SELECT_MULTIPLE)
+    if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_MULTIPLE)
     {
         if(fieldDefinition.required)
         {
@@ -375,9 +296,102 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
             return true;
         }
     }
+
+    // STRINGS
+    // Strings are checked for length
+    if(fieldDefinition.dataType === dataTypes.TYPE_STRING)
+    {
+        if(fieldDefinition.maxLength !== null && fieldDefinition.maxLength < webValue.length)
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("exceedsMaxLengthOf",[fieldDefinition.maxLength]));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+    
+    // Dates: check date format
+    if(fieldDefinition.dataType === dataTypes.TYPE_DATE)
+    {
+        var validFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
+        if(!moment(webValue, validFormat.toUpperCase(),true).isValid())
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchFormatX",[validFormat]));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+    
+    if(fieldDefinition.dataType === dataTypes.TYPE_TIMESTAMP)
+    {
+        var validDateFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
+        var validTimestampFormat = validDateFormat.toUpperCase() + "THH:mm:ssZZ";
+        if(!moment(webValue, validTimestampFormat, true).isValid())
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchFormatX",[validTimestampFormat]));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+
+    // Check email format
+    // We use a simple regExp for this
+    // TODO: This may acutally call a REST service for uniform checking with Java code
+    if(fieldDefinition.dataType === dataTypes.TYPE_EMAIL)
+    {
+        if(!emailReg.test(webValue))
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("invalidFormat",null));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+
+    // NUMBERS
+    // TODO: INTEGERS should not have decimal values
+    if(fieldDefinition.dataType === dataTypes.TYPE_INTEGER || fieldDefinition.type === dataTypes.TYPE_DOUBLE)
+    {
+        if(!$.isNumeric(webValue.replace(",",".")))
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("numberRequired",null));
+            return false;
+        }
+        else if(fieldDefinition.minValue !== null && webValue < fieldDefinition.minValue)
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("lowerThanMinimum",[fieldDefinition.minValue]));
+            return false;
+        }
+        else if(fieldDefinition.maxValue !== null && webValue > fieldDefinition.maxValue)
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("higherThanMaximum",[fieldDefinition.maxValue]));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
+            return true;
+        }
+    }
+    
+    
     
     // Passwords are evaluated in evaluatePassword
-    if(fieldDefinition.type === formFieldTypes.TYPE_PASSWORD)
+    if(fieldDefinition.dataType === fieldTypes.TYPE_PASSWORD)
     {
         return true;
     }

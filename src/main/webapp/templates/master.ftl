@@ -33,7 +33,7 @@
 		<ul class="dropdown-menu">
 		  <li><a href="/user">${i18nBundle.users}</a></li>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
-		  <li><a href="#">Something else here</a></li>
+		  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
 		  <li><a href="#">Separated link</a></li>
 		  <li><a href="#">One more separated link</a></li>
 		</ul>

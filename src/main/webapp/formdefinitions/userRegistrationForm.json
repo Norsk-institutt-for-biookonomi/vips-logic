@@ -3,47 +3,48 @@
     "fields": [
         {
             "name" : "username",
-            "type" : "STRING",
+            "dataType" : "STRING",
             "required" : true,
             "maxLength" : 2047
         },
         {
             "name" : "password",
-            "type" : "PASSWORD",
+            "dataType" : "PASSWORD",
             "required" : true,
             "maxLength" : 63
         },
         {
             "name" : "password2",
-            "type" : "STRING",
+            "dataType" : "STRING",
             "required" : true,
             "maxLength" : 63
         },
         {
             "name" : "email",
-            "type" : "EMAIL",
+            "dataType" : "EMAIL",
             "required" : true
         },
         {
             "name" : "firstName",
-            "type" : "STRING",
+            "dataType" : "STRING",
             "maxLength" : 255
         },
         {
             "name" : "lastName",
-            "type" : "STRING",
+            "dataType" : "STRING",
             "required" : true,
             "maxLength" : 255
         },
         {
             "name" : "organizationId",
-            "type" : "SELECT_SINGLE",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
             "required" : true,
             "nullValue" : "-1"
         },
         {
             "name" : "approvalApplication",
-            "type" : "STRING",
+            "dataType" : "STRING",
             "required" : true,
             "maxLength" : 2147483647
         }

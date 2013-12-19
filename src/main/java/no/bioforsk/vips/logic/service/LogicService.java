@@ -134,5 +134,4 @@ public class LogicService {
         return resource;
     }
     
-
 }

@@ -19,33 +19,131 @@
 
 package no.bioforsk.vips.logic.scheduling.tasks;
 
-import it.sauronsoftware.cron4j.Task;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import no.bioforsk.vips.coremanager.service.ManagerResource;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import no.bioforsk.vips.i18n.I18nImpl;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.Organization;
+import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.logic.scheduling.VipsLogicTask;
+import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
+import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
+import no.bioforsk.web.forms.FormField;
+import no.bioforsk.web.forms.HTMLFormGenerator;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
-public class RunAllForecastConfigurationsTask extends Task{
-
+public class RunAllForecastConfigurationsTask extends VipsLogicTask{
+    private I18nImpl i18n;
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
-        System.out.println("Starting " + this.getClass().getName());
+        tec.setStatusMessage("Oh yes, we're running!!!");
+        tec.setCompleteness(0d);
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         for(Organization organization : SessionControllerGetter.getUserBean().getOrganizations())
         {
             List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(organization, SystemTime.getSystemTime());
+            int numberOfForecastConfigurations = currentForecastConfigurations.size();
+            int counter = 0;
             for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
             {
-                SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
+                tec.setCompleteness(counter/numberOfForecastConfigurations);
+                try 
+                {
+                    SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
+                } 
+                catch (PreprocessorException ex) 
+                {
+                    // TODO: Log event in database??
+                    Logger.getLogger(RunAllForecastConfigurationsTask.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }
 
+    @Override
+    public boolean supportsStatusTracking()
+    {
+        return true;
+    }
+    
+    @Override
+    public boolean supportsCompletenessTracking()
+    {
+        return true;
+    }
+
+    /**
+     * 
+     * @return Form definition
+     */
+    @Override
+    public String getConfigFormDefinition(String language) {
+        StringBuilder retVal = new StringBuilder()
+                .append("{")
+                .append("   \"fields\":[")
+                .append("       {")
+                .append("           \"name\":\"factoryId\",")
+                .append("           \"dataType\":\"").append(FormField.DATA_TYPE_INTEGER).append("\",")
+                .append("           \"fieldType\":\"").append(FormField.FIELD_TYPE_HIDDEN).append("\",")
+                .append("           \"webValue\":[\"").append(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK).append("\"]")
+                .append("       },")
+                .append("       {")
+                .append("           \"name\":\"weatherStationPointOfInterestId\",")
+                .append("           \"dataType\":\"").append(FormField.DATA_TYPE_INTEGER).append("\",")
+                .append("           \"fieldType\":\"").append(FormField.FIELD_TYPE_SELECT_SINGLE).append("\",")
+                .append("           \"nullValue\":\"-1\",")
+                .append("           \"required\":true,")
+                .append("           \"options\": [");
+
+        
+        retVal.append("               {\"value\":\"")
+                    .append("-1")
+                    .append("\", \"label\":\"")
+                    .append(this.getI18nImpl().getText("pleaseSelect", language)).append(" ").append(this.getI18nImpl().getText("weatherStationPointOfInterestId", language).toLowerCase())
+                    .append("\",\"selected\":")
+                    .append("false")
+                    .append("}\n");
+        List<PointOfInterestWeatherStation> stations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+        Collections.sort(stations);
+        for(PointOfInterest station:stations)
+        {
+            retVal.append("               ,{\"value\":\"")
+                    .append(station.getPointOfInterestId())
+                    .append("\", \"label\":\"")
+                    .append(station.getName())
+                    .append("\",\"selected\":")
+                    .append("false")
+                    .append("}\n");
+
+        }
+        retVal  .append("           ]")
+                .append("       }")
+                .append("   ]")
+                .append("}");
+
+
+        return retVal.toString();
+    }
+
+    private I18nImpl getI18nImpl()
+    {
+        if(this.i18n == null)
+        {
+            this.i18n = new I18nImpl("no.bioforsk.vips.logic.i18n.vipslogictexts");
+        }
+        return this.i18n;
+    }
+    
 }

@@ -3,13 +3,13 @@
     "fields": [
         {
             "name" : "calculationStart",
-            "type" : "TIMESTAMP",
+            "dataType" : "TIMESTAMP",
             "dateFormat" : "yyyy-MM-dd",
             "required" : true
         },
         {
             "name" : "calculationEnd",
-            "type" : "TIMESTAMP",
+            "dataType" : "TIMESTAMP",
             "dateFormat" : "yyyy-MM-dd",
             "required" : true
         }

@@ -23,7 +23,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
- * Uses form configuration set in JSON files in [WARFILE]/formdefinitions/
+ * Uses form configuration set in JSON files in [WARFILE]/formdefinitions/, or 
+ * form configurations sent directly as strings 
+ * 
  * This validator has its JavaScript counterpart in /js/validateForm.js (for 
  * client side validation). They use the same JSON file for form validation. 
  * Changes in logic server side should be reflected client side.
@@ -37,8 +39,18 @@ public class FormValidator {
     public static String RELATION_TYPE_AFTER = "AFTER";
 
     public static FormValidation validateForm(String formName, HttpServletRequest request, ServletContext servletContext) throws IOException {
-       
         JsonNode formDefinition = getFormDefinition(formName, servletContext);
+        return validateForm(formDefinition, request);
+    }
+    
+    public static FormValidation validateForm(String formDefinitionStr, HttpServletRequest request) throws IOException
+    {
+        JsonNode formDefinition = getFormDefinition(formDefinitionStr);
+        return validateForm(formDefinition, request);
+    }
+    
+    public static FormValidation validateForm(JsonNode formDefinition, HttpServletRequest request)   
+    {
         List<FormField> fields =  new ObjectMapper().convertValue(formDefinition.findValue("fields"), new TypeReference<List<FormField>>(){});
         FormValidation retVal = new FormValidation();
         
@@ -58,7 +70,7 @@ public class FormValidator {
             }
             // STRINGS
             // Strings are checked for length
-            if(field.getType().equals(FormField.FORM_FIELD_TYPE_STRING))
+            if(field.getDataType().equals(FormField.DATA_TYPE_STRING))
             {
                 if(field.getMaxLength() != null && field.getMaxLength() < field.getWebValue().length())
                 {
@@ -69,7 +81,7 @@ public class FormValidator {
             
             // Dates
             // We try to convert to date using the given format
-            if(field.getType().equals(FormField.FORM_FIELD_TYPE_DATE))
+            if(field.getDataType().equals(FormField.DATA_TYPE_DATE))
             {
                 SimpleDateFormat format = new SimpleDateFormat(field.getDateFormat());
                 try
@@ -86,7 +98,7 @@ public class FormValidator {
             
             // Timestamps
             // We try to convert to date using the given format
-            if(field.getType().equals(FormField.FORM_FIELD_TYPE_TIMESTAMP))
+            if(field.getDataType().equals(FormField.DATA_TYPE_TIMESTAMP))
             {
                 SimpleDateFormat format = new SimpleDateFormat(field.getTimestampFormat());
                 try
@@ -101,7 +113,7 @@ public class FormValidator {
                 
             }
             
-            if(field.getType().equals(FormField.FORM_FIELD_TYPE_PASSWORD))
+            if(field.getDataType().equals(FormField.DATA_TYPE_PASSWORD))
             {
                 try
                 {
@@ -118,7 +130,7 @@ public class FormValidator {
             // EMAILS
             // Check email format
             // Using Apache Commons Validator
-            if(field.getType().equals(FormField.FORM_FIELD_TYPE_EMAIL))
+            if(field.getDataType().equals(FormField.DATA_TYPE_EMAIL))
             {
                 if(!EmailValidator.getInstance().isValid(field.getWebValue()))
                 {
@@ -134,8 +146,8 @@ public class FormValidator {
             // TODO: INTEGERS should not have decimal values
             // If we have min or max constraints, check them
             if(
-                field.getType().equals(FormField.FORM_FIELD_TYPE_INTEGER)
-                || field.getType().equals(FormField.FORM_FIELD_TYPE_DOUBLE)
+                field.getDataType().equals(FormField.DATA_TYPE_INTEGER)
+                || field.getDataType().equals(FormField.DATA_TYPE_DOUBLE)
                 )
             {
                 try
@@ -162,7 +174,7 @@ public class FormValidator {
             // SELECT FIELDS
             // SINGLE SELECT
             // Check that selected option does not equal "nullValue"
-            if(field.getType().equals(FormField.FORM_FIELD_TYPE_SELECT_SINGLE))
+            if(field.getFieldType().equals(FormField.FIELD_TYPE_SELECT_SINGLE))
             {
                 if(field.getWebValue().equals(field.getNullValue()))
                 {
@@ -172,13 +184,14 @@ public class FormValidator {
             }
             
             // MULTIPLE SELECT
+            // TODO: Implement check!!
             // If required, check that at least one option is selected
-            if(field.getType().equals(FormField.FORM_FIELD_TYPE_SELECT_SINGLE))
+            if(field.getFieldType().equals(FormField.FIELD_TYPE_SELECT_SINGLE))
             {
                 
             }
             
-            // TODO: Add dates (and others??)
+            
             
             
 
@@ -252,6 +265,11 @@ public class FormValidator {
         return formDefinition;
     }
     
+    private static JsonNode getFormDefinition(String formDefinitionStr) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readTree(formDefinitionStr);
+    }
+    
     /**
      * 
      * @param formName
@@ -273,5 +291,7 @@ public class FormValidator {
         
         return retVal;
     }
+
+    
 
 }

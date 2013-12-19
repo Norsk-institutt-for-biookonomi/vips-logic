@@ -149,9 +149,9 @@ var FIELD_SUFFIX =  [
 function createFieldHTML(modelId, fieldDefinition)
 {
     var fieldHTML = "";
-    if(fieldDefinition.type !== formFieldTypes.TYPE_SELECT_SINGLE || fieldDefinition.type !== formFieldTypes.TYPE_SELECT_MULTIPLE)
+    if(fieldDefinition.fieldType !== fieldTypes.TYPE_SELECT_SINGLE && fieldDefinition.fieldType !== fieldTypes.TYPE_SELECT_MULTIPLE)
     {
-        var inputType = getHTMLInputType(fieldDefinition.type);
+        var inputType = getHTMLInputType(fieldDefinition.dataType);
         fieldHTML = '<input type="' + inputType + '" class="form-control" name="' + fieldDefinition.name + '" placeholder="' + getI18nMsg(fieldDefinition.name) + '" onblur="validateField(this,\'' + modelId + '\');" />';
     }
 
@@ -167,38 +167,32 @@ function createFieldHTML(modelId, fieldDefinition)
  * @param {String} fieldType
  * @returns {String}
  */
-function getHTMLInputType(fieldType)
+function getHTMLInputType(dataType)
 {
-    switch(fieldType)
+    switch(dataType)
     {
-        case formFieldTypes.TYPE_STRING:
+        case dataTypes.TYPE_STRING:
             return "text";
             break;
-        case formFieldTypes.TYPE_INTEGER:
+        case dataTypes.TYPE_INTEGER:
             return "number";
             break;
-        case formFieldTypes.TYPE_DOUBLE:
+        case dataTypes.TYPE_DOUBLE:
             return "number";
             break;
-        case formFieldTypes.TYPE_DATE:
+        case dataTypes.TYPE_DATE:
             return "date";
             break;
-        case formFieldTypes.TYPE_TIMESTAMP:
+        case dataTypes.TYPE_TIMESTAMP:
             return "datetime";
             break;
-        case formFieldTypes.TYPE_PASSWORD:
+        case dataTypes.TYPE_PASSWORD:
             return "password";
             break;
-        case formFieldTypes.TYPE_EMAIL:
+        case dataTypes.TYPE_EMAIL:
             return "email";
             break;
         default:
             return "text";
     }
 }
-
-	    
-	    
-
-
-

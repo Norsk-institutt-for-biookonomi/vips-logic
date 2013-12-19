@@ -27,6 +27,7 @@ import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
+import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
@@ -256,7 +257,7 @@ public class ForecastBean {
         return q.getResultList();
     }
     
-    public void runForecast(ForecastConfiguration forecastConfiguration)
+    public void runForecast(ForecastConfiguration forecastConfiguration) throws PreprocessorException
     {
         ModelRunPreprocessor preprocessor = ModelRunPreprocessorFactory.getModelRunPreprocessor(forecastConfiguration.getModelId());
         if(preprocessor != null)

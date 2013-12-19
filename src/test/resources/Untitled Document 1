@@ -1,0 +1,10 @@
+<div class="form-group">
+<label for="calculationStart">Beregningsstart</label>
+<input class="form-control" type="datetime" onblur="validateField(this,'NAERSTADMO');" placeholder="Beregningsstart" name="calculationStart">
+<span id="forecastConfigurationForm_calculationStart_validation" class="help-block"></span>
+</div>
+<div class="form-group">
+<label for="calculationEnd">Beregningsslutt</label>
+<input class="form-control" type="datetime" onblur="validateField(this,'NAERSTADMO');" placeholder="Beregningsslutt" name="calculationEnd">
+<span id="forecastConfigurationForm_calculationEnd_validation" class="help-block"></span>
+</div>

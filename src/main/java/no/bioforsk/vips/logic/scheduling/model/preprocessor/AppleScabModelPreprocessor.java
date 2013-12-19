@@ -1,5 +1,6 @@
 package no.bioforsk.vips.logic.scheduling.model.preprocessor;
 
+import java.io.IOException;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,6 +12,7 @@ import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
+import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SystemTime;
 
 /**
@@ -24,7 +26,8 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
     public final static String APPLESCABM_START_DATE_ASCOSPORE_MATURITY = "APPLESCABM_START_DATE_ASCOSPORE_MATURITY";
 
     @Override
-    public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) {
+    public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
+    {
         //configuration.getDateStart();
         PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getLocationPointOfInterestId();
         // What timezone is the calculation for
@@ -45,14 +48,15 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             startDateAscosporeMaturity = new SimpleDateFormat("yyyy-MM-dd").parse(configuration.getForecastModelConfigurationValue(APPLESCABM_START_DATE_ASCOSPORE_MATURITY));
         }catch (ParseException ex)
         {
-            ex.printStackTrace();
-            // TODO: Do something sensible!!!!!
+            throw new PreprocessorException("Could not parse date for ascospore maturation date. Given string was: " + configuration.getForecastModelConfigurationValue(APPLESCABM_START_DATE_ASCOSPORE_MATURITY));
         }
 
         
         // Use Jackson to parse JSON from server
         // Weather data collections
+        
         List<WeatherObservation> observations = getWeatherObservations(weatherStation.getDataFetchUri(), WeatherObservation.LOG_INTERVAL_ID_1H, new String[]{"TM", "RR", "BT"}, startDateAscosporeMaturity, dateEndWeatherData, timeZone);
+        
         //System.out.println("Observations=" + observations.toString());
         
         // Create the complete model configuration object

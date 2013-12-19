@@ -1,0 +1,46 @@
+<input type="hidden" id="forecastConfigurationId" name="forecastConfigurationId" value="7"/>
+<div class="form-group">
+<label for="vipsLogicUserId">Bruker</label>
+<select class="form-control" name="vipsLogicUserId" onblur="validateField(this);">
+<option value="-1">Vennligst velg bruker</option>
+<option value="1" selected="selected">Skog, Tor-Einar</option>
+</select>
+<span class="help-block" id="forecastConfigurationForm_vipsLogicUserId_validation"></span>
+</div>
+<div class="form-group">
+<label for="modelId">Varslingsmodell</label>
+<select class="form-control" name="modelId" onblur="validateField(this);">
+<option value="-1">Vennligst velg varslingsmodell</option>
+<option value="NAERSTADMO" selected="selected">Nærstads modell</option>
+<option value="APPLESCABM">Epleskurvmodell</option>
+</select>
+<span class="help-block" id="forecastConfigurationForm_modelId_validation"></span>
+</div>
+<div class="form-group">
+<label for="locationPointOfInterestId">Lokalitet</label>
+<select class="form-control" name="locationPointOfInterestId" onblur="validateField(this);">
+<option value="-1">Vennligst velg målestasjon</option>
+<option value="38">Ullensvang</option>
+<option value="72" selected="selected">Ås</option>
+</select>
+<span class="help-block" id="forecastConfigurationForm_locationPointOfInterestId_validation"></span>
+</div>
+<div class="form-group">
+<label for="weatherStationPointOfInterestId">Målestasjon</label>
+<select class="form-control" name="weatherStationPointOfInterestId" onblur="validateField(this);">
+<option value="-1">Vennligst velg lokalitet</option>
+<option value="38">Ullensvang</option>
+<option value="72" selected="selected">Ås</option>
+</select>
+<span class="help-block" id="forecastConfigurationForm_weatherStationPointOfInterestId_validation"></span>
+</div>
+<div class="form-group">
+<label for="dateStart">Startdato</label>
+<input class="form-control" type="date" onblur="validateField(this);" placeholder="Startdato" name="dateStart" value=""/>
+<span class="help-block" id="forecastConfigurationForm_dateStart_validation"></span>
+</div>
+<div class="form-group">
+<label for="dateEnd">Sluttdato</label>
+<input class="form-control" type="date" onblur="validateField(this);" placeholder="Sluttdato" name="dateEnd" value=""/>
+<span class="help-block" id="forecastConfigurationForm_dateEnd_validation"></span>
+</div>

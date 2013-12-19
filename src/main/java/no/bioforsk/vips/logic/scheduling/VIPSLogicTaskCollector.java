@@ -29,7 +29,7 @@ public class VIPSLogicTaskCollector implements TaskCollector{
      * @return 
      */
     public Integer getOrganizationId(){
-        return -1;
+        return this.organizationId;
     }
     
     

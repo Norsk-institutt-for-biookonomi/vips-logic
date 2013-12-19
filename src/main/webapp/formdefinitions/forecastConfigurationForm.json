@@ -3,42 +3,45 @@
     "fields": [
         {
             "name" : "forecastConfigurationId",
-            "type" : "INTEGER",
+            "dataType" : "INTEGER",
             "required" : true
         },
         {
             "name" : "vipsLogicUserId",
-            "type" : "INTEGER",
-            "type" : "SELECT_SINGLE",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
             "nullValue": "-1",
             "required" : true
         },
         {
             "name" : "modelId",
-            "type" : "SELECT_SINGLE",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
             "nullValue": "-1",
             "required" : true
         },
         {
             "name" : "locationPointOfInterestId",
-            "type" : "SELECT_SINGLE",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
             "nullValue": "-1",
             "required" : true
         },
         {
             "name" : "weatherStationPointOfInterestId",
-            "type" : "SELECT_SINGLE",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
             "nullValue": "-1",
             "required" : true
         },
         {
             "name" : "dateStart",
-            "type" : "DATE",
+            "dataType" : "DATE",
             "required" : true
         },
         {
             "name" : "dateEnd",
-            "type" : "DATE",
+            "dataType" : "DATE",
             "required" : true
         }
         

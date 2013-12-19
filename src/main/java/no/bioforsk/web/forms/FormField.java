@@ -22,6 +22,7 @@ package no.bioforsk.web.forms;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
@@ -36,15 +37,18 @@ import org.codehaus.jackson.annotate.JsonIgnore;
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class FormField {
-    public final static String FORM_FIELD_TYPE_STRING = "STRING";
-    public final static String FORM_FIELD_TYPE_INTEGER = "INTEGER";
-    public final static String FORM_FIELD_TYPE_DOUBLE = "DOUBLE";
-    public final static String FORM_FIELD_TYPE_DATE = "DATE";
-    public final static String FORM_FIELD_TYPE_TIMESTAMP = "TIMESTAMP";
-    public final static String FORM_FIELD_TYPE_PASSWORD = "PASSWORD";
-    public final static String FORM_FIELD_TYPE_EMAIL = "EMAIL";
-    public final static String FORM_FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
-    public final static String FORM_FIELD_TYPE_SELECT_MULTIPLE = "SELECT_MULTIPLE";
+    public final static String DATA_TYPE_STRING = "STRING";
+    public final static String DATA_TYPE_INTEGER = "INTEGER";
+    public final static String DATA_TYPE_DOUBLE = "DOUBLE";
+    public final static String DATA_TYPE_DATE = "DATE";
+    public final static String DATA_TYPE_TIMESTAMP = "TIMESTAMP";
+    public final static String DATA_TYPE_PASSWORD = "PASSWORD";
+    public final static String DATA_TYPE_EMAIL = "EMAIL";
+    
+    public final static String FIELD_TYPE_INPUT = "INPUT";
+    public final static String FIELD_TYPE_HIDDEN = "HIDDEN";
+    public final static String FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
+    public final static String FIELD_TYPE_SELECT_MULTIPLE = "SELECT_MULTIPLE";
 
     // Standard format for dates is the ISO-8861-format
     public final static String DATE_DEFAULT_FORMAT = "yyyy-MM-dd";
@@ -52,7 +56,8 @@ public class FormField {
     private String name;
     private String label;
     private String repeatField;
-    private String type;
+    private String dataType;
+    private String fieldType;
     private boolean required;
     private String[] webValue;
     private Integer maxLength;
@@ -62,23 +67,27 @@ public class FormField {
     private Integer maxValue;
     private String nullValue;
     private String dateFormat;
+    private List<FormSelectOption> options;
     
-    
+    @JsonIgnore
     public Integer getValueAsInteger()
     {
         return Integer.valueOf(this.webValue[0]);
     }
     
+    @JsonIgnore
     public Long getValueAsLong()
     {
         return Long.valueOf(this.webValue[0]);
     }
     
+    @JsonIgnore
     public Double getValueAsDouble()
     {
         return Double.valueOf(this.webValue[0]);
     }
     
+    @JsonIgnore
     public Date getValueAsDate()
     {
         try
@@ -115,17 +124,17 @@ public class FormField {
     }
 
     /**
-     * @return the type
+     * @return the dataType
      */
-    public String getType() {
-        return type;
+    public String getDataType() {
+        return dataType;
     }
 
     /**
-     * @param type the type to set
+     * @param type the dataType to set
      */
-    public void setType(String type) {
-        this.type = type;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     /**
@@ -149,6 +158,7 @@ public class FormField {
         return webValue != null ? webValue[0] : null;
     }
     
+    @JsonIgnore
     public String[] getWebValues()
     {
         return webValue;
@@ -160,10 +170,11 @@ public class FormField {
     public void setWebValue(String... webValue) {
         this.webValue = webValue;
     }
-
+    
     /**
      * @return the maxLength
      */
+    @JsonIgnore
     public Integer getMaxLength() {
         return maxLength;
     }
@@ -178,6 +189,7 @@ public class FormField {
     /**
      * @return the repeatField
      */
+    @JsonIgnore
     public String getRepeatField() {
         return repeatField;
     }
@@ -308,6 +320,7 @@ public class FormField {
      * 
      * @return Timestampformat (adds hour,minute,second and timezone to getDateFormat())
      */
+    @JsonIgnore
     public String getTimestampFormat()
     {
         return this.getDateFormat() + "'T'HH:mm:ssX";
@@ -318,6 +331,34 @@ public class FormField {
      */
     public void setDateFormat(String dateFormat) {
         this.dateFormat = dateFormat;
+    }
+
+    /**
+     * @return the options
+     */
+    public List<FormSelectOption> getOptions() {
+        return options;
+    }
+
+    /**
+     * @param options the options to set
+     */
+    public void setOptions(List<FormSelectOption> options) {
+        this.options = options;
+    }
+
+    /**
+     * @return the fieldType (default == FIELD_TYPE_INPUT)
+     */
+    public String getFieldType() {
+        return fieldType != null ? fieldType : FIELD_TYPE_INPUT;
+    }
+
+    /**
+     * @param fieldType the fieldType to set
+     */
+    public void setFieldType(String fieldType) {
+        this.fieldType = fieldType;
     }
 
     

@@ -31,6 +31,7 @@ import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
+import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SystemTime;
 
 /**
@@ -42,7 +43,8 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
     public final static String NAERSTADMO_CALCULATION_END = "NAERSTADMO_CALCULATION_END";
 
     @Override
-    public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) {
+    public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
+    {
         try {
             PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getLocationPointOfInterestId();
             TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
@@ -60,10 +62,10 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             retVal.setConfigParameter("observations", observations);
             
             return retVal;
-        } catch (ParseException ex) {
+        } catch (ParseException ex) 
+        {
             Logger.getLogger(NaerstadModelPreprocessor.class.getName()).log(Level.SEVERE, null, ex);
-            // TODO SOMETHING SENSIBLE!!!
-            return null;
+            throw new PreprocessorException("Could not parse date. " + ex.getMessage());
         }
     }
 

@@ -19,7 +19,7 @@ import org.codehaus.jackson.type.TypeReference;
  */
 public abstract class ModelRunPreprocessor {
     
-    public abstract ModelConfiguration getModelConfiguration(ForecastConfiguration configuration);
+    public abstract ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException;
     
     public abstract String getModelId();
     
@@ -33,7 +33,8 @@ public abstract class ModelRunPreprocessor {
      * @param timeZone
      * @return 
      */
-    protected List<WeatherObservation> getWeatherObservations(String fetchURI, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, TimeZone timeZone){
+    protected List<WeatherObservation> getWeatherObservations(String fetchURI, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, TimeZone timeZone) throws PreprocessorException
+    {
         SimpleDateFormat dateOutput = new SimpleDateFormat("yyyy-MM-dd");
         dateOutput.setTimeZone(timeZone);
         SimpleDateFormat hourOutput = new SimpleDateFormat("H");
@@ -50,15 +51,13 @@ public abstract class ModelRunPreprocessor {
         {
                 URL.append("&elementMeasurementTypes[]=").append(type);
         }
-        System.out.println("URL = " + URL.toString());
+        //System.out.println("URL = " + URL.toString());
         try
         {
             return new ObjectMapper().readValue(new URL(URL.toString()), new TypeReference<List<WeatherObservation>>(){});
         }catch(IOException ex)
         {
-            // TODO: SOmething sensible
-            ex.printStackTrace();
-            return null;
+            throw new PreprocessorException("Could not fetch weather observations from URI " + URL.toString());
         }
         
     }

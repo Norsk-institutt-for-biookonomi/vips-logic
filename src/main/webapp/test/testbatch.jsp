@@ -36,6 +36,27 @@
     <body>
         <h1>Test batch system</h1>
         <p>This page is a shortcut to testing various parts of the batch system</p>
+        <p><button type="button" onclick="window.location.href='/test/testbatch.jsp?runAllForecasts=true';">Run all forecasts</button></p>
+        <%
+        if(request.getParameter("runAllForecasts")!= null && request.getParameter("runAllForecasts").equals("true"))
+        {
+            %>
+            <ul>
+            <%
+            for(Organization org : SessionControllerGetter.getUserBean().getOrganizations())
+            {
+                List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(org, SystemTime.getSystemTime());
+                for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
+                {
+                    %><li>Running forecastConfiguration #<%=forecastConfiguration.getForecastConfigurationId()%></li><%
+                    SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
+                }
+            }
+            %>
+            </ul>
+            <%
+        }
+        %>
         <h2>Valid forecast configurations for Bioforsk plantehelse at <%=currentTime%></h2>
         <ul>
             <% for(ForecastConfiguration validConfig : validForecastConfigs) { %>

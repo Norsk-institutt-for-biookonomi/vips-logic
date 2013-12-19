@@ -1,0 +1,269 @@
+<div class="form-group">
+	    <label for="modelId">Varslingsmodell</label>
+	    <select class="form-control" id="modelId" name="modelId" onblur="validateField(this);" onchange="renderModelSpecificFields();">
+	    	<option value="-1">Vennligst velg varslingsmodell</option>
+	    	<option value="NAERSTADMO" selected="selected">
+				Nærstads modell
+		</option>
+	    	<option value="APPLESCABM">
+				Epleskurvmodell
+		</option>
+	    </select>
+	    <span class="help-block" id="forecastConfigurationForm_modelId_validation"></span>
+	  </div>
+	  <div class="form-group">
+	    <label for="locationPointOfInterestId">Lokalitet</label>
+	    <select class="form-control" name="locationPointOfInterestId" onblur="validateField(this);">
+	    	<option value="-1">Vennligst velg lokalitet</option>
+	    	<option value="54">Alvdal</option>
+	    	<option value="91" selected="selected">Apelsvoll</option>
+	    	<option value="30">Balestrand</option>
+	    	<option value="22">Bones</option>
+	    	<option value="104">Borgeby</option>
+	    	<option value="70">Bø</option>
+	    	<option value="29">Darbu</option>
+	    	<option value="32">Djønno</option>
+	    	<option value="76">Etne</option>
+	    	<option value="18">Flesberg</option>
+	    	<option value="40">Folldal</option>
+	    	<option value="109">Fornåsa</option>
+	    	<option value="17">Frosta</option>
+	    	<option value="48">Fureneset</option>
+	    	<option value="62">Fåvang</option>
+	    	<option value="20">Gausdal</option>
+	    	<option value="55">Gjennestad</option>
+	    	<option value="65">Gjerpen</option>
+	    	<option value="33">Gran</option>
+	    	<option value="1">Grane</option>
+	    	<option value="49">Grue</option>
+	    	<option value="66">Gvarv</option>
+	    	<option value="67">Hauso</option>
+	    	<option value="98">Hedemora</option>
+	    	<option value="24">Hedrum kirke</option>
+	    	<option value="64">Heradsbygd</option>
+	    	<option value="68">Hesthamar</option>
+	    	<option value="2">Hjelmeland</option>
+	    	<option value="110">Hoby</option>
+	    	<option value="56">Hokksund</option>
+	    	<option value="3">Holt</option>
+	    	<option value="90">Hønefoss</option>
+	    	<option value="77">Høyheimsvik</option>
+	    	<option value="50">Ilseng</option>
+	    	<option value="106">Jonstorp</option>
+	    	<option value="4">Kise</option>
+	    	<option value="25">Kvam</option>
+	    	<option value="5">Kvelde</option>
+	    	<option value="51">Kvithamar</option>
+	    	<option value="92">Landvik</option>
+	    	<option value="28">Langfjordbotn</option>
+	    	<option value="97">Lanna</option>
+	    	<option value="73">Leirflaten</option>
+	    	<option value="71">Lier</option>
+	    	<option value="103">Lilla Böslid</option>
+	    	<option value="78">Linge</option>
+	    	<option value="52">Ljøsne</option>
+	    	<option value="74">Loen</option>
+	    	<option value="100">Logården</option>
+	    	<option value="6">Lyngdal</option>
+	    	<option value="75">Løken</option>
+	    	<option value="108">Löderup</option>
+	    	<option value="8">Mandal</option>
+	    	<option value="27">Meldal</option>
+	    	<option value="79">Moelv</option>
+	    	<option value="111">Mosslunda</option>
+	    	<option value="26">Mære</option>
+	    	<option value="34">Målselv</option>
+	    	<option value="80">Njøs</option>
+	    	<option value="9">Nå</option>
+	    	<option value="46">Oppdal</option>
+	    	<option value="31">Orre</option>
+	    	<option value="61">Pasvik</option>
+	    	<option value="93">Rakkestad</option>
+	    	<option value="81">Ramnes</option>
+	    	<option value="94">Randaberg</option>
+	    	<option value="11">Rena</option>
+	    	<option value="41">Rennebu</option>
+	    	<option value="53">Rindal</option>
+	    	<option value="82">Rissa</option>
+	    	<option value="95">Roverud</option>
+	    	<option value="7">Rygg</option>
+	    	<option value="87">Rygge</option>
+	    	<option value="83">Sandane</option>
+	    	<option value="84">Sande</option>
+	    	<option value="10">Sandefjord</option>
+	    	<option value="35">Sekse</option>
+	    	<option value="85">Skjetlein</option>
+	    	<option value="12">Skjetten</option>
+	    	<option value="43">Skjønsby</option>
+	    	<option value="88">Skogmo</option>
+	    	<option value="102">Skänninge</option>
+	    	<option value="23">Slagen</option>
+	    	<option value="13">Slinde</option>
+	    	<option value="36">Soknedal</option>
+	    	<option value="14">Sortland</option>
+	    	<option value="89">Surnadal</option>
+	    	<option value="86">Svelvik</option>
+	    	<option value="16">Svelvik syd</option>
+	    	<option value="37">Sylling</option>
+	    	<option value="44">Sylling Kirke</option>
+	    	<option value="45">Sylling Vest</option>
+	    	<option value="47">Særheim</option>
+	    	<option value="42">Søve</option>
+	    	<option value="69">Tingvoll</option>
+	    	<option value="57">Tjølling</option>
+	    	<option value="15">Tjøtta</option>
+	    	<option value="59">Tomb</option>
+	    	<option value="38">Ullensvang</option>
+	    	<option value="99">Ultuna</option>
+	    	<option value="58">Ulvik</option>
+	    	<option value="21">Valldal</option>
+	    	<option value="105">Vassmolösa</option>
+	    	<option value="107">Vellinge</option>
+	    	<option value="101">Vreta kloster</option>
+	    	<option value="60">Vågønes</option>
+	    	<option value="63">Øsaker</option>
+	    	<option value="96">Årnes</option>
+	    	<option value="72">Ås</option>
+	    	<option value="19">Åsbakken</option>
+	    	<option value="39">Åsnes</option>
+	    </select>
+	    <span class="help-block" id="forecastConfigurationForm_locationPointOfInterestId_validation"></span>
+	  </div>
+	  <div class="form-group">
+	    <label for="weatherStationPointOfInterestId">Målestasjon</label>
+	    <select class="form-control" name="weatherStationPointOfInterestId" onblur="validateField(this);">
+	    	<option value="-1">Vennligst velg målestasjon</option>
+	    	<option value="54">Alvdal</option>
+	    	<option value="91" selected="selected">Apelsvoll</option>
+	    	<option value="30">Balestrand</option>
+	    	<option value="22">Bones</option>
+	    	<option value="104">Borgeby</option>
+	    	<option value="70">Bø</option>
+	    	<option value="29">Darbu</option>
+	    	<option value="32">Djønno</option>
+	    	<option value="76">Etne</option>
+	    	<option value="18">Flesberg</option>
+	    	<option value="40">Folldal</option>
+	    	<option value="109">Fornåsa</option>
+	    	<option value="17">Frosta</option>
+	    	<option value="48">Fureneset</option>
+	    	<option value="62">Fåvang</option>
+	    	<option value="20">Gausdal</option>
+	    	<option value="55">Gjennestad</option>
+	    	<option value="65">Gjerpen</option>
+	    	<option value="33">Gran</option>
+	    	<option value="1">Grane</option>
+	    	<option value="49">Grue</option>
+	    	<option value="66">Gvarv</option>
+	    	<option value="67">Hauso</option>
+	    	<option value="98">Hedemora</option>
+	    	<option value="24">Hedrum kirke</option>
+	    	<option value="64">Heradsbygd</option>
+	    	<option value="68">Hesthamar</option>
+	    	<option value="2">Hjelmeland</option>
+	    	<option value="110">Hoby</option>
+	    	<option value="56">Hokksund</option>
+	    	<option value="3">Holt</option>
+	    	<option value="90">Hønefoss</option>
+	    	<option value="77">Høyheimsvik</option>
+	    	<option value="50">Ilseng</option>
+	    	<option value="106">Jonstorp</option>
+	    	<option value="4">Kise</option>
+	    	<option value="25">Kvam</option>
+	    	<option value="5">Kvelde</option>
+	    	<option value="51">Kvithamar</option>
+	    	<option value="92">Landvik</option>
+	    	<option value="28">Langfjordbotn</option>
+	    	<option value="97">Lanna</option>
+	    	<option value="73">Leirflaten</option>
+	    	<option value="71">Lier</option>
+	    	<option value="103">Lilla Böslid</option>
+	    	<option value="78">Linge</option>
+	    	<option value="52">Ljøsne</option>
+	    	<option value="74">Loen</option>
+	    	<option value="100">Logården</option>
+	    	<option value="6">Lyngdal</option>
+	    	<option value="75">Løken</option>
+	    	<option value="108">Löderup</option>
+	    	<option value="8">Mandal</option>
+	    	<option value="27">Meldal</option>
+	    	<option value="79">Moelv</option>
+	    	<option value="111">Mosslunda</option>
+	    	<option value="26">Mære</option>
+	    	<option value="34">Målselv</option>
+	    	<option value="80">Njøs</option>
+	    	<option value="9">Nå</option>
+	    	<option value="46">Oppdal</option>
+	    	<option value="31">Orre</option>
+	    	<option value="61">Pasvik</option>
+	    	<option value="93">Rakkestad</option>
+	    	<option value="81">Ramnes</option>
+	    	<option value="94">Randaberg</option>
+	    	<option value="11">Rena</option>
+	    	<option value="41">Rennebu</option>
+	    	<option value="53">Rindal</option>
+	    	<option value="82">Rissa</option>
+	    	<option value="95">Roverud</option>
+	    	<option value="7">Rygg</option>
+	    	<option value="87">Rygge</option>
+	    	<option value="83">Sandane</option>
+	    	<option value="84">Sande</option>
+	    	<option value="10">Sandefjord</option>
+	    	<option value="35">Sekse</option>
+	    	<option value="85">Skjetlein</option>
+	    	<option value="12">Skjetten</option>
+	    	<option value="43">Skjønsby</option>
+	    	<option value="88">Skogmo</option>
+	    	<option value="102">Skänninge</option>
+	    	<option value="23">Slagen</option>
+	    	<option value="13">Slinde</option>
+	    	<option value="36">Soknedal</option>
+	    	<option value="14">Sortland</option>
+	    	<option value="89">Surnadal</option>
+	    	<option value="86">Svelvik</option>
+	    	<option value="16">Svelvik syd</option>
+	    	<option value="37">Sylling</option>
+	    	<option value="44">Sylling Kirke</option>
+	    	<option value="45">Sylling Vest</option>
+	    	<option value="47">Særheim</option>
+	    	<option value="42">Søve</option>
+	    	<option value="69">Tingvoll</option>
+	    	<option value="57">Tjølling</option>
+	    	<option value="15">Tjøtta</option>
+	    	<option value="59">Tomb</option>
+	    	<option value="38">Ullensvang</option>
+	    	<option value="99">Ultuna</option>
+	    	<option value="58">Ulvik</option>
+	    	<option value="21">Valldal</option>
+	    	<option value="105">Vassmolösa</option>
+	    	<option value="107">Vellinge</option>
+	    	<option value="101">Vreta kloster</option>
+	    	<option value="60">Vågønes</option>
+	    	<option value="63">Øsaker</option>
+	    	<option value="96">Årnes</option>
+	    	<option value="72">Ås</option>
+	    	<option value="19">Åsbakken</option>
+	    	<option value="39">Åsnes</option>
+	    </select>
+	    <span class="help-block" id="forecastConfigurationForm_weatherStationPointOfInterestId_validation"></span>
+	  </div>
+          <div class="form-group">
+	    <label for="dateStart">Startdato</label>
+	    <input type="date" class="form-control" name="dateStart" placeholder="Startdato" value="2013-06-01" onblur="validateField(this);" />
+	    <span class="help-block" id="forecastConfigurationForm_dateStart_validation"></span>
+	  </div>
+	  <div class="form-group">
+	    <label for="dateEnd">Sluttdato</label>
+	    <input type="date" class="form-control" name="dateEnd" placeholder="Sluttdato" value="2013-06-17" onblur="validateField(this);" />
+	    <span class="help-block" id="forecastConfigurationForm_dateEnd_validation"></span>
+	  </div>
+	  <div class="form-group">
+	    <label for="vipsLogicUserId">Bruker</label>
+	    <select class="form-control" name="vipsLogicUserId" onblur="validateField(this);">
+	    	<option value="-1">Vennligst velg bruker</option>
+	    	<option value="1" selected="selected">Skog, Tor-Einar</option>
+	    	<option value="10">Test, Nok en</option>
+	    	<option value="2">Testusersson, Testur</option>
+	    </select>
+	    <span class="help-block" id="forecastConfigurationForm_vipsLogicUserId_validation"></span>
+	  </div>

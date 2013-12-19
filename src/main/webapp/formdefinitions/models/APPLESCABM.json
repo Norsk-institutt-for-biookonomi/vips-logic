@@ -3,7 +3,7 @@
     "fields": [
         {
             "name" : "startDateAscosporeMaturity",
-            "type" : "DATE",
+            "dataType" : "DATE",
             "dateFormat" : "yyyy-MM-dd",
             "required" : true
         }

@@ -1,0 +1,73 @@
+{
+    "_comment" : "Structure of the forecastConfigurationForm and how to validate it",
+    "fields": [
+        {
+            "name" : "forecastConfigurationId",
+	    "fieldType" : "HIDDEN",
+            "dataType" : "INTEGER",
+	    "webValue" : ["7"],
+            "required" : true
+        },
+        {
+            "name" : "vipsLogicUserId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true,
+		"options":[
+			{"value":"-1","label":"Vennligst velg bruker","selected":false},
+			{"value":"1","label":"Skog, Tor-Einar","selected":true}
+		]
+        },
+        {
+            "name" : "modelId",
+            "fieldType" : "SELECT_SINGLE",
+	    "dataType" : "INTEGER",
+            "nullValue": "-1",
+            "required" : true,
+		"options":[
+			{"value":"-1","label":"Vennligst velg varslingsmodell","selected":false},
+			{"value":"NAERSTADMO","label":"Nærstads modell","selected":true},
+			{"value":"APPLESCABM","label":"Epleskurvmodell","selected":false}
+		]
+        },
+        {
+            "name" : "locationPointOfInterestId",
+	    "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true,
+		"options":[
+			{"value":"-1","label":"Vennligst velg målestasjon","selected":false},
+			{"value":"38","label":"Ullensvang","selected":false},
+			{"value":"72","label":"Ås","selected":true}
+		]
+        },
+        {
+            "name" : "weatherStationPointOfInterestId",
+	    "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true,
+		"options":[
+			{"value":"-1","label":"Vennligst velg lokalitet","selected":false},
+			{"value":"38","label":"Ullensvang","selected":false},
+			{"value":"72","label":"Ås","selected":true}
+		]
+        },
+        {
+            "name" : "dateStart",
+            "dataType" : "DATE",
+            "required" : true
+        },
+        {
+            "name" : "dateEnd",
+            "dataType" : "DATE",
+            "required" : true
+        }
+        
+    ],
+    "relations":[
+        {"primaryField":"dateEnd","secondaryField":"dateStart", "relationType": "AFTER"}
+    ]
+}
