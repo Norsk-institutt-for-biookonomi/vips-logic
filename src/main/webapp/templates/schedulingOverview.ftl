@@ -63,5 +63,30 @@
 		</tbody>
         </table>
         </div>
+        <h2>${i18nBundle.taskHistory}</h2>
+         <div class="table-responsive">
+        <table class="table table-striped">
+		<thead>
+			<th>${i18nBundle.startTime}</th>
+			<th>${i18nBundle.endTime}</th>
+			<th>${i18nBundle.name}</th>
+			<th>${i18nBundle.status}</th>
+		</thead>
+		<tbody>
+		<#list taskHistory?sort_by("startTime")?reverse as taskHistoryItem>
+			<tr>
+				
+				<td>${taskHistoryItem.startTime}</td>
+				<td>${taskHistoryItem.finishTime}</td>
+				<td>${allTasksMap[taskHistoryItem.taskFactoryId?string].name}</td>
+				<td>${taskHistoryItem.taskHistoryStatusId.defaultTitle}</td>
+			</tr>
+		</#list>
+		</tbody>
+        </table>
+        </div>
+        <#list allTasksMap?keys as key>
+        ${allTasksMap[key].name}
+        </#list>
 </#macro>
 <@page_html/>

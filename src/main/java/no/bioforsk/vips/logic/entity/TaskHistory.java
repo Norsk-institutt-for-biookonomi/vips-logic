@@ -1,0 +1,169 @@
+/*
+ * Copyright (c) 2013 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
+package no.bioforsk.vips.logic.entity;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.Date;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ */
+@Entity
+@Table(name = "task_history")
+@XmlRootElement
+@NamedQueries({
+    @NamedQuery(name = "TaskHistory.findAll", query = "SELECT t FROM TaskHistory t"),
+    @NamedQuery(name = "TaskHistory.findByTaskHistoryId", query = "SELECT t FROM TaskHistory t WHERE t.taskHistoryId = :taskHistoryId"),
+    @NamedQuery(name = "TaskHistory.findByTaskFactoryId", query = "SELECT t FROM TaskHistory t WHERE t.taskFactoryId = :taskFactoryId"),
+    @NamedQuery(name = "TaskHistory.findByPeriod", query = "SELECT t FROM TaskHistory t WHERE t.startTime BETWEEN :periodStart AND :periodEnd"),
+    @NamedQuery(name = "TaskHistory.findByStartTime", query = "SELECT t FROM TaskHistory t WHERE t.startTime = :startTime"),
+    @NamedQuery(name = "TaskHistory.findByFinishTime", query = "SELECT t FROM TaskHistory t WHERE t.finishTime = :finishTime"),
+    @NamedQuery(name = "TaskHistory.findByCompletenessAtFinish", query = "SELECT t FROM TaskHistory t WHERE t.completenessAtFinish = :completenessAtFinish"),
+    @NamedQuery(name = "TaskHistory.findByMessage", query = "SELECT t FROM TaskHistory t WHERE t.message = :message")})
+public class TaskHistory implements Serializable {
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "task_history_id")
+    private Integer taskHistoryId;
+    @Column(name = "task_factory_id")
+    private Integer taskFactoryId;
+    @Column(name = "start_time")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date startTime;
+    @Column(name = "finish_time")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date finishTime;
+    @Column(name = "completeness_at_finish")
+    private Double completenessAtFinish;
+    @Size(max = 2147483647)
+    @Column(name = "message")
+    private String message;
+    @JoinColumn(name = "task_history_status_id", referencedColumnName = "task_history_status_id")
+    @ManyToOne
+    private TaskHistoryStatus taskHistoryStatusId;
+
+    public TaskHistory() {
+    }
+
+    public TaskHistory(Integer taskHistoryId) {
+        this.taskHistoryId = taskHistoryId;
+    }
+
+    public Integer getTaskHistoryId() {
+        return taskHistoryId;
+    }
+
+    public void setTaskHistoryId(Integer taskHistoryId) {
+        this.taskHistoryId = taskHistoryId;
+    }
+
+    public Integer getTaskFactoryId() {
+        return taskFactoryId;
+    }
+
+    public void setTaskFactoryId(Integer taskFactoryId) {
+        this.taskFactoryId = taskFactoryId;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public Date getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(Date finishTime) {
+        this.finishTime = finishTime;
+    }
+
+    public Double getCompletenessAtFinish() {
+        return completenessAtFinish;
+    }
+
+    public void setCompletenessAtFinish(Double completenessAtFinish) {
+        this.completenessAtFinish = completenessAtFinish;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public TaskHistoryStatus getTaskHistoryStatusId() {
+        return taskHistoryStatusId;
+    }
+
+    public void setTaskHistoryStatusId(TaskHistoryStatus taskHistoryStatusId) {
+        this.taskHistoryStatusId = taskHistoryStatusId;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (taskHistoryId != null ? taskHistoryId.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof TaskHistory)) {
+            return false;
+        }
+        TaskHistory other = (TaskHistory) object;
+        if ((this.taskHistoryId == null && other.taskHistoryId != null) || (this.taskHistoryId != null && !this.taskHistoryId.equals(other.taskHistoryId))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "no.bioforsk.vips.logic.entity.TaskHistory[ taskHistoryId=" + taskHistoryId + " ]";
+    }
+
+}

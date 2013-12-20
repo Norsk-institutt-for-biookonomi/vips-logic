@@ -20,6 +20,7 @@
 package no.bioforsk.vips.logic.scheduling;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import no.bioforsk.vips.logic.scheduling.tasks.RunAllForecastConfigurationsTask;
@@ -68,6 +69,16 @@ public class VipsLogicTaskFactory {
         for(int i:ALL_TASK_IDS)
         {
             allTasks.add(createVipsLogicTask(i));
+        }
+        return allTasks;
+    }
+    
+    public static Map<String, VipsLogicTask> getAllVipsLogicTasksMap()
+    {
+        Map<String,VipsLogicTask> allTasks = new HashMap<>();
+        for(int i:ALL_TASK_IDS)
+        {
+            allTasks.put(String.valueOf(i), createVipsLogicTask(i));
         }
         return allTasks;
     }

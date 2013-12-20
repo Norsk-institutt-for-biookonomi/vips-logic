@@ -9,6 +9,7 @@ import it.sauronsoftware.cron4j.TaskTable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,10 +17,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -31,6 +34,9 @@ import no.bioforsk.vips.entity.ModelRunRequest;
 import no.bioforsk.vips.entity.Result;
 import no.bioforsk.vips.logic.scheduling.VIPSLogicTaskCollector;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.TaskHistory;
+import no.bioforsk.vips.logic.entity.TaskHistoryStatus;
+import no.bioforsk.vips.logic.scheduling.TaskLoggerSchedulerListener;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTask;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
@@ -53,6 +59,7 @@ public class SchedulingBean {
     
     // But there may be one or more one-off schedulers
     private static Set<Scheduler> oneOffSchedulers;
+    //private SchedulerListener TaskLoggerSchedulerListener;
     
     /**
      * Get the system scheduler
@@ -60,7 +67,10 @@ public class SchedulingBean {
      */
     public Scheduler getSystemScheduler(){
         if(systemScheduler == null)
+        {
             systemScheduler = new Scheduler();
+            systemScheduler.addSchedulerListener(new TaskLoggerSchedulerListener());
+        }
         return systemScheduler;
     }
     
@@ -236,4 +246,63 @@ public class SchedulingBean {
     }
 
     
+    public void logTaskLaunching(TaskExecutor taskExecutor)
+    {
+        VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
+        
+        System.out.println("############ Task " + task.getName() + " launched at + " + taskExecutor.getStartTime() + "!!! ############");
+    }
+    
+    public void logTaskSucceeded(TaskExecutor taskExecutor)
+    {
+        VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
+        TaskHistory taskHistory = new TaskHistory();
+        taskHistory.setTaskFactoryId(task.getFactoryId());
+        taskHistory.setTaskHistoryStatusId(em.find(TaskHistoryStatus.class, TaskHistoryStatus.STATUS_OK));
+        taskHistory.setStartTime(new Date(taskExecutor.getStartTime()));
+        taskHistory.setFinishTime(new Date());
+        taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
+        em.persist(taskHistory);
+        //System.out.println("############ Task " + task.getName() + " finished OK at " + taskExecutor.getStartTime() + ", finished at " + new Date() + "!!! ############");
+    }
+    
+    public void logTaskFailed(TaskExecutor taskExecutor, Throwable throwable)
+    {
+        VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
+        TaskHistory taskHistory = new TaskHistory();
+        taskHistory.setTaskFactoryId(task.getFactoryId());
+        taskHistory.setTaskHistoryStatusId(em.find(TaskHistoryStatus.class, TaskHistoryStatus.STATUS_FAILED));
+        taskHistory.setStartTime(new Date(taskExecutor.getStartTime()));
+        taskHistory.setFinishTime(new Date());
+        taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
+        taskHistory.setMessage(throwable.getMessage());
+        em.persist(taskHistory);
+        
+        
+        System.out.println("############ Task " + task.getName() + 
+                " failed at + " + taskExecutor.getStartTime() + 
+                ", finished at " + new Date() + 
+                ". Status is " + taskExecutor.getStatusMessage() + 
+                ". Error was " + throwable.getMessage() +
+                " ############");
+    }
+    
+    public List<TaskHistory> getTaskHistory(Date historyDate)
+    {
+        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+        cal.setTime(historyDate);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND,0);
+        
+        Date periodStart = cal.getTime();
+        cal.add(Calendar.DATE, 1);
+        Date periodEnd = cal.getTime();
+        
+        Query q = em.createNamedQuery("TaskHistory.findByPeriod");
+        q.setParameter("periodStart", periodStart);
+        q.setParameter("periodEnd", periodEnd);
+        return q.getResultList();
+    }
 }

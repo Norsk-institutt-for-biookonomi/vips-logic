@@ -45,7 +45,6 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         tec.setStatusMessage("Oh yes, we're running!!!");
-        System.out.println("Running, running!!!");
         tec.setCompleteness(0d);
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         for(Organization organization : SessionControllerGetter.getUserBean().getOrganizations())
@@ -55,16 +54,17 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
             int counter = 0;
             for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
             {
-                tec.setCompleteness(counter/numberOfForecastConfigurations);
                 try 
                 {
                     SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
                 } 
                 catch (PreprocessorException ex) 
                 {
-                    // TODO: Log event in database??
-                    Logger.getLogger(RunAllForecastConfigurationsTask.class.getName()).log(Level.SEVERE, null, ex);
+                    // TODO: Don't crash completely! Log to DB???
+                    throw new RuntimeException(ex);
                 }
+                double completeness = (double) ++counter/numberOfForecastConfigurations;
+                tec.setCompleteness(completeness);
             }
         }
     }

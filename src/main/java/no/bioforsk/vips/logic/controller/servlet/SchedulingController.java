@@ -4,6 +4,7 @@ import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.TaskExecutor;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -58,6 +59,8 @@ public class SchedulingController extends HttpServlet {
                 request.setAttribute("taskExecutors", taskExecutors);
                 request.setAttribute("schedulingStarted", Boolean.valueOf(schedulingBean.getSystemScheduler().isStarted()));
                 request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks());
+                request.setAttribute("taskHistory",schedulingBean.getTaskHistory(new Date()));
+                request.setAttribute("allTasksMap", VipsLogicTaskFactory.getAllVipsLogicTasksMap());
                 // If this is a redirect from a controller, with a message to be passed on
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.setAttribute("message", request.getParameter("message"));
