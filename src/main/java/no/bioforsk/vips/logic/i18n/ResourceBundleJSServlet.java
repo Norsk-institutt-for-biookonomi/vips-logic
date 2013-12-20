@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2013 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package no.bioforsk.vips.logic.i18n;
 
 import java.io.IOException;
@@ -7,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringEscapeUtils;
 
 /**
  * Provides translation strings in current session language for JavaScript
@@ -36,7 +56,7 @@ public class ResourceBundleJSServlet extends HttpServlet {
             {
                 if(first) first = false;
                 else output.append(",");
-                output.append("\n\"").append(key).append("\":\"").append(i18nTexts.getString(key)).append("\"");
+                output.append("\n\"").append(key).append("\":\"").append(StringEscapeUtils.escapeJavaScript(i18nTexts.getString(key))).append("\"");
             }
             output.append("\n};");
             
