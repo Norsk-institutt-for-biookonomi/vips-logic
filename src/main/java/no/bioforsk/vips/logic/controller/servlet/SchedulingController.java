@@ -6,15 +6,19 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.controller.session.SchedulingBean;
 import no.bioforsk.vips.logic.controller.session.UserBean;
+import no.bioforsk.vips.logic.entity.TaskHistory;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
+import no.bioforsk.vips.logic.scheduling.TaskLoggerSchedulerListener;
 import no.bioforsk.vips.logic.scheduling.TerminateSchedulerListener;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTask;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
@@ -31,6 +35,9 @@ import no.bioforsk.web.forms.HTMLFormGenerator;
  */
 public class SchedulingController extends HttpServlet {
 
+    @PersistenceContext(unitName="VIPSLogic-PU")
+    EntityManager em;
+    
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -161,6 +168,7 @@ public class SchedulingController extends HttpServlet {
                         else
                         {
                             Scheduler oneTimeScheduler = new Scheduler();
+                            oneTimeScheduler.addSchedulerListener(new TaskLoggerSchedulerListener());
                             oneTimeScheduler.addSchedulerListener(new TerminateSchedulerListener());
                             oneTimeScheduler.start();
                             oneTimeScheduler.launch(task);
@@ -215,6 +223,34 @@ public class SchedulingController extends HttpServlet {
                 schedulingBean.startSystemScheduler();
                 String message = SessionLocaleUtil.getI18nText(request, "schedulingStarted");
                 response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+        }
+        // View details about a particular execution of a task
+        // for SUPERUSERS and ORGANIZATION ADMINS
+        else if(action.equals("viewTaskHistoryDetails"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                try
+                {
+                    Long taskHistoryId = Long.valueOf(request.getParameter("taskHistoryId"));
+                    TaskHistory taskHistory = em.find(TaskHistory.class, taskHistoryId);
+                    request.setAttribute("taskHistory",taskHistory);
+                    request.setAttribute("allTasksMap", VipsLogicTaskFactory.getAllVipsLogicTasksMap());
+                    // If this is a redirect from a controller, with a message to be passed on
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    request.setAttribute("message", request.getParameter("message"));
+                    request.getRequestDispatcher("/taskHistoryDetails.ftl").forward(request, response);
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, "ERROR: " + ex.getMessage());
+                }
+                
             }
             else
             {

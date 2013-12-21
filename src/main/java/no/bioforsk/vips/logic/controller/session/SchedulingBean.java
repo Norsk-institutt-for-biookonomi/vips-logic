@@ -106,7 +106,6 @@ public class SchedulingBean {
         {
             getSystemScheduler().addTaskCollector(taskCollector);
         }
-        getSystemScheduler().start();
     }
     
     /**
@@ -306,4 +305,5 @@ public class SchedulingBean {
         q.setParameter("periodEnd", periodEnd);
         return q.getResultList();
     }
+    
 }

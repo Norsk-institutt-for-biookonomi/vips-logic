@@ -47,16 +47,17 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "TaskHistoryStatus.findByTaskHistoryStatusId", query = "SELECT t FROM TaskHistoryStatus t WHERE t.taskHistoryStatusId = :taskHistoryStatusId"),
     @NamedQuery(name = "TaskHistoryStatus.findByDefaultTitle", query = "SELECT t FROM TaskHistoryStatus t WHERE t.defaultTitle = :defaultTitle")})
 public class TaskHistoryStatus implements Serializable {
-    public final static Integer STATUS_OK = 1;
-    public final static Integer STATUS_FAILED = 2;
+    public final static String STATUS_OK = "taskHistoryStatusOK";
+    public final static String STATUS_FAILED = "taskHistoryStatusFailed";
     
     
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
     @NotNull
+    @Size(max = 255)
     @Column(name = "task_history_status_id")
-    private Integer taskHistoryStatusId;
+    private String taskHistoryStatusId;
     @Size(max = 63)
     @Column(name = "default_title")
     private String defaultTitle;
@@ -66,15 +67,15 @@ public class TaskHistoryStatus implements Serializable {
     public TaskHistoryStatus() {
     }
 
-    public TaskHistoryStatus(Integer taskHistoryStatusId) {
+    public TaskHistoryStatus(String taskHistoryStatusId) {
         this.taskHistoryStatusId = taskHistoryStatusId;
     }
 
-    public Integer getTaskHistoryStatusId() {
+    public String getTaskHistoryStatusId() {
         return taskHistoryStatusId;
     }
 
-    public void setTaskHistoryStatusId(Integer taskHistoryStatusId) {
+    public void setTaskHistoryStatusId(String taskHistoryStatusId) {
         this.taskHistoryStatusId = taskHistoryStatusId;
     }
 

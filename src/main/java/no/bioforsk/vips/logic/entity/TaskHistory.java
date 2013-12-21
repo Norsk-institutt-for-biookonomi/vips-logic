@@ -20,7 +20,6 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -60,7 +59,7 @@ public class TaskHistory implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "task_history_id")
-    private Integer taskHistoryId;
+    private Long taskHistoryId;
     @Column(name = "task_factory_id")
     private Integer taskFactoryId;
     @Column(name = "start_time")
@@ -81,15 +80,15 @@ public class TaskHistory implements Serializable {
     public TaskHistory() {
     }
 
-    public TaskHistory(Integer taskHistoryId) {
+    public TaskHistory(Long taskHistoryId) {
         this.taskHistoryId = taskHistoryId;
     }
 
-    public Integer getTaskHistoryId() {
+    public Long getTaskHistoryId() {
         return taskHistoryId;
     }
 
-    public void setTaskHistoryId(Integer taskHistoryId) {
+    public void setTaskHistoryId(Long taskHistoryId) {
         this.taskHistoryId = taskHistoryId;
     }
 

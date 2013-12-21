@@ -36,6 +36,9 @@ public class VipsLogicTaskFactory {
     
     private final static int[] ALL_TASK_IDS = {1};
     
+    private static List<VipsLogicTask> allTasksList;
+    private static Map<String,VipsLogicTask> allTasksMap;
+    
     /**
      * 
      * @param factoryId
@@ -65,21 +68,27 @@ public class VipsLogicTaskFactory {
     
     public static List<VipsLogicTask> getAllVipsLogicTasks()
     {
-        List<VipsLogicTask> allTasks = new ArrayList<>();
-        for(int i:ALL_TASK_IDS)
+        if(allTasksList == null)
         {
-            allTasks.add(createVipsLogicTask(i));
+            allTasksList = new ArrayList<>();
+            for(int i:ALL_TASK_IDS)
+            {
+                allTasksList.add(createVipsLogicTask(i));
+            }
         }
-        return allTasks;
+        return allTasksList;
     }
     
     public static Map<String, VipsLogicTask> getAllVipsLogicTasksMap()
     {
-        Map<String,VipsLogicTask> allTasks = new HashMap<>();
-        for(int i:ALL_TASK_IDS)
+        if(allTasksMap == null)
         {
-            allTasks.put(String.valueOf(i), createVipsLogicTask(i));
+            allTasksMap = new HashMap<>();
+            for(int i:ALL_TASK_IDS)
+            {
+                allTasksMap.put(String.valueOf(i), createVipsLogicTask(i));
+            }
         }
-        return allTasks;
+        return allTasksMap;
     }
 }

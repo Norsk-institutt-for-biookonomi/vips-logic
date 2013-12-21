@@ -40,12 +40,14 @@
 		<div class="table-responsive">
 		<table class="table table-striped">
 			<thead>
+				<th>${i18nBundle.startTime}</th>
 				<th>${i18nBundle.name}</th>
 				<th>${i18nBundle.progress}</th>
 			</thead>
 			<tbody>
 			<#list taskExecutors as taskExecutor>
 			    <tr>
+			    	<td>${taskExecutor.startTime?number_to_datetime}</td>
 				<td>${taskExecutor.getTask().getName(currentLocale)}</td>
 				<td><progress max="1" value="${taskExecutor.completeness}">Progress</progress></td>
 			    </tr>
@@ -108,7 +110,7 @@
 				<td>${taskHistoryItem.startTime}</td>
 				<td>${taskHistoryItem.finishTime}</td>
 				<td>${allTasksMap[taskHistoryItem.taskFactoryId?string].getName(currentLocale)}</td>
-				<td>${taskHistoryItem.taskHistoryStatusId.defaultTitle}</td>
+				<td>${i18nBundle[taskHistoryItem.taskHistoryStatusId.taskHistoryStatusId]} <a href="/scheduling?action=viewTaskHistoryDetails&taskHistoryId=${taskHistoryItem.taskHistoryId}">${i18nBundle.details}</a></td>
 			</tr>
 		</#list>
 		</tbody>

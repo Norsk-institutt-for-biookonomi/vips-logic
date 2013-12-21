@@ -22,17 +22,11 @@ public class StartupListener implements javax.servlet.ServletContextListener{
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("VIPSLogic system initializing");
-        // Testing startup of scheduling
-        // Temporarily disabled
         SessionControllerGetter.getSchedulingBean().initSystemScheduler();
-        /*try
+        if(System.getProperty("no.bioforsk.vips.logic.START_SCHEDULING_ON_BOOT").equals("true"))
         {
-            SessionControllerGetter.getSchedulingBean().testPreprocessor();
+            SessionControllerGetter.getSchedulingBean().startSystemScheduler();
         }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-        }*/
         
     }
 
@@ -44,6 +38,6 @@ public class StartupListener implements javax.servlet.ServletContextListener{
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("VIPSLogic system shutting down");
         // Shutting down scheduler
-        //SessionControllerGetter.getSchedulingBean().stopSystemScheduler();
+        SessionControllerGetter.getSchedulingBean().stopSystemScheduler();
     }
 }

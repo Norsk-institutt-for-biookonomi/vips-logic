@@ -29,7 +29,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
         //configuration.getDateStart();
-        PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getLocationPointOfInterestId();
+        PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
         // What timezone is the calculation for
         TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
         //System.out.println("timeZone ID in preprocessor=" + timeZone.getID());
@@ -54,7 +54,6 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         
         // Use Jackson to parse JSON from server
         // Weather data collections
-        
         List<WeatherObservation> observations = getWeatherObservations(weatherStation.getDataFetchUri(), WeatherObservation.LOG_INTERVAL_ID_1H, new String[]{"TM", "RR", "BT"}, startDateAscosporeMaturity, dateEndWeatherData, timeZone);
         
         //System.out.println("Observations=" + observations.toString());
@@ -66,7 +65,6 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         retVal.setConfigParameter("startDateAscosporeMaturity", new SimpleDateFormat("yyyy-MM-dd").format(startDateAscosporeMaturity));
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
-        
         return retVal;
     }
 

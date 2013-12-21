@@ -61,7 +61,9 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                 catch (PreprocessorException ex) 
                 {
                     // TODO: Don't crash completely! Log to DB???
+                    System.out.println("Stuff went wrong!" + ex.getMessage());
                     throw new RuntimeException(ex);
+                    
                 }
                 double completeness = (double) ++counter/numberOfForecastConfigurations;
                 tec.setCompleteness(completeness);
