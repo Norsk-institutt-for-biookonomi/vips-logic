@@ -361,5 +361,13 @@ public class FormField {
         this.fieldType = fieldType;
     }
 
+    /**
+     * 
+     * @return true if the value for this field is not set or is an empty string
+     */
+    public boolean isEmpty()
+    {
+        return this.getWebValue() == null || this.getWebValue().trim().isEmpty();
+    }
     
 }

@@ -25,12 +25,12 @@
 	  </div>
 	  <div class="form-group">
 	    <label for="firstName">${i18nBundle.firstName}</label>
-	    <input type="firstName" class="form-control" name="firstName" placeholder="${i18nBundle.firstName}" <#if viewUser.remarks?has_content>value="${viewUser.firstName}"</#if> onblur="validateField(this);"/>
+	    <input type="text" class="form-control" name="firstName" placeholder="${i18nBundle.firstName}" <#if viewUser.remarks?has_content>value="${viewUser.firstName}"</#if> onblur="validateField(this);"/>
 	    <span class="help-block" id="${formId}_firstName_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="lastName">${i18nBundle.lastName}</label>
-	    <input type="lastName" class="form-control" name="lastName" placeholder="${i18nBundle.lastName}" value="${viewUser.lastName}" onblur="validateField(this);"/>
+	    <input type="text" class="form-control" name="lastName" placeholder="${i18nBundle.lastName}" value="${viewUser.lastName}" onblur="validateField(this);"/>
 	    <span class="help-block" id="${formId}_lastName_validation"></span>
 	  </div>
 	  <div class="form-group">

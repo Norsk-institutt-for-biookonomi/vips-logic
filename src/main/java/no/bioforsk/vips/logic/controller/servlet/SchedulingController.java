@@ -55,11 +55,27 @@ public class SchedulingController extends HttpServlet {
         {
             if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
             {
+                FormValidation formValidation = FormValidator.validateForm("taskHistoryDateForm", request, getServletContext());
+                Date taskHistoryDate = new Date();
+                if(formValidation.isValid())
+                {
+                    if(! formValidation.getFormField("taskHistoryDate").isEmpty())
+                    {
+                        taskHistoryDate = formValidation.getFormField("taskHistoryDate").getValueAsDate();
+                    }
+                }
+                else
+                {
+                    request.setAttribute("formValidation", formValidation);
+                }
+                
+                
                 TaskExecutor[] taskExecutors = schedulingBean.getRunningTasks();
                 request.setAttribute("taskExecutors", taskExecutors);
                 request.setAttribute("schedulingStarted", Boolean.valueOf(schedulingBean.getSystemScheduler().isStarted()));
                 request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks());
-                request.setAttribute("taskHistory",schedulingBean.getTaskHistory(new Date()));
+                request.setAttribute("taskHistoryDate",taskHistoryDate);
+                request.setAttribute("taskHistory",schedulingBean.getTaskHistory(taskHistoryDate));
                 request.setAttribute("allTasksMap", VipsLogicTaskFactory.getAllVipsLogicTasksMap());
                 // If this is a redirect from a controller, with a message to be passed on
                 request.setAttribute("messageKey", request.getParameter("messageKey"));

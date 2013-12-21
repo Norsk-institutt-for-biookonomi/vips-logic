@@ -1,0 +1,10 @@
+{
+    "_comment" : "Structure of the taskHistoryDateForm and how to validate it",
+    "fields": [
+        {
+            "name" : "taskHistoryDate",
+            "dataType" : "DATE",
+            "required" : false
+        }
+    ]
+}
