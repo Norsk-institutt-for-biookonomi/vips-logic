@@ -1,6 +1,6 @@
 <#include "master.ftl">
 <#macro page_head>
-	<!--meta http-equiv="refresh" content="10;url=/scheduling<#if taskHistoryDate?has_content>?taskHistoryDate=${taskHistoryDate?date}</#if>" /-->
+	<meta http-equiv="refresh" content="30;url=/scheduling<#if taskHistoryDate?has_content>?taskHistoryDate=${taskHistoryDate?date}</#if>" />
         <title>${i18nBundle.schedulingOverview}</title>
 </#macro>
 <#macro custom_js>
@@ -107,7 +107,7 @@
 				
 				<td>${taskHistoryItem.startTime}</td>
 				<td>${taskHistoryItem.finishTime}</td>
-				<td>${allTasksMap[taskHistoryItem.taskFactoryId?string].getName()}</td>
+				<td>${allTasksMap[taskHistoryItem.taskFactoryId?string].getName(currentLocale)}</td>
 				<td>${taskHistoryItem.taskHistoryStatusId.defaultTitle}</td>
 			</tr>
 		</#list>

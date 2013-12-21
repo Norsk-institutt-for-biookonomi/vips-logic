@@ -41,6 +41,7 @@ import no.bioforsk.vips.logic.scheduling.VipsLogicTask;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.scheduling.model.preprocessor.NaerstadModelPreprocessor;
+import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
@@ -193,7 +194,7 @@ public class SchedulingBean {
      */
     public SortedMap<String, List<VipsLogicTask>> getOrderedScheduledTasks()
     {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultTimestampFormat);
         // Need to do some bucket sorting (date for next execution time as bucket)
         SortedMap<String, List<VipsLogicTask>> sortedTasks = new TreeMap<>();
         for(TaskCollector taskCollector: this.getSystemScheduler().getTaskCollectors())

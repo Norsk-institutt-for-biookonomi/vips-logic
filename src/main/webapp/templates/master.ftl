@@ -61,7 +61,7 @@
 			</ul>
 		</div>
 		<!-- Start contents container -->
-		<div class="col-md-5">
+		<div class="col-md-9">
 	
 	
 </#macro>

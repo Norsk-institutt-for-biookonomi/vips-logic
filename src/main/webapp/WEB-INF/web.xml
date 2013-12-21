@@ -173,6 +173,10 @@
             <param-value>yyyy-MM-dd</param-value>
         </init-param>
         <init-param>
+            <param-name>datetime_format</param-name>
+            <param-value>yyyy-MM-dd HH:mm:ssXXX</param-value>
+        </init-param>
+        <init-param>
             <param-name>locale</param-name>
             <param-value>no</param-value>
         </init-param>
