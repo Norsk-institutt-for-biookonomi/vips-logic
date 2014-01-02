@@ -25,17 +25,16 @@
 	<!-- Collect the nav links, forms, and other content for toggling -->
 	  <div class="collapse navbar-collapse navbar-ex1-collapse">
 	    <ul class="nav navbar-nav">
-	      <li class="active"><a href="#">Link</a></li>
-	      <li><a href="#">Link</a></li>
+	      <!--li class="active"><a href="#">Link</a></li-->
+	      <!--li><a href="#">Link</a></li-->
 	      <#if user.isOrganizationAdmin() || user.isSuperUser() >
-	      <li class="dropdown">
+	      <li class="active dropdown">
 		<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 		<ul class="dropdown-menu">
 		  <li><a href="/user">${i18nBundle.users}</a></li>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
 		  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
-		  <li><a href="#">Separated link</a></li>
-		  <li><a href="#">One more separated link</a></li>
+		  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
 		</ul>
 	      </li>
 	      </#if>
@@ -52,16 +51,8 @@
 	</nav>
 
 	<div class="row">
-		<div class="col-md-3">
-			<h2>En sidemeny?</h2>
-			<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit...</p>
-			<ul>
-				<li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
-				<li><a href="#">Link 2</a></li>
-			</ul>
-		</div>
 		<!-- Start contents container -->
-		<div class="col-md-9">
+		<div class="col-md-12">
 	
 	
 </#macro>
@@ -73,7 +64,10 @@
 	</div><!-- End row with sidebar and contents container -->
 	<hr>
 	<footer>
-		<p>&copy; ${.now?string("yyyy")} <a href="http://www.bioforsk.no/" target="new">Bioforsk</a></p>
+		<div class="row">
+			<div class="col-md-2">&copy; ${.now?string("yyyy")} <a href="http://www.bioforsk.no/" target="new">Bioforsk</a></div>
+			<div class="col-md-10"><p class="text-right"><small>[${i18nBundle.systemTime}: ${systemTime?datetime}]</small></p></div>
+		</div>
 	</footer>
 </div>
 <!-- end contentwrapper-->

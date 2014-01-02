@@ -1,8 +1,6 @@
 package no.bioforsk.vips.logic.i18n;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Locale;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -11,6 +9,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import no.bioforsk.vips.logic.util.SystemTime;
 
 /**
  * This filter checks if there are any changes in locale requests, and
@@ -77,6 +76,9 @@ public class LocalizationFilter implements Filter{
                 }
             }
         }
+        
+        // We always make the system time available for FreeMarker templates
+        request.setAttribute("systemTime", SystemTime.getSystemTime());
         
         chain.doFilter(request, response);
         
