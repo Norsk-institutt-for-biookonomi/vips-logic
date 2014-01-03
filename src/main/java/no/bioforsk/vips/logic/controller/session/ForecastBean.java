@@ -28,8 +28,8 @@ import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
+import no.bioforsk.vips.logic.util.RunModelException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
-import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
 import org.codehaus.jackson.JsonNode;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -266,25 +266,33 @@ public class ForecastBean {
         return q.getResultList();
     }
     
-    public void runForecast(ForecastConfiguration forecastConfiguration) throws PreprocessorException
+    public void runForecast(ForecastConfiguration forecastConfiguration) throws PreprocessorException, RunModelException
     {
         ModelRunPreprocessor preprocessor = ModelRunPreprocessorFactory.getModelRunPreprocessor(forecastConfiguration.getModelId());
         if(preprocessor != null)
         {
-            ModelConfiguration config = preprocessor.getModelConfiguration(forecastConfiguration);
-            ModelRunRequest request = new ModelRunRequest(config);
-            Map<String,String> loginInfo = new HashMap<>();
-            // VIPSLogic logs in on behalf of client
-            loginInfo.put("username",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_USERNAME"));
-            loginInfo.put("password",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_PASSWORD"));
-            request.setLoginInfo(loginInfo);
-            // We tell which client this is (the db Id in VIPSCoreManager)
-            request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserId());
-            Response resp = this.getManagerResource().runModel(config.getModelId(), request);
-            List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
-
-            // We delete all former results before we store the new ones
-            SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
+                ModelConfiguration config = preprocessor.getModelConfiguration(forecastConfiguration);
+                ModelRunRequest request = new ModelRunRequest(config);
+                Map<String,String> loginInfo = new HashMap<>();
+                // VIPSLogic logs in on behalf of client
+                //loginInfo.put("username",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_USERNAME"));
+                loginInfo.put("username","wrongusername");
+                loginInfo.put("password",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_PASSWORD"));
+                request.setLoginInfo(loginInfo);
+                // We tell which client this is (the db Id in VIPSCoreManager)
+                request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserId());
+                Response resp = this.getManagerResource().runModel(config.getModelId(), request);
+                if(resp.getStatus() == Response.Status.OK.getStatusCode())
+                {
+                    List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
+                    // We delete all former results before we store the new ones
+                    SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
+                }
+                else
+                {
+                    throw new RunModelException(resp.readEntity(String.class));
+                }
+            
         }
     }
     

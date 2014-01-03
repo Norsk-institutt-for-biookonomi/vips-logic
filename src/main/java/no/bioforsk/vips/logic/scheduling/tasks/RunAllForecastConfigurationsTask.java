@@ -30,6 +30,7 @@ import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTask;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
+import no.bioforsk.vips.logic.util.RunModelException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
@@ -56,12 +57,9 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                 {
                     SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
                 } 
-                catch (PreprocessorException ex) 
+                catch (PreprocessorException | RunModelException ex) 
                 {
-                    // TODO: Don't crash completely! Log to DB???
-                    System.out.println("Stuff went wrong!" + ex.getMessage());
-                    throw new RuntimeException(ex);
-                    
+                    throw new RuntimeException(ex);   
                 }
                 double completeness = (double) ++counter/numberOfForecastConfigurations;
                 tec.setCompleteness(completeness);
