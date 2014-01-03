@@ -274,10 +274,12 @@ public class ForecastBean {
             ModelConfiguration config = preprocessor.getModelConfiguration(forecastConfiguration);
             ModelRunRequest request = new ModelRunRequest(config);
             Map<String,String> loginInfo = new HashMap<>();
-            // TODO: Add the username and password for the actual organization
-            loginInfo.put("username","testuser");
-            loginInfo.put("password","testpass");
+            // VIPSLogic logs in on behalf of client
+            loginInfo.put("username",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_USERNAME"));
+            loginInfo.put("password",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_PASSWORD"));
             request.setLoginInfo(loginInfo);
+            // We tell which client this is (the db Id in VIPSCoreManager)
+            request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserId());
             Response resp = this.getManagerResource().runModel(config.getModelId(), request);
             List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
 

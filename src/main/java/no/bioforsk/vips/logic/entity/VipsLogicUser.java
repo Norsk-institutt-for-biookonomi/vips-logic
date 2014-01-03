@@ -76,6 +76,8 @@ public class VipsLogicUser implements Serializable {
             inverseJoinColumns = {@JoinColumn(name = "vips_logic_role_id")}
     )
     private Set<VipsLogicRole> vipsLogicRoles;
+    @Column(name = "vips_core_user_id")
+    private Integer vipsCoreUserId;
     
     public VipsLogicUser() {
     }
@@ -265,5 +267,19 @@ public class VipsLogicUser implements Serializable {
             }
         }
         return false;
+    }
+
+    /**
+     * @return the vipsCoreUserId
+     */
+    public Integer getVipsCoreUserId() {
+        return vipsCoreUserId;
+    }
+
+    /**
+     * @param vipsCoreUserId the vipsCoreUserId to set
+     */
+    public void setVipsCoreUserId(Integer vipsCoreUserId) {
+        this.vipsCoreUserId = vipsCoreUserId;
     }
 }
