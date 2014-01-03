@@ -146,7 +146,7 @@ public class UserBean {
     
     public String getMD5EncryptedString(String str) throws IOException
     {
-        return MD5Encrypter.getMD5HexString(str,this.getVIPSLogicServerProperties().getProperty("MD5_SALT"));   
+        return MD5Encrypter.getMD5HexString(str,System.getProperty("no.bioforsk.vips.logic.MD5_SALT"));   
     }
     
     /**
