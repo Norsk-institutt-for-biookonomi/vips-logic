@@ -53,7 +53,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             Date calculationEnd = format.parse(configuration.getForecastModelConfigurationValue(NAERSTADMO_CALCULATION_END));
             Date dateEndWeatherData = configuration.getDateEnd().compareTo(SystemTime.getSystemTime()) < 0 ? configuration.getDateEnd() : SystemTime.getSystemTime();
             
-            List<WeatherObservation> observations = getWeatherObservations(weatherStation.getDataFetchUri(), WeatherObservation.LOG_INTERVAL_ID_1H, new String[]{"TM", "RR", "BT","Q0","UM"}, calculationStart, dateEndWeatherData, timeZone);
+            List<WeatherObservation> observations = getWeatherObservations(weatherStation.getDataFetchUri(), WeatherObservation.LOG_INTERVAL_ID_1H, new String[]{"TM", "RR", "BT","Q0","UM"}, configuration.getDateStart(), dateEndWeatherData, timeZone);
             
             ModelConfiguration retVal = new ModelConfiguration();
             retVal.setModelId(this.getModelId());
