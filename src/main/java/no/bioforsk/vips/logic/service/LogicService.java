@@ -1,5 +1,6 @@
 package no.bioforsk.vips.logic.service;
 
+import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -20,6 +21,7 @@ import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SystemTime;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
@@ -123,6 +125,15 @@ public class LogicService {
     {
         List<ForecastModelConfiguration> forecastModelConfigurations = SessionControllerGetter.getForecastBean().getForecastModelConfigurations(forecastConfigurationId);
         return Response.ok().entity(forecastModelConfigurations).build();
+    }
+    
+    @GET
+    @Path("forecastresults/aggregate")
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    public Response getForecastResultsAggregate()
+    {
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(SystemTime.getSystemTime());
+            return Response.ok().entity(retVal).build();
     }
     
     private ManagerResource getManagerResource()

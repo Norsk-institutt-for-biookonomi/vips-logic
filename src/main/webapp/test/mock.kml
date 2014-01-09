@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/*
+ * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+-->
+<!-- Test KML for map development -->
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+    <name>Varsel hele landet</name>
+    <description>Klimastasjoner - verste varsel for hele landet</description>
+    <Style id="style_0">
+      <IconStyle>
+        <scale>0.55</scale>
+        <Icon>
+          <href>http://www.vips-landbruk.no/graphics/dot_grey.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="style_1">
+      <IconStyle>
+        <scale>0.55</scale>
+        <Icon>
+          <href>http://www.vips-landbruk.no/graphics/dot_blue.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="style_2">
+      <IconStyle>
+        <scale>0.55</scale>
+        <Icon>
+          <href>http://www.vips-landbruk.no/graphics/dot_green.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="style_3">
+      <IconStyle>
+        <scale>0.55</scale>
+        <Icon>
+          <href>http://www.vips-landbruk.no/graphics/dot_yellow.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="style_4">
+      <IconStyle>
+        <scale>0.55</scale>
+        <Icon>
+          <href>http://www.vips-landbruk.no/graphics/dot_red.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Placemark>
+      <name>Alvdal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Alvdal]]></description>
+      <styleUrl>#style_3</styleUrl>
+      <Point>
+        <coordinates>10.62687,62.10944</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Apelsvoll</name>
+      <description><![CDATA[Mangler informasjon om varsler for Apelsvoll]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.86952,60.70024</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Balestrand</name>
+      <description><![CDATA[Mangler informasjon om varsler for Balestrand]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.52845,61.20294</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Bø</name>
+      <description><![CDATA[Mangler informasjon om varsler for Bø]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.02859,59.4175</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Darbu</name>
+      <description><![CDATA[Mangler informasjon om varsler for Darbu]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.85057,59.6879</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Djønno</name>
+      <description><![CDATA[Mangler informasjon om varsler for Djønno]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.75063,60.46116</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Etne</name>
+      <description><![CDATA[Mangler informasjon om varsler for Etne]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>5.95383,59.6625</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Flesberg</name>
+      <description><![CDATA[Mangler informasjon om varsler for Flesberg]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.39985,59.86859</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Folldal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Folldal]]></description>
+      <styleUrl>#style_0</styleUrl>
+      <Point>
+        <coordinates>9.99453,62.12793</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Frosta</name>
+      <description><![CDATA[Mangler informasjon om varsler for Frosta]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.69298,63.56502</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Fureneset</name>
+      <description><![CDATA[Mangler informasjon om varsler for Fureneset]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>5.04428,61.29272</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Fåvang</name>
+      <description><![CDATA[Mangler informasjon om varsler for Fåvang]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.1872,61.45822</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Gausdal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Gausdal]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.25878,61.22468</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Gjerpen</name>
+      <description><![CDATA[Mangler informasjon om varsler for Gjerpen]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.57805,59.22684</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Gran</name>
+      <description><![CDATA[Mangler informasjon om varsler for Gran]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.55906,60.35575</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Grane</name>
+      <description><![CDATA[Mangler informasjon om varsler for Grane]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>13.39634,65.55085</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Grue</name>
+      <description><![CDATA[Mangler informasjon om varsler for Grue]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>12.0349,60.4699</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Gvarv</name>
+      <description><![CDATA[Mangler informasjon om varsler for Gvarv]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.21189,59.38223</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Hauso</name>
+      <description><![CDATA[Mangler informasjon om varsler for Hauso]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.64214,60.37373</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Hesthamar</name>
+      <description><![CDATA[Mangler informasjon om varsler for Hesthamar]]></description>
+      <styleUrl>#style_2</styleUrl>
+      <Point>
+        <coordinates>6.556,60.43029</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Hjelmeland</name>
+      <description><![CDATA[Mangler informasjon om varsler for Hjelmeland]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.14992,59.22995</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Hokksund</name>
+      <description><![CDATA[Mangler informasjon om varsler for Hokksund]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.89166,59.76152</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Holt</name>
+      <description><![CDATA[Mangler informasjon om varsler for Holt]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>18.90946,69.65381</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Hønefoss</name>
+      <description><![CDATA[Mangler informasjon om varsler for Hønefoss]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.2661,60.14032</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Høyheimsvik</name>
+      <description><![CDATA[Mangler informasjon om varsler for Høyheimsvik]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>7.40297,61.40506</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Ilseng</name>
+      <description><![CDATA[Mangler informasjon om varsler for Ilseng]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>11.20298,60.80264</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Kise</name>
+      <description><![CDATA[Mangler informasjon om varsler for Kise]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.80569,60.77324</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Kvam</name>
+      <description><![CDATA[Mangler informasjon om varsler for Kvam]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.21821,60.33637</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Kvelde</name>
+      <description><![CDATA[Mangler informasjon om varsler for Kvelde]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.983036,59.220314</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Kvithamar</name>
+      <description><![CDATA[Mangler informasjon om varsler for Kvithamar]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.87994,63.48795</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Landvik</name>
+      <description><![CDATA[Mangler informasjon om varsler for Landvik]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>8.522554,58.340073</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Leirflaten</name>
+      <description><![CDATA[Mangler informasjon om varsler for Leirflaten]]></description>
+      <styleUrl>#style_0</styleUrl>
+      <Point>
+        <coordinates>9.15267,61.72274</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Lier</name>
+      <description><![CDATA[Mangler informasjon om varsler for Lier]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.2604,59.79005</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Linge</name>
+      <description><![CDATA[Mangler informasjon om varsler for Linge]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>7.21713,62.28815</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Ljøsne</name>
+      <description><![CDATA[Mangler informasjon om varsler for Ljøsne]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>7.56252,61.05454</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Loen</name>
+      <description><![CDATA[Mangler informasjon om varsler for Loen]]></description>
+      <styleUrl>#style_2</styleUrl>
+      <Point>
+        <coordinates>6.78595,61.87228</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Lyngdal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Lyngdal]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>7.05036,58.12589</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Løken</name>
+      <description><![CDATA[Mangler informasjon om varsler for Løken]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.06302,61.12183</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Meldal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Meldal]]></description>
+      <styleUrl>#style_2</styleUrl>
+      <Point>
+        <coordinates>9.716463,63.026787</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Moelv</name>
+      <description><![CDATA[Mangler informasjon om varsler for Moelv]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.6937,60.943</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Mære</name>
+      <description><![CDATA[Mangler informasjon om varsler for Mære]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>11.42527,63.94244</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Målselv</name>
+      <description><![CDATA[Mangler informasjon om varsler for Målselv]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>18.537834,69.258835</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Njøs</name>
+      <description><![CDATA[Mangler informasjon om varsler for Njøs]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.862209,61.179943</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Nå</name>
+      <description><![CDATA[Mangler informasjon om varsler for Nå]]></description>
+      <styleUrl>#style_2</styleUrl>
+      <Point>
+        <coordinates>6.57052,60.2542</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Oppdal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Oppdal]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.483333,62.59999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Orre</name>
+      <description><![CDATA[Mangler informasjon om varsler for Orre]]></description>
+      <styleUrl>#style_0</styleUrl>
+      <Point>
+        <coordinates>5.55,58.7</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Pasvik</name>
+      <description><![CDATA[Mangler informasjon om varsler for Pasvik]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>30.04085,69.45513</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Rakkestad</name>
+      <description><![CDATA[Mangler informasjon om varsler for Rakkestad]]></description>
+      <styleUrl>#style_2</styleUrl>
+      <Point>
+        <coordinates>11.39042,59.38824</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Ramnes</name>
+      <description><![CDATA[Mangler informasjon om varsler for Ramnes]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.23923,59.38081</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Rena</name>
+      <description><![CDATA[Mangler informasjon om varsler for Rena]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>11.359307,61.149868</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Rennebu</name>
+      <description><![CDATA[Mangler informasjon om varsler for Rennebu]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.836755,62.862926</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Rindal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Rindal]]></description>
+      <styleUrl>#style_3</styleUrl>
+      <Point>
+        <coordinates>9.376915,63.104248</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Rissa</name>
+      <description><![CDATA[Mangler informasjon om varsler for Rissa]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.97051,63.58592</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Roverud</name>
+      <description><![CDATA[Mangler informasjon om varsler for Roverud]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>12.09144,60.25378</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Rygge</name>
+      <description><![CDATA[Mangler informasjon om varsler for Rygge]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.75427,59.39805</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Sandane</name>
+      <description><![CDATA[Mangler informasjon om varsler for Sandane]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.15884,61.79835</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Sande</name>
+      <description><![CDATA[Mangler informasjon om varsler for Sande]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.22339,59.6162</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Sandefjord</name>
+      <description><![CDATA[Mangler informasjon om varsler for Sandefjord]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.27512,59.16827</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Sekse</name>
+      <description><![CDATA[Mangler informasjon om varsler for Sekse]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.62133,60.25028</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Skjetlein</name>
+      <description><![CDATA[Mangler informasjon om varsler for Skjetlein]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.29737,63.34038</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Skjetten</name>
+      <description><![CDATA[Mangler informasjon om varsler for Skjetten]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.97765,59.97758</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Skogmo</name>
+      <description><![CDATA[Mangler informasjon om varsler for Skogmo]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>12.01885,64.51035</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Slinde</name>
+      <description><![CDATA[Mangler informasjon om varsler for Slinde]]></description>
+      <styleUrl>#style_2</styleUrl>
+      <Point>
+        <coordinates>6.93651,61.15988</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Soknedal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Soknedal]]></description>
+      <styleUrl>#style_2</styleUrl>
+      <Point>
+        <coordinates>10.239745,62.92845</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Sortland</name>
+      <description><![CDATA[Mangler informasjon om varsler for Sortland]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>15.28288,68.64825</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Surnadal</name>
+      <description><![CDATA[Mangler informasjon om varsler for Surnadal]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>8.68956,62.98474</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Svelvik</name>
+      <description><![CDATA[Mangler informasjon om varsler for Svelvik]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.40478,59.60272</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Svelvik syd</name>
+      <description><![CDATA[Mangler informasjon om varsler for Svelvik syd]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.39205,59.55416</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Særheim</name>
+      <description><![CDATA[Mangler informasjon om varsler for Særheim]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>5.65078,58.76053</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Søve</name>
+      <description><![CDATA[Mangler informasjon om varsler for Søve]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>9.28132,59.27891</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Tingvoll</name>
+      <description><![CDATA[Mangler informasjon om varsler for Tingvoll]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>8.18623,62.91341</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Tjølling</name>
+      <description><![CDATA[Mangler informasjon om varsler for Tjølling]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.12513,59.04641</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Tjøtta</name>
+      <description><![CDATA[Mangler informasjon om varsler for Tjøtta]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>12.42553,65.82951</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Tomb</name>
+      <description><![CDATA[Mangler informasjon om varsler for Tomb]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.81449,59.31893</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Ullensvang</name>
+      <description><![CDATA[Mangler informasjon om varsler for Ullensvang]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.65381,60.31853</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Ulvik</name>
+      <description><![CDATA[Mangler informasjon om varsler for Ulvik]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>6.93246,60.56365</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Vågønes</name>
+      <description><![CDATA[Mangler informasjon om varsler for Vågønes]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>14.45155,67.28465</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Øsaker</name>
+      <description><![CDATA[Mangler informasjon om varsler for Øsaker]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>11.04221,59.31936</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Årnes</name>
+      <description><![CDATA[Mangler informasjon om varsler for Årnes]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>11.39342,60.1268</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Ås</name>
+      <description><![CDATA[Mangler informasjon om varsler for Ås]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.781989,59.66047</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Åsbakken</name>
+      <description><![CDATA[Mangler informasjon om varsler for Åsbakken]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>10.768903,59.66855</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Åsnes</name>
+      <description><![CDATA[Mangler informasjon om varsler for Åsnes]]></description>
+      <styleUrl>#style_4</styleUrl>
+      <Point>
+        <coordinates>12.0244,60.54933</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>

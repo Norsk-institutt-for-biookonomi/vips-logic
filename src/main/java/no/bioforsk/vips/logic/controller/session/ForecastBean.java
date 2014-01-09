@@ -1,5 +1,12 @@
 package no.bioforsk.vips.logic.controller.session;
 
+import de.micromata.opengis.kml.v_2_2_0.Coordinate;
+import de.micromata.opengis.kml.v_2_2_0.Document;
+import de.micromata.opengis.kml.v_2_2_0.Kml;
+import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
+import de.micromata.opengis.kml.v_2_2_0.Placemark;
+import de.micromata.opengis.kml.v_2_2_0.Point;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +35,7 @@ import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
+import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.RunModelException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.web.forms.FormField;
@@ -275,8 +283,8 @@ public class ForecastBean {
                 ModelRunRequest request = new ModelRunRequest(config);
                 Map<String,String> loginInfo = new HashMap<>();
                 // VIPSLogic logs in on behalf of client
-                //loginInfo.put("username",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_USERNAME"));
-                loginInfo.put("username","wrongusername");
+                loginInfo.put("username",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_USERNAME"));
+                //loginInfo.put("username","wrongusername");
                 loginInfo.put("password",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_PASSWORD"));
                 request.setLoginInfo(loginInfo);
                 // We tell which client this is (the db Id in VIPSCoreManager)
@@ -308,4 +316,96 @@ public class ForecastBean {
         ManagerResource resource = rTarget.proxy(ManagerResource.class);
         return resource;
     }
+    
+    public Kml getForecastsAggregateKml(Date theDate)
+    {
+        // Initialization
+        final Kml kml = KmlFactory.createKml();
+        final Document document = kml.createAndSetDocument()
+        .withName("Forecast results - aggregates").withDescription("Worst forecasts for each POI");
+
+        document.createAndAddStyle()
+            .withId("warning_type_0")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref("http://www.vips-landbruk.no/graphics/dot_grey.png");
+        
+        document.createAndAddStyle()
+            .withId("warning_type_1")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref("http://www.vips-landbruk.no/graphics/dot_blue.png");
+        
+        document.createAndAddStyle()
+            .withId("warning_type_2")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref("http://www.vips-landbruk.no/graphics/dot_green.png");
+        
+        document.createAndAddStyle()
+            .withId("warning_type_3")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref("http://www.vips-landbruk.no/graphics/dot_yellow.png");
+        
+        document.createAndAddStyle()
+            .withId("warning_type_4")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref("http://www.vips-landbruk.no/graphics/dot_red.png");
+
+        // Run through forecast configurations
+        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(theDate);
+        for(PointOfInterest poiWithAggregate:poisWithAggregate)
+        {
+            final Placemark placemark = document.createAndAddPlacemark()
+            .withName(poiWithAggregate.getName())
+            .withDescription("<![CDATA[Mangler informasjon om varsler for " + poiWithAggregate.getName() + "]]>")
+            .withStyleUrl("#warning_type_" 
+                    + (poiWithAggregate.getProperties().get("forecastsAggregate") != null ? poiWithAggregate.getProperties().get("forecastsAggregate") : "0")
+                );
+            
+            final Point point = placemark.createAndSetPoint();
+            List<Coordinate> coord = point.createAndSetCoordinates();
+            coord.add(new Coordinate(
+                    poiWithAggregate.getLongitude(),
+                    poiWithAggregate.getLatitude(),
+                    poiWithAggregate.getAltitude() != null ? poiWithAggregate.getAltitude() : 0
+            ));
+        }
+ 
+        System.out.println(kml.marshal());
+        return kml;
+    }
+
+    /**
+     * TODO: This should be cached somehow. Here in app or in web server???
+     * @param theDate
+     * @return 
+     */
+    private List<PointOfInterest> getPointOfInterestForecastsAggregate(Date theDate) {
+        // TODO: More precise gathering of POIs...
+        List<PointOfInterest> pois = em.createNamedQuery("PointOfInterest.findAll").getResultList();
+        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
+        for(PointOfInterest poi: pois)
+        {
+            Query q = em.createNativeQuery("SELECT max(warning_status) FROM forecast_result \n" +
+                                "WHERE forecast_configuration_id IN( \n" +
+                                "	SELECT forecast_configuration_id \n" +
+                                "	FROM forecast_configuration \n" +
+                                "	WHERE location_point_of_interest_id=:locationPointOfInterestId \n" +
+                                ")\n" +
+                                "AND to_char(result_valid_time, 'yyyy-MM-dd') = :dateStr");
+            q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
+            q.setParameter("dateStr", format.format(theDate));
+            poi.getProperties().put("forecastsAggregate", (Integer) q.getSingleResult());
+        }
+        return pois;
+    }
+    
 }

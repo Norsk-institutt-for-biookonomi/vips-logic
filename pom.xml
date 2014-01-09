@@ -59,6 +59,11 @@
       <type>jar</type>
     </dependency>
     <dependency>
+      <groupId>de.micromata.jak</groupId>
+      <artifactId>JavaAPIforKml</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+    <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-web-api</artifactId>
       <version>7.0</version>
@@ -101,4 +106,5 @@
       </plugin>
     </plugins>
   </build>
+  
 </project>

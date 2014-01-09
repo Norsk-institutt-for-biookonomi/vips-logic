@@ -1,7 +1,5 @@
 package no.bioforsk.vips.logic.util;
 
-import java.util.Locale;
-
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
@@ -25,7 +23,8 @@ public class Globals {
         "/rest",
         "/user",
         "/test/testlogin.jsp",
-        "/test/testloginsuccess.jsp"
+        "/test/testloginsuccess.jsp",
+        "/test/mock.kml"
     };
     
     // Point of interest type IDs
@@ -43,5 +42,6 @@ public class Globals {
     public static Integer USER_STATUS_DISABLED = 5;
 
     public static String defaultTimestampFormat = "yyyy-MM-dd HH:mm:ssXXX";
+    public static String defaultDateFormat = "yyyy-MM-dd";
     
 }

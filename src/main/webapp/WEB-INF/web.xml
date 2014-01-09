@@ -93,15 +93,6 @@
         <servlet-name>LoginController</servlet-name>
         <servlet-class>no.bioforsk.vips.logic.controller.servlet.LoginController</servlet-class>
     </servlet>
-    <servlet>
-        <servlet-name>TestFreemarker</servlet-name>
-        <servlet-class>no.bioforsk.vips.logic.controller.servlet.TestFreemarker</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>TestFreemarker</servlet-name>
-        <url-pattern>/testfreemarker</url-pattern>
-        <url-pattern>/userTEST</url-pattern>
-    </servlet-mapping>
     <filter>
         <description>Authenticates users</description>
         <filter-name>AuthenticationFilter</filter-name>
@@ -115,6 +106,7 @@
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>*</url-pattern>
     </filter-mapping>
+    
     <!-- RestEASY listens to all requests with /rest/* PATH -->
     <filter>
         <filter-name>Resteasy</filter-name>
