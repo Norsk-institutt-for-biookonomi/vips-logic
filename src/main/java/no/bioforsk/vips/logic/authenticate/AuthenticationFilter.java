@@ -1,9 +1,7 @@
 package no.bioforsk.vips.logic.authenticate;
 
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
