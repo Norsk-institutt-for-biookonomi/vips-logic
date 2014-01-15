@@ -1,6 +1,7 @@
 package no.bioforsk.vips.logic.service;
 
 import de.micromata.opengis.kml.v_2_2_0.Kml;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class LogicService {
         Response resp = this.getManagerResource().getUsersForOrganization(organizationId);
         List<Map> userList = resp.readEntity(List.class);
         // Then: Get forecasts for these users, collate and return
-        List<ForecastConfiguration> forecasts = null;
+        List<ForecastConfiguration> forecasts = new ArrayList<>();
         for(Map user:userList)
         {
             Integer userId = (Integer) user.get("vipsCoreUserId");
@@ -134,6 +135,15 @@ public class LogicService {
     {
             Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(SystemTime.getSystemTime());
             return Response.ok().entity(retVal).build();
+    }
+    
+    @GET
+    @Path("forecastresults/latest/poi/{poiId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getLatestForecastResultsForPoi(@PathParam("poiId") Integer poiId)
+    {
+        Map<String, Object> latestResults = SessionControllerGetter.getForecastBean().getLatestForecastResultsForPoi(poiId);
+        return Response.ok().entity(latestResults).build();
     }
     
     private ManagerResource getManagerResource()
