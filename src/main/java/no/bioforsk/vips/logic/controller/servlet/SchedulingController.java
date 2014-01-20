@@ -5,6 +5,7 @@ import it.sauronsoftware.cron4j.TaskExecutor;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -157,7 +158,9 @@ public class SchedulingController extends HttpServlet {
                     if(formValidation.isValid())
                     {
                         // RUN THE JOB!!!
-                        task.setConfiguration(request.getParameterMap());
+                        // Need to copy the ParameterMap (not just pass it along), as the values get lost 
+                        // after the servlet disconnects itself from the task
+                        task.setConfiguration(new HashMap<>(request.getParameterMap()));
                         // If system scheduler is running, launch task there
                         if(schedulingBean.getSystemScheduler().isStarted())
                         {

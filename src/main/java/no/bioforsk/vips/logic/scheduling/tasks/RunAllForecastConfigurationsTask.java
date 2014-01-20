@@ -36,14 +36,14 @@ import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class RunAllForecastConfigurationsTask extends VipsLogicTask{
     private I18nImpl i18n;
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
-        tec.setStatusMessage("Oh yes, we're running!!!");
+        Integer weatherStationPointOfInterestId =  this.getConfiguration().get("weatherStationPointOfInterestId") != null ? Integer.valueOf(this.getConfiguration().get("weatherStationPointOfInterestId")[0]) : null ;
         tec.setCompleteness(0d);
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         for(Organization organization : SessionControllerGetter.getUserBean().getOrganizations())
@@ -53,13 +53,19 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
             int counter = 0;
             for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
             {
-                try 
+                if(
+                        weatherStationPointOfInterestId == null
+                        || weatherStationPointOfInterestId <= 0
+                        || forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
                 {
-                    SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
-                } 
-                catch (PreprocessorException | RunModelException ex) 
-                {
-                    throw new RuntimeException(ex);   
+                    try 
+                    {
+                        SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
+                    }
+                    catch (PreprocessorException | RunModelException ex) 
+                    {
+                        throw new RuntimeException(ex);   
+                    }
                 }
                 double completeness = (double) ++counter/numberOfForecastConfigurations;
                 tec.setCompleteness(completeness);
@@ -99,7 +105,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                 .append("           \"dataType\":\"").append(FormField.DATA_TYPE_INTEGER).append("\",")
                 .append("           \"fieldType\":\"").append(FormField.FIELD_TYPE_SELECT_SINGLE).append("\",")
                 .append("           \"nullValue\":\"-1\",")
-                .append("           \"required\":true,")
+                .append("           \"required\":false,")
                 .append("           \"options\": [");
 
         

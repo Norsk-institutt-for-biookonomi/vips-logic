@@ -257,7 +257,7 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
     if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE)
     {
         webValue = fieldEl.options[fieldEl.selectedIndex].value;
-        if(fieldDefinition.nullValue === webValue)
+        if(fieldDefinition.nullValue === webValue && fieldDefinition.required === true)
         {
             invalidizeField(fieldEl, theForm, getI18nMsg("fieldIsRequired",null));
             return false;

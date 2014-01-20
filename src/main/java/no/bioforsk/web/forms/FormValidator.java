@@ -176,7 +176,7 @@ public class FormValidator {
             // Check that selected option does not equal "nullValue"
             if(field.getFieldType().equals(FormField.FIELD_TYPE_SELECT_SINGLE))
             {
-                if(field.getWebValue().equals(field.getNullValue()))
+                if(field.getWebValue().equals(field.getNullValue()) && field.isRequired())
                 {
                     field.setValid(false);
                     field.setValidationMessage(SessionLocaleUtil.getI18nText(request, "fieldIsRequired"));

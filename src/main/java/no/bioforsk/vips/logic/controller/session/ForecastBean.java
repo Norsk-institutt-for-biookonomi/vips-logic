@@ -7,6 +7,7 @@ import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Point;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -368,7 +369,9 @@ public class ForecastBean {
             .withDescription("<![CDATA[Mangler informasjon om varsler for " + poiWithAggregate.getName() + "]]>")
             .withStyleUrl("#warning_type_" 
                     + (poiWithAggregate.getProperties().get("forecastsAggregate") != null ? poiWithAggregate.getProperties().get("forecastsAggregate") : "0")
-                );
+                )
+             .withId(poiWithAggregate.getPointOfInterestId().toString());
+            
             
             final Point point = placemark.createAndSetPoint();
             List<Coordinate> coord = point.createAndSetCoordinates();
@@ -379,7 +382,7 @@ public class ForecastBean {
             ));
         }
  
-        System.out.println(kml.marshal());
+        //System.out.println(kml.marshal());
         return kml;
     }
 
@@ -406,6 +409,42 @@ public class ForecastBean {
             poi.getProperties().put("forecastsAggregate", (Integer) q.getSingleResult());
         }
         return pois;
+    }
+
+    /**
+     * Returns the latest forecast results for given point of interest
+     * @param poiId
+     * @return 
+     */
+    public Map<String, Object> getLatestForecastResultsForPoi(Integer poiId) {
+        Map<String, Object> retVal = new HashMap<>();
+        
+        PointOfInterest poi = em.find(PointOfInterest.class, poiId);
+        List<ForecastConfiguration> forecastConfigurations = 
+                                        em.createNamedQuery("ForecastConfiguration.findByLocationPointOfInterestId")
+                                        .setParameter("locationPointOfInterestId", poi)
+                                        .getResultList();
+        
+        HashMap<Long,ForecastConfiguration> mappedForecastConfigurations = new HashMap<>();
+        
+        List<ForecastResult> results = new ArrayList<>();
+        for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
+        {
+            mappedForecastConfigurations.put(forecastConfiguration.getForecastConfigurationId(), forecastConfiguration);
+            Query q = em.createNativeQuery(
+                    "SELECT * FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId "
+                            + "AND result_valid_time = (SELECT max(result_valid_time) FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId)", 
+                    ForecastResult.class
+            );
+            q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
+            results.add((ForecastResult)q.getSingleResult());
+        }
+        
+        retVal.put("forecastConfigurations", mappedForecastConfigurations);
+        retVal.put("results", results);
+        
+        return retVal;
+        
     }
     
 }

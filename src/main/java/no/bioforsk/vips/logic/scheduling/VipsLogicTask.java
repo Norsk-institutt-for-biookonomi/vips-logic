@@ -33,7 +33,7 @@ public abstract class VipsLogicTask extends Task{
     public static final String DEFAULT_LANGUAGE = "en";
     
     private final I18nImpl i18n;
-    private Map configuration;
+    private Map<String,String[]> configuration;
     private Integer factoryId;
     
     public abstract String getConfigFormDefinition(String language);
@@ -61,7 +61,7 @@ public abstract class VipsLogicTask extends Task{
      * 
      * @return this tasks configuration options
      */
-    public Map getConfiguration()
+    public Map<String,String[]> getConfiguration()
     {
         return this.configuration;
     }
