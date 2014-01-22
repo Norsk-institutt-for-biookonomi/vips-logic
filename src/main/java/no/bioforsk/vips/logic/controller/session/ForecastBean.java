@@ -312,7 +312,7 @@ public class ForecastBean {
     private ManagerResource getManagerResource()
     {
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(System.getProperty("no.bioforsk.vips.coremanager.VIPSCOREMANAGER_URL"));
+        WebTarget target = client.target(System.getProperty("no.bioforsk.vips.logic.VIPSCOREMANAGER_URL"));
         ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
         ManagerResource resource = rTarget.proxy(ManagerResource.class);
         return resource;

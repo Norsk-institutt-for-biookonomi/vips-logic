@@ -32,7 +32,7 @@ import org.jboss.resteasy.spi.HttpRequest;
  */
 @Path("rest")
 public class LogicService {
-    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.bioforsk.vips.coremanager.VIPSCOREMANAGER_URL");
+    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.bioforsk.vips.logic.VIPSCOREMANAGER_URL");
     
     @Context
     private HttpRequest httpRequest;
