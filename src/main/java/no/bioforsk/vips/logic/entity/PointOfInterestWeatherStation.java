@@ -109,9 +109,7 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
      */
     public String getDataFetchUri()
     {
-        String[] formatParam = new String[1];
-        formatParam[0] = this.getWeatherStationRemoteId();
-        String dataRequestUri = new MessageFormat(this.getWeatherStationDataSourceId().getDatafetchUriExpression()).format(formatParam);
+        String dataRequestUri = String.format(this.getWeatherStationDataSourceId().getDatafetchUriExpression(),this.getWeatherStationRemoteId());
         return dataRequestUri;
     }
     
