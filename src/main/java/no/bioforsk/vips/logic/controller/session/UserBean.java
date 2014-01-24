@@ -60,7 +60,7 @@ public class UserBean {
             q.setParameter("username", loginInfo.get("username"));
             
             q.setParameter("password", this.getMD5EncryptedString((String)loginInfo.get("password")));
-            System.out.println(this.getMD5EncryptedString((String)loginInfo.get("password")));
+            //System.out.println(this.getMD5EncryptedString((String)loginInfo.get("password")));
             UserAuthentication result = (UserAuthentication) q.getSingleResult();
             return result.getVipsLogicUser();
         }
