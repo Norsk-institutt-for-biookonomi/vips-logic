@@ -68,7 +68,6 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     }
                     catch (PreprocessorException | RunModelException ex) 
                     {
-                        ex.printStackTrace();
                         throw new RuntimeException(ex);   
                     }
                 }
