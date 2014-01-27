@@ -141,7 +141,7 @@ public class SchedulingBean {
         // at creation time.
         
         VIPSLogicTaskCollector testCollector = new VIPSLogicTaskCollector(-1);
-        SchedulingPattern schedulingPattern = new SchedulingPattern("30 * * * *");
+        SchedulingPattern schedulingPattern = new SchedulingPattern("* * * * *");
         testCollector.getTasks().add(schedulingPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK));
         
         List<TaskCollector> definedTasks = new ArrayList<>();
@@ -250,7 +250,7 @@ public class SchedulingBean {
     {
         VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
         
-        System.out.println("############ Task " + task.getName() + " launched at + " + taskExecutor.getStartTime() + "!!! ############");
+        System.out.println("############ Task " + task.getName() + " launched at + " + new Date(taskExecutor.getStartTime()).toString() + "!!! ############");
     }
     
     public void logTaskSucceeded(TaskExecutor taskExecutor)
@@ -275,7 +275,13 @@ public class SchedulingBean {
         taskHistory.setStartTime(new Date(taskExecutor.getStartTime()));
         taskHistory.setFinishTime(new Date());
         taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
-        taskHistory.setMessage(throwable.getMessage());
+        // Build stacktrace
+        StringBuilder stackTrace = new StringBuilder();
+        for(StackTraceElement element: throwable.getStackTrace())
+        {
+            stackTrace.append(element.toString());
+        }
+        taskHistory.setMessage(stackTrace.toString());
         em.persist(taskHistory);
         
         
@@ -283,7 +289,7 @@ public class SchedulingBean {
                 " failed at + " + taskExecutor.getStartTime() + 
                 ", finished at " + new Date() + 
                 ". Status is " + taskExecutor.getStatusMessage() + 
-                ". Error was " + throwable.getMessage() +
+                ". Error was " + stackTrace.toString() +
                 " ############");
     }
     
