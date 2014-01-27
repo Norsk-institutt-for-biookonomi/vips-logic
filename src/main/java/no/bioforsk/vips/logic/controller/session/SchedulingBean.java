@@ -141,7 +141,7 @@ public class SchedulingBean {
         // at creation time.
         
         VIPSLogicTaskCollector testCollector = new VIPSLogicTaskCollector(-1);
-        SchedulingPattern schedulingPattern = new SchedulingPattern("* * * * *");
+        SchedulingPattern schedulingPattern = new SchedulingPattern("30 * * * *");
         testCollector.getTasks().add(schedulingPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK));
         
         List<TaskCollector> definedTasks = new ArrayList<>();
@@ -250,7 +250,7 @@ public class SchedulingBean {
     {
         VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
         
-        System.out.println("############ Task " + task.getName() + " launched at + " + new Date(taskExecutor.getStartTime()).toString() + "!!! ############");
+        System.out.println("############ Task " + task.getName() + " launched at " + new Date(taskExecutor.getStartTime()).toString() + "!!! ############");
     }
     
     public void logTaskSucceeded(TaskExecutor taskExecutor)
