@@ -43,7 +43,11 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
     private I18nImpl i18n;
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
-        Integer weatherStationPointOfInterestId =  this.getConfiguration().get("weatherStationPointOfInterestId") != null ? Integer.valueOf(this.getConfiguration().get("weatherStationPointOfInterestId")[0]) : null ;
+        Integer weatherStationPointOfInterestId = null;
+        if(this.getConfiguration() != null && this.getConfiguration().get("weatherStationPointOfInterestId") != null)
+        { 
+            weatherStationPointOfInterestId =  Integer.valueOf(this.getConfiguration().get("weatherStationPointOfInterestId")[0]);
+        }
         tec.setCompleteness(0d);
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         for(Organization organization : SessionControllerGetter.getUserBean().getOrganizations())
@@ -64,6 +68,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     }
                     catch (PreprocessorException | RunModelException ex) 
                     {
+                        ex.printStackTrace();
                         throw new RuntimeException(ex);   
                     }
                 }
