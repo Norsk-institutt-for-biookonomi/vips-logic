@@ -1,5 +1,7 @@
 package no.bioforsk.vips.logic.util;
 
+import java.util.Random;
+
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
@@ -21,6 +23,24 @@ public class StringUtils {
     public static boolean containsText(String str){
         if(str == null) return false;
         return !str.trim().isEmpty();
+    }
+    
+    /**
+     * Generates a string random alphanumeric characters
+     * @param length The length of the string returnd
+     * @return 
+     */
+    public String generateRandomAlphanumericString(Integer length)
+    {
+        String allowedChars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTYVWXYZ0123456789";
+        StringBuilder buffer = new StringBuilder(length);
+        Random r = new Random();
+        for(int i=0;i<length;i++)
+        {
+            int number = r.nextInt(allowedChars.length());
+            buffer.append(allowedChars.charAt(number));
+        }
+        return buffer.toString();
     }
 
 }
