@@ -30,7 +30,7 @@ public class StringUtils {
      * @param length The length of the string returnd
      * @return 
      */
-    public String generateRandomAlphanumericString(Integer length)
+    public static synchronized String generateRandomAlphanumericString(Integer length)
     {
         String allowedChars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTYVWXYZ0123456789";
         StringBuilder buffer = new StringBuilder(length);
