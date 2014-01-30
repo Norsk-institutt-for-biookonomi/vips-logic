@@ -36,6 +36,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "VipsLogicUser.findByUserId", query = "SELECT v FROM VipsLogicUser v WHERE v.userId = :userId"),
     @NamedQuery(name = "VipsLogicUser.findByOrganizationId", query = "SELECT v FROM VipsLogicUser v WHERE v.organizationId = :organizationId"),
     @NamedQuery(name = "VipsLogicUser.findByEmail", query = "SELECT v FROM VipsLogicUser v WHERE v.email = :email"),
+    @NamedQuery(name = "VipsLogicUser.findByEmailVerificationCode", query = "SELECT v FROM VipsLogicUser v WHERE v.emailVerificationCode = :emailVerificationCode"),
     @NamedQuery(name = "VipsLogicUser.findByFirstName", query = "SELECT v FROM VipsLogicUser v WHERE v.firstName = :firstName"),
     @NamedQuery(name = "VipsLogicUser.findByLastName", query = "SELECT v FROM VipsLogicUser v WHERE v.lastName = :lastName")})
 public class VipsLogicUser implements Serializable {
@@ -69,6 +70,8 @@ public class VipsLogicUser implements Serializable {
     private Organization organizationId;
     @Column(name = "user_status_id")
     private Integer userStatusId;
+    @Column(name = "email_verification_code")
+    private String emailVerificationCode;
     @ManyToMany(fetch=FetchType.EAGER)
     @JoinTable(
             name = "user_vips_logic_role",
@@ -281,5 +284,19 @@ public class VipsLogicUser implements Serializable {
      */
     public void setVipsCoreUserId(Integer vipsCoreUserId) {
         this.vipsCoreUserId = vipsCoreUserId;
+    }
+
+    /**
+     * @return the emailVerificationCode
+     */
+    public String getEmailVerificationCode() {
+        return emailVerificationCode;
+    }
+
+    /**
+     * @param emailVerificationCode the emailVerificationCode to set
+     */
+    public void setEmailVerificationCode(String emailVerificationCode) {
+        this.emailVerificationCode = emailVerificationCode;
     }
 }

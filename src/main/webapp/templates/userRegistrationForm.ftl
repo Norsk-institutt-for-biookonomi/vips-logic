@@ -14,7 +14,7 @@
 <#macro page_contentwrap_end></#macro>
 <#macro page_contents>
 <div class="container">
-	<#assign formId = "userRegistrationForm">
+	<#assign formId = "userRegistrationFormType" + userAuthenticationTypeId>
 	<form id="${formId}" class="form-signin" action="/user?action=registerNewUserFormSubmit" method="POST" onsubmit="return validateForm(this);/*try{validateForm(this);}catch(err){console.log(err);}finally{return false;}*/">
 		<input type="hidden" name="userAuthenticationTypeId" value="${userAuthenticationTypeId}"/>
 		<#if messageKey?has_content>
@@ -25,12 +25,14 @@
 		</div>
 		<h1 class="form-signin-heading">${i18nBundle.registerNewUser}</h1>
 		<p>${i18nBundle.registerNewUserExplanation}</p>
+		<#if userAuthenticationTypeId == 1>
 		<div><input type="text" class="form-control" placeholder="${i18nBundle.username}" name="username" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("username").webValue}</#if>" onblur="validateField(this);" autofocus/></div>
 		<span class="help-block" id="${formId}_username_validation"></span>
 		<div><input type="password" class="form-control" placeholder="${i18nBundle.password}" name="password" size="15" onblur="evaluatePassword(this);" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_password_validation"></span>
 		<div><input type="password" class="form-control" placeholder="${i18nBundle.password2}" name="password2" size="15" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_password2_validation"></span>
+		</#if>
 		<div><input type="text" class="form-control" placeholder="${i18nBundle.email}" name="email" value="<#if formValidation?has_content>${formValidation.getFormField("email").webValue}</#if>" size="15" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_email_validation"></span>
 		<div><input type="text" class="form-control" placeholder="${i18nBundle.firstName}" name="firstName" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("firstName").webValue}</#if>" onblur="validateField(this);"/></div>

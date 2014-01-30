@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package no.bioforsk.vips.logic.controller.session;
 
 import edu.vt.middleware.password.CharacterCharacteristicsRule;
@@ -14,11 +33,13 @@ import edu.vt.middleware.password.UppercaseCharacterRule;
 import edu.vt.middleware.password.WhitespaceRule;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -33,6 +54,8 @@ import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.Globals;
+import no.bioforsk.vips.logic.util.SimpleMailSender;
+import no.bioforsk.vips.logic.util.StringUtils;
 import no.bioforsk.vips.util.MD5Encrypter;
 
 /**
@@ -112,6 +135,29 @@ public class UserBean {
         UserAuthenticationPK pk = new UserAuthenticationPK(user.getUserId(), auth.getUserAuthenticationType().getUserAuthenticationTypeId());
         auth.setUserAuthenticationPK(pk);
         em.persist(auth);
+        
+    }
+    
+    public void sendUserEmailVerification(VipsLogicUser user, ResourceBundle i18nBundle, String serverName)
+    {
+        // Create verification string (random, alphanumeric, 30 characters)
+        user.setEmailVerificationCode(StringUtils.generateRandomAlphanumericString(30));
+        em.merge(user);
+        String subject = i18nBundle.getString("userRegistrationEmailVerificationMessageSubject");
+        String body = getUserEmailVerificationBody(i18nBundle, serverName, user.getEmailVerificationCode() );
+        
+        // Send email
+        String smtpServer = System.getProperty("no.bioforsk.vips.logic.SMTP_SERVER");
+        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+        mailSender.sendMail("noreply@" + serverName, user.getEmail(), subject, body);
+        
+    }
+    
+    public String getUserEmailVerificationBody(ResourceBundle i18nBundle, String serverName, String verificationCode)
+    {
+        String verificationURL = "http://" + serverName + "/user?action=confirmEmail&verificationCode=" + verificationCode;
+        String body = MessageFormat.format(i18nBundle.getString("userRegistrationEmailVerificationMessageBody"), serverName,verificationURL);
+        return body;
     }
     
     public void storeUser(VipsLogicUser user)
@@ -307,5 +353,29 @@ public class UserBean {
             Globals.USER_STATUS_APPROVED,
             Globals.USER_STATUS_DISABLED
             };
+    }
+
+    /**
+     * Searches user list by given verification code. If found, verification code
+     * is deleted and user status set to waiting for approval
+     * @param verificationCode
+     * @return The found user, or null if not found
+     */
+    public VipsLogicUser verifyUserEmail(String emailVerificationCode) {
+        try
+        {
+            VipsLogicUser confirmUser = em.createNamedQuery("VipsLogicUser.findByEmailVerificationCode", VipsLogicUser.class).setParameter("emailVerificationCode", emailVerificationCode).getSingleResult();
+            confirmUser.setEmailVerificationCode(null);
+            confirmUser.setUserStatusId(Globals.USER_STATUS_AWAITING_APPROVAL);
+            return confirmUser;
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
+
+    public void storeUserAuthentication(UserAuthentication userAuth) {
+        em.persist(userAuth);
     }
 }

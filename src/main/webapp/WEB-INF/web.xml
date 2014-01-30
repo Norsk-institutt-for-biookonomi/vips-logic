@@ -32,6 +32,10 @@
         <servlet-name>ForecastController</servlet-name>
         <servlet-class>no.bioforsk.vips.logic.controller.servlet.ForecastConfigurationController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>OrganismController</servlet-name>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.OrganismController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -65,6 +69,10 @@
     <servlet-mapping>
         <servlet-name>ForecastController</servlet-name>
         <url-pattern>/forecastConfiguration</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OrganismController</servlet-name>
+        <url-pattern>/organism</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
@@ -106,7 +114,6 @@
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>*</url-pattern>
     </filter-mapping>
-    
     <!-- RestEASY listens to all requests with /rest/* PATH -->
     <filter>
         <filter-name>Resteasy</filter-name>

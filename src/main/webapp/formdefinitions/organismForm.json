@@ -1,0 +1,31 @@
+{
+    "_comment" : "Structure of the organismForm and how to validate it",
+    "fields": [
+        {
+            "name" : "organismId",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "parentOrganismId",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
+            "name" : "latinName",
+            "dataType" : "STRING",
+            "required" : true
+        },
+        {
+            "name" : "tradeName",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "localName",
+            "dataType" : "STRING",
+            "required" : false
+        }
+        
+    ]
+}

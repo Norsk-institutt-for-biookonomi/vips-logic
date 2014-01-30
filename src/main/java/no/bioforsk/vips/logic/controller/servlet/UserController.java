@@ -1,8 +1,29 @@
+/*
+ * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -13,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
+import no.bioforsk.vips.logic.entity.UserAuthenticationPK;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
@@ -265,53 +287,120 @@ public class UserController extends HttpServlet {
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
                 return;
             }
-            if(userAuthenticationType.getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD))
+
+            // Standard form validation
+            FormValidation formValidation = FormValidator.validateForm(
+                                                "userRegistrationFormType" + userAuthenticationType.getUserAuthenticationTypeId(),
+                                                request,getServletContext()
+                                            );
+            // Extra check: That user's email is not already in use
+            FormField emailField = formValidation.getFormField("email");
+            if(userBean.getUserByEmail(emailField.getWebValue()) != null)
             {
-                // Standard form validation
-                FormValidation formValidation = FormValidator.validateForm("userRegistrationForm",request,getServletContext());
-                // Extra check: That user's email is not already in use
-                FormField emailField = formValidation.getFormField("email");
-                if(userBean.getUserByEmail(emailField.getWebValue()) != null)
+                emailField.setValid(false);
+                emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
+            }
+
+            if(formValidation.isValid())
+            {
+
+                // Setting authentication info first
+                auth.setUserAuthenticationType(userAuthenticationType);
+                if(userAuthenticationType.getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD))
                 {
-                    emailField.setValid(false);
-                    emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
-                }
-                
-                if(formValidation.isValid())
-                {
-                    
-                    // Setting authentication info first
-                    auth.setUserAuthenticationType(userAuthenticationType);
                     auth.setUsername(formValidation.getFormField("username").getWebValue());
                     auth.setPassword(userBean.getMD5EncryptedString(formValidation.getFormField("password").getWebValue()));
-                    
-                    // Adding user info
-                    newUser.setEmail(formValidation.getFormField("email").getWebValue());
-                    newUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
-                    newUser.setLastName(formValidation.getFormField("lastName").getWebValue());
-                    Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
-                    newUser.setOrganizationId(organization);
-                    newUser.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
-                    newUser.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
-                    userBean.storeUserFirstTime(newUser, auth);
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
                 }
+                // For OpenId and GoogleId
                 else
                 {
-                    request.setAttribute("formValidation", formValidation);
-                    request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                    request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
-                    request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
-                    return;
+                    auth.setUsername((String)request.getSession().getAttribute("openId"));
                 }
-                
+                // Adding user info
+                newUser.setEmail(formValidation.getFormField("email").getWebValue());
+                newUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
+                newUser.setLastName(formValidation.getFormField("lastName").getWebValue());
+                Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
+                newUser.setOrganizationId(organization);
+                newUser.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
+                newUser.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
+                userBean.storeUserFirstTime(newUser, auth);
+                // Send email about user verification
+                if(newUser.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
+                {
+                    userBean.sendUserEmailVerification(newUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                }
+                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
             }
-                
+            else
+            {
+                request.setAttribute("formValidation", formValidation);
+                request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
+                request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
+            }
         }
         else if(action.equals("registerNewUserFormReceipt"))
         {
             request.setAttribute("messageKey","registerNewUserReceipt");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
+        }
+        else if(action.equals("confirmEmail"))
+        {
+            String verificationCode = request.getParameter("verificationCode");
+            VipsLogicUser confirmUser = SessionControllerGetter.getUserBean().verifyUserEmail(verificationCode);
+            if(confirmUser != null)
+            {
+                // Success
+                request.setAttribute("messageKey","confirmEmailReceipt");
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
+            }
+            else
+            {
+                // Failure
+                request.setAttribute("errorMessageKey","confirmEmailFailed");
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
+            }
+        }
+        // An OpenId or GoogleId is requested to be attached to a user, identified by username/password
+        else if(action.equals("attachIdToExistingUser"))
+        {
+            UserAuthenticationType userAuthenticationType = null;
+            try{
+                userAuthenticationType = em.find(UserAuthenticationType.class, ServletUtil.getIntegerParameter(request, "userAuthenticationTypeId"));
+            }
+            catch(Exception e)
+            {
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
+                return;
+            }
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            Map<String,String> creds = new HashMap();
+            creds.put("username", username);
+            creds.put("password", password);
+
+            VipsLogicUser searchUser = SessionControllerGetter.getUserBean().authenticateUser(creds);
+
+            if(searchUser != null)
+            {
+                UserAuthentication userAuth = new UserAuthentication();
+                userAuth.setVipsLogicUser(searchUser);
+                userAuth.setUserAuthenticationType(userAuthenticationType);
+                userAuth.setUsername((String)request.getSession().getAttribute("openId"));
+                UserAuthenticationPK pk = new UserAuthenticationPK(searchUser.getUserId(), userAuthenticationType.getUserAuthenticationTypeId());
+                userAuth.setUserAuthenticationPK(pk);
+                SessionControllerGetter.getUserBean().storeUserAuthentication(userAuth);
+                //em.persist(userAuth);
+                request.setAttribute("messageKey", "attachIdToExistingUserReceipt");
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
+            }
+            else
+            {
+                request.setAttribute("errorMessageKey", "invalidcredentials");
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
+            }
+
         }
         
         

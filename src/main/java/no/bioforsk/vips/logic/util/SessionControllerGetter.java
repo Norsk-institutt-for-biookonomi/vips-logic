@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package no.bioforsk.vips.logic.util;
 
 import no.bioforsk.vips.logic.controller.session.SchedulingBean;
@@ -6,9 +25,10 @@ import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.controller.session.PointOfInterestBean;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import no.bioforsk.vips.logic.controller.session.OrganismBean;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class SessionControllerGetter {
@@ -70,6 +90,20 @@ public class SessionControllerGetter {
         }catch(NamingException ne)
         {
             System.out.println("Could not find " + ForecastBean.class.getSimpleName());
+            return null;
+        }
+    }
+    
+    public static OrganismBean getOrganismBean(){
+        try
+        {
+            InitialContext ic = new InitialContext();
+            OrganismBean retVal = (OrganismBean) ic.lookup(SessionControllerGetter.getJndiPath(OrganismBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + OrganismBean.class.getSimpleName());
             return null;
         }
     }

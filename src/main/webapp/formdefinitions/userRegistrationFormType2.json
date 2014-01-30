@@ -1,0 +1,35 @@
+{
+    "_comment" : "Structure of the userRegistrationForm for OpenId and how to validate it",
+    "fields": [
+        {
+            "name" : "email",
+            "dataType" : "EMAIL",
+            "required" : true
+        },
+        {
+            "name" : "firstName",
+            "dataType" : "STRING",
+            "maxLength" : 255
+        },
+        {
+            "name" : "lastName",
+            "dataType" : "STRING",
+            "required" : true,
+            "maxLength" : 255
+        },
+        {
+            "name" : "organizationId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
+        },
+        {
+            "name" : "approvalApplication",
+            "dataType" : "STRING",
+            "required" : true,
+            "maxLength" : 2147483647
+        }
+        
+    ]
+}

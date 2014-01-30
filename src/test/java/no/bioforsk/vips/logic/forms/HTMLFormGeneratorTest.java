@@ -21,8 +21,6 @@ package no.bioforsk.vips.logic.forms;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import no.bioforsk.web.forms.HTMLFormGenerator;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
@@ -75,9 +73,9 @@ public class HTMLFormGeneratorTest {
             InputStream in2 = this.getClass().getResourceAsStream("/HTMLFormGeneratorTest/forecastConfigurationForm_result.html");
             java.util.Scanner s = new java.util.Scanner(in2).useDelimiter("\\A");
             String result = s.hasNext() ? s.next() : "";
-            System.out.println("expectedResult=\n" + result);
+            //System.out.println("expectedResult=\n" + result);
             String HTMLForm = t.getHTMLFormFields(formDefinition,"forecastConfigurationForm",language);
-            System.out.println("HTMLForm=\n" + HTMLForm);
+            //System.out.println("HTMLForm=\n" + HTMLForm);
             assertEquals(result,HTMLForm);
         } catch (IOException ex) {
             fail(ex.getMessage());

@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2013-2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
@@ -66,10 +85,13 @@ public class LoginController extends HttpServlet {
                     }
                     else
                     {
-                        // This might be a new user!
-                        // TODO: Register the user
-                        request.setAttribute("errorMessageKey", "invalidcredentials");
-                        request.getRequestDispatcher("/login.ftl").forward(request, response);
+                        // This might be 
+                        // * a new user
+                        // * an existing user logging in with OpenId/Google for the first time.
+                        // Sending user to form asking this question
+                        request.setAttribute("userAuthenticationTypeId", userAuthenticationTypeId);
+                        request.getSession().setAttribute("openId", attributes.getOpenId());
+                        request.getRequestDispatcher("/registerOpenIdForm.ftl").forward(request, response);
                     }
                 }
                 else

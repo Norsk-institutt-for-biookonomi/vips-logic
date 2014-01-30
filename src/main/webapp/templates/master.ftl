@@ -2,8 +2,7 @@
         <title>master title</title>
 </#macro>
 <#macro custom_css>
-        <!-- Custom styles for VIPSLogic -->
-	<link href="/css/vipslogic.css" rel="stylesheet" media="screen" />
+	
 </#macro>
 <#macro custom_js>
 
@@ -35,6 +34,7 @@
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
 		  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
 		  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
+		  <li><a href="/organism">${i18nBundle.organisms}</a></li>
 		</ul>
 	      </li>
 	      </#if>
@@ -82,6 +82,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 	<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen" />
+	<!-- Custom styles for VIPSLogic -->
+	<link href="/css/vipslogic.css" rel="stylesheet" media="screen" />
 	<@custom_css/>
 	<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>

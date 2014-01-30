@@ -21,6 +21,7 @@ import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
+import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -144,6 +145,15 @@ public class LogicService {
     {
         Map<String, Object> latestResults = SessionControllerGetter.getForecastBean().getLatestForecastResultsForPoi(poiId);
         return Response.ok().entity(latestResults).build();
+    }
+    
+    @GET
+    @Path("organism/list")
+    @Produces("application/json;charset=UTF-8")
+    public Response getOrganismList()
+    {
+        List<Organism> organismList = SessionControllerGetter.getOrganismBean().getOrganismSubTree(null);
+        return Response.ok().entity(organismList).build();
     }
     
     private ManagerResource getManagerResource()
