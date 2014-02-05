@@ -1,33 +1,46 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2013-2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Entity
@@ -36,6 +49,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 @NamedQueries({
     @NamedQuery(name = "Organism.findAll", query = "SELECT o FROM Organism o"),
     @NamedQuery(name = "Organism.findByOrganismId", query = "SELECT o FROM Organism o WHERE o.organismId = :organismId"),
+    @NamedQuery(name = "Organism.findByParentOrganismId", query = "SELECT o FROM Organism o WHERE o.parentOrganismId = :parentOrganismId"),
     @NamedQuery(name = "Organism.findByLatinName", query = "SELECT o FROM Organism o WHERE o.latinName = :latinName"),
     @NamedQuery(name = "Organism.findByTradeName", query = "SELECT o FROM Organism o WHERE o.tradeName = :tradeName"),
     @NamedQuery(name = "Organism.findByLogicallyDeleted", query = "SELECT o FROM Organism o WHERE o.logicallyDeleted = :logicallyDeleted")})
@@ -56,18 +70,33 @@ public class Organism implements Serializable {
     @NotNull
     @Column(name = "logically_deleted")
     private boolean logicallyDeleted;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "organism")
+    
+    // We simplify this to avoid very large queries
+    @Column(name = "parent_organism_id")
+    private Integer parentOrganismId;
+    @Column(name = "hierarchy_category_id")
+    private Integer hierarchyCategoryId;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "organismId", fetch = FetchType.EAGER)
+    private Set<OrganismLocale> organismLocaleSet;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "organism", fetch = FetchType.EAGER)
+    private Set<OrganismExternalResource> organismExternalResourceSet;
+    
+    @Transient
+    private List<Organism> childOrganisms;
+    
+    /*@OneToMany(cascade = CascadeType.ALL, mappedBy = "organism")
     private Set<OrganismLocale> organismLocaleSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "organism")
     private Set<OrganismExternalResource> organismExternalResourceSet;
-    @OneToMany(mappedBy = "parentOrganismId")
+    @OneToMany(mappedBy = "parentOrganismId", fetch = FetchType.EAGER)
     private Set<Organism> organismSet;
     @JoinColumn(name = "parent_organism_id", referencedColumnName = "organism_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Organism parentOrganismId;
     @JoinColumn(name = "hierarchy_category_id", referencedColumnName = "hierarchy_category_id")
     @ManyToOne
     private HierarchyCategory hierarchyCategoryId;
+    */
 
     public Organism() {
     }
@@ -113,8 +142,7 @@ public class Organism implements Serializable {
         this.logicallyDeleted = logicallyDeleted;
     }
 
-    @XmlTransient
-    @JsonIgnore
+    
     public Set<OrganismLocale> getOrganismLocaleSet() {
         return organismLocaleSet;
     }
@@ -123,8 +151,6 @@ public class Organism implements Serializable {
         this.organismLocaleSet = organismLocaleSet;
     }
 
-    @XmlTransient
-    @JsonIgnore
     public Set<OrganismExternalResource> getOrganismExternalResourceSet() {
         return organismExternalResourceSet;
     }
@@ -133,8 +159,7 @@ public class Organism implements Serializable {
         this.organismExternalResourceSet = organismExternalResourceSet;
     }
 
-    @XmlTransient
-    @JsonIgnore
+    /*
     public Set<Organism> getOrganismSet() {
         return organismSet;
     }
@@ -143,6 +168,7 @@ public class Organism implements Serializable {
         this.organismSet = organismSet;
     }
 
+    @JsonIgnore
     public Organism getParentOrganismId() {
         return parentOrganismId;
     }
@@ -158,6 +184,7 @@ public class Organism implements Serializable {
     public void setHierarchyCategoryId(HierarchyCategory hierarchyCategoryId) {
         this.hierarchyCategoryId = hierarchyCategoryId;
     }
+    */
 
     @Override
     public int hashCode() {
@@ -184,4 +211,75 @@ public class Organism implements Serializable {
         return "no.bioforsk.vips.logic.entity.Organism[ organismId=" + organismId + " ]";
     }
 
+    /**
+     * @return the parentOrganismId
+     */
+    public Integer getParentOrganismId() {
+        return parentOrganismId;
+    }
+
+    /**
+     * @param parentOrganismId the parentOrganismId to set
+     */
+    public void setParentOrganismId(Integer parentOrganismId) {
+        this.parentOrganismId = parentOrganismId;
+    }
+
+    /**
+     * @return the hierarchyCategoryId
+     */
+    public Integer getHierarchyCategoryId() {
+        return hierarchyCategoryId;
+    }
+
+    /**
+     * @param hierarchyCategoryId the hierarchyCategoryId to set
+     */
+    public void setHierarchyCategoryId(Integer hierarchyCategoryId) {
+        this.hierarchyCategoryId = hierarchyCategoryId;
+    }
+
+    @Transient
+    public List<Organism> getChildOrganisms()
+    {
+        return this.childOrganisms;
+    }
+
+    /**
+     * @param childOrganisms the childOrganisms to set
+     */
+    @Transient
+    public void setChildOrganisms(List<Organism> childOrganisms) {
+        this.childOrganisms = childOrganisms;
+    }
+    
+    @Transient
+    public String getLocalName(String locale)
+    {
+        for(OrganismLocale oLocale: this.getOrganismLocaleSet())
+        {
+            if(oLocale.getOrganismLocalePK().getLocale().equals(locale))
+            {
+                return oLocale.getLocalName();
+            }
+        }
+        
+        return "";
+    }
+
+    @Transient
+    public OrganismLocale getOrganismLocale(String language) {
+        if(this.getOrganismLocaleSet() == null)
+        {
+            return null;
+        }
+        for(OrganismLocale oLocale:this.getOrganismLocaleSet())
+        {
+            if(oLocale.getOrganismLocalePK().getLocale().equals(language))
+            {
+                return oLocale;
+            }
+        }
+        return null;
+    }
 }

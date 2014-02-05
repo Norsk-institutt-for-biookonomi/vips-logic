@@ -26,6 +26,7 @@ import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormValidation;
+import no.bioforsk.web.forms.FormValidationException;
 import no.bioforsk.web.forms.FormValidator;
 import no.bioforsk.web.forms.HTMLFormGenerator;
 
@@ -63,32 +64,39 @@ public class SchedulingController extends HttpServlet {
         {
             if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
             {
-                FormValidation formValidation = FormValidator.validateForm("taskHistoryDateForm", request, getServletContext());
-                Date taskHistoryDate = new Date();
-                if(formValidation.isValid())
+                try
                 {
-                    if(! formValidation.getFormField("taskHistoryDate").isEmpty())
+                    FormValidation formValidation = FormValidator.validateForm("taskHistoryDateForm", request, getServletContext());
+                    Date taskHistoryDate = new Date();
+                    if(formValidation.isValid())
                     {
-                        taskHistoryDate = formValidation.getFormField("taskHistoryDate").getValueAsDate();
+                        if(! formValidation.getFormField("taskHistoryDate").isEmpty())
+                        {
+                            taskHistoryDate = formValidation.getFormField("taskHistoryDate").getValueAsDate();
+                        }
                     }
+                    else
+                    {
+                        request.setAttribute("formValidation", formValidation);
+                    }
+
+
+                    TaskExecutor[] taskExecutors = schedulingBean.getRunningTasks();
+                    request.setAttribute("taskExecutors", taskExecutors);
+                    request.setAttribute("schedulingStarted", Boolean.valueOf(schedulingBean.getSystemScheduler().isStarted()));
+                    request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks());
+                    request.setAttribute("taskHistoryDate",taskHistoryDate);
+                    request.setAttribute("taskHistory",schedulingBean.getTaskHistory(taskHistoryDate));
+                    request.setAttribute("allTasksMap", VipsLogicTaskFactory.getAllVipsLogicTasksMap());
+                    // If this is a redirect from a controller, with a message to be passed on
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    request.setAttribute("message", request.getParameter("message"));
+                    request.getRequestDispatcher("/schedulingOverview.ftl").forward(request, response);
                 }
-                else
+                catch(FormValidationException ex)
                 {
-                    request.setAttribute("formValidation", formValidation);
+                    response.sendError(500, ex.getMessage());
                 }
-                
-                
-                TaskExecutor[] taskExecutors = schedulingBean.getRunningTasks();
-                request.setAttribute("taskExecutors", taskExecutors);
-                request.setAttribute("schedulingStarted", Boolean.valueOf(schedulingBean.getSystemScheduler().isStarted()));
-                request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks());
-                request.setAttribute("taskHistoryDate",taskHistoryDate);
-                request.setAttribute("taskHistory",schedulingBean.getTaskHistory(taskHistoryDate));
-                request.setAttribute("allTasksMap", VipsLogicTaskFactory.getAllVipsLogicTasksMap());
-                // If this is a redirect from a controller, with a message to be passed on
-                request.setAttribute("messageKey", request.getParameter("messageKey"));
-                request.setAttribute("message", request.getParameter("message"));
-                request.getRequestDispatcher("/schedulingOverview.ftl").forward(request, response);
             }
             else
             {
@@ -192,7 +200,7 @@ public class SchedulingController extends HttpServlet {
                         request.getRequestDispatcher("/runTaskManuallyForm.ftl").forward(request, response);
                     }
                 }
-                catch(NullPointerException | NumberFormatException ex)
+                catch(NullPointerException | NumberFormatException | FormValidationException ex)
                 {
                     response.sendError(500, "ERROR: " + ex.getMessage());
                 }

@@ -1,6 +1,20 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2013-2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package no.bioforsk.vips.logic.entity;
@@ -9,8 +23,6 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -18,7 +30,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Entity
@@ -36,10 +48,9 @@ public class OrganismLocale implements Serializable {
     @Size(max = 255)
     @Column(name = "local_name")
     private String localName;
-    @JoinColumn(name = "organism_id", referencedColumnName = "organism_id", insertable = false, updatable = false)
-    @ManyToOne(optional = false)
-    private Organism organism;
-
+    @Column(name = "organism_id", insertable = false, updatable = false)
+    private Integer organismId;
+    
     public OrganismLocale() {
     }
 
@@ -67,13 +78,7 @@ public class OrganismLocale implements Serializable {
         this.localName = localName;
     }
 
-    public Organism getOrganism() {
-        return organism;
-    }
-
-    public void setOrganism(Organism organism) {
-        this.organism = organism;
-    }
+    
 
     @Override
     public int hashCode() {

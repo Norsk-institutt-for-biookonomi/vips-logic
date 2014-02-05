@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -111,4 +112,12 @@ public class OrganismExternalResource implements Serializable {
         return "no.bioforsk.vips.logic.entity.OrganismExternalResource[ organismExternalResourcePK=" + organismExternalResourcePK + " ]";
     }
 
+    @Transient
+    public String getResourceUrl()
+    {
+        StringBuilder retVal = new StringBuilder()
+                .append(this.getExternalResource().getUri())
+                .append(this.getExternalResource().getIdentifierTemplate());
+        return String.format(retVal.toString(), this.getResourceIdentifier());
+    }
 }

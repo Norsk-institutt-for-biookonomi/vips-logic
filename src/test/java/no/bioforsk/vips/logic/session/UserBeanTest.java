@@ -69,7 +69,7 @@ public class UserBeanTest {
         ResourceBundle i18nBundle = ResourceBundle.getBundle("no.bioforsk.vips.logic.i18n.vipslogictexts",new Locale("no"));
         UserBean uBean = new UserBean();
         String result = uBean.getUserEmailVerificationBody(i18nBundle, "logic.vips.bioforsk.no",StringUtils.generateRandomAlphanumericString(30));
-        System.out.println(result);
+        //System.out.println(result);
         assert(true);
     }
 

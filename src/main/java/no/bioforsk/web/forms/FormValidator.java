@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2013-2014 Bioforsk <http://www.bioforsk.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package no.bioforsk.web.forms;
 
 import java.io.IOException;
@@ -5,11 +24,14 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
@@ -38,27 +60,77 @@ public class FormValidator {
     public static String RELATION_TYPE_EQUALS = "EQUALS";
     public static String RELATION_TYPE_AFTER = "AFTER";
 
-    public static FormValidation validateForm(String formName, HttpServletRequest request, ServletContext servletContext) throws IOException {
+    public static FormValidation validateForm(String formName, HttpServletRequest request, ServletContext servletContext) throws IOException, FormValidationException {
         JsonNode formDefinition = getFormDefinition(formName, servletContext);
         return validateForm(formDefinition, request);
     }
     
-    public static FormValidation validateForm(String formDefinitionStr, HttpServletRequest request) throws IOException
+    public static FormValidation validateForm(String formDefinitionStr, HttpServletRequest request) throws IOException, FormValidationException
     {
         JsonNode formDefinition = getFormDefinition(formDefinitionStr);
         return validateForm(formDefinition, request);
     }
     
-    public static FormValidation validateForm(JsonNode formDefinition, HttpServletRequest request)   
+    public static FormValidation validateForm(JsonNode formDefinition, HttpServletRequest request) throws FormValidationException
     {
         List<FormField> fields =  new ObjectMapper().convertValue(formDefinition.findValue("fields"), new TypeReference<List<FormField>>(){});
         FormValidation retVal = new FormValidation();
         
+        // If one of the fields is a multiple map, we must get them from the form and add them
+        List<FormField> multipleMapFields = new ArrayList<>();
         for(FormField field: fields)
         {
+            if(field.getFieldType().equals(FormField.FIELD_TYPE_MULTIPLE_MAP))
+            {
+                // By convention, these fields always end with "_*", where * denotes the key.
+                // So we loop through the requests and stores all that matches (begins with) fieldName
+                
+                for(Enumeration en = request.getParameterNames();en.hasMoreElements();)
+                {
+                    String parameterName = (String) en.nextElement();
+                    if(parameterName.startsWith(field.getName()))
+                    {
+                        FormField newField = new FormField();
+                        newField.setName(parameterName);
+                        newField.setDataType(field.getDataType());
+                        newField.setRequired(field.isRequired());
+                        newField.setWebValue(request.getParameter(parameterName));
+                        multipleMapFields.add(newField);
+                        retVal.addMultipleMapFormField(field.getName(), parameterName.substring(field.getName().length() + 1), newField);
+                    }
+                }
+            }
+        }
+        fields.addAll(multipleMapFields);
+        
+        for(FormField field: fields)
+        {
+            // Check for NULL fieldType
+            if(field.getDataType() == null)
+            {
+                throw new FormValidationException("Missing datatype definition for field " + field.getName());
+            }
+            
+            // Skip multiple map fields, as they've been exploded in the loop above.
+            if(field.getFieldType().equals(FormField.FIELD_TYPE_MULTIPLE_MAP))
+            {
+                continue;
+            }
+            
+            
+            
             retVal.addFormField(field);
-            field.setLabel(SessionLocaleUtil.getI18nText(request, field.getName()));
+            try
+            {
+                field.setLabel(SessionLocaleUtil.getI18nText(request, field.getName()));
+            }
+            catch(MissingResourceException ex)
+            {
+                field.setLabel(field.getName());
+            }
+            
             field.setWebValue(request.getParameterValues(field.getName()));
+            
             if(field.getWebValue() == null || field.getWebValue().isEmpty())
             {
                 if(field.isRequired())

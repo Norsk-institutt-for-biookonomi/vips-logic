@@ -44,6 +44,7 @@ import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
+import no.bioforsk.web.forms.FormValidationException;
 import no.bioforsk.web.forms.FormValidator;
 
 /**
@@ -195,9 +196,8 @@ public class UserController extends HttpServlet {
                         
                     }
                 }
-                catch(NullPointerException | NumberFormatException ex)
+                catch(NullPointerException | NumberFormatException | FormValidationException ex)
                 {
-                    ex.printStackTrace();
                     response.sendError(500, ex.getMessage());
                 }
             }
@@ -289,55 +289,62 @@ public class UserController extends HttpServlet {
             }
 
             // Standard form validation
-            FormValidation formValidation = FormValidator.validateForm(
-                                                "userRegistrationFormType" + userAuthenticationType.getUserAuthenticationTypeId(),
-                                                request,getServletContext()
-                                            );
-            // Extra check: That user's email is not already in use
-            FormField emailField = formValidation.getFormField("email");
-            if(userBean.getUserByEmail(emailField.getWebValue()) != null)
+            try
             {
-                emailField.setValid(false);
-                emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
-            }
-
-            if(formValidation.isValid())
-            {
-
-                // Setting authentication info first
-                auth.setUserAuthenticationType(userAuthenticationType);
-                if(userAuthenticationType.getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD))
+                FormValidation formValidation = FormValidator.validateForm(
+                                                    "userRegistrationFormType" + userAuthenticationType.getUserAuthenticationTypeId(),
+                                                    request,getServletContext()
+                                                );
+                // Extra check: That user's email is not already in use
+                FormField emailField = formValidation.getFormField("email");
+                if(userBean.getUserByEmail(emailField.getWebValue()) != null)
                 {
-                    auth.setUsername(formValidation.getFormField("username").getWebValue());
-                    auth.setPassword(userBean.getMD5EncryptedString(formValidation.getFormField("password").getWebValue()));
+                    emailField.setValid(false);
+                    emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
                 }
-                // For OpenId and GoogleId
+
+                if(formValidation.isValid())
+                {
+
+                    // Setting authentication info first
+                    auth.setUserAuthenticationType(userAuthenticationType);
+                    if(userAuthenticationType.getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD))
+                    {
+                        auth.setUsername(formValidation.getFormField("username").getWebValue());
+                        auth.setPassword(userBean.getMD5EncryptedString(formValidation.getFormField("password").getWebValue()));
+                    }
+                    // For OpenId and GoogleId
+                    else
+                    {
+                        auth.setUsername((String)request.getSession().getAttribute("openId"));
+                    }
+                    // Adding user info
+                    newUser.setEmail(formValidation.getFormField("email").getWebValue());
+                    newUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
+                    newUser.setLastName(formValidation.getFormField("lastName").getWebValue());
+                    Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
+                    newUser.setOrganizationId(organization);
+                    newUser.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
+                    newUser.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
+                    userBean.storeUserFirstTime(newUser, auth);
+                    // Send email about user verification
+                    if(newUser.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
+                    {
+                        userBean.sendUserEmailVerification(newUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                    }
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
+                }
                 else
                 {
-                    auth.setUsername((String)request.getSession().getAttribute("openId"));
+                    request.setAttribute("formValidation", formValidation);
+                    request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                    request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
+                    request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
                 }
-                // Adding user info
-                newUser.setEmail(formValidation.getFormField("email").getWebValue());
-                newUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
-                newUser.setLastName(formValidation.getFormField("lastName").getWebValue());
-                Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
-                newUser.setOrganizationId(organization);
-                newUser.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
-                newUser.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
-                userBean.storeUserFirstTime(newUser, auth);
-                // Send email about user verification
-                if(newUser.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
-                {
-                    userBean.sendUserEmailVerification(newUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
-                }
-                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
             }
-            else
+            catch(FormValidationException ex)
             {
-                request.setAttribute("formValidation", formValidation);
-                request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
-                request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
+                response.sendError(500, ex.getMessage());
             }
         }
         else if(action.equals("registerNewUserFormReceipt"))

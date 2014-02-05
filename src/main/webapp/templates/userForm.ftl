@@ -5,6 +5,10 @@
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
+	<script type="text/javascript">
+		// Load main form definition (for validation)
+		loadFormDefinition("userForm");
+	</script>
 </#macro>
 <#macro page_contents>
         <h1>${viewUser.firstName} ${viewUser.lastName}</h1>

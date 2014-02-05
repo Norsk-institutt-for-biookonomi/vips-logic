@@ -8,6 +8,7 @@ package no.bioforsk.vips.logic.entity;
 import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -15,6 +16,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -34,6 +36,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "HierarchyCategory.findByDefaultName", query = "SELECT h FROM HierarchyCategory h WHERE h.defaultName = :defaultName"),
     @NamedQuery(name = "HierarchyCategory.findByLogicallyDeleted", query = "SELECT h FROM HierarchyCategory h WHERE h.logicallyDeleted = :logicallyDeleted")})
 public class HierarchyCategory implements Serializable {
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "hierarchyCategoryId")
+    private Set<HierarchyCategoryLocale> hierarchyCategoryLocaleSet;
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
@@ -121,4 +125,27 @@ public class HierarchyCategory implements Serializable {
         return "no.bioforsk.vips.logic.entity.HierarchyCategory[ hierarchyCategoryId=" + hierarchyCategoryId + " ]";
     }
 
+    @XmlTransient
+    @JsonIgnore
+    public Set<HierarchyCategoryLocale> getHierarchyCategoryLocaleSet() {
+        return hierarchyCategoryLocaleSet;
+    }
+
+    public void setHierarchyCategoryLocaleSet(Set<HierarchyCategoryLocale> hierarchyCategoryLocaleSet) {
+        this.hierarchyCategoryLocaleSet = hierarchyCategoryLocaleSet;
+    }
+
+    @Transient
+    public String getLocalName(String locale)
+    {
+        for(HierarchyCategoryLocale hLocale: this.getHierarchyCategoryLocaleSet())
+        {
+            if(hLocale.getHierarchyCategoryLocalePK().getLocale().equals(locale))
+            {
+                return hLocale.getLocalName();
+            }
+        }
+        
+        return "";
+    }
 }

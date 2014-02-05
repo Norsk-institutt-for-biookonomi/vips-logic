@@ -18,6 +18,7 @@ import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
+import no.bioforsk.web.forms.FormValidationException;
 import no.bioforsk.web.forms.FormValidator;
 
 /**
@@ -182,9 +183,16 @@ public class ForecastConfigurationController extends HttpServlet {
                         }
                     }
                 }
-                catch(NullPointerException | NumberFormatException ex)
+                catch(NullPointerException | NumberFormatException | FormValidationException ex)
                 {
-                    response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
+                    if(ex instanceof NumberFormatException)
+                    {
+                        response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
+                    }
+                    else
+                    {
+                        response.sendError(500, ex.getMessage());
+                    }
                 }
             }
             else

@@ -12,6 +12,7 @@ public class FormValidation {
 
     private Map<String,FormField> formFields;
     
+    private Map<String,Map<String,FormField>> multipleMapFormFields;
 
     /**
      * @return the valid If at least one field is not valid
@@ -67,5 +68,37 @@ public class FormValidation {
     public void setFormFields(Map<String,FormField> formFields) {
         this.formFields = formFields;
     }
+
+    /**
+     * @return the multipleMapFormFields
+     */
+    public Map<String,Map<String,FormField>> getMultipleMapFormFields() {
+        if(this.multipleMapFormFields == null)
+        {
+            this.multipleMapFormFields = new HashMap<>();
+        }
+        return multipleMapFormFields;
+    }
+
+    /**
+     * @param multipleMapFormFields the multipleMapFormFields to set
+     */
+    public void setMultipleMapFormFields(Map<String,Map<String,FormField>> multipleMapFormFields) {
+        this.multipleMapFormFields = multipleMapFormFields;
+    }
     
+    public void addMultipleMapFormField(String fieldName, String key, FormField formField)
+    {
+        if(this.multipleMapFormFields == null)
+        {
+            this.multipleMapFormFields = new HashMap<>();
+        }
+        Map<String, FormField> fieldMap = this.multipleMapFormFields.get(fieldName);
+        if(fieldMap == null)
+        {
+            fieldMap = new HashMap<>();
+            this.multipleMapFormFields.put(fieldName, fieldMap);
+        }
+        fieldMap.put(key, formField);
+    }
 }

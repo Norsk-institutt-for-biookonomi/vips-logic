@@ -22,7 +22,9 @@ package no.bioforsk.web.forms;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
@@ -49,6 +51,8 @@ public class FormField {
     public final static String FIELD_TYPE_HIDDEN = "HIDDEN";
     public final static String FIELD_TYPE_SELECT_SINGLE = "SELECT_SINGLE";
     public final static String FIELD_TYPE_SELECT_MULTIPLE = "SELECT_MULTIPLE";
+    // Multiple inputs for map. (e.g. <input type="text" name="relatedItem_25" value="Foo"/>,<input type="text" name="relatedItem_3" value="Bar"/>
+    public final static String FIELD_TYPE_MULTIPLE_MAP = "MULTIPLE_MAP";
 
     // Standard format for dates is the ISO-8861-format
     public final static String DATE_DEFAULT_FORMAT = "yyyy-MM-dd";
@@ -369,5 +373,5 @@ public class FormField {
     {
         return this.getWebValue() == null || this.getWebValue().trim().isEmpty();
     }
-    
+
 }
