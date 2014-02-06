@@ -21,6 +21,7 @@ package no.bioforsk.vips.logic.forms;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import no.bioforsk.web.forms.HTMLFormGenerator;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
@@ -65,13 +66,14 @@ public class HTMLFormGeneratorTest {
             HTMLFormGenerator t = new HTMLFormGenerator();
             assertNotNull(t);
             InputStream in = this.getClass().getResourceAsStream("/HTMLFormGeneratorTest/forecastConfigurationForm.json");
-            
+            InputStreamReader reader = new InputStreamReader(in,"UTF-8");
             ObjectMapper mapper = new ObjectMapper();
             JsonFactory factory = mapper.getJsonFactory();
-            JsonParser parser = factory.createJsonParser(in);
+            JsonParser parser = factory.createJsonParser(reader);
             JsonNode formDefinition = mapper.readTree(parser);
             InputStream in2 = this.getClass().getResourceAsStream("/HTMLFormGeneratorTest/forecastConfigurationForm_result.html");
-            java.util.Scanner s = new java.util.Scanner(in2).useDelimiter("\\A");
+            InputStreamReader reader2 = new InputStreamReader(in2, "UTF-8");
+            java.util.Scanner s = new java.util.Scanner(reader2).useDelimiter("\\A");
             String result = s.hasNext() ? s.next() : "";
             //System.out.println("expectedResult=\n" + result);
             String HTMLForm = t.getHTMLFormFields(formDefinition,"forecastConfigurationForm",language);
