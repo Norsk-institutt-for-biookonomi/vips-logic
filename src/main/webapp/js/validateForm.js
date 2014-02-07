@@ -40,7 +40,7 @@ var fieldTypes= {
     TYPE_SELECT_SINGLE: "SELECT_SINGLE",
     TYPE_SELECT_MULTIPLE: "SELECT_MULTIPLE",
     TYPE_INPUT: "INPUT"
-}
+};
 
 
 var defaultValues = {
@@ -391,7 +391,7 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
     
     
     // Passwords are evaluated in evaluatePassword
-    if(fieldDefinition.dataType === fieldTypes.TYPE_PASSWORD)
+    if(fieldDefinition.dataType === dataTypes.TYPE_PASSWORD)
     {
         return true;
     }
