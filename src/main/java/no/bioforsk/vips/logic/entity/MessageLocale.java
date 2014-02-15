@@ -73,9 +73,8 @@ public class MessageLocale implements Serializable {
     @Column(name = "modified_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedTimestamp;
-    @JoinColumn(name = "message_id", referencedColumnName = "message_id", insertable = false, updatable = false)
-    @ManyToOne(optional = false)
-    private Message message;
+    @Column(name="message_id", insertable = false, updatable = false)
+    private Integer messageId;
 
     public MessageLocale() {
     }
@@ -141,14 +140,7 @@ public class MessageLocale implements Serializable {
         this.modifiedTimestamp = modifiedTimestamp;
     }
 
-    public Message getMessage() {
-        return message;
-    }
-
-    public void setMessage(Message message) {
-        this.message = message;
-    }
-
+    
     @Override
     public int hashCode() {
         int hash = 0;

@@ -140,9 +140,7 @@ public class Message implements Serializable {
         this.messageIllustrationSet = messageIllustrationSet;
     }
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "message", fetch = FetchType.EAGER)
-    @XmlTransient
-    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageId", fetch = FetchType.EAGER)
     public Set<MessageLocale> getMessageLocaleSet() {
         return messageLocaleSet;
     }

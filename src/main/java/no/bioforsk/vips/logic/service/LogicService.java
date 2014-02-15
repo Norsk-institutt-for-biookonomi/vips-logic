@@ -40,6 +40,7 @@ import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
+import no.bioforsk.vips.logic.entity.Message;
 import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
@@ -173,6 +174,15 @@ public class LogicService {
     {
         List<Organism> organismList = SessionControllerGetter.getOrganismBean().getOrganismSubTree(null);
         return Response.ok().entity(organismList).build();
+    }
+    
+    @GET
+    @Path("message/list/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getMessageList(@PathParam("organizationId") Integer organizationId)
+    {
+        List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId);
+        return Response.ok().entity(messageList).build();
     }
     
     private ManagerResource getManagerResource()
