@@ -35,6 +35,7 @@ import no.bioforsk.vips.logic.entity.OrganismExternalResourcePK;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.util.ExceptionUtil;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
@@ -126,7 +127,14 @@ public class OrganismController extends HttpServlet {
             }
             catch(NullPointerException | NumberFormatException ex)
             {
-                response.sendError(500, "Invalid organism id " + request.getParameter("organismId"));
+                if(ex instanceof NumberFormatException)
+                {
+                    response.sendError(500, "Invalid organism id " + request.getParameter("organismId"));
+                }
+                else
+                {
+                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                }
             }
         }
         else if(action.equals("editOrganismForm"))

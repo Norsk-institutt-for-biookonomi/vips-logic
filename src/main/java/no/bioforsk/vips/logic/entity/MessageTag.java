@@ -25,6 +25,7 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -61,7 +62,7 @@ public class MessageTag implements Serializable {
     private String defaultTagName;
     @ManyToMany(mappedBy = "messageTagSet")
     private Set<Message> messageSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageTag")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageTag", fetch = FetchType.EAGER)
     private Set<MessageTagLocale> messageTagLocaleSet;
 
     public MessageTag() {
@@ -130,6 +131,18 @@ public class MessageTag implements Serializable {
     @Override
     public String toString() {
         return "no.bioforsk.vips.logic.entity.MessageTag[ messageTagId=" + messageTagId + " ]";
+    }
+    
+    public String getLocalName(String language)
+    {
+        for(MessageTagLocale localTag:this.getMessageTagLocaleSet())
+        {
+            if(localTag.getMessageTagLocalePK().getLocale().equals(language))
+            {
+                return localTag.getLocalName();
+            }
+        }
+        return null;
     }
 
 }

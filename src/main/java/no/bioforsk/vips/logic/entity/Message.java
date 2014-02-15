@@ -20,11 +20,13 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -35,6 +37,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -48,21 +52,19 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m"),
-    @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId")})
+    @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId"),
+    @NamedQuery(name = "Message.findByOrganizationId", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId"),
+    @NamedQuery(name = "Message.findByDatePub", query = "SELECT m FROM Message m WHERE m.datePub = :datePub"),
+    @NamedQuery(name = "Message.findByDateValidTo", query = "SELECT m FROM Message m WHERE m.dateValidTo = :dateValidTo")})
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "message_id")
     private Integer messageId;
-    @JoinTable(name = "message_message_tag", joinColumns = {
-        @JoinColumn(name = "message_id", referencedColumnName = "message_id")}, inverseJoinColumns = {
-        @JoinColumn(name = "message_tag_id", referencedColumnName = "message_tag_id")})
-    @ManyToMany
+    private Date datePub;
+    private Date dateValidTo;
     private Set<MessageTag> messageTagSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "message")
+    private Set<MessageIllustration> messageIllustrationSet;
     private Set<MessageLocale> messageLocaleSet;
+    private Integer organizationId;
 
     public Message() {
     }
@@ -71,6 +73,10 @@ public class Message implements Serializable {
         this.messageId = messageId;
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "message_id")
     public Integer getMessageId() {
         return messageId;
     }
@@ -79,6 +85,40 @@ public class Message implements Serializable {
         this.messageId = messageId;
     }
 
+    @Column(name = "date_pub")
+    @Temporal(TemporalType.DATE)
+    public Date getDatePub() {
+        return datePub;
+    }
+
+    public void setDatePub(Date datePub) {
+        this.datePub = datePub;
+    }
+
+    @Column(name = "date_valid_to")
+    @Temporal(TemporalType.DATE)
+    public Date getDateValidTo() {
+        return dateValidTo;
+    }
+
+    public void setDateValidTo(Date dateValidTo) {
+        this.dateValidTo = dateValidTo;
+    }
+    
+    @Column(name = "organization_id")
+    public Integer getOrganizationId(){
+        return organizationId;
+    }
+    
+    public void setOrganizationId(Integer organizationId)
+    {
+        this.organizationId = organizationId;
+    }
+
+    @JoinTable(name = "message_message_tag", joinColumns = {
+        @JoinColumn(name = "message_id", referencedColumnName = "message_id")}, inverseJoinColumns = {
+            @JoinColumn(name = "message_tag_id", referencedColumnName = "message_tag_id")})
+    @ManyToMany(fetch = FetchType.EAGER)
     @XmlTransient
     @JsonIgnore
     public Set<MessageTag> getMessageTagSet() {
@@ -89,6 +129,18 @@ public class Message implements Serializable {
         this.messageTagSet = messageTagSet;
     }
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageId", fetch = FetchType.EAGER)
+    @XmlTransient
+    @JsonIgnore
+    public Set<MessageIllustration> getMessageIllustrationSet() {
+        return messageIllustrationSet;
+    }
+
+    public void setMessageIllustrationSet(Set<MessageIllustration> messageIllustrationSet) {
+        this.messageIllustrationSet = messageIllustrationSet;
+    }
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "message", fetch = FetchType.EAGER)
     @XmlTransient
     @JsonIgnore
     public Set<MessageLocale> getMessageLocaleSet() {
@@ -122,6 +174,86 @@ public class Message implements Serializable {
     @Override
     public String toString() {
         return "no.bioforsk.vips.logic.entity.Message[ messageId=" + messageId + " ]";
+    }
+    
+    /**
+     * If more than one localized message, use this priority
+     * <ol>
+     * <li>Message that matches user's language</li>
+     * <li>Message that matches organizations default language</li>
+     * <li>The first message in the set</li>
+     * </ol>
+     * @param userLanguage
+     * @param organizationDefaultLanguage
+     * @return 
+     */
+    public MessageLocale getLocalMessageWithFallback(String userLanguage, String organizationDefaultLanguage)
+    {
+        if(this.getMessageLocaleSet() != null && !this.getMessageLocaleSet().isEmpty())
+        {
+            if(this.getMessageLocaleSet().size() == 1)
+            {
+                return this.getMessageLocaleSet().iterator().next();
+            }
+            
+            else
+            {
+                // If more than one localized message, use this priority:
+                // 1. Message that matches user's language
+                for(MessageLocale ml:this.getMessageLocaleSet())
+                {
+                    if(ml.getMessageLocalePK().getLocale().equals(userLanguage))
+                    {
+                        return ml;
+                    }
+                }
+                // 2. Message that matches organization's default language
+                for(MessageLocale ml:this.getMessageLocaleSet())
+                {
+                    if(ml.getMessageLocalePK().getLocale().equals(organizationDefaultLanguage))
+                    {
+                        return ml;
+                    }
+                }
+                // 3. The first message in the set
+                return this.getMessageLocaleSet().iterator().next();
+                
+            }
+        }
+        else
+        {
+            return null;
+        }
+       
+    }
+
+    /**
+     * 
+     * @param language
+     * @return local part of message, or NULL if local version in given language does not exist
+     */
+    public MessageLocale getLocalMessage(String language)
+    {
+        if(this.getMessageLocaleSet() != null && !this.getMessageLocaleSet().isEmpty())
+        {
+            for(MessageLocale ml:this.getMessageLocaleSet())
+            {
+                if(ml.getMessageLocalePK().getLocale().equals(language))
+                {
+                    return ml;
+                }
+            }
+        }
+        
+        return null;
+        /*MessageLocale retVal = new MessageLocale();
+        if(this.getMessageId() != null)
+        {
+            MessageLocalePK newPK = new MessageLocalePK(this.getMessageId(), language);
+            retVal.setMessageLocalePK(newPK);
+        }
+        return retVal;
+                */
     }
 
 }

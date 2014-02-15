@@ -25,6 +25,7 @@ import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.controller.session.PointOfInterestBean;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import no.bioforsk.vips.logic.controller.session.MessageBean;
 import no.bioforsk.vips.logic.controller.session.OrganismBean;
 
 /**
@@ -104,6 +105,20 @@ public class SessionControllerGetter {
         }catch(NamingException ne)
         {
             System.out.println("Could not find " + OrganismBean.class.getSimpleName());
+            return null;
+        }
+    }
+    
+    public static MessageBean getMessageBean(){
+        try
+        {
+            InitialContext ic = new InitialContext();
+            MessageBean retVal = (MessageBean) ic.lookup(SessionControllerGetter.getJndiPath(MessageBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + MessageBean.class.getSimpleName());
             return null;
         }
     }

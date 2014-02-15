@@ -53,6 +53,10 @@
         <servlet-name>OrganismController</servlet-name>
         <servlet-class>no.bioforsk.vips.logic.controller.servlet.OrganismController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>MessageController</servlet-name>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.MessageController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -90,6 +94,10 @@
     <servlet-mapping>
         <servlet-name>OrganismController</servlet-name>
         <url-pattern>/organism</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>MessageController</servlet-name>
+        <url-pattern>/message</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

@@ -52,6 +52,7 @@
 		  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
 		  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
 		  <li><a href="/organism">${i18nBundle.organisms}</a></li>
+		  <li><a href="/message">${i18nBundle.messages}</a></li>
 		</ul>
 	      </li>
 	      </#if>

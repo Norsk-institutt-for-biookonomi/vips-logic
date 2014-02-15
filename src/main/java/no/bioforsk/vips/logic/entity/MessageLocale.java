@@ -50,9 +50,6 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "MessageLocale.findByHeading", query = "SELECT m FROM MessageLocale m WHERE m.heading = :heading"),
     @NamedQuery(name = "MessageLocale.findByLeadParagraph", query = "SELECT m FROM MessageLocale m WHERE m.leadParagraph = :leadParagraph"),
     @NamedQuery(name = "MessageLocale.findByBody", query = "SELECT m FROM MessageLocale m WHERE m.body = :body"),
-    @NamedQuery(name = "MessageLocale.findByPubDate", query = "SELECT m FROM MessageLocale m WHERE m.pubDate = :pubDate"),
-    @NamedQuery(name = "MessageLocale.findByValidToDate", query = "SELECT m FROM MessageLocale m WHERE m.validToDate = :validToDate"),
-    @NamedQuery(name = "MessageLocale.findByIllustration", query = "SELECT m FROM MessageLocale m WHERE m.illustration = :illustration"),
     @NamedQuery(name = "MessageLocale.findByCreatedTimestamp", query = "SELECT m FROM MessageLocale m WHERE m.createdTimestamp = :createdTimestamp"),
     @NamedQuery(name = "MessageLocale.findByModifiedTimestamp", query = "SELECT m FROM MessageLocale m WHERE m.modifiedTimestamp = :modifiedTimestamp")})
 public class MessageLocale implements Serializable {
@@ -70,15 +67,6 @@ public class MessageLocale implements Serializable {
     @Size(max = 2147483647)
     @Column(name = "body")
     private String body;
-    @Column(name = "pub_date")
-    @Temporal(TemporalType.DATE)
-    private Date pubDate;
-    @Column(name = "valid_to_date")
-    @Temporal(TemporalType.DATE)
-    private Date validToDate;
-    @Size(max = 2047)
-    @Column(name = "illustration")
-    private String illustration;
     @Column(name = "created_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdTimestamp;
@@ -135,30 +123,6 @@ public class MessageLocale implements Serializable {
 
     public void setBody(String body) {
         this.body = body;
-    }
-
-    public Date getPubDate() {
-        return pubDate;
-    }
-
-    public void setPubDate(Date pubDate) {
-        this.pubDate = pubDate;
-    }
-
-    public Date getValidToDate() {
-        return validToDate;
-    }
-
-    public void setValidToDate(Date validToDate) {
-        this.validToDate = validToDate;
-    }
-
-    public String getIllustration() {
-        return illustration;
-    }
-
-    public void setIllustration(String illustration) {
-        this.illustration = illustration;
     }
 
     public Date getCreatedTimestamp() {

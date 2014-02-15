@@ -79,6 +79,9 @@ public class Organization implements Serializable {
     @JoinColumn(name = "country_code", referencedColumnName = "country_code")
     @ManyToOne
     private Country countryCode;
+    @Size(max = 63)
+    @Column(name = "default_locale")
+    private String defaultLocale;
     @OneToMany(mappedBy = "organizationId")
     private Set<VipsLogicUser> vipsLogicUserSet;
 
@@ -188,6 +191,20 @@ public class Organization implements Serializable {
     @Override
     public String toString() {
         return "no.bioforsk.vips.logic.entity.Organization[ organizationId=" + organizationId + " ]";
+    }
+
+    /**
+     * @return the defaultLocale
+     */
+    public String getDefaultLocale() {
+        return defaultLocale;
+    }
+
+    /**
+     * @param defaultLocale the defaultLocale to set
+     */
+    public void setDefaultLocale(String defaultLocale) {
+        this.defaultLocale = defaultLocale;
     }
 
 }

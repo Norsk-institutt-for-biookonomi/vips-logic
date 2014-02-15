@@ -26,7 +26,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -60,18 +59,62 @@ public class FormValidator {
     public static String RELATION_TYPE_EQUALS = "EQUALS";
     public static String RELATION_TYPE_AFTER = "AFTER";
 
+    /**
+     * 
+     * @param formName
+     * @param request
+     * @param servletContext
+     * @return
+     * @throws IOException
+     * @throws FormValidationException 
+     */
     public static FormValidation validateForm(String formName, HttpServletRequest request, ServletContext servletContext) throws IOException, FormValidationException {
         JsonNode formDefinition = getFormDefinition(formName, servletContext);
-        return validateForm(formDefinition, request);
+        return validateForm(formDefinition, request, request.getParameterMap());
     }
     
+    /**
+     * 
+     * @param formName
+     * @param request
+     * @param servletContext
+     * @param parameterMap
+     * @return
+     * @throws IOException
+     * @throws FormValidationException 
+     */
+    public static FormValidation validateForm(String formName, HttpServletRequest request, ServletContext servletContext, Map<String,String[]> parameterMap) throws IOException, FormValidationException {
+        //System.out.println("Parametermap=" + parameterMap.toString());
+        //System.out.println("Number of messageTagIds submitted:" + parameterMap.get("messageTagIds").length);
+        JsonNode formDefinition = getFormDefinition(formName, servletContext);
+        return validateForm(formDefinition, request, parameterMap);
+        
+    }
+    
+    
+    /**
+     * 
+     * @param formDefinitionStr
+     * @param request
+     * @return
+     * @throws IOException
+     * @throws FormValidationException 
+     */
     public static FormValidation validateForm(String formDefinitionStr, HttpServletRequest request) throws IOException, FormValidationException
     {
         JsonNode formDefinition = getFormDefinition(formDefinitionStr);
-        return validateForm(formDefinition, request);
+        return validateForm(formDefinition, request, request.getParameterMap());
     }
     
-    public static FormValidation validateForm(JsonNode formDefinition, HttpServletRequest request) throws FormValidationException
+    /**
+     * 
+     * @param formDefinition
+     * @param request
+     * @param parameterMap
+     * @return
+     * @throws FormValidationException 
+     */
+    public static FormValidation validateForm(JsonNode formDefinition, HttpServletRequest request, Map<String, String[]> parameterMap) throws FormValidationException
     {
         List<FormField> fields =  new ObjectMapper().convertValue(formDefinition.findValue("fields"), new TypeReference<List<FormField>>(){});
         FormValidation retVal = new FormValidation();
@@ -85,16 +128,15 @@ public class FormValidator {
                 // By convention, these fields always end with "_*", where * denotes the key.
                 // So we loop through the requests and stores all that matches (begins with) fieldName
                 
-                for(Enumeration en = request.getParameterNames();en.hasMoreElements();)
+                for(String parameterName: parameterMap.keySet())
                 {
-                    String parameterName = (String) en.nextElement();
                     if(parameterName.startsWith(field.getName()))
                     {
                         FormField newField = new FormField();
                         newField.setName(parameterName);
                         newField.setDataType(field.getDataType());
                         newField.setRequired(field.isRequired());
-                        newField.setWebValue(request.getParameter(parameterName));
+                        newField.setWebValue(parameterMap.get(parameterName));
                         multipleMapFields.add(newField);
                         retVal.addMultipleMapFormField(field.getName(), parameterName.substring(field.getName().length() + 1), newField);
                     }
@@ -129,7 +171,7 @@ public class FormValidator {
                 field.setLabel(field.getName());
             }
             
-            field.setWebValue(request.getParameterValues(field.getName()));
+            field.setWebValue(parameterMap.get(field.getName()));
             
             if(field.getWebValue() == null || field.getWebValue().isEmpty())
             {
