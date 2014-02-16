@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import no.bioforsk.vips.logic.entity.Message;
 import no.bioforsk.vips.logic.entity.MessageIllustration;
 import no.bioforsk.vips.logic.entity.MessageIllustrationCaptionLocale;
@@ -190,6 +191,26 @@ public class MessageBean {
 
     public List<MessageTag> getAllMessageTags() {
         return em.createNamedQuery("MessageTag.findAll").getResultList();
+    }
+
+    public Message getMessage(Integer messageId) {
+        return em.find(Message.class, messageId);
+    }
+
+    public List<Message> getMessageListWithTags(Integer organizationId, List<Integer> tagIds) {
+        Query q = em.createNativeQuery("SELECT * FROM message WHERE message_id IN ("
+                + "SELECT message_id FROM message_message_tag "
+                + "WHERE message_tag_id IN (:tagIds)"
+                + ")"
+                + "AND organization_id = :organizationId", Message.class);
+        q.setParameter("tagIds", tagIds);
+        q.setParameter("organizationId", organizationId);
+        return q.getResultList();
+    }
+    
+
+    public List<MessageTag> getMessageTagList() {
+        return em.createNamedQuery("MessageTag.findAll", MessageTag.class).getResultList();
     }
     
 

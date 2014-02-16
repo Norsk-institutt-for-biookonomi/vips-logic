@@ -119,8 +119,6 @@ public class Message implements Serializable {
         @JoinColumn(name = "message_id", referencedColumnName = "message_id")}, inverseJoinColumns = {
             @JoinColumn(name = "message_tag_id", referencedColumnName = "message_tag_id")})
     @ManyToMany(fetch = FetchType.EAGER)
-    @XmlTransient
-    @JsonIgnore
     public Set<MessageTag> getMessageTagSet() {
         return messageTagSet;
     }
@@ -130,8 +128,6 @@ public class Message implements Serializable {
     }
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageId", fetch = FetchType.EAGER)
-    @XmlTransient
-    @JsonIgnore
     public Set<MessageIllustration> getMessageIllustrationSet() {
         return messageIllustrationSet;
     }
@@ -244,14 +240,7 @@ public class Message implements Serializable {
         }
         
         return null;
-        /*MessageLocale retVal = new MessageLocale();
-        if(this.getMessageId() != null)
-        {
-            MessageLocalePK newPK = new MessageLocalePK(this.getMessageId(), language);
-            retVal.setMessageLocalePK(newPK);
-        }
-        return retVal;
-                */
+        
     }
 
 }

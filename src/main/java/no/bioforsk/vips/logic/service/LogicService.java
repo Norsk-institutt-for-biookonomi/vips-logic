@@ -29,6 +29,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -41,6 +42,7 @@ import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.entity.Message;
+import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
@@ -176,6 +178,17 @@ public class LogicService {
         return Response.ok().entity(organismList).build();
     }
     
+    
+    
+    @GET
+    @Path("message/{messageId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getMessage(@PathParam("messageId") Integer messageId)
+    {
+        Message message = SessionControllerGetter.getMessageBean().getMessage(messageId);
+        return Response.ok().entity(message).build();
+    }
+    
     @GET
     @Path("message/list/{organizationId}")
     @Produces("application/json;charset=UTF-8")
@@ -183,6 +196,26 @@ public class LogicService {
     {
         List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId);
         return Response.ok().entity(messageList).build();
+    }
+    
+    @GET
+    @Path("message/list/{organizationId}/tagfilter")
+    @Produces("application/json;charset=UTF-8")
+    public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
+    {
+        List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getMessageListWithTags(organizationId, tagIds);
+        return Response.ok().entity(messageListWithTags).build();
+    }
+    
+    
+    
+    @GET
+    @Path("messagetag/list")
+    @Produces("application/json;charset=UTF-8")
+    public Response getMessageTagList()
+    {
+        List<MessageTag> messageTags = SessionControllerGetter.getMessageBean().getMessageTagList();
+        return Response.ok().entity(messageTags).build();
     }
     
     private ManagerResource getManagerResource()

@@ -62,7 +62,7 @@ public class MessageTag implements Serializable {
     private String defaultTagName;
     @ManyToMany(mappedBy = "messageTagSet")
     private Set<Message> messageSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageTag", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageTagId", fetch = FetchType.EAGER)
     private Set<MessageTagLocale> messageTagLocaleSet;
 
     public MessageTag() {
@@ -98,8 +98,6 @@ public class MessageTag implements Serializable {
         this.messageSet = messageSet;
     }
 
-    @XmlTransient
-    @JsonIgnore
     public Set<MessageTagLocale> getMessageTagLocaleSet() {
         return messageTagLocaleSet;
     }

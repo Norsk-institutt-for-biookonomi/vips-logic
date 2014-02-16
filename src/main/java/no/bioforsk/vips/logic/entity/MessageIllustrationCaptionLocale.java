@@ -23,6 +23,7 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
@@ -31,6 +32,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
  * @copyright 2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -55,7 +57,7 @@ public class MessageIllustrationCaptionLocale implements Serializable {
     @JoinColumns({
         @JoinColumn(name = "message_id", referencedColumnName = "message_id", insertable = false, updatable = false),
         @JoinColumn(name = "file_name", referencedColumnName = "file_name", insertable = false, updatable = false)})
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private MessageIllustration messageIllustration;
 
     public MessageIllustrationCaptionLocale() {
@@ -85,6 +87,7 @@ public class MessageIllustrationCaptionLocale implements Serializable {
         this.caption = caption;
     }
 
+    @JsonIgnore
     public MessageIllustration getMessageIllustration() {
         return messageIllustration;
     }

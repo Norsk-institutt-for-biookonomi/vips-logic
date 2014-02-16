@@ -50,9 +50,8 @@ public class MessageTagLocale implements Serializable {
     @Size(max = 255)
     @Column(name = "local_name")
     private String localName;
-    @JoinColumn(name = "message_tag_id", referencedColumnName = "message_tag_id", insertable = false, updatable = false)
-    @ManyToOne(optional = false)
-    private MessageTag messageTag;
+    @Column(name="message_tag_id", insertable = false, updatable = false)
+    private Integer messageTagId;
 
     public MessageTagLocale() {
     }
@@ -81,14 +80,7 @@ public class MessageTagLocale implements Serializable {
         this.localName = localName;
     }
 
-    public MessageTag getMessageTag() {
-        return messageTag;
-    }
-
-    public void setMessageTag(MessageTag messageTag) {
-        this.messageTag = messageTag;
-    }
-
+    
     @Override
     public int hashCode() {
         int hash = 0;

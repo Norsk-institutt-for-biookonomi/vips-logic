@@ -103,8 +103,6 @@ public class MessageIllustration implements Serializable {
         return "no.bioforsk.vips.logic.entity.MessageIllustration[ messageIllustrationPK=" + messageIllustrationPK + " ]";
     }
 
-    @XmlTransient
-    @JsonIgnore
     public Set<MessageIllustrationCaptionLocale> getMessageIllustrationCaptionLocaleSet() {
         return messageIllustrationCaptionLocaleSet;
     }
