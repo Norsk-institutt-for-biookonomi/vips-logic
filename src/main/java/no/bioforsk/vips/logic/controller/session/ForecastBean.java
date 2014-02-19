@@ -337,8 +337,9 @@ public class ForecastBean {
         return resource;
     }
     
-    public Kml getForecastsAggregateKml(Date theDate)
+    public Kml getForecastsAggregateKml(Date theDate, String serverName)
     {
+        String iconPath = "http://" + serverName + "/public/images/";
         // Initialization
         final Kml kml = KmlFactory.createKml();
         final Document document = kml.createAndSetDocument()
@@ -349,28 +350,28 @@ public class ForecastBean {
         .createAndSetIconStyle()
                 .withScale(0.55)
                 .createAndSetIcon()
-                    .withHref("http://www.vips-landbruk.no/graphics/dot_grey.png");
+                    .withHref(iconPath + "dot_grey.png");
         
         document.createAndAddStyle()
             .withId("warning_type_1")
         .createAndSetIconStyle()
                 .withScale(0.55)
                 .createAndSetIcon()
-                    .withHref("http://www.vips-landbruk.no/graphics/dot_blue.png");
+                    .withHref(iconPath + "dot_blue.png");
         
         document.createAndAddStyle()
             .withId("warning_type_2")
         .createAndSetIconStyle()
                 .withScale(0.55)
                 .createAndSetIcon()
-                    .withHref("http://www.vips-landbruk.no/graphics/dot_green.png");
+                    .withHref(iconPath + "dot_green.png");
         
         document.createAndAddStyle()
             .withId("warning_type_3")
         .createAndSetIconStyle()
                 .withScale(0.55)
                 .createAndSetIcon()
-                    .withHref("http://www.vips-landbruk.no/graphics/dot_yellow.png");
+                    .withHref(iconPath + "dot_yellow.png");
         
         document.createAndAddStyle()
             .withId("warning_type_4")

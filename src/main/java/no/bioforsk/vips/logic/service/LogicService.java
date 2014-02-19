@@ -46,6 +46,7 @@ import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
+import no.bioforsk.vips.util.ServletUtil;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
@@ -156,7 +157,7 @@ public class LogicService {
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getForecastResultsAggregate()
     {
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(SystemTime.getSystemTime());
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
             return Response.ok().entity(retVal).build();
     }
     

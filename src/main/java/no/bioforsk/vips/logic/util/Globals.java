@@ -43,7 +43,8 @@ public class Globals {
         "/user",
         "/test/testlogin.jsp",
         "/test/testloginsuccess.jsp",
-        "/test/mock.kml"
+        "/test/mock.kml",
+        "/public"
     };
     
     // Point of interest type IDs
