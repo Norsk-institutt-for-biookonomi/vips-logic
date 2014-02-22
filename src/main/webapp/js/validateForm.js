@@ -237,7 +237,6 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
     
     var webValue = fieldEl.value;
     var fieldDefinition = getFieldDefinition(fieldEl.name, formDefinitions[formDefinitionKey !== null ? formDefinitionKey : theForm.id]);
-        
     // Empty?
     if(webValue === null || webValue === "")
     {
@@ -364,7 +363,7 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
 
     // NUMBERS
     // TODO: INTEGERS should not have decimal values
-    if(fieldDefinition.dataType === dataTypes.TYPE_INTEGER || fieldDefinition.type === dataTypes.TYPE_DOUBLE)
+    if(fieldDefinition.dataType === dataTypes.TYPE_INTEGER || fieldDefinition.dataType === dataTypes.TYPE_DOUBLE)
     {
         if(!$.isNumeric(webValue.replace(",",".")))
         {
