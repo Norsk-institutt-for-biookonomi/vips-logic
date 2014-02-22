@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
@@ -70,7 +71,7 @@ public class FormValidator {
      */
     public static FormValidation validateForm(String formName, HttpServletRequest request, ServletContext servletContext) throws IOException, FormValidationException {
         JsonNode formDefinition = getFormDefinition(formName, servletContext);
-        return validateForm(formDefinition, request, request.getParameterMap());
+        return validateForm(formDefinition,  request.getParameterMap(), SessionLocaleUtil.getI18nBundle(request));
     }
     
     /**
@@ -83,11 +84,11 @@ public class FormValidator {
      * @throws IOException
      * @throws FormValidationException 
      */
-    public static FormValidation validateForm(String formName, HttpServletRequest request, ServletContext servletContext, Map<String,String[]> parameterMap) throws IOException, FormValidationException {
+    public static FormValidation validateForm(String formName, Map<String,String[]> parameterMap, ResourceBundle resourceBundle, ServletContext servletContext) throws IOException, FormValidationException {
         //System.out.println("Parametermap=" + parameterMap.toString());
         //System.out.println("Number of messageTagIds submitted:" + parameterMap.get("messageTagIds").length);
         JsonNode formDefinition = getFormDefinition(formName, servletContext);
-        return validateForm(formDefinition, request, parameterMap);
+        return validateForm(formDefinition, parameterMap, resourceBundle);
         
     }
     
@@ -100,10 +101,10 @@ public class FormValidator {
      * @throws IOException
      * @throws FormValidationException 
      */
-    public static FormValidation validateForm(String formDefinitionStr, HttpServletRequest request) throws IOException, FormValidationException
+    public static FormValidation validateForm(String formDefinitionStr, Map<String, String[]> parameterMap, ResourceBundle resourceBundle) throws IOException, FormValidationException
     {
         JsonNode formDefinition = getFormDefinition(formDefinitionStr);
-        return validateForm(formDefinition, request, request.getParameterMap());
+        return validateForm(formDefinition, parameterMap, resourceBundle);
     }
     
     /**
@@ -114,7 +115,7 @@ public class FormValidator {
      * @return
      * @throws FormValidationException 
      */
-    public static FormValidation validateForm(JsonNode formDefinition, HttpServletRequest request, Map<String, String[]> parameterMap) throws FormValidationException
+    public static FormValidation validateForm(JsonNode formDefinition, Map<String, String[]> parameterMap, ResourceBundle resourceBundle) throws FormValidationException
     {
         List<FormField> fields =  new ObjectMapper().convertValue(formDefinition.findValue("fields"), new TypeReference<List<FormField>>(){});
         FormValidation retVal = new FormValidation();
@@ -158,13 +159,11 @@ public class FormValidator {
             {
                 continue;
             }
-            
-            
-            
+ 
             retVal.addFormField(field);
             try
             {
-                field.setLabel(SessionLocaleUtil.getI18nText(request, field.getName()));
+                field.setLabel(resourceBundle.getString(field.getName()));
             }
             catch(MissingResourceException ex)
             {
@@ -178,7 +177,7 @@ public class FormValidator {
                 if(field.isRequired())
                 {
                     field.setValid(false);
-                    field.setValidationMessage(SessionLocaleUtil.getI18nText(request, "fieldIsRequired"));
+                    field.setValidationMessage(resourceBundle.getString("fieldIsRequired"));
                 }
                 continue;
             }
@@ -189,7 +188,7 @@ public class FormValidator {
                 if(field.getMaxLength() != null && field.getMaxLength() < field.getWebValue().length())
                 {
                     field.setValid(false);
-                    field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "exceedsMaxLengthOf"), field.getMaxLength()));
+                    field.setValidationMessage(MessageFormat.format(resourceBundle.getString("exceedsMaxLengthOf"), field.getMaxLength()));
                 }
             }
             
@@ -205,7 +204,7 @@ public class FormValidator {
                 catch(ParseException ex)
                 {
                     field.setValid(false);
-                    field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "doesNotMatchFormatX"), field.getDateFormat()));
+                    field.setValidationMessage(MessageFormat.format(resourceBundle.getString("doesNotMatchFormatX"), field.getDateFormat()));
                 }
                 
             }
@@ -222,7 +221,7 @@ public class FormValidator {
                 catch(ParseException ex)
                 {
                     field.setValid(false);
-                    field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "doesNotMatchFormatX"), field.getTimestampFormat()));
+                    field.setValidationMessage(MessageFormat.format(resourceBundle.getString("doesNotMatchFormatX"), field.getTimestampFormat()));
                 }
                 
             }
@@ -231,8 +230,7 @@ public class FormValidator {
             {
                 try
                 {
-                    Locale currentLocale = SessionLocaleUtil.getCurrentLocale(request);
-                    SessionControllerGetter.getUserBean().isPasswordValid(field.getWebValue(), currentLocale);
+                    SessionControllerGetter.getUserBean().isPasswordValid(field.getWebValue(), resourceBundle.getLocale());
                 }
                 catch(PasswordValidationException ex)
                 {
@@ -249,7 +247,7 @@ public class FormValidator {
                 if(!EmailValidator.getInstance().isValid(field.getWebValue()))
                 {
                     field.setValid(false);
-                    field.setValidationMessage(SessionLocaleUtil.getI18nText(request, "invalidFormat"));
+                    field.setValidationMessage(resourceBundle.getString("invalidFormat"));
                 }
                
             }
@@ -270,18 +268,54 @@ public class FormValidator {
                     if(field.getMinValue() != null && test < field.getMinValue())
                     {
                         field.setValid(false);
-                        field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "lowerThanMinimum"), field.getMinValue()));
+                        field.setValidationMessage(MessageFormat.format(resourceBundle.getString("lowerThanMinimum"), field.getMinValue()));
                     }
                     else if(field.getMaxValue() != null && test > field.getMaxValue())
                     {
                         field.setValid(false);
-                        field.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "higherThanMaximum"), field.getMaxValue()));
+                        field.setValidationMessage(MessageFormat.format(resourceBundle.getString("higherThanMaximum"), field.getMaxValue()));
                     }
                 }
                 catch(NumberFormatException ex)
                 {
                     field.setValid(false);
-                    field.setValidationMessage(SessionLocaleUtil.getI18nText(request, "numberRequired"));
+                    field.setValidationMessage(resourceBundle.getString("numberRequired"));
+                }
+            }
+            
+            // GIS
+            // Point in WGS84 format
+            // Format [Double], [Double]
+            // TODO Check for minimum and maximum values
+            if(field.getDataType().equals(FormField.DATA_TYPE_POINT_WGS84))
+            {
+                String[] possibleDoubles = field.getWebValue().split(",");
+                if(possibleDoubles.length != 2)
+                {
+                    field.setValid(false);
+                    if(possibleDoubles.length < 2)
+                    {
+                        field.setValidationMessage(resourceBundle.getString("missingSeparatorComma"));
+                    }
+                    else
+                    {
+                        field.setValidationMessage(resourceBundle.getString("tooManySeparatorCommas"));
+                    }
+                }
+                else
+                {       
+                    try
+                    {
+                        for(String possibleDouble:possibleDoubles)
+                        {
+                            Double actualDouble = Double.valueOf(possibleDouble);
+                        }
+                    }
+                    catch(NumberFormatException ex)
+                    {
+                        field.setValid(false);
+                        field.setValidationMessage("invalidFormat");
+                    }
                 }
             }
             
@@ -293,7 +327,7 @@ public class FormValidator {
                 if(field.getWebValue().equals(field.getNullValue()) && field.isRequired())
                 {
                     field.setValid(false);
-                    field.setValidationMessage(SessionLocaleUtil.getI18nText(request, "fieldIsRequired"));
+                    field.setValidationMessage(resourceBundle.getString("fieldIsRequired"));
                 }
             }
             
@@ -334,9 +368,9 @@ public class FormValidator {
                     {
                         primaryField.setValid(false);
                         primaryField.setValidationMessage(
-                                MessageFormat.format(SessionLocaleUtil.getI18nText(request, "xIsNotEqualToY"),
-                                        SessionLocaleUtil.getI18nText(request, primaryFieldName),
-                                        SessionLocaleUtil.getI18nText(request, secondaryFieldName)
+                                MessageFormat.format(resourceBundle.getString("xIsNotEqualToY"),
+                                        resourceBundle.getString(primaryFieldName),
+                                        resourceBundle.getString(secondaryFieldName)
                                         )
                         );
                     }
@@ -348,9 +382,9 @@ public class FormValidator {
                     {
                         primaryField.setValid(false);
                         primaryField.setValidationMessage(
-                                MessageFormat.format(SessionLocaleUtil.getI18nText(request, "xIsNotAfterY"),
-                                        SessionLocaleUtil.getI18nText(request, primaryFieldName),
-                                        SessionLocaleUtil.getI18nText(request, secondaryFieldName)
+                                MessageFormat.format(resourceBundle.getString("xIsNotAfterY"),
+                                        resourceBundle.getString(primaryFieldName),
+                                        resourceBundle.getString(secondaryFieldName)
                                         )
                         );
                     }
@@ -379,7 +413,7 @@ public class FormValidator {
         return formDefinition;
     }
     
-    private static JsonNode getFormDefinition(String formDefinitionStr) throws IOException {
+    public static JsonNode getFormDefinition(String formDefinitionStr) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readTree(formDefinitionStr);
     }

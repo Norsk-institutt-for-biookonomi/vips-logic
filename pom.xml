@@ -13,7 +13,25 @@
   <name>VIPSLogic</name>
   <url>http://maven.apache.org</url>
 
+<repositories>
+    <repository>
+                    <id>Hibernate Spatial repo</id>
+                    <url>http://www.hibernatespatial.org/repository</url>
+            </repository>
+</repositories>
   <dependencies>
+      <dependency>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-spatial</artifactId>
+                    <version>4.0</version>
+                    <scope>provided</scope>
+        <exclusions>
+          <exclusion>
+            <artifactId>postgresql</artifactId>
+            <groupId>postgresql</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
       <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-jaxrs</artifactId>
@@ -72,7 +90,19 @@
       <artifactId>JavaAPIforKml</artifactId>
       <version>2.2.0</version>
     </dependency>
-    
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>4.1.7.Final</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.postgis</groupId>
+      <artifactId>postgis-jdbc</artifactId>
+      <version>2.1.0</version>
+      <scope>provided</scope>
+      <type>jar</type>
+    </dependency>
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-web-api</artifactId>

@@ -48,6 +48,7 @@ public class VipsLogicRole implements Serializable {
     /** Static role definitions */
     public static Integer SUPERUSER = 1;
     public static Integer ORGANIZATION_ADMINISTRATOR = 2;
+    public static Integer OBSERVER = 3;
 
     private static final long serialVersionUID = 1L;
     @Id

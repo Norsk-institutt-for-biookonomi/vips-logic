@@ -19,12 +19,14 @@
 
 package no.bioforsk.web.forms;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
@@ -46,6 +48,7 @@ public class FormField {
     public final static String DATA_TYPE_TIMESTAMP = "TIMESTAMP";
     public final static String DATA_TYPE_PASSWORD = "PASSWORD";
     public final static String DATA_TYPE_EMAIL = "EMAIL";
+    public final static String DATA_TYPE_POINT_WGS84 = "POINT_WGS84";
     
     public final static String FIELD_TYPE_INPUT = "INPUT";
     public final static String FIELD_TYPE_HIDDEN = "HIDDEN";
@@ -71,6 +74,8 @@ public class FormField {
     private Integer maxValue;
     private String nullValue;
     private String dateFormat;
+    private String timestampFormat;
+    private String timestampFormatMomentJS;
     private List<FormSelectOption> options;
     
     @JsonIgnore
@@ -102,6 +107,28 @@ public class FormField {
         {
             return null;
         }
+    }
+    
+    @JsonIgnore
+    public Date getValueAsTimestamp()
+    {
+        try
+        {
+            return new SimpleDateFormat(this.getTimestampFormat()).parse(this.getWebValue());
+        }
+        catch(ParseException ex)
+        {
+            return null;
+        }
+    }
+    
+    @JsonIgnore
+    public Point getValueAsPointWGS84()
+    {
+        String[] xy = this.getWebValue().split(",");
+        Coordinate coordinate = new Coordinate(Double.valueOf(xy[0]), Double.valueOf(xy[1]));
+        GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
+        return gf.createPoint(coordinate);
     }
     
     
@@ -324,10 +351,14 @@ public class FormField {
      * 
      * @return Timestampformat (adds hour,minute,second and timezone to getDateFormat())
      */
-    @JsonIgnore
     public String getTimestampFormat()
     {
-        return this.getDateFormat() + "'T'HH:mm:ssX";
+        return this.timestampFormat != null ? this.timestampFormat: this.getDateFormat() + "'T'HH:mm:ssX";
+    }
+    
+    public void setTimestampFormat(String timestampFormat)
+    {
+        this.timestampFormat = timestampFormat;
     }
 
     /**
@@ -374,4 +405,21 @@ public class FormField {
         return this.getWebValue() == null || this.getWebValue().trim().isEmpty();
     }
 
+    /**
+     * @return the timestampFormatMomentJS
+     */
+    @JsonIgnore
+    public String getTimestampFormatMomentJS() {
+        return timestampFormatMomentJS;
+    }
+
+    /**
+     * @param timestampFormatMomentJS the timestampFormatMomentJS to set
+     */
+    @JsonIgnore
+    public void setTimestampFormatMomentJS(String timestampFormatMomentJS) {
+        this.timestampFormatMomentJS = timestampFormatMomentJS;
+    }
+
 }
+

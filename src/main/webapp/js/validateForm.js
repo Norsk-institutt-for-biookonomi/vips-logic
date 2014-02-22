@@ -31,7 +31,8 @@ var dataTypes = {
     TYPE_DATE: "DATE",
     TYPE_TIMESTAMP: "TIMESTAMP",
     TYPE_PASSWORD: "PASSWORD",
-    TYPE_EMAIL: "EMAIL"
+    TYPE_EMAIL: "EMAIL",
+    TYPE_POINT_WGS84: "POINT_WGS84"
     
     
 };
@@ -44,7 +45,7 @@ var fieldTypes= {
 
 
 var defaultValues = {
-    DEFAULT_DATE_FORMAT: "yyyy-MM-dd"
+    DEFAULT_DATE_FORMAT: "YYYY-MM-DD"
 };
 
 // Primary field relates to secondary field as TYPE
@@ -330,8 +331,10 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
     
     if(fieldDefinition.dataType === dataTypes.TYPE_TIMESTAMP)
     {
-        var validDateFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
-        var validTimestampFormat = validDateFormat.toUpperCase() + "THH:mm:ssZZ";
+        var validDateFormat = (fieldDefinition.dateFormat !== null && fieldDefinition.dateFormat !== undefined) ? 
+                                fieldDefinition.dateFormat : defaultValues.DEFAULT_DATE_FORMAT;
+        var validTimestampFormat = (fieldDefinition.timestampFormatMomentJS !== null && fieldDefinition.timestampFormatMomentJS !== undefined) ?
+                                fieldDefinition.timestampFormatMomentJS: validDateFormat.toUpperCase() + "THH:mm:ssZZ";
         if(!moment(webValue, validTimestampFormat, true).isValid())
         {
             invalidizeField(fieldEl, theForm, getI18nMsg("doesNotMatchFormatX",[validTimestampFormat]));
@@ -387,7 +390,37 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
         }
     }
     
-    
+    // GIS
+    // Point in WGS84 format
+    // Format [Double], [Double]
+    // TODO Check for minimum and maximum values
+    if(fieldDefinition.dataType === dataTypes.TYPE_POINT_WGS84)
+    {
+        var possibleDoubles = webValue.split(",");
+        if(possibleDoubles.length < 2)
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("missingSeparatorComma"));
+            return false;
+        }
+        else if(possibleDoubles.length > 2)
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("tooManySeparatorCommas"));
+            return false;
+        }
+        else
+        {
+            for(index in possibleDoubles)
+            {
+                if(!$.isNumeric(possibleDoubles[index]))
+                {
+                    invalidizeField(fieldEl, theForm, getI18nMsg("invalidFormat"));
+                    return false;
+                }
+            }
+        }
+        validizeField(fieldEl, theForm);
+        return true;
+    }
     
     // Passwords are evaluated in evaluatePassword
     if(fieldDefinition.dataType === dataTypes.TYPE_PASSWORD)

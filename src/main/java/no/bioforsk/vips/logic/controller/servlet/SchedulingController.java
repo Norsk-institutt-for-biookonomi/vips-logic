@@ -181,7 +181,7 @@ public class SchedulingController extends HttpServlet {
                 {
                     Integer factoryId = Integer.valueOf(request.getParameter("factoryId"));
                     VipsLogicTask task = VipsLogicTaskFactory.createVipsLogicTask(factoryId);
-                    FormValidation formValidation = FormValidator.validateForm(task.getConfigFormDefinition(SessionLocaleUtil.getCurrentLocale(request).getLanguage()), request);
+                    FormValidation formValidation = FormValidator.validateForm(task.getConfigFormDefinition(SessionLocaleUtil.getCurrentLocale(request).getLanguage()), request.getParameterMap(), SessionLocaleUtil.getI18nBundle(request));
                     if(formValidation.isValid())
                     {
                         // RUN THE JOB!!!

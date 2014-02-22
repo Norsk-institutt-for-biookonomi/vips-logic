@@ -43,6 +43,7 @@ import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.entity.Message;
 import no.bioforsk.vips.logic.entity.MessageTag;
+import no.bioforsk.vips.logic.entity.Observation;
 import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
@@ -219,6 +220,15 @@ public class LogicService {
         return Response.ok().entity(messageTags).build();
     }
     
+    @GET
+    @Path("observation")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservationList(@QueryParam("organizationId") Integer organizationId)
+    {
+        List<Observation> observations = SessionControllerGetter.getObservationBean().getObservations(organizationId);
+        return Response.ok().entity(observations).build();
+    }
+    
     private ManagerResource getManagerResource()
     {
         Client client = ClientBuilder.newClient();
@@ -227,5 +237,7 @@ public class LogicService {
         ManagerResource resource = rTarget.proxy(ManagerResource.class);
         return resource;
     }
+    
+    
     
 }

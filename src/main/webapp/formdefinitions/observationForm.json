@@ -1,0 +1,63 @@
+{
+    "_licenseNote": [
+        "Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>.",
+        "", 
+        "This file is part of VIPSLogic.",
+        "VIPSLogic is free software: you can redistribute it and/or modify",
+        "it under the terms of the GNU Affero General Public License as published by",
+        "the Free Software Foundation, either version 3 of the License, or",
+        "(at your option) any later version.",
+        "", 
+        "VIPSLogic is distributed in the hope that it will be useful,",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+        "GNU Affero General Public License for more details.",
+        "", 
+        "You should have received a copy of the GNU Affero General Public License",
+        "along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>."
+    ],
+    "_comment" : "Structure of the observationForm and how to validate it",
+    "fields": [
+        {
+            "name" : "observationId",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "organismId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
+        },
+        {
+            "name" : "timeOfObservation",
+            "dataType" : "TIMESTAMP",
+            "timestampFormat" : "yyyy-MM-dd HH:mmZ",
+            "timestampFormatMomentJS" : "YYYY-MM-DD HH:mmZ",
+            "required" : true
+        },
+        {
+            "name" : "location",
+            "dataType" : "POINT_WGS84",
+            "required" : true
+        },
+        {
+            "name" : "observedValue",
+            "dataType" : "DOUBLE",
+            "required" : true
+        },
+        {
+            "name" : "denominator",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
+            "name" : "observationMethodId",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true
+        }
+        
+    ]
+}

@@ -151,7 +151,7 @@ public class MessageController extends HttpServlet {
                 }
                 
                 // Validate form fields (except uploaded file)
-                FormValidation formValidation = FormValidator.validateForm("messageForm",request,getServletContext(), parameterMap);
+                FormValidation formValidation = FormValidator.validateForm("messageForm", parameterMap,SessionLocaleUtil.getI18nBundle(request),getServletContext());
                 
                 if(formValidation.isValid())
                 {
