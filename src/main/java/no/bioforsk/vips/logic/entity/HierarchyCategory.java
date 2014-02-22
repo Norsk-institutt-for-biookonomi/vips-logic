@@ -160,6 +160,6 @@ public class HierarchyCategory implements Serializable {
             }
         }
         
-        return "";
+        return this.getDefaultName();
     }
 }
