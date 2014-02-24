@@ -107,8 +107,8 @@
 	<@custom_css/>
 	<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
-          <script src="/js/html5shiv.js"></script>
-          <script src="/js/respond.min.js"></script>
+          <script src="/js/3rdparty/html5shiv.js"></script>
+          <script src="/js/3rdparty/respond.min.js"></script>
         <![endif]-->
 	<@page_head/>
 </head>
@@ -119,7 +119,7 @@
 	<!-- jQuery (necessary for Bootstraps JavaScript plugins) -->
 	<script src="http://code.jquery.com/jquery.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/3rdparty/bootstrap.min.js"></script>
 	<@custom_js/>
 </body>
 </html>

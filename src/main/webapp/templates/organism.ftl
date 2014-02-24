@@ -20,11 +20,11 @@
         
 </#macro>
 <#macro custom_css>
-        <link href="/css/selectize.bootstrap3.css" rel="stylesheet" media="screen" />
+        <link href="/css/3rdparty/selectize.bootstrap3.css" rel="stylesheet" media="screen" />
 </#macro>
 <#macro custom_js>
 <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
-<script src="/js/selectize.min.js"></script>
+<script src="/js/3rdparty/selectize.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
 	$('#organismSearch').selectize({

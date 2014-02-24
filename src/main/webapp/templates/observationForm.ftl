@@ -21,10 +21,10 @@
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
-	<link rel="stylesheet" type="text/css" href="/css/jquery.datetimepicker.css"/ >
-	<script src="/js/jquery.datetimepicker.js"></script>
-	<script type="text/javascript" src="/js/modernizr_custom.js"></script>
-	<script type="text/javascript" src="/js/moment.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/ >
+	<script src="/js/3rdparty/jquery.datetimepicker.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript">
 		// Make sure that there is a datetime picker present for HTML5 
 		// date input fields
