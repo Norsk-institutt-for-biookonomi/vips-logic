@@ -20,20 +20,21 @@
 </#macro>
 <#macro page_contents>
         <h1>${i18nBundle.messages}</h1>
+        <p>TODO: Add column for tags, add filters for tags and dates</p>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>
-			<th>Title</th>
-			<th>Test</th>
+			<th>${i18nBundle.datePub}</th>
+			<th>${i18nBundle.heading}</th>
 		</thead>
 		<tbody>
 		<#list messages as message>
 		    <tr>
+		    	<td>${(message.datePub?date)!""}</td>
 		    	<td><a href="/message?action=editMessageForm&messageId=${message.messageId}">${message.getLocalMessageWithFallback(currentLocale,user.organizationId.defaultLocale).heading}</a></td>
-		    	<td></td>
 		    </tr>
 		</#list>
 		</tbody>

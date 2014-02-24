@@ -18,26 +18,42 @@
 <#macro page_head>
         <title><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if></title>
 </#macro>
-<#macro custom_js>
-	<script src="/js/resourcebundle.js"></script>
-	<script src="/js/validateForm.js"></script>
+<#macro custom_css>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/ >
-	<script src="/js/3rdparty/jquery.datetimepicker.js"></script>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+</#macro>
+<#macro custom_js>
+	<script type="text/javascript" src="/js/3rdparty/jquery.datetimepicker.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/resourcebundle.js"></script>
+	<script type="text/javascript" src="/js/validateForm.js"></script>
+	<script type="text/javascript" src="/js/observationFormMap.js"></script>
 	<script type="text/javascript">
-		// Make sure that there is a datetime picker present for HTML5 
-		// date input fields
-		if (!Modernizr.inputtypes.datetime) {
-		    $('input[type=datetime]').datetimepicker({
-		    		lang:"no",
-		    		dayOfWeekStart: 1,
-		    		format: "Y-m-d G:iO",
-		    		step: 30
-		    	});
-		}
-		// Load main form definition (for validation)
-		loadFormDefinition("observationForm");
+		$(document).ready(function() {
+			// Make sure that there is a datetime picker present for HTML5 
+			// date input fields
+			if (!Modernizr.inputtypes.datetime) {
+			    $('input[type=datetime]').datetimepicker({
+					lang:"no",
+					dayOfWeekStart: 1,
+					format: "Y-m-d G:iO",
+					step: 30
+				});
+			}
+			// Load main form definition (for validation)
+			loadFormDefinition("observationForm");
+			
+			// Initialize the map
+			// If observation already registered center on location
+			// Otherwise, center and zoom to organizations's default
+			<#if observation.location?has_content>
+			initMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
+			<#else>
+			initMap([14.1,65.4],4,false);
+			</#if>
+		});
 	</script>
 </#macro>
 <#macro page_contents>
@@ -54,9 +70,9 @@
 			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="return validateForm(this);">
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <div class="form-group">
-			    <label for="organismId">${i18nBundle.organismId}</label>
+			    <label for="organismId">${i18nBundle.organism}</label>
 			    <select class="form-control" name="organismId" onblur="validateField(this);">
-				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organismId?lower_case}</option>
+				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
 				<#list allOrganisms?sort_by("latinName") as organism>
 					<option value="${organism.organismId}"
 						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
@@ -67,22 +83,22 @@
 			  </div>
 			  <div class="form-group">
 			    <label for="location">${i18nBundle.location}</label>
-			    <input type="text" class="form-control" name="location" placeholder="${i18nBundle.location}" value="${(observation.location.x)!""},${(observation.location.y)!""}" onblur="validateField(this);" />
+			    <input type="text" class="form-control" readonly="readonly" id="location" name="location" placeholder="${i18nBundle.location}" value="${(observation.location.x?c)!""},${(observation.location.y?c)!""}" onblur="validateField(this);" />
 			    <span class="help-block" id="${formId}_location_validation"></span>
 			  </div>
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
-			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ")!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
+			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
 			    <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
 			  </div>
 			  <div class="form-group">
 			    <label for="observedValue">${i18nBundle.observedValue}</label>
-			    <input type="number" class="form-control" name="observedValue" placeholder="${i18nBundle.observedValue}" value="${observation.observedValue!""}" onblur="validateField(this);"/>
+			    <input type="number" class="form-control" name="observedValue" placeholder="${i18nBundle.observedValue}" value="${observation.observedValue?c!""}" onblur="validateField(this);"/>
 			    <span class="help-block" id="${formId}_observedValue_validation"></span>
 			  </div>
 			  <div class="form-group">
 			    <label for="denominator">${i18nBundle.denominator}</label>
-			    <input type="number" class="form-control" name="denominator" placeholder="${i18nBundle.denominator}" value="${observation.denominator!"1"}" onblur="validateField(this);"/>
+			    <input type="number" class="form-control" name="denominator" placeholder="${i18nBundle.denominator}" value="${observation.denominator?c!"1"}" onblur="validateField(this);"/>
 			    <span class="help-block" id="${formId}_denominator_validation"></span>
 			  </div>
 			  <div class="form-group">
@@ -104,8 +120,10 @@
 			</form>
 		</div>
 		<div class="col-md-6">
-		MAPPP!
+			<div id="observationFormMap" class="map">
+			</div>
 		</div>
 	</div>
+	<div style="display: none;"><div id="marker" title="Marker"><img src="/images/bug_medium.png"/></div></div>
 </#macro>
 <@page_html/>

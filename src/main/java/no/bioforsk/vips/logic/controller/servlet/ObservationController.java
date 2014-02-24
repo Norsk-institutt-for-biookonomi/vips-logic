@@ -161,6 +161,18 @@ public class ObservationController extends HttpServlet {
 
                         );
                     }
+                    else
+                    {
+                        // Redirect to form with error messages
+                        request.setAttribute("formValidation", formValidation);
+                        request.setAttribute("observation", observation);
+                        List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
+                        request.setAttribute("allOrganisms", allOrganisms);
+                        // Hierarchy categories
+                        request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                        request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                        request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
+                    }
                 }
                 catch(NullPointerException | NumberFormatException | FormValidationException ex)
                 {

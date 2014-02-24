@@ -69,3 +69,8 @@ legend {
     cursor: inherit;
     display: block;
 }
+
+#observationFormMap{
+    height: 400px;
+    width: 100%;
+}

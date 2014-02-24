@@ -20,6 +20,7 @@
 </#macro>
 <#macro page_contents>
         <h1>${i18nBundle.observations}</h1>
+        <p>TODO: Add map and filters for organism and time</p>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
