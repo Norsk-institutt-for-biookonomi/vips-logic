@@ -359,13 +359,15 @@ public class UserController extends HttpServlet {
             if(confirmUser != null)
             {
                 // Success
+                // Send message to organization admin that user has confirmed his/her email
+                SessionControllerGetter.getUserBean().informAdminOfConfirmedEmail(confirmUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                 request.setAttribute("messageKey","confirmEmailReceipt");
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
             }
             else
             {
                 // Failure
-                request.setAttribute("errorMessageKey","confirmEmailFailed");
+                request.setAttribute("errorMessageKey","confirmEmailFailure");
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
             }
         }

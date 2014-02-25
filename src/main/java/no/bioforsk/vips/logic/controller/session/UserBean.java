@@ -378,4 +378,35 @@ public class UserBean {
     public void storeUserAuthentication(UserAuthentication userAuth) {
         em.persist(userAuth);
     }
+
+    public void informAdminOfConfirmedEmail(VipsLogicUser confirmUser, ResourceBundle i18nBundle, String serverName ) {
+        List<VipsLogicUser> organizationAdmins = this.findOrganizationUsersByRole(confirmUser.getOrganizationId(), Globals.ROLE_ORGANIZATION_ADMINISTRATOR);
+        for(VipsLogicUser organizationAdmin: organizationAdmins)
+        {
+            String subject = i18nBundle.getString("informAdminOfConfirmedEmailSubject");
+            String body = MessageFormat.format(i18nBundle.getString("informAdminOfConfirmedEmailBody"), 
+                                confirmUser.getLastName(),
+                                "http://" + serverName + "/user?action=viewUser&userId=" + confirmUser.getUserId());
+            
+
+            // Send email
+            String smtpServer = System.getProperty("no.bioforsk.vips.logic.SMTP_SERVER");
+            SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+            mailSender.sendMail("noreply@" + serverName, organizationAdmin.getEmail(), subject, body);
+        }
+    }
+
+    private List<VipsLogicUser> findOrganizationUsersByRole(Organization organizationId, Integer role) {
+        Query q = em.createNativeQuery("SELECT * "
+                + "FROM vips_logic_user vlu "
+                + "WHERE vlu.user_id IN ("
+                + "     SELECT user_id "
+                + "     FROM user_vips_logic_role "
+                + "     WHERE vips_logic_role_id = :role"
+                + ")"
+                + "AND vlu.organization_id=:organizationId", VipsLogicUser.class);
+        q.setParameter("role", role);
+        q.setParameter("organizationId", organizationId.getOrganizationId());
+        return q.getResultList();
+    }
 }
