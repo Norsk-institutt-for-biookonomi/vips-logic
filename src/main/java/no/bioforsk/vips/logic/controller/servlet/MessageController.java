@@ -170,7 +170,6 @@ public class MessageController extends HttpServlet {
                         {
                             if(!item.isFormField() && item.getSize() > 0)
                             {
-                                System.out.println("Storing file");
                                 message = SessionControllerGetter.getMessageBean().storeMessageIllustration(message, item);
                             }
                         }

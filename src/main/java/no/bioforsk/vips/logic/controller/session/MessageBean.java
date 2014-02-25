@@ -143,12 +143,19 @@ public class MessageBean {
             em.remove(formerIllustration);
         }
         // Also remove their relation to message.
-        message.getMessageIllustrationSet().clear();
+        if(message.getMessageIllustrationSet() != null)
+        {
+            message.getMessageIllustrationSet().clear();
+        }
         
         MessageIllustration newIllustration = new MessageIllustration(new MessageIllustrationPK(message.getMessageId(), fileName));
         em.persist(newIllustration);
         
         // Add the new illustration 
+        if(message.getMessageIllustrationSet() == null)
+        {
+            message.setMessageIllustrationSet(new HashSet<MessageIllustration>());
+        }
         message.getMessageIllustrationSet().add(newIllustration);
         //message.getMessageIllustrationSet().add(newIllustration);
         return message;

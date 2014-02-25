@@ -24,6 +24,7 @@
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
+	<a href="/message?action=newMessageForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>
