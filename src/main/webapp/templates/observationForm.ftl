@@ -93,12 +93,12 @@
 			  </div>
 			  <div class="form-group">
 			    <label for="observedValue">${i18nBundle.observedValue}</label>
-			    <input type="number" class="form-control" name="observedValue" placeholder="${i18nBundle.observedValue}" value="${observation.observedValue?c!""}" onblur="validateField(this);"/>
+			    <input type="number" class="form-control" name="observedValue" placeholder="${i18nBundle.observedValue}" value="${(observation.observedValue?c)!""}" onblur="validateField(this);"/>
 			    <span class="help-block" id="${formId}_observedValue_validation"></span>
 			  </div>
 			  <div class="form-group">
 			    <label for="denominator">${i18nBundle.denominator}</label>
-			    <input type="number" class="form-control" name="denominator" placeholder="${i18nBundle.denominator}" value="${observation.denominator?c!"1"}" onblur="validateField(this);"/>
+			    <input type="number" class="form-control" name="denominator" placeholder="${i18nBundle.denominator}" value="${(observation.denominator?c)!"1"}" onblur="validateField(this);"/>
 			    <span class="help-block" id="${formId}_denominator_validation"></span>
 			  </div>
 			  <div class="form-group">

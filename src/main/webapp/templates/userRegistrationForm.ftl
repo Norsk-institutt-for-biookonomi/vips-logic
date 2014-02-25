@@ -42,20 +42,21 @@
 		<h1 class="form-signin-heading">${i18nBundle.registerNewUser}</h1>
 		<p>${i18nBundle.registerNewUserExplanation}</p>
 		<#if userAuthenticationTypeId == 1>
-		<div><input type="text" class="form-control" placeholder="${i18nBundle.username}" name="username" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("username").webValue}</#if>" onblur="validateField(this);" autofocus/></div>
+		<div><label for="username">${i18nBundle.username}</label><input type="text" class="form-control" placeholder="${i18nBundle.username}" name="username" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("username").webValue}</#if>" onblur="validateField(this);" autofocus/></div>
 		<span class="help-block" id="${formId}_username_validation"></span>
-		<div><input type="password" class="form-control" placeholder="${i18nBundle.password}" name="password" size="15" onblur="evaluatePassword(this);" onblur="validateField(this);"/></div>
+		<div><label for="password">${i18nBundle.password}</label><input type="password" class="form-control" placeholder="${i18nBundle.password}" name="password" size="15" onblur="evaluatePassword(this);" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_password_validation"></span>
-		<div><input type="password" class="form-control" placeholder="${i18nBundle.password2}" name="password2" size="15" onblur="validateField(this);"/></div>
+		<div><label for="password2">${i18nBundle.password2}</label><input type="password" class="form-control" placeholder="${i18nBundle.password2}" name="password2" size="15" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_password2_validation"></span>
 		</#if>
-		<div><input type="text" class="form-control" placeholder="${i18nBundle.email}" name="email" value="<#if formValidation?has_content>${formValidation.getFormField("email").webValue}</#if>" size="15" onblur="validateField(this);"/></div>
+		<div><label for="email">${i18nBundle.email}</label><input type="text" class="form-control" placeholder="${i18nBundle.email}" name="email" value="<#if formValidation?has_content>${formValidation.getFormField("email").webValue}</#if>" size="15" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_email_validation"></span>
-		<div><input type="text" class="form-control" placeholder="${i18nBundle.firstName}" name="firstName" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("firstName").webValue}</#if>" onblur="validateField(this);"/></div>
+		<div><label for="firstName">${i18nBundle.firstName}</label><input type="text" class="form-control" placeholder="${i18nBundle.firstName}" name="firstName" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("firstName").webValue}</#if>" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_firstName_validation"></span>
-		<div><input type="text" class="form-control" placeholder="${i18nBundle.lastName}" name="lastName" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("lastName").webValue}</#if>" onblur="validateField(this);"/></div>
+		<div><label for="lastName">${i18nBundle.lastName}</label><input type="text" class="form-control" placeholder="${i18nBundle.lastName}" name="lastName" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("lastName").webValue}</#if>" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_lastName_validation"></span>
 		<div>
+			<label for="organizationId">${i18nBundle.organizationId}</label>
 			<select class="form-control" name="organizationId" onblur="validateField(this);">
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organizationId?lower_case}</option>
 			<#list organizations?sort_by("organizationName") as organization>
@@ -68,7 +69,7 @@
 			</select>
 		</div>
 		<span class="help-block" id="${formId}_organizationId_validation"></span>
-		<div><textarea class="form-control" placeholder="${i18nBundle.approvalApplication}" name="approvalApplication" cols="15" rows="5" onblur="validateField(this);"><#if formValidation?has_content>${formValidation.getFormField("approvalApplication").webValue}</#if></textarea></div>
+		<div><label for="approvalApplication">${i18nBundle.approvalApplication}</label><textarea class="form-control" placeholder="${i18nBundle.approvalApplication}" name="approvalApplication" cols="15" rows="5" onblur="validateField(this);"><#if formValidation?has_content>${formValidation.getFormField("approvalApplication").webValue}</#if></textarea></div>
 		<span class="help-block" id="${formId}_approvalApplication_validation"></span>
 		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.submit}</button>
 	</form>
