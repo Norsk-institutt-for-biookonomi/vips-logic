@@ -409,4 +409,24 @@ public class UserBean {
         q.setParameter("organizationId", organizationId.getOrganizationId());
         return q.getResultList();
     }
+
+    private void sendUserApprovalConfirmation(VipsLogicUser user, ResourceBundle i18nBundle, String serverName) 
+    {
+        String subject = i18nBundle.getString("sendUserApprovalConfirmationSubject");
+        String body = MessageFormat.format(i18nBundle.getString("sendUserApprovalConfirmationBody"), 
+                            "http://" + serverName + "/");
+        // Send email
+        String smtpServer = System.getProperty("no.bioforsk.vips.logic.SMTP_SERVER");
+        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+        mailSender.sendMail("noreply@" + serverName, user.getEmail(), subject, body);
+    }
+
+    public void handleUserStatusChange(Integer oldUserStatusId, VipsLogicUser updatedUser, ResourceBundle i18nBundle, String serverName) {
+        // Check if user status has changed from awaiting approval to approved. 
+        // If that's the case, inform the user by email
+        if(oldUserStatusId.equals(Globals.USER_STATUS_AWAITING_APPROVAL) && updatedUser.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
+        {
+            this.sendUserApprovalConfirmation(updatedUser, i18nBundle, serverName);
+        }
+    }
 }

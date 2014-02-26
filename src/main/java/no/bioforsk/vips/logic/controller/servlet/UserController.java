@@ -166,6 +166,7 @@ public class UserController extends HttpServlet {
                                 Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
                                 viewUser.setOrganizationId(organization);
                             }
+                            Integer oldUserStatusId = viewUser.getUserStatusId();
                             viewUser.setUserStatusId(formValidation.getFormField("userStatusId").getValueAsInteger());
                             viewUser.setRemarks(formValidation.getFormField("remarks").getWebValue());
                             FormField roles = formValidation.getFormField("vipsLogicRoles");
@@ -180,6 +181,7 @@ public class UserController extends HttpServlet {
                                 viewUser.setVipsLogicRoles(vipsLogicRoles);
                             }
                             userBean.storeUser(viewUser);
+                            SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                             // Add confirmation message
                             request.setAttribute("messageKey", "userUpdated");
                             response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append("userUpdated").toString());
