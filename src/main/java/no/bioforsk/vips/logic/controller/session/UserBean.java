@@ -429,4 +429,10 @@ public class UserBean {
             this.sendUserApprovalConfirmation(updatedUser, i18nBundle, serverName);
         }
     }
+
+    public List<VipsLogicUser> getUsersByOrganization(Integer organizationId) {
+        return em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
+                .setParameter("organizationId", em.find(Organization.class, organizationId))
+                .getResultList();
+    }
 }

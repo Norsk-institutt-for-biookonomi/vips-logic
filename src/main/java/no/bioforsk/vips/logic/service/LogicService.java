@@ -45,6 +45,7 @@ import no.bioforsk.vips.logic.entity.Message;
 import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.Observation;
 import no.bioforsk.vips.logic.entity.Organism;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.ServletUtil;
@@ -107,14 +108,12 @@ public class LogicService {
     public Response getForecastConfigurationsForOrganization(@PathParam("organizationId") Integer organizationId)
     {
         // First: Get all users for organization
-        // TODO: Should be authenticated
-        Response resp = this.getManagerResource().getUsersForOrganization(organizationId);
-        List<Map> userList = resp.readEntity(List.class);
+        List<VipsLogicUser> organizationUsers = SessionControllerGetter.getUserBean().getUsersByOrganization(organizationId);
         // Then: Get forecasts for these users, collate and return
         List<ForecastConfiguration> forecasts = new ArrayList<>();
-        for(Map user:userList)
+        for(VipsLogicUser user:organizationUsers)
         {
-            Integer userId = (Integer) user.get("vipsCoreUserId");
+            Integer userId = (Integer) user.getUserId();
             if(forecasts == null)
                 forecasts = SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(userId);
             else
