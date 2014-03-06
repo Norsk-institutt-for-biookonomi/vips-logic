@@ -32,6 +32,7 @@
 	</#if>
 	<#if organism.organismId?has_content>
 	<a href="/organism?action=listChildOrganisms&organismId=${organism.parentOrganismId!""}" class="btn btn-default" role="button">${i18nBundle.up}</a>
+	<a href="/organism" class="btn btn-default" role="button">${i18nBundle.toTheTop}</a>
 	</#if>
         <div class="table-responsive">
 	<table class="table table-striped">

@@ -188,12 +188,12 @@ function validateField(fieldEl, formDefinitionKey)
         $.getJSON( "/formdefinitions/" + theForm.id + ".json")
         .done(function(json){
             formDefinitions[theForm.id] = json;
-            validateFieldActual(fieldEl, theForm, formDefinitionKey);
+            return validateFieldActual(fieldEl, theForm, formDefinitionKey);
         });
     }
     else
     {
-        validateFieldActual(fieldEl, theForm, formDefinitionKey);
+        return validateFieldActual(fieldEl, theForm, formDefinitionKey);
     }
 }
 
@@ -231,7 +231,7 @@ function getValidationOutputEl(fieldEl, theForm)
  * @param {Element} fieldEl the form element to be validated
  * @param {Element} theForm the form
  * @param {String} formDefinitionKey optional key to a formdefinition for a part of the form that has been dynamically added to the main form
- * @returns {void}
+ * @returns {boolean}
  */
 function validateFieldActual(fieldEl, theForm, formDefinitionKey)
 {

@@ -32,7 +32,13 @@ function initMap(center, zoomLevel, displayMarker)
 {
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
-                    source: new ol.source.OSM()
+                    source: new ol.source.OSM({
+                        attributions: [
+                            new ol.Attribution({
+                              html: mapConstants.MAP_ATTRIBUTION
+                            })
+                          ]
+                    })
     });
     
     

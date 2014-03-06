@@ -19,14 +19,28 @@
 
 package no.bioforsk.vips.logic.controller.session;
 
+import de.micromata.opengis.kml.v_2_2_0.Coordinate;
+import de.micromata.opengis.kml.v_2_2_0.Document;
+import de.micromata.opengis.kml.v_2_2_0.Kml;
+import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
+import de.micromata.opengis.kml.v_2_2_0.Placemark;
+import de.micromata.opengis.kml.v_2_2_0.Point;
+import java.util.HashSet;
 import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.logic.entity.UserPointOfInterest;
+import no.bioforsk.vips.logic.entity.UserPointOfInterestPK;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.entity.WeatherStationDataSource;
 import no.bioforsk.vips.logic.util.Globals;
 
 
@@ -78,5 +92,79 @@ public class PointOfInterestBean {
         q.setParameter("pointOfInterestId", pointOfInterestId);
         return (PointOfInterest) q.getSingleResult();
         
+    }
+
+    public Kml getWeatherstationsForOrganization(Integer organizationId, Integer excludeWeatherStationId, Integer highlightWeatherStationId, String serverName, ResourceBundle i18nBundle) {
+        String iconPath = "http://" + serverName + "/public/images/";
+        Organization organization = em.find(Organization.class, organizationId);
+        // Initialization
+        final Kml kml = KmlFactory.createKml();
+        final Document document = kml.createAndSetDocument()
+        .withName("Weather stations").withDescription("Weather stations for ");
+        
+        document.createAndAddStyle()
+            .withId("weatherstation_icon")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref(iconPath + "dot_blue.png");
+        
+        document.createAndAddStyle()
+            .withId("weatherstation_icon_highlighted")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref(iconPath + "anemometer_mono.png");
+        
+        List<PointOfInterestWeatherStation> weatherStations = this.getWeatherstationsForOrganization(organization);
+        String description = "";
+        for(PointOfInterestWeatherStation weatherStation:weatherStations)
+        {
+            if(excludeWeatherStationId != null && excludeWeatherStationId.equals(weatherStation.getPointOfInterestId()))
+            {
+                continue;
+            }
+            
+            String styleUrl = "#weatherstation_icon"
+                            +   (highlightWeatherStationId != null && highlightWeatherStationId.equals(weatherStation.getPointOfInterestId()) ? "_highlighted" :"");
+            
+            if(weatherStation instanceof PointOfInterestWeatherStation)
+            {
+                description = i18nBundle.getString("dataSourceName") + 
+                                ": <a href=\"" + weatherStation.getWeatherStationDataSourceId().getUri() + "\" target=\"new\">" 
+                                +  weatherStation.getWeatherStationDataSourceId().getName() 
+                                + "</a>";
+            }
+            final Placemark placemark = document.createAndAddPlacemark()
+            .withName(weatherStation.getName())
+            .withDescription(description)
+            .withStyleUrl(styleUrl)
+             .withId(weatherStation.getPointOfInterestId().toString());
+            
+            
+            final Point point = placemark.createAndSetPoint();
+            List<Coordinate> coord = point.createAndSetCoordinates();
+            coord.add(new Coordinate(
+                    weatherStation.getLongitude(),
+                    weatherStation.getLatitude(),
+                    weatherStation.getAltitude() != null ? weatherStation.getAltitude() : 0
+            ));
+        }
+        return kml;
+    }
+
+    public List<WeatherStationDataSource> getWeatherStationDataSources() {
+        return em.createNamedQuery("WeatherStationDataSource.findAll").getResultList();
+    }
+
+    public PointOfInterestWeatherStation storeWeatherStation(PointOfInterestWeatherStation weatherStation) {
+        weatherStation = em.merge(weatherStation);
+        return weatherStation;
+    }
+
+    public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization) {
+        return em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId", PointOfInterestWeatherStation.class)
+                                                .setParameter("organizationId", organization)
+                                                .getResultList();
     }
 }

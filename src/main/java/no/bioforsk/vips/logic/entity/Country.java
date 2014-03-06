@@ -20,6 +20,7 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -32,6 +33,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -50,19 +52,11 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "Country.findByCountryCode", query = "SELECT c FROM Country c WHERE c.countryCode = :countryCode")})
 public class Country implements Serializable {
     private static final long serialVersionUID = 1L;
-    @Id
-    @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 2)
-    @Column(name = "country_code")
     private String countryCode;
-    @JoinTable(name = "external_resource_validity", joinColumns = {
-        @JoinColumn(name = "country_code", referencedColumnName = "country_code")}, inverseJoinColumns = {
-        @JoinColumn(name = "external_resource_id", referencedColumnName = "external_resource_id")})
-    @ManyToMany
-    private Set<ExternalResource> externalResourceSet;
-    @OneToMany(mappedBy = "countryCode")
-    private Set<PointOfInterest> pointOfInterestSet;
+        private Set<ExternalResource> externalResourceSet;
+        private Set<PointOfInterest> pointOfInterestSet;
 
     public Country() {
     }
@@ -71,6 +65,9 @@ public class Country implements Serializable {
         this.countryCode = countryCode;
     }
 
+@Id
+    @Basic(optional = false)
+    @Column(name = "country_code")
     public String getCountryCode() {
         return countryCode;
     }
@@ -79,6 +76,10 @@ public class Country implements Serializable {
         this.countryCode = countryCode;
     }
 
+@JoinTable(name = "external_resource_validity", joinColumns = {
+        @JoinColumn(name = "country_code", referencedColumnName = "country_code")}, inverseJoinColumns = {
+            @JoinColumn(name = "external_resource_id", referencedColumnName = "external_resource_id")})
+    @ManyToMany
     @XmlTransient
     @JsonIgnore
     public Set<ExternalResource> getExternalResourceSet() {
@@ -89,6 +90,7 @@ public class Country implements Serializable {
         this.externalResourceSet = externalResourceSet;
     }
 
+@OneToMany(mappedBy = "countryCode")
     @XmlTransient
     @JsonIgnore
     public Set<PointOfInterest> getPointOfInterestSet() {
@@ -124,4 +126,10 @@ public class Country implements Serializable {
         return "no.bioforsk.vips.logic.entity.Country[ countryCode=" + countryCode + " ]";
     }
 
+    
+    public String getCountryName(String language)
+    {
+        Locale locale = new Locale(language, this.countryCode);
+        return locale.getDisplayCountry();
+    }
 }

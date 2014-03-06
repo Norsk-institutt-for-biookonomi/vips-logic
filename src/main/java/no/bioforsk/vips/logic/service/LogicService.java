@@ -171,6 +171,15 @@ public class LogicService {
     }
     
     @GET
+    @Path("weatherstations/kml/{organizationId}")
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    public Response getWeatherStations(@QueryParam("excludeWeatherStationId") Integer excludeWeatherStationId, @QueryParam("highlightWeatherStationId") Integer highlightWeatherStationId, @PathParam("organizationId") Integer organizationId)
+    {
+        Kml retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest));
+        return Response.ok().entity(retVal).build();
+    }
+    
+    @GET
     @Path("organism/list")
     @Produces("application/json;charset=UTF-8")
     public Response getOrganismList()

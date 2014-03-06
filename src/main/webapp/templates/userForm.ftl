@@ -27,6 +27,7 @@
 	</script>
 </#macro>
 <#macro page_contents>
+	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1>${viewUser.firstName} ${viewUser.lastName}</h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>

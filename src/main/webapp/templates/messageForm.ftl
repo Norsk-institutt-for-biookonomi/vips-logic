@@ -80,6 +80,7 @@
 
 </#macro>
 <#macro page_contents>
+	<p><a href="/message" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
 	<#if message.messageId?has_content>
 	<h1>${i18nBundle.editMessage}</h1>
 	<#else>

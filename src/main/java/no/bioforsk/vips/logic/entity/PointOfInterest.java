@@ -21,9 +21,7 @@ package no.bioforsk.vips.logic.entity;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -36,12 +34,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
@@ -60,7 +56,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     @NamedQuery(name = "PointOfInterest.findByLongitude", query = "SELECT p FROM PointOfInterest p WHERE p.longitude = :longitude"),
     @NamedQuery(name = "PointOfInterest.findByLatitude", query = "SELECT p FROM PointOfInterest p WHERE p.latitude = :latitude"),
-    @NamedQuery(name = "PointOfInterest.findByAltitude", query = "SELECT p FROM PointOfInterest p WHERE p.altitude = :altitude")
+    @NamedQuery(name = "PointOfInterest.findByAltitude", query = "SELECT p FROM PointOfInterest p WHERE p.altitude = :altitude"),
+    @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.userId = :userId")
 })
 public class PointOfInterest implements Serializable, Comparable {
 
@@ -83,8 +80,9 @@ public class PointOfInterest implements Serializable, Comparable {
     private Double latitude;
     @Column(name = "altitude")
     private Double altitude;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "pointOfInterest")
-    private Set<UserPointOfInterest> userPointOfInterestSet;
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    @ManyToOne
+    private VipsLogicUser userId;
     @JoinColumn(name = "country_code", referencedColumnName = "country_code")
     @ManyToOne
     private Country countryCode;
@@ -144,16 +142,7 @@ public class PointOfInterest implements Serializable, Comparable {
         this.altitude = altitude;
     }
 
-    @XmlTransient
-    @JsonIgnore
-    public Set<UserPointOfInterest> getUserPointOfInterestSet() {
-        return userPointOfInterestSet;
-    }
-
-    public void setUserPointOfInterestSet(Set<UserPointOfInterest> userPointOfInterestSet) {
-        this.userPointOfInterestSet = userPointOfInterestSet;
-    }
-
+    
     public Country getCountryCode() {
         return countryCode;
     }
@@ -248,5 +237,20 @@ public class PointOfInterest implements Serializable, Comparable {
      */
     public void setProperties(Map<String,Object> properties) {
         this.properties = properties;
+    }
+
+    /**
+     * @return the userId
+     */
+    @JsonIgnore
+    public VipsLogicUser getUserId() {
+        return userId;
+    }
+
+    /**
+     * @param userId the userId to set
+     */
+    public void setUserId(VipsLogicUser userId) {
+        this.userId = userId;
     }
 }

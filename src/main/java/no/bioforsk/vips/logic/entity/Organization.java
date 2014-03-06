@@ -19,6 +19,7 @@
 
 package no.bioforsk.vips.logic.entity;
 
+import com.vividsolutions.jts.geom.Point;
 import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -37,6 +38,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Type;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -71,6 +73,14 @@ public class Organization implements Serializable {
     @Size(max = 63)
     @Column(name = "postal_code")
     private String postalCode;
+    @Column(name = "default_map_zoom")
+    private Integer defaultMapZoom;
+    @Column(name = "default_time_zone")
+    private String defaultTimeZone;
+    @JsonIgnore
+    @Type(type = "org.hibernate.spatial.GeometryType")
+    @Column(name = "default_map_center", columnDefinition = "Geometry")
+    private Point defaultMapCenter;
     @OneToMany(mappedBy = "parentOrganizationId")
     private Set<Organization> organizationSet;
     @JoinColumn(name = "parent_organization_id", referencedColumnName = "organization_id")
@@ -205,6 +215,48 @@ public class Organization implements Serializable {
      */
     public void setDefaultLocale(String defaultLocale) {
         this.defaultLocale = defaultLocale;
+    }
+
+    /**
+     * @return the defaultMapZoom
+     */
+    public Integer getDefaultMapZoom() {
+        return defaultMapZoom;
+    }
+
+    /**
+     * @param defaultMapZoom the defaultMapZoom to set
+     */
+    public void setDefaultMapZoom(Integer defaultMapZoom) {
+        this.defaultMapZoom = defaultMapZoom;
+    }
+
+    /**
+     * @return the defaultMapCenter
+     */
+    public Point getDefaultMapCenter() {
+        return defaultMapCenter;
+    }
+
+    /**
+     * @param defaultMapCenter the defaultMapCenter to set
+     */
+    public void setDefaultMapCenter(Point defaultMapCenter) {
+        this.defaultMapCenter = defaultMapCenter;
+    }
+
+    /**
+     * @return the defaultTimeZone
+     */
+    public String getDefaultTimeZone() {
+        return defaultTimeZone;
+    }
+
+    /**
+     * @param defaultTimeZone the defaultTimeZone to set
+     */
+    public void setDefaultTimeZone(String defaultTimeZone) {
+        this.defaultTimeZone = defaultTimeZone;
     }
 
 }

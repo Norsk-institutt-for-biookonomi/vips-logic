@@ -27,6 +27,7 @@
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/validateForm.js"></script>
 	<script type="text/javascript" src="/js/observationFormMap.js"></script>
@@ -51,12 +52,13 @@
 			<#if observation.location?has_content>
 			initMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
 			<#else>
-			initMap([14.1,65.4],4,false);
+			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false);
 			</#if>
 		});
 	</script>
 </#macro>
 <#macro page_contents>
+	<p><a href="/observation" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>

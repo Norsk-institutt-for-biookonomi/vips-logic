@@ -45,7 +45,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 @NamedQueries({
     @NamedQuery(name = "PointOfInterestWeatherStation.findAll", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType.pointOfInterestTypeId=1"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByPointOfInterestId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId = :pointOfInterestId AND p.pointOfInterestType.pointOfInterestTypeId=1"),
-    @NamedQuery(name = "PointOfInterestWeatherStation.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType.pointOfInterestTypeId=1 AND p.pointOfInterestId IN(SELECT up.pointOfInterest.pointOfInterestId FROM UserPointOfInterest up WHERE up.userPointOfInterestPK.userId = :userId)")
+    @NamedQuery(name = "PointOfInterestWeatherStation.findByOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.pointOfInterestType.pointOfInterestTypeId=1 AND p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId)"),
+    @NamedQuery(name = "PointOfInterestWeatherStation.findByUserId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.pointOfInterestType.pointOfInterestTypeId=1 AND p.userId = :userId")
 })
 public class PointOfInterestWeatherStation extends PointOfInterest implements Serializable {
     @Size(max = 255)

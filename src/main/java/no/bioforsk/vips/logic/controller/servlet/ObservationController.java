@@ -80,6 +80,8 @@ public class ObservationController extends HttpServlet {
                 {
                     Observation observation = new Observation();
                     request.setAttribute("observation", observation);
+                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
                     request.setAttribute("allOrganisms", allOrganisms);
                     // Hierarchy categories
@@ -152,7 +154,6 @@ public class ObservationController extends HttpServlet {
                         observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
                         observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
                         
-                        // Redirecting to form
                         // Redirect to form
                         response.sendRedirect(new StringBuilder("http://")
                                 .append(ServletUtil.getServerName(request))

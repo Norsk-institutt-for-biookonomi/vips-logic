@@ -22,14 +22,26 @@ package no.bioforsk.vips.logic.controller.servlet;
 import java.io.IOException;
 import java.util.List;
 import java.util.TimeZone;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.bioforsk.vips.logic.entity.Country;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.PointOfInterestType;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.entity.WeatherStationDataSource;
+import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.util.ExceptionUtil;
+import no.bioforsk.vips.util.ServletUtil;
+import no.bioforsk.web.forms.FormValidation;
+import no.bioforsk.web.forms.FormValidationException;
+import no.bioforsk.web.forms.FormValidator;
 
 /**
  * Handles transactions for POIs
@@ -37,7 +49,8 @@ import no.bioforsk.vips.logic.util.SessionControllerGetter;
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class PointOfInterestController extends HttpServlet {
-
+    @PersistenceContext(unitName="VIPSLogic-PU")
+    EntityManager em;
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -53,7 +66,7 @@ public class PointOfInterestController extends HttpServlet {
         
         request.getSession().removeAttribute("weatherStations");
         request.getSession().removeAttribute("weatherStation");
-        
+        String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
         
         /*
@@ -66,46 +79,182 @@ public class PointOfInterestController extends HttpServlet {
         
         if(request.getServletPath().equals("/weatherStation"))
         {
-            // Decide if requsted view is list view or single view
-            String pointOfInterestId = request.getParameter("pointOfInterestId");
-            // List view
-            if(pointOfInterestId == null)
+            if(action == null)
             {
-                List<PointOfInterestWeatherStation> weatherStations;
-                if(user.isSuperUser()){
-                    weatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+                // Decide if requested view is list view or single view
+                String pointOfInterestId = request.getParameter("pointOfInterestId");
+                // List view
+                if(pointOfInterestId == null)
+                {
+                    List<PointOfInterestWeatherStation> weatherStations;
+                    if(user.isSuperUser()){
+                        weatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+                    }
+                    else
+                    {
+                        weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(user.getOrganizationId());
+                    }
+                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                    request.getSession().setAttribute("weatherStations", weatherStations);
+                    request.getRequestDispatcher("/weatherstationList.ftl").forward(request, response);
                 }
+                // Single view
                 else
                 {
-                    weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(user.getUserId());
+                    PointOfInterest weatherStation = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
+                    if(weatherStation instanceof PointOfInterestWeatherStation)
+                    {
+                        PointOfInterestWeatherStation stationWithDataSource = (PointOfInterestWeatherStation) weatherStation;
+                        request.getSession().setAttribute("weatherStation", stationWithDataSource);
+                    }
+                    else
+                    {
+                        request.getSession().setAttribute("weatherStation", weatherStation);
+                    }
+                    request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                    request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+
+                    request.getRequestDispatcher("/weatherstationView.ftl").forward(request, response);
+
                 }
-                request.getSession().setAttribute("weatherStations", weatherStations);
-                request.getRequestDispatcher("/weatherstationlist.ftl").forward(request, response);
             }
-            // Single view
-            else
+            else if(action.equals("newWeatherStationForm"))
             {
-                PointOfInterest weatherStation = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
-                if(weatherStation instanceof PointOfInterestWeatherStation)
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
-                    PointOfInterestWeatherStation stationWithDataSource = (PointOfInterestWeatherStation) weatherStation;
-                    request.getSession().setAttribute("weatherStation", stationWithDataSource);
+                    try
+                    {
+                        PointOfInterest weatherStation = new PointOfInterestWeatherStation();  
+                        request.getSession().setAttribute("weatherStation", weatherStation);
+                        request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                        request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
+                        request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                        request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                        request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
+                        request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        if(user.isSuperUser())
+                        {
+                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                        }
+                        request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
+                    }
+                    catch(NullPointerException | NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
                 }
                 else
                 {
-                    request.getSession().setAttribute("weatherStation", weatherStation);
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
-                request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
-                request.getSession().setAttribute("defaultTimeZoneId", TimeZone.getDefault().getID());
-                
-                // Dispatch to read or write view?
-                if(request.getPathInfo() != null && request.getPathInfo().equals("/edit"))
+            }
+            // Authorization: ORGANIZATION ADMIN or SUPERUSER
+            else if(action.equals("editWeatherStationForm"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
-                    request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
+                    try
+                    {
+                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                        PointOfInterest weatherStation = em.find(PointOfInterest.class, pointOfInterestId);
+                        request.getSession().setAttribute("weatherStation", weatherStation);
+                        request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                        request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
+                        request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                        request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                        request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
+                        request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        if(user.isSuperUser())
+                        {
+                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                        }
+                        request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
+                    }
+                    catch(NullPointerException | NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
                 }
                 else
                 {
-                    request.getRequestDispatcher("/weatherstation.ftl").forward(request, response);
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+            // Authorization: ORGANIZATION ADMIN or SUPERUSER
+            else if(action.equals("weatherStationFormSubmit"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                        PointOfInterestWeatherStation weatherStation = pointOfInterestId > 0 ? 
+                                                                        em.find(PointOfInterestWeatherStation.class, pointOfInterestId) 
+                                                                        : new PointOfInterestWeatherStation();
+                        FormValidation formValidation = FormValidator.validateForm("weatherStationForm", request, getServletContext());
+                        if(formValidation.isValid())
+                        {
+                            // Set values
+                            weatherStation.setName(formValidation.getFormField("name").getWebValue());
+                            weatherStation.setAltitude(formValidation.getFormField("altitude").getValueAsDouble());
+                            weatherStation.setLongitude(formValidation.getFormField("location").getValueAsPointWGS84().getX());
+                            weatherStation.setLatitude(formValidation.getFormField("location").getValueAsPointWGS84().getY());
+                            weatherStation.setWeatherStationDataSourceId(em.find(WeatherStationDataSource.class, formValidation.getFormField("weatherStationDataSourceId").getValueAsInteger()));
+                            weatherStation.setWeatherStationRemoteId(formValidation.getFormField("weatherStationRemoteId").getWebValue());
+                            weatherStation.setTimeZone(formValidation.getFormField("timeZone").getWebValue());
+                            weatherStation.setCountryCode(em.find(Country.class, formValidation.getFormField("countryCode").getWebValue()));
+                            if(weatherStation.getPointOfInterestType() == null)
+                            {
+                                weatherStation.setPointOfInterestType(em.find(PointOfInterestType.class, Globals.POI_TYPE_WEATHERSTATION));
+                            }
+                            // If userId is set from form, always update
+                            if(user.isSuperUser() && !formValidation.getFormField("userId").isEmpty())
+                            {
+                                weatherStation.setUserId(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
+                            }
+                            // If user is not set, use current user
+                            else if(weatherStation.getUserId() == null)
+                            {
+                                weatherStation.setUserId(user);
+                            }
+                            // Store
+                            weatherStation = SessionControllerGetter.getPointOfInterestBean().storeWeatherStation(weatherStation);
+                            
+                            // Redirect to form
+                            response.sendRedirect(new StringBuilder("http://")
+                                .append(ServletUtil.getServerName(request))
+                                .append("/weatherStation?action=editWeatherStationForm&pointOfInterestId=").append(weatherStation.getPointOfInterestId())
+                                .append("&messageKey=").append("weatherStationStored").toString()
+
+                            );
+                        }
+                        else
+                        {
+                            request.setAttribute("formValidation", formValidation);
+                            request.setAttribute("weatherStation", weatherStation);
+                            request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                            request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                            request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
+                            request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                            request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                            request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
+                            request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                            request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
+                        }
+                    }
+                    catch(NullPointerException | NumberFormatException | FormValidationException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
             }
         }

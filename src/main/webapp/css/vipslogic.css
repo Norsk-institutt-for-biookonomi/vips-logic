@@ -70,7 +70,7 @@ legend {
     display: block;
 }
 
-#observationFormMap{
+#observationFormMap, #weatherStationListMap, #weatherStationFormMap, #weatherStationViewMap{
     height: 400px;
     width: 100%;
 }

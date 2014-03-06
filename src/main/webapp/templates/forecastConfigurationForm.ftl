@@ -44,6 +44,7 @@
 	</script>
 </#macro>
 <#macro page_contents>
+	<p><a href="/forecastConfiguration" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1>${i18nBundle.viewForecastConfiguration}</h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
