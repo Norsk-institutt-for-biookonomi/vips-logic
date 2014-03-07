@@ -42,7 +42,8 @@
 		 <input type="text" class="form-control" placeholder="${i18nBundle.username}" name="username" size="15" autofocus/>
 		<input type="password" class="form-control" placeholder="${i18nBundle.password}" name="password" size="15"/>
 		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.login}</button>
-		<a href="/user?action=registerNewUserForm&userAuthenticationTypeId=1">${i18nBundle.registerNewUser}</a>
+		<a href="/user?action=registerNewUserForm&userAuthenticationTypeId=1">${i18nBundle.registerNewUser}</a><br/>
+		<a href="/user?action=resetPasswordRequestForm">${i18nBundle.forgottenPassword}</a>
 	</form>
 	<form class="form-signin" action="/loginsubmit" method="POST">
 		<input type="hidden" name="userAuthenticationTypeId" value="3"/>

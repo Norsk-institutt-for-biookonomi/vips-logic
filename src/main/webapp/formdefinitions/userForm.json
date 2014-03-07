@@ -59,6 +59,12 @@
             "dataType" : "STRING",
             "required" : false,
             "maxLength" : 2147483647
+        },
+        {
+            "name" : "username",
+            "dataType" : "STRING",
+            "required" : false,
+            "maxLength" : 2047
         }
         
     ]

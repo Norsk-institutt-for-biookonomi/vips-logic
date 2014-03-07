@@ -20,6 +20,7 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -28,6 +29,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -43,6 +46,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "UserAuthentication.findByUserId", query = "SELECT u FROM UserAuthentication u WHERE u.userAuthenticationPK.userId = :userId"),
     @NamedQuery(name = "UserAuthentication.findByUserAuthenticationTypeId", query = "SELECT u FROM UserAuthentication u WHERE u.userAuthenticationPK.userAuthenticationTypeId = :userAuthenticationTypeId"),
     @NamedQuery(name = "UserAuthentication.findByUsername", query = "SELECT u FROM UserAuthentication u WHERE u.username = :username"),
+    @NamedQuery(name = "UserAuthentication.findByPasswordResetCode", query = "SELECT u FROM UserAuthentication u WHERE u.passwordResetCode = :passwordResetCode"),
     @NamedQuery(name = "UserAuthentication.findByUsernameAndPassword", query = "SELECT u FROM UserAuthentication u WHERE u.username = :username AND u.password = :password"),
     @NamedQuery(name = "UserAuthentication.findByPassword", query = "SELECT u FROM UserAuthentication u WHERE u.password = :password")})
 public class UserAuthentication implements Serializable {
@@ -55,6 +59,12 @@ public class UserAuthentication implements Serializable {
     @Size(max = 63)
     @Column(name = "password")
     private String password;
+    @Size(max = 255)
+    @Column(name = "password_reset_code")
+    private String passwordResetCode;
+    @Column(name = "password_reset_code_creation_time")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date passwordResetCodeCreationTime;
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     @ManyToOne(optional = false)
     private VipsLogicUser vipsLogicUser;
@@ -136,6 +146,34 @@ public class UserAuthentication implements Serializable {
     @Override
     public String toString() {
         return "no.bioforsk.vips.logic.entity.UserAuthentication[ userAuthenticationPK=" + userAuthenticationPK + " ]";
+    }
+
+    /**
+     * @return the passwordResetCode
+     */
+    public String getPasswordResetCode() {
+        return passwordResetCode;
+    }
+
+    /**
+     * @param passwordResetCode the passwordResetCode to set
+     */
+    public void setPasswordResetCode(String passwordResetCode) {
+        this.passwordResetCode = passwordResetCode;
+    }
+
+    /**
+     * @return the passwordResetCodeCreationTime
+     */
+    public Date getPasswordResetCodeCreationTime() {
+        return passwordResetCodeCreationTime;
+    }
+
+    /**
+     * @param passwordResetCodeCreationTime the passwordResetCodeCreationTime to set
+     */
+    public void setPasswordResetCodeCreationTime(Date passwordResetCodeCreationTime) {
+        this.passwordResetCodeCreationTime = passwordResetCodeCreationTime;
     }
     
 }

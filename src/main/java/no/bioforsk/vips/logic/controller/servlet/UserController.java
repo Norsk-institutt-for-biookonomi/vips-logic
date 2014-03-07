@@ -20,12 +20,17 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -41,6 +46,7 @@ import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.StringUtils;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
@@ -99,7 +105,7 @@ public class UserController extends HttpServlet {
       
         }
         
-        // View one user
+        // View and edit one user
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("viewUser"))
         {
@@ -137,6 +143,32 @@ public class UserController extends HttpServlet {
             
         }
         
+        // Create a new user
+        // Authorization: SUPERUSERS and ORGANIZATION ADMINS
+        else if(action.equals("newUser"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                
+                VipsLogicUser viewUser = new VipsLogicUser();
+                viewUser.setOrganizationId(user.getOrganizationId());
+
+                request.setAttribute("viewUser", viewUser);
+                request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                request.setAttribute("userStatusIds", userBean.getUserStatusIds());
+                request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
+                // In case this is a redirect from another action, and a message should be forwarded
+                request.setAttribute("messageKey", request.getParameter("messageKey")); 
+                request.getRequestDispatcher("/userForm.ftl").forward(request, response);
+
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+            
+        }
+        
         // Store information about user
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("userFormSubmit"))
@@ -146,16 +178,35 @@ public class UserController extends HttpServlet {
                 try
                 {
                     Integer userId = Integer.valueOf(request.getParameter("userId"));
-                    VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                    VipsLogicUser viewUser = userId > 0 ? em.find(VipsLogicUser.class, userId) : new VipsLogicUser();
                     // Only superusers may view users from different organizations
-                    if(! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
+                    if(userId > 0 && ! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
                     {
                         response.sendError(403); // HTTP Forbidden
                     }
                     else
                     {
+                        
                         // Standard form validation
                         FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
+                        // If new user: check if username already exists
+                        if(userId <= 0)
+                        {
+                            try
+                            {
+                                FormField username = formValidation.getFormField("username");
+                                UserAuthentication authTest = em.createNamedQuery("UserAuthentication.findByUsername",UserAuthentication.class).setParameter("username", username.getWebValue()).getSingleResult();
+                                if(authTest != null)
+                                {
+                                    username.setValid(false);
+                                    username.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "usernameExists"), formValidation.getFormField("username").getWebValue()));
+                                }
+                            }
+                            catch(NoResultException ex)
+                            {
+                                // All is well, proceed...
+                            }
+                        }
                         if(formValidation.isValid())
                         {
                             viewUser.setEmail(formValidation.getFormField("email").getWebValue());
@@ -180,11 +231,36 @@ public class UserController extends HttpServlet {
                                 }
                                 viewUser.setVipsLogicRoles(vipsLogicRoles);
                             }
-                            userBean.storeUser(viewUser);
-                            SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
-                            // Add confirmation message
-                            request.setAttribute("messageKey", "userUpdated");
-                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append("userUpdated").toString());
+                            String messageKey;
+                            if(userId > 0)
+                            {
+                                userBean.storeUser(viewUser);
+                                SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                                // Add confirmation message
+                                messageKey = "userUpdated";
+                            }
+                            else
+                            {
+                                // Create authentication for user
+                                UserAuthentication authentication = new UserAuthentication();
+                                authentication.setUserAuthenticationType(em.find(UserAuthenticationType.class, UserAuthenticationType.TYPE_PASSWORD));
+                                authentication.setUsername(formValidation.getFormField("username").getWebValue());
+                                String password = userBean.generateValidPassword();
+                                authentication.setPassword(userBean.getMD5EncryptedString(password));
+                                // Store the user for the first time
+                                viewUser = userBean.storeUserFirstTime(viewUser, authentication);
+                                // Send password to user's email address
+                                userBean.sendUsernameAndPasswordToUser(viewUser, 
+                                                                authentication.getUsername(),
+                                                                password,
+                                                                SessionLocaleUtil.getI18nBundle(request),
+                                                                ServletUtil.getServerName(request)
+                                                              );
+                                // Add confirmation message
+                                messageKey = "userCreatedAndInformed";
+                            }
+                            
+                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append(messageKey).toString());
                         }
                         else
                         {
@@ -413,7 +489,124 @@ public class UserController extends HttpServlet {
             }
 
         }
-        
+        // Type email address to get a link to resetting password
+        else if(action.equals("resetPasswordRequestForm"))
+        {
+            request.getRequestDispatcher("/resetPasswordRequestForm.ftl").forward(request, response);
+        }
+        // Treating request to get a link to resetting password
+        else if(action.equals("resetPasswordRequestFormSubmit"))
+        {
+            try
+            {
+                FormValidation formValidation = FormValidator.validateForm("resetPasswordRequestForm",
+                                                    request,getServletContext()
+                                                );
+                if(formValidation.isValid())
+                {
+                    try
+                    {
+                        String email = formValidation.getFormField("email").getWebValue();
+                        // Check that this email address exists in the system
+                        VipsLogicUser resetPasswordUser = em.createNamedQuery("VipsLogicUser.findByEmail", VipsLogicUser.class)
+                                                    .setParameter("email", email)
+                                                    .getSingleResult();
+                        // Create password reset code and send to user
+                        userBean.createPasswordResetCodeAndSendToUser(resetPasswordUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                        
+                        // Show login page
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?messageKey=").append("resetPasswordRequestAccepted").toString());
+                    }
+                    catch(NoResultException | NonUniqueResultException ex)
+                    {
+                        
+                        request.setAttribute("errorMessageKey", 
+                                                (ex instanceof NoResultException ? 
+                                                        "emailNotRegistered" :
+                                                        (ex instanceof NonUniqueResultException ?
+                                                            "emailNotUnique":
+                                                            null
+                                                        )
+                                                 )
+                        );
+                        request.getRequestDispatcher("/resetPasswordRequestForm.ftl").forward(request, response);
+                    }
+                }
+                else
+                {
+                    // Send validation message back to form
+                    request.setAttribute("formValidation", formValidation);
+                    request.getRequestDispatcher("/resetPasswordRequestForm.ftl").forward(request, response);
+                }
+            }
+            catch(FormValidationException ex)
+            {
+                ex.printStackTrace();
+            }
+        }
+        else if(action.equals("resetPassword"))
+        {
+            String passwordResetCode = request.getParameter("passwordResetCode");
+            try
+            {
+                UserAuthentication auth = em.createNamedQuery("UserAuthentication.findByPasswordResetCode", UserAuthentication.class)
+                                            .setParameter("passwordResetCode", passwordResetCode)
+                                            .getSingleResult();
+                // You have 24 hours from reset request to actually doing this
+                Date now = new Date();
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(now);
+                cal.add(Calendar.DATE, -1);
+                if(auth.getPasswordResetCodeCreationTime().compareTo(cal.getTime()) < 0)
+                {
+                    // Too late, redirect to login page with error message
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeExpired").toString());
+                }
+                else
+                {
+                    request.setAttribute("passwordResetCode",passwordResetCode);
+                    request.getRequestDispatcher("/resetPasswordForm.ftl").forward(request, response);
+                }
+            }
+            catch(NoResultException ex)
+            {
+                // Too late, redirect to login page with error message
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeNotFound").toString());
+            }
+        }
+        else if(action.equals("resetPasswordFormSubmit"))
+        {
+            String passwordResetCode = request.getParameter("passwordResetCode");
+            try
+            {
+                UserAuthentication auth = em.createNamedQuery("UserAuthentication.findByPasswordResetCode", UserAuthentication.class)
+                                            .setParameter("passwordResetCode", passwordResetCode)
+                                            .getSingleResult();
+                // You have 24 hours from reset request to actually doing this
+                Date now = new Date();
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(now);
+                cal.add(Calendar.DATE, -1);
+                if(auth.getPasswordResetCodeCreationTime().compareTo(cal.getTime()) < 0)
+                {
+                    // Too late, redirect to login page with error message
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeExpired").toString());
+                }
+                else
+                {
+                    auth.setPasswordResetCode(null);
+                    auth.setPasswordResetCodeCreationTime(null);
+                    auth.setPassword(userBean.getMD5EncryptedString(request.getParameter("password")));
+                    userBean.storeUserAuthentication(auth);
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?messageKey=").append("passwordResetSuccess").toString());
+                }
+            }
+            catch(NoResultException ex)
+            {
+                // Too late, redirect to login page with error message
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeNotFound").toString());
+            }
+        }
         
     }
 

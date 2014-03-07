@@ -20,12 +20,14 @@
 package no.bioforsk.vips.logic.controller.session;
 
 import edu.vt.middleware.password.CharacterCharacteristicsRule;
+import edu.vt.middleware.password.CharacterRule;
 import edu.vt.middleware.password.DigitCharacterRule;
 import edu.vt.middleware.password.LengthRule;
 import edu.vt.middleware.password.LowercaseCharacterRule;
 import edu.vt.middleware.password.MessageResolver;
 import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;
+import edu.vt.middleware.password.PasswordGenerator;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.Rule;
 import edu.vt.middleware.password.RuleResult;
@@ -35,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -128,14 +131,14 @@ public class UserBean {
         return null;
     }
     
-    public void storeUserFirstTime(VipsLogicUser user,UserAuthentication auth)
+    public VipsLogicUser storeUserFirstTime(VipsLogicUser user,UserAuthentication auth)
     {
         em.persist(user);
         auth.setVipsLogicUser(user);
         UserAuthenticationPK pk = new UserAuthenticationPK(user.getUserId(), auth.getUserAuthenticationType().getUserAuthenticationTypeId());
         auth.setUserAuthenticationPK(pk);
         em.persist(auth);
-        
+        return user;
     }
     
     public void sendUserEmailVerification(VipsLogicUser user, ResourceBundle i18nBundle, String serverName)
@@ -234,7 +237,7 @@ public class UserBean {
             validator = new PasswordValidator(resolver, this.getDefaultPasswordValidatorRuleList());
         }
         // Something went wrong when attempting to get localized error messages. Skip that.
-        catch(IOException ex)
+        catch(IOException | NullPointerException ex)
         {
             validator = new PasswordValidator(this.getDefaultPasswordValidatorRuleList());
         }
@@ -254,6 +257,16 @@ public class UserBean {
             }
             throw new PasswordValidationException(errorMsg.toString());
         }
+    }
+    
+    /**
+     * 
+     * @return a password that should meet all the validation demands
+     */
+    public String generateValidPassword()
+    {
+        PasswordGenerator generator = new PasswordGenerator();
+        return generator.generatePassword(10, this.getDefaultCharacterRules());
     }
     
     /**
@@ -290,14 +303,9 @@ public class UserBean {
 
         // control allowed characters
         CharacterCharacteristicsRule charRule = new CharacterCharacteristicsRule();
-        // require at least 1 digit in passwords
-        charRule.getRules().add(new DigitCharacterRule(1));
-        // require at least 1 upper case char
-        charRule.getRules().add(new UppercaseCharacterRule(1));
-        // require at least 1 lower case char
-        charRule.getRules().add(new LowercaseCharacterRule(1));
-        // require all the previous rules be met
-        charRule.setNumberOfCharacteristics(3);
+        charRule.setRules(this.getDefaultCharacterRules());
+        // require all the rules be met
+        charRule.setNumberOfCharacteristics(charRule.getRules().size());
         
         // group all rules together in a List
         List<Rule> ruleList = new ArrayList<>();
@@ -306,6 +314,22 @@ public class UserBean {
         ruleList.add(charRule);
 
         return ruleList;
+    }
+    
+    /**
+     * 
+     * @return 
+     */
+    private List<CharacterRule> getDefaultCharacterRules()
+    {
+        List<CharacterRule> defaultCharacterRules = new ArrayList<>();
+        // require at least 1 digit in passwords
+        defaultCharacterRules.add(new DigitCharacterRule(1));
+        // require at least 1 upper case char
+        defaultCharacterRules.add(new UppercaseCharacterRule(1));
+        // require at least 1 lower case char
+        defaultCharacterRules.add(new LowercaseCharacterRule(1));
+        return defaultCharacterRules;
     }
     
     public List<VipsLogicUser> getAllUsers()
@@ -376,7 +400,7 @@ public class UserBean {
     }
 
     public void storeUserAuthentication(UserAuthentication userAuth) {
-        em.persist(userAuth);
+        em.merge(userAuth);
     }
 
     public void informAdminOfConfirmedEmail(VipsLogicUser confirmUser, ResourceBundle i18nBundle, String serverName ) {
@@ -434,5 +458,46 @@ public class UserBean {
         return em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
                 .setParameter("organizationId", em.find(Organization.class, organizationId))
                 .getResultList();
+    }
+
+    public void sendUsernameAndPasswordToUser(VipsLogicUser viewUser, String username, String password, ResourceBundle i18nBundle, String serverName) {
+
+        String subject = i18nBundle.getString("sendUsernameAndPasswordToUserSubject");
+        String body = MessageFormat.format(i18nBundle.getString("sendUsernameAndPasswordToUserBody"), username, password, serverName);
+        
+        // Send email
+        String smtpServer = System.getProperty("no.bioforsk.vips.logic.SMTP_SERVER");
+        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+        mailSender.sendMail("noreply@" + serverName, viewUser.getEmail(), subject, body);
+    }
+
+    /**
+     * 
+     * @param resetPasswordUser
+     * @param i18nBundle
+     * @param serverName
+     * @return NULL or empty string if all is OK, errorMessage if not
+     */
+    public String createPasswordResetCodeAndSendToUser(VipsLogicUser resetPasswordUser, ResourceBundle i18nBundle, String serverName) {
+        resetPasswordUser = em.merge(resetPasswordUser);
+        String resetCode = StringUtils.generateRandomAlphanumericString(30);
+        UserAuthentication auth = resetPasswordUser.getPasswordAuthentication();
+        if(auth == null)
+        {
+            return i18nBundle.getString("missingUsernameAndPassword");
+        }
+        
+        auth.setPasswordResetCode(resetCode);
+        auth.setPasswordResetCodeCreationTime(new Date());
+        
+        String subject = i18nBundle.getString("createPasswordResetCodeAndSendToUserSubject");
+        String body = MessageFormat.format(i18nBundle.getString("createPasswordResetCodeAndSendToUserBody"), 
+                "http://" + serverName + "/user?action=resetPassword&passwordResetCode=" + resetCode);
+        
+        // Send email
+        String smtpServer = System.getProperty("no.bioforsk.vips.logic.SMTP_SERVER");
+        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+        mailSender.sendMail("noreply@" + serverName, resetPasswordUser.getEmail(), subject, body);
+        return null;
     }
 }

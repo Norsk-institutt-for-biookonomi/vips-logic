@@ -195,6 +195,8 @@ public class LoginController extends HttpServlet {
         // No login attempt. Show form
         else
         {
+            request.setAttribute("messageKey", request.getParameter("messageKey"));
+            request.setAttribute("errorMessageKey", request.getParameter("errorMessageKey"));
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
     }

@@ -73,6 +73,9 @@ public class Organization implements Serializable {
     @Size(max = 63)
     @Column(name = "postal_code")
     private String postalCode;
+    @Size(max = 255)
+    @Column(name = "city")
+    private String city;
     @Column(name = "default_map_zoom")
     private Integer defaultMapZoom;
     @Column(name = "default_time_zone")
@@ -257,6 +260,20 @@ public class Organization implements Serializable {
      */
     public void setDefaultTimeZone(String defaultTimeZone) {
         this.defaultTimeZone = defaultTimeZone;
+    }
+
+    /**
+     * @return the city
+     */
+    public String getCity() {
+        return city;
+    }
+
+    /**
+     * @param city the city to set
+     */
+    public void setCity(String city) {
+        this.city = city;
     }
 
 }

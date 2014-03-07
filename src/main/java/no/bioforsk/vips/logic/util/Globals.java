@@ -35,6 +35,7 @@ public class Globals {
         "/images",
         "/js",
         "/login",
+        "/formdefinitions",
         "/remoteloginsuccess",
         "/css",
         "/403",

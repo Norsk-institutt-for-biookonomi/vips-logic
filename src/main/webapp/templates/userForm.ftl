@@ -28,7 +28,7 @@
 </#macro>
 <#macro page_contents>
 	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
-        <h1>${viewUser.firstName} ${viewUser.lastName}</h1>
+        <h1><#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
 	</div>
@@ -37,21 +37,21 @@
 	</#if>
         <#assign formId = "userForm">
         <form id="${formId}" role="form" action="/user?action=userFormSubmit" method="POST" onsubmit="return validateForm(this);">
-          <input type="hidden" name="userId" value="${viewUser.userId}"/>
+          <input type="hidden" name="userId" value="${viewUser.userId!"-1"}"/>
 	  <!-- Authentication info should be dealt with outside this form -->
 	  <div class="form-group">
 	    <label for="email">${i18nBundle.email}</label>
-	    <input type="email" class="form-control" name="email" placeholder="${i18nBundle.email}" value="${viewUser.email}" onblur="validateField(this);" />
+	    <input type="email" class="form-control" name="email" placeholder="${i18nBundle.email}" value="${viewUser.email!""}" onblur="validateField(this);" />
 	    <span class="help-block" id="${formId}_email_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="firstName">${i18nBundle.firstName}</label>
-	    <input type="text" class="form-control" name="firstName" placeholder="${i18nBundle.firstName}" <#if viewUser.remarks?has_content>value="${viewUser.firstName}"</#if> onblur="validateField(this);"/>
+	    <input type="text" class="form-control" name="firstName" placeholder="${i18nBundle.firstName}" value="${viewUser.firstName!""}" onblur="validateField(this);"/>
 	    <span class="help-block" id="${formId}_firstName_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="lastName">${i18nBundle.lastName}</label>
-	    <input type="text" class="form-control" name="lastName" placeholder="${i18nBundle.lastName}" value="${viewUser.lastName}" onblur="validateField(this);"/>
+	    <input type="text" class="form-control" name="lastName" placeholder="${i18nBundle.lastName}" value="${viewUser.lastName!""}" onblur="validateField(this);"/>
 	    <span class="help-block" id="${formId}_lastName_validation"></span>
 	  </div>
 	  <div class="form-group">
@@ -85,7 +85,7 @@
 	    <select class="form-control" name="userStatusId" onblur="validateField(this);">
 	    <#list userStatusIds as userStatusId>
 	    	<option value="${userStatusId}"
-	    		<#if viewUser.userStatusId == userStatusId>
+	    		<#if viewUser.userStatusId?has_content && viewUser.userStatusId == userStatusId>
 				selected="selected"
 			</#if>
 		>${i18nBundle["userStatus_" + userStatusId]}</option>
@@ -95,15 +95,25 @@
 	  </div>
 	  <div class="form-group">
 	    <label>${i18nBundle.approvalApplication}</label>
-	    <p><#if viewUser.approvalApplication?has_content>${viewUser.approvalApplication}</#if></p>
+	    <p>${viewUser.approvalApplication!""}</p>
 	  </div>
 	  <div class="form-group">
 	  	<label for="remarks">${i18nBundle.remarks}</label>
 	  	<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if viewUser.remarks?has_content>${viewUser.remarks}</#if></textarea>
 	  	<span class="help-block" id="${formId}_remarks_validation"></span>
 	  </div>
+	  <#if ! viewUser.userId?has_content>
+	  <div>${i18nBundle.newUserCredentialsHelpText}</div>
+	  <div class="form-group">
+	    <label for="username">${i18nBundle.username}</label>
+	    <input type="text" class="form-control" name="username" placeholder="${i18nBundle.username}" value="${viewUser.firstName!""}" onblur="validateField(this);"/>
+	    <span class="help-block" id="${formId}_username_validation"></span>
+	  </div>
+	  </#if>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
+	  <#if viewUser.userId?has_content>
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/user?action=deleteUser&userId=${viewUser.userId}';}">${i18nBundle.delete}</button>
+	  </#if>
 	</form>
 
 </#macro>

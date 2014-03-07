@@ -20,6 +20,9 @@
 </#macro>
 <#macro page_contents>
         <h1>${i18nBundle.users}</h1>
+		<p>
+		<a href="/user?action=newUser" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
+	</p>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
