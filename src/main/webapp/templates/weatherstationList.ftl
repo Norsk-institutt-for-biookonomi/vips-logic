@@ -27,7 +27,7 @@
 	<script type="text/javascript" src="/js/weatherStationListMap.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
-			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom});
+			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},${user.organizationId.organizationId});
 		});
 	</script>
 </#macro>

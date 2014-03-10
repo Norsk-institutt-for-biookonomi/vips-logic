@@ -26,9 +26,11 @@
  * 
  * @param {ol.Coordinate} center - coordinates for the map's center (WGS84)
  * @param {int} zoomLevel - the zoom level (1-15, 1 is world wide view, 15 is greatest zoom)
+ * @param {int} organizationId
+ * @param {int} highlightWeatherStationId
  * @returns {void}
  */
-function initMap(center, zoomLevel, highlightWeatherStationId)
+function initMap(center, zoomLevel, organizationId, highlightWeatherStationId)
 {
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
@@ -44,7 +46,7 @@ function initMap(center, zoomLevel, highlightWeatherStationId)
     // The weather station layer
     var weatherStationLayer = new ol.layer.Vector({
     source: new ol.source.KML({
-        url: "/rest/weatherstations/kml/2" + (highlightWeatherStationId !== null ? "?highlightWeatherStationId=" + highlightWeatherStationId : ""),
+        url: "/rest/weatherstations/kml/" + organizationId + (highlightWeatherStationId !== null ? "?highlightWeatherStationId=" + highlightWeatherStationId : ""),
             projection: "EPSG:3857"
       })
     });
