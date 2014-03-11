@@ -42,7 +42,7 @@
         <h1>${i18nBundle.configureAndRunManually}</h1>
         <h2>${vipsLogicTask.getName(currentLocale)}</h2>
         <form id="runTaskManuallyForm" role="form" action="/scheduling?action=runTaskManuallyFormSubmit" method="POST" onsubmit2="return false;" onsubmit="try{ return validateForm(this);}catch(err){alert(err);return false;}">
-        ${vipsLogicTaskFormFields}
+        ${vipsLogicTaskFormFields!""}
         <!--button type="button" onclick="console.log(validateForm(document.getElementById('runTaskManuallyForm')));">Validate</button-->
         <button type="submit" class="btn btn-default">${i18nBundle.runTask}</button>
 	<button type="button" class="btn btn-warning" onclick="window.location.href='/scheduling?action=viewAllTasks'">${i18nBundle.cancel}</button>

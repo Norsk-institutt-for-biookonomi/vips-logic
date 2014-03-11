@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Bioforsk <http://www.bioforsk.no/>. 
+ * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -24,17 +24,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import no.bioforsk.vips.logic.scheduling.tasks.RunAllForecastConfigurationsTask;
+import no.bioforsk.vips.logic.scheduling.tasks.UpdateModelInformationTask;
 
 /**
  * Provides the requested VipsLogicTask
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class VipsLogicTaskFactory {
 
     public static final int RUN_ALL_FORECAST_CONFIGURATIONS_TASK = 1;
+    public static final int UPDATE_MODEL_INFORMATION_TASK = 2;
     
-    private final static int[] ALL_TASK_IDS = {1};
+    private final static int[] ALL_TASK_IDS = {1,2};
     
     private static List<VipsLogicTask> allTasksList;
     private static Map<String,VipsLogicTask> allTasksMap;
@@ -42,7 +44,7 @@ public class VipsLogicTaskFactory {
     /**
      * 
      * @param factoryId
-     * @return 
+     * @return the requested task
      */
     public static VipsLogicTask createVipsLogicTask(Integer factoryId)
     {
@@ -51,6 +53,9 @@ public class VipsLogicTaskFactory {
         {
             case RUN_ALL_FORECAST_CONFIGURATIONS_TASK:
                 retVal =  new RunAllForecastConfigurationsTask();
+                break;
+            case UPDATE_MODEL_INFORMATION_TASK:
+                retVal =  new UpdateModelInformationTask();
                 break;
             default:
                 return null;

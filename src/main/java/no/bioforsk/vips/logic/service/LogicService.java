@@ -64,15 +64,6 @@ public class LogicService {
     private HttpRequest httpRequest;
     @Context
     private HttpServletRequest httpServletRequest;
-
-    @GET
-    @Path("testforecastresults")
-    @Produces("application/json;charset=UTF-8")
-    public Response testForecastResults()
-    {
-        List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults();
-        return Response.ok().entity(results).build();
-    }
     
     @GET
     @Path("forecastresults/{forecastConfigurationId}")
@@ -153,11 +144,11 @@ public class LogicService {
     }
     
     @GET
-    @Path("forecastresults/aggregate")
+    @Path("forecastresults/aggregate/{organizationId}")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getForecastResultsAggregate()
+    public Response getForecastResultsAggregate(@PathParam("organizationId") Integer organizationId)
     {
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationId, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
             return Response.ok().entity(retVal).build();
     }
     

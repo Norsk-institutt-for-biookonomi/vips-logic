@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.ws.rs.client.Client;
@@ -337,7 +338,7 @@ public class ForecastBean {
         return resource;
     }
     
-    public Kml getForecastsAggregateKml(Date theDate, String serverName)
+    public Kml getForecastsAggregateKml(Integer organizationId, Date theDate, String serverName)
     {
         String iconPath = "http://" + serverName + "/public/images/";
         // Initialization
@@ -381,7 +382,7 @@ public class ForecastBean {
                     .withHref("http://www.vips-landbruk.no/graphics/dot_red.png");
 
         // Run through forecast configurations
-        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(theDate);
+        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, theDate);
         for(PointOfInterest poiWithAggregate:poisWithAggregate)
         {
             final Placemark placemark = document.createAndAddPlacemark()
@@ -411,9 +412,11 @@ public class ForecastBean {
      * @param theDate
      * @return 
      */
-    private List<PointOfInterest> getPointOfInterestForecastsAggregate(Date theDate) {
+    private List<PointOfInterest> getPointOfInterestForecastsAggregate(Integer organizationId, Date theDate) {
         // TODO: More precise gathering of POIs...
-        List<PointOfInterest> pois = em.createNamedQuery("PointOfInterest.findAll").getResultList();
+        List<PointOfInterest> pois = em.createNamedQuery("PointOfInterest.findByOrganizationId")
+                                .setParameter("organizationId", em.find(Organization.class, organizationId))
+                                .getResultList();
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         for(PointOfInterest poi: pois)
         {
@@ -457,7 +460,15 @@ public class ForecastBean {
                     ForecastResult.class
             );
             q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
-            results.add((ForecastResult)q.getSingleResult());
+            try
+            {
+                results.add((ForecastResult)q.getSingleResult());
+            }
+            catch(NoResultException ex)
+            {
+                // This means that the forecast exists, but that there have not been any valid forecast results created
+                // For example, it might be too early to start any calculation
+            }
         }
         
         retVal.put("forecastConfigurations", mappedForecastConfigurations);

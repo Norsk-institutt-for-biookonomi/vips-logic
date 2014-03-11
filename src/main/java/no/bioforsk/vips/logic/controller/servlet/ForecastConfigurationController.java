@@ -119,9 +119,18 @@ public class ForecastConfigurationController extends HttpServlet {
                     else
                     {
                         // TODO: More intelligent selection of locations, weather stations and users
-                        request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
-                        request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList());
-                        request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
+                        if(user.isSuperUser())
+                        {
+                            request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
+                            request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList());
+                            request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
+                        }
+                        else
+                        {
+                            request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
+                            request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
+                            request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
+                        }
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
                         request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));

@@ -77,6 +77,7 @@ public class ForecastConfiguration implements Serializable {
     @Column(name = "date_end")
     @Temporal(TemporalType.DATE)
     private Date dateEnd;
+    @JsonIgnore
     @JoinColumn(name = "vips_logic_user_id", referencedColumnName = "user_id")
     @ManyToOne(optional = false)
     private VipsLogicUser vipsLogicUserId;

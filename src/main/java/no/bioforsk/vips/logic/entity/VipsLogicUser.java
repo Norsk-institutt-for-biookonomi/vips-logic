@@ -333,6 +333,7 @@ public class VipsLogicUser implements Serializable {
     }
     
     @Transient
+    @JsonIgnore
     public UserAuthentication getPasswordAuthentication()
     {
         if(this.getUserAuthenticationSet() == null)
