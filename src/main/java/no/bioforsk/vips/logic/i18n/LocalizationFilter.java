@@ -19,8 +19,8 @@
 
 package no.bioforsk.vips.logic.i18n;
 
+import com.ibm.icu.util.ULocale;
 import java.io.IOException;
-import java.util.Locale;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -56,10 +56,10 @@ public class LocalizationFilter implements Filter{
             System.out.println(line);
         }*/
 
-        Locale currentLocale = SessionLocaleUtil.getCurrentLocale((HttpServletRequest)request);
-        Locale browserRequestedLocale = ((HttpServletRequest)request).getLocale();
+        ULocale currentLocale = SessionLocaleUtil.getCurrentLocale((HttpServletRequest)request);
+        ULocale browserRequestedLocale = ULocale.forLocale(((HttpServletRequest)request).getLocale());
         String userRequestedLocaleStr = ((HttpServletRequest)request).getParameter("userRequestedLocale");
-        Locale userRequestedLocale = userRequestedLocaleStr != null ? new Locale(userRequestedLocaleStr) : null;
+        ULocale userRequestedLocale = userRequestedLocaleStr != null ? new ULocale(userRequestedLocaleStr) : null;
         
         
         /* 
@@ -68,7 +68,7 @@ public class LocalizationFilter implements Filter{
          */ 
         if(currentLocale == null)
         {
-            SessionLocaleUtil.setCurrentLocale((HttpServletRequest)request, userRequestedLocale != null ? userRequestedLocale : browserRequestedLocale != null ? browserRequestedLocale : Locale.getDefault());   
+            SessionLocaleUtil.setCurrentLocale((HttpServletRequest)request, userRequestedLocale != null ? userRequestedLocale : browserRequestedLocale != null ? browserRequestedLocale : ULocale.getDefault());   
         }
         /*
          * If userRequestedLocale is set and differs from current, activate it
@@ -85,7 +85,7 @@ public class LocalizationFilter implements Filter{
         else if(browserRequestedLocale != null)
         {
             // We check if there exists a currentUserRequestedLocale
-            Locale currentUserRequestedLocale = (Locale) ((HttpServletRequest)request).getSession().getAttribute("currentUserRequestedLocale");
+            ULocale currentUserRequestedLocale = (ULocale) ((HttpServletRequest)request).getSession().getAttribute("currentUserRequestedLocale");
             // If there is no userRequested locale, browserrequested locale trumps currentLocale
             if(currentUserRequestedLocale == null)
             {

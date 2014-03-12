@@ -19,6 +19,7 @@
 
 package no.bioforsk.web.forms;
 
+import com.ibm.icu.util.ULocale;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -229,7 +230,7 @@ public class FormValidator {
             {
                 try
                 {
-                    SessionControllerGetter.getUserBean().isPasswordValid(field.getWebValue(), resourceBundle.getLocale());
+                    SessionControllerGetter.getUserBean().isPasswordValid(field.getWebValue(), ULocale.forLocale(resourceBundle.getLocale()));
                 }
                 catch(PasswordValidationException ex)
                 {

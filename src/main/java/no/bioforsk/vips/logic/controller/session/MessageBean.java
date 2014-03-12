@@ -20,7 +20,9 @@
 package no.bioforsk.vips.logic.controller.session;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -204,21 +206,98 @@ public class MessageBean {
         return em.find(Message.class, messageId);
     }
 
-    public List<Message> getMessageListWithTags(Integer organizationId, List<Integer> tagIds) {
-        Query q = em.createNativeQuery("SELECT * FROM message WHERE message_id IN ("
-                + "SELECT message_id FROM message_message_tag "
-                + "WHERE message_tag_id IN (:tagIds)"
-                + ")"
-                + "AND organization_id = :organizationId", Message.class);
-        q.setParameter("tagIds", tagIds);
-        q.setParameter("organizationId", organizationId);
+    public List<Message> getFilteredMessages(Integer organizationId, List<Integer> tagIds, Date datePubStart, Date datePubEnd) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("datePubStart", datePubStart);
+        parameters.put("datePubEnd", datePubEnd);
+        StringBuilder sql = new StringBuilder("SELECT * FROM message \n")
+                .append("WHERE date_pub BETWEEN :datePubStart AND :datePubEnd \n");
+        if(organizationId != null)
+        {
+            sql.append("AND organization_id = :organizationId \n");
+            parameters.put("organizationId", organizationId);
+        }
+        
+        if(tagIds != null && ! tagIds.isEmpty())
+        {
+            sql.append("AND message_id IN (")
+                    .append("   SELECT message_id FROM message_message_tag ")
+                    .append("   WHERE message_tag_id IN (:tagIds)")
+                    .append(")");
+            parameters.put("tagIds", tagIds);
+        }
+
+        Query q = em.createNativeQuery(sql.toString(), Message.class);
+        for(String key:parameters.keySet())
+        {
+            q.setParameter(key, parameters.get(key));
+        }
         return q.getResultList();
     }
     
+    public List<Message> getFilteredMessages(List<Integer> tagIds) {
+        Query q = em.createNativeQuery("SELECT * FROM message WHERE message_id IN ("
+                + "SELECT message_id FROM message_message_tag "
+                + "WHERE message_tag_id IN (:tagIds)"
+                + ")", Message.class);
+        q.setParameter("tagIds", tagIds);
+        return q.getResultList();
+    }
 
     public List<MessageTag> getMessageTagList() {
         return em.createNamedQuery("MessageTag.findAll", MessageTag.class).getResultList();
     }
+
+    
+    /**
+     * Based on given ids from form, returns a double set of tags:
+     * the ones selected (key="selected") and the ones not selected ("notSelected")
+     * @param parameterValues
+     * @return 
+     */
+    public Map<String, List<MessageTag>> getFilterMessageTags(List<Integer> selectedFilterMessageTagIds) {
+        List<MessageTag> allTags, selectedTags, notSelectedTags;
+        Map<String,List<MessageTag>> retVal = new HashMap<>();
+        allTags = em.createNamedQuery("MessageTag.findAll").getResultList();
+        if(selectedFilterMessageTagIds != null)
+        {
+            selectedTags = new ArrayList<>();
+            notSelectedTags = new ArrayList<>();
+            for(MessageTag messageTag:allTags)
+            {
+                if(selectedFilterMessageTagIds.contains(messageTag.getMessageTagId()))
+                {
+                    selectedTags.add(messageTag);
+                }
+                else
+                {
+                    notSelectedTags.add(messageTag);
+                }
+            }
+        }
+        else
+        {
+            selectedTags = allTags;
+            notSelectedTags = new ArrayList<>();
+        }
+        retVal.put("selected", selectedTags);
+        retVal.put("notSelected", notSelectedTags);
+        return retVal;
+    }
+
+    public List<Integer> getAllMessageTagIds() {
+        List<Integer> retVal = new ArrayList<>();
+        for(MessageTag tag:em.createNamedQuery("MessageTag.findAll", MessageTag.class).getResultList())
+        {
+            retVal.add(tag.getMessageTagId());
+        }
+        
+        return retVal;
+    }
+
+    
+
+    
     
 
 }

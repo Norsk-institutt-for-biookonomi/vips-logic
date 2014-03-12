@@ -19,10 +19,12 @@
 
 package no.bioforsk.vips.logic.service;
 
+import com.ibm.icu.util.Calendar;
+import com.ibm.icu.util.ULocale;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -121,7 +123,7 @@ public class LogicService {
     @Produces("text/plain;charset=UTF-8")
     public Response evaluatePassord(@PathParam("password") String password)
     {
-        Locale currentLocale = SessionLocaleUtil.getCurrentLocale(httpServletRequest);
+        ULocale currentLocale = SessionLocaleUtil.getCurrentLocale(httpServletRequest);
         try
         {
             boolean isPasswordValid = SessionControllerGetter.getUserBean().isPasswordValid(password, currentLocale);
@@ -204,7 +206,13 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
     {
-        List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getMessageListWithTags(organizationId, tagIds);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(SystemTime.getSystemTime());
+        cal.add(Calendar.YEAR, -1);
+        Date datePubStart = cal.getTime();
+        cal.add(Calendar.YEAR, 2);
+        Date datePubEnd = cal.getTime();
+        List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getFilteredMessages(organizationId, tagIds, datePubStart, datePubEnd);
         return Response.ok().entity(messageListWithTags).build();
     }
     

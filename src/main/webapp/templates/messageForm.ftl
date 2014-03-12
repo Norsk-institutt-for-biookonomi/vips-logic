@@ -110,11 +110,11 @@
 	    <select class="form-control" name="messageTagIds" onblur="validateField(this);" multiple="multiple">
 	    	<#if message.messageTagSet?has_content >
 			<#list message.messageTagSet as messageTag>
-				<option value="${messageTag.messageTagId}" selected="selected">${(messageTag.getLocalName(currentLocale))!messageTag.getDefaultTagName}</option>
+				<option value="${messageTag.messageTagId}" selected="selected">${(messageTag.getLocalName(currentLocale))!messageTag.defaultTagName}</option>
 			</#list>
 		</#if>
 		<#list unusedTags as messageTag>
-			<option value="${messageTag.messageTagId}">${(messageTag.getLocalName(currentLocale))!messageTag.getDefaultTagName}</option>
+			<option value="${messageTag.messageTagId}">${(messageTag.getLocalName(currentLocale))!messageTag.defaultTagName}</option>
 		</#list>
 	     </select>
 	</div>

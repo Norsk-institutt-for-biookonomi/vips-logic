@@ -19,6 +19,7 @@
 
 package no.bioforsk.vips.logic.controller.session;
 
+import com.ibm.icu.util.ULocale;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -141,7 +142,7 @@ public class OrganismBean {
         em.merge(organismExternalResource);
     }
 
-    public HierarchyCategoryLocaleNames getHierarchyCategoryNames(Locale locale) {
+    public HierarchyCategoryLocaleNames getHierarchyCategoryNames(ULocale locale) {
         Map<Integer, String> map = new HashMap<>();
         for(HierarchyCategory cat:em.createNamedQuery("HierarchyCategory.findAll", HierarchyCategory.class).getResultList())
         {
@@ -177,7 +178,7 @@ public class OrganismBean {
      * @param localName
      * @param currentLocale 
      */
-    public void storeOrganismLocalName(Organism organism, String localName, Locale currentLocale) {
+    public void storeOrganismLocalName(Organism organism, String localName, ULocale currentLocale) {
         
         if(organism.getOrganismLocale(currentLocale.getLanguage()) == null)
         {

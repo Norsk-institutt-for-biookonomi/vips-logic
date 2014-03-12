@@ -19,6 +19,7 @@
 
 package no.bioforsk.vips.logic.controller.session;
 
+import com.ibm.icu.util.ULocale;
 import edu.vt.middleware.password.CharacterCharacteristicsRule;
 import edu.vt.middleware.password.CharacterRule;
 import edu.vt.middleware.password.DigitCharacterRule;
@@ -218,7 +219,7 @@ public class UserBean {
         return em.createNamedQuery("Organization.findAll").getResultList();
     }
     
-    public boolean isPasswordValid(String password, Locale errorMessageLocale) throws PasswordValidationException
+    public boolean isPasswordValid(String password, ULocale errorMessageLocale) throws PasswordValidationException
     {
         // Check if we need localization of error messages
         String propertiesFileSuffix = "";

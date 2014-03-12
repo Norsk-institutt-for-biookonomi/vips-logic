@@ -20,11 +20,15 @@
 package no.bioforsk.web.forms;
 
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import no.bioforsk.vips.logic.util.Globals;
 import org.apache.commons.fileupload.FileItem;
 
 /**
@@ -64,5 +68,30 @@ public class FormUtil {
             }
         }
         return retVal;
+    }
+    
+    /**
+     * 
+     * @param parameterValues
+     * @return 
+     */
+    public static List<Integer> getIdsFromMultipleSelect(String[] parameterValues)
+    {
+        List<Integer> retVal = new ArrayList<>();
+        if(parameterValues != null)
+        {
+            for(String parameterValue:parameterValues)
+            {
+                retVal.add(Integer.valueOf(parameterValue));
+            }
+        }
+        
+        return retVal;
+    }
+    
+    public static Date getDate(String dateStr) throws ParseException
+    {
+        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
+        return format.parse(dateStr);
     }
 }

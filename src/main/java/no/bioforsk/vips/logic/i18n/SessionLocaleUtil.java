@@ -19,7 +19,7 @@
 
 package no.bioforsk.vips.logic.i18n;
 
-import java.util.Locale;
+import com.ibm.icu.util.ULocale;
 import java.util.ResourceBundle;
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,25 +33,25 @@ public class SessionLocaleUtil {
     public static String ATTRIBUTE_CURRENT_LOCALE = "currentLocale";
     
     // Default locale for application is en_US
-    public static Locale DEFAULT_LOCALE = Locale.US;
+    public static ULocale DEFAULT_LOCALE = ULocale.US;
 
     /**
      * What is the locale in the current session?
      * @param request
      * @return 
      */
-    public static Locale getCurrentLocale(HttpServletRequest request){
-        return (Locale) request.getSession().getAttribute(ATTRIBUTE_CURRENT_LOCALE);
+    public static ULocale getCurrentLocale(HttpServletRequest request){
+        return (ULocale) request.getSession().getAttribute(ATTRIBUTE_CURRENT_LOCALE);
     }
     /**
      * Sets the current locale
      * @param request
      * @param newLocale 
      */
-    public static void setCurrentLocale(HttpServletRequest request, Locale newLocale)
+    public static void setCurrentLocale(HttpServletRequest request, ULocale newLocale)
     {
         request.getSession().setAttribute(ATTRIBUTE_CURRENT_LOCALE, newLocale);
-        request.getSession().setAttribute("i18nBundle", ResourceBundle.getBundle("no.bioforsk.vips.logic.i18n.vipslogictexts",newLocale));
+        request.getSession().setAttribute("i18nBundle", ResourceBundle.getBundle("no.bioforsk.vips.logic.i18n.vipslogictexts",newLocale.toLocale()));
     }
     
     public static String getI18nText(HttpServletRequest request, String key)

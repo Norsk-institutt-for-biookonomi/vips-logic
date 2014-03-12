@@ -21,8 +21,14 @@ package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletContext;
@@ -36,6 +42,7 @@ import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.ExceptionUtil;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormUtil;
@@ -72,8 +79,76 @@ public class MessageController extends HttpServlet {
         // for everyone
         if(action == null)
         {
-            List<Message> messages = SessionControllerGetter.getMessageBean().getMessageList(user.getOrganizationId().getOrganizationId());
+            // Default date filter is one year back and one year ahead (related to SystemTime.getSystemTime())
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(SystemTime.getSystemTime());
+            cal.add(Calendar.YEAR, -1);
+            Date datePubStart = cal.getTime();
+            cal.add(Calendar.YEAR, 2);
+            Date datePubEnd = cal.getTime();
+            // Default tag filter is no tag filter
+            
+            List<Message> messages;
+            if(user.isSuperUser())
+            {
+                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(null,null,datePubStart, datePubEnd);
+            }
+            else
+            {
+                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(user.getOrganizationId().getOrganizationId(),null, datePubStart, datePubEnd);
+            }
             request.setAttribute("messages", messages);
+            request.setAttribute("selectedMessageTags", em.createNamedQuery("MessageTag.findAll", MessageTag.class).getResultList());
+            request.setAttribute("notSelectedMessageTags", new ArrayList<MessageTag>());
+            request.setAttribute("datePubStart", datePubStart);
+            request.setAttribute("datePubEnd", datePubEnd);
+            
+            // If this is a redirect from a controller, with a message to be passed on
+            request.setAttribute("messageKey", request.getParameter("messageKey"));
+            request.getRequestDispatcher("/messageList.ftl").forward(request, response);
+        }
+        else if(action.equals("filter"))
+        {
+            // Handling filters
+            // Message tags
+            // If no tags are selected, ALL tags are selected
+            List<Integer> selectedMessageTags = request.getParameterValues("filterMessageTags") != null ? 
+                                        FormUtil.getIdsFromMultipleSelect(request.getParameterValues("filterMessageTags"))
+                                        : SessionControllerGetter.getMessageBean().getAllMessageTagIds();
+            Map<String, List<MessageTag>> messageTags = SessionControllerGetter.getMessageBean()
+                    .getFilterMessageTags(selectedMessageTags);
+            request.setAttribute("selectedMessageTags", messageTags.get("selected"));
+            request.setAttribute("notSelectedMessageTags", messageTags.get("notSelected"));
+            
+            // Dates
+            Date datePubStart, datePubEnd;
+            try
+            {
+                datePubStart = FormUtil.getDate(request.getParameter("datePubStart"));
+                datePubEnd = FormUtil.getDate(request.getParameter("datePubEnd"));
+            }
+            catch(ParseException ex)
+            {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(SystemTime.getSystemTime());
+                cal.add(Calendar.YEAR, -1);
+                datePubStart = cal.getTime();
+                cal.add(Calendar.YEAR, 2);
+                datePubEnd = cal.getTime();
+            }
+            List<Message> messages;
+            if(user.isSuperUser())
+            {
+                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(null,selectedMessageTags, datePubStart, datePubEnd);
+            }
+            else
+            {
+                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(user.getOrganizationId().getOrganizationId(),selectedMessageTags, datePubStart, datePubEnd);
+            }
+            request.setAttribute("datePubStart", datePubStart);
+            request.setAttribute("datePubEnd", datePubEnd);
+            request.setAttribute("messages", messages);
+            
             // If this is a redirect from a controller, with a message to be passed on
             request.setAttribute("messageKey", request.getParameter("messageKey"));
             request.getRequestDispatcher("/messageList.ftl").forward(request, response);
