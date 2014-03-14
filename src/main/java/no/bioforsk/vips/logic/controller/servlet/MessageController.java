@@ -23,12 +23,10 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletContext;
@@ -300,6 +298,23 @@ public class MessageController extends HttpServlet {
             {
                 ex.printStackTrace();
                 response.sendError(500, ExceptionUtil.getStackTrace(ex));
+            }
+        }
+        else if(action.equals("deleteMessage"))
+        {
+            try
+            {
+                Integer messageId = Integer.valueOf(request.getParameter("messageId"));
+                SessionControllerGetter.getMessageBean().deleteMessage(messageId);
+                // Redirect to list
+                response.sendRedirect(new StringBuilder("http://")
+                        .append(ServletUtil.getServerName(request))
+                        .append("/message")
+                        .append("?messageKey=").append("messageDeleted").toString());
+            }
+            catch(NullPointerException | NumberFormatException ex)
+            {
+                
             }
         }
     } 

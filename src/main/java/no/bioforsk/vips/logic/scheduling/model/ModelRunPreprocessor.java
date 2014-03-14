@@ -60,7 +60,8 @@ public abstract class ModelRunPreprocessor {
         hourOutput.setTimeZone(timeZone);
         
         StringBuilder URL = new StringBuilder(fetchURI)
-                .append("&logIntervalId=").append(logIntervalId)
+                .append(fetchURI.indexOf("?")>= 0 ? "&" : "?")
+                .append("logIntervalId=").append(logIntervalId)
                 .append("&timeZone=").append(timeZone.getID())
                 .append("&startDate=").append(dateOutput.format(startTime))
                 .append("&startTime=").append(hourOutput.format(startTime))

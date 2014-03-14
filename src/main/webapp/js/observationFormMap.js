@@ -73,7 +73,7 @@ function initMap(center, zoomLevel, displayMarker)
     
     // Adding the mouse position control
     var mousePositionControl = new ol.control.MousePosition({
-		  coordinateFormat: ol.coordinate.createStringXY(4),
+		  coordinateFormat: ol.coordinate.createStringXY(8),
 		  projection: 'EPSG:4326',
 		  undefinedHTML: '&nbsp;'
 		});
@@ -88,7 +88,7 @@ function initMap(center, zoomLevel, displayMarker)
     
     function updateLocationPosition(coordinate)
     {
-        var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, map.getView().getProjection().getCode(), 'EPSG:4326'),4);
+        var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, map.getView().getProjection().getCode(), 'EPSG:4326'),8);
         // Set/move location pin
         marker.setPosition(coordinate);
         // Update form field "location"

@@ -297,7 +297,8 @@ public class SchedulingBean {
         taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
         // Build stacktrace
         StringBuilder stackTrace = new StringBuilder();
-        for(StackTraceElement element: throwable.getStackTrace())
+        stackTrace.append(throwable.getMessage());
+        for(StackTraceElement element: throwable.getCause().getStackTrace())
         {
             stackTrace.append(element.toString());
         }

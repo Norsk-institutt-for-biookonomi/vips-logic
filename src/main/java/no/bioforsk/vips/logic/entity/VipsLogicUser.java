@@ -305,7 +305,7 @@ public class VipsLogicUser implements Serializable {
     /**
      * @return the vipsCoreUserId
      */
-@Column(name = "vips_core_user_id")
+    @Column(name = "vips_core_user_id")
     public Integer getVipsCoreUserId() {
         return vipsCoreUserId;
     }
@@ -315,6 +315,12 @@ public class VipsLogicUser implements Serializable {
      */
     public void setVipsCoreUserId(Integer vipsCoreUserId) {
         this.vipsCoreUserId = vipsCoreUserId;
+    }
+    
+    @Transient
+    public Integer getVipsCoreUserIdWithFallback()
+    {
+        return this.getVipsCoreUserId() != null ? this.getVipsCoreUserId() : this.getOrganizationId().getDefaultVipsCoreUserId();
     }
 
     /**

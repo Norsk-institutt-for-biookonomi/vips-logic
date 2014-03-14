@@ -80,6 +80,8 @@ public class Organization implements Serializable {
     private Integer defaultMapZoom;
     @Column(name = "default_time_zone")
     private String defaultTimeZone;
+    @Column(name = "default_vips_core_user_id")
+    private Integer defaultVipsCoreUserId;
     @JsonIgnore
     @Type(type = "org.hibernate.spatial.GeometryType")
     @Column(name = "default_map_center", columnDefinition = "Geometry")
@@ -274,6 +276,20 @@ public class Organization implements Serializable {
      */
     public void setCity(String city) {
         this.city = city;
+    }
+
+    /**
+     * @return the defaultVipsCoreUserId
+     */
+    public Integer getDefaultVipsCoreUserId() {
+        return defaultVipsCoreUserId;
+    }
+
+    /**
+     * @param defaultVipsCoreUserId the defaultVipsCoreUserId to set
+     */
+    public void setDefaultVipsCoreUserId(Integer defaultVipsCoreUserId) {
+        this.defaultVipsCoreUserId = defaultVipsCoreUserId;
     }
 
 }

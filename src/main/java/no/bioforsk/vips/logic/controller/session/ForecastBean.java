@@ -309,7 +309,7 @@ public class ForecastBean {
                 loginInfo.put("password",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_PASSWORD"));
                 request.setLoginInfo(loginInfo);
                 // We tell which client this is (the db Id in VIPSCoreManager)
-                request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserId());
+                request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserIdWithFallback());
                 Response resp = this.getManagerResource().runModel(config.getModelId(), request);
                 if(resp.getStatus() == Response.Status.OK.getStatusCode())
                 {

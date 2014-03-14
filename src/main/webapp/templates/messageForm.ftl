@@ -171,6 +171,9 @@
 	    <span class="help-block" id="${formId}_messageIllustrationCaptionLocale_validation"></span>
 	</div>
         <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
+        <#if message.messageId?has_content && user.isSuperUser()>
+	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/message?action=deleteMessage&messageId=${message.messageId}';}">${i18nBundle.delete}</button>
+	  </#if>
         <a href="/message" class="btn btn-default" role="button">${i18nBundle.cancel}</a>
 	</form>
 </#macro>

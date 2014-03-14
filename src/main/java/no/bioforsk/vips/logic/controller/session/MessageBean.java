@@ -110,11 +110,21 @@ public class MessageBean {
         return message;
     }
 
+    /**
+     * 
+     * @param message
+     * @return [MESSAGE_ILLUSTRATION_PATH]/[ORGANIZATION_ID]/
+     */
+    private String getFilePath(Message message)
+    {
+        return System.getProperty("no.bioforsk.vips.logic.MESSAGE_ILLUSTRATION_PATH") + "/" 
+                        + message.getOrganizationId();
+    }
+    
     public Message storeMessageIllustration(Message message, FileItem item) throws Exception {
         // Create a candidate filename
         // [MESSAGE_ILLUSTRATION_PATH]/[ORGANIZATION_ID]/[MESSAGE_ID]_illustration.[fileExtension]
-        String filePath = System.getProperty("no.bioforsk.vips.logic.MESSAGE_ILLUSTRATION_PATH") + "/" 
-                        + message.getOrganizationId();
+        String filePath = this.getFilePath(message);
         String fileName = message.getMessageId() + "_illustration." + FilenameUtils.getExtension(item.getName());
         // Check availability, and adapt filename until available
         Integer fileNameSuffix = 1;
@@ -295,9 +305,20 @@ public class MessageBean {
         return retVal;
     }
 
-    
-
-    
-    
+    public void deleteMessage(Integer messageId) {
+        Message message = em.find(Message.class, messageId);
+        if(message != null)
+        {
+                // First: Delete the images
+                for(MessageIllustration ill : message.getMessageIllustrationSet())
+                {
+                    String fileName = ill.getMessageIllustrationPK().getFileName();
+                    File file = new File(this.getFilePath(message) + "/" + fileName);
+                    file.delete();
+                }
+                // Then: Delete the message
+                em.remove(message);
+        }
+    }
 
 }
