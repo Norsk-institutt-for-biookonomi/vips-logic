@@ -53,16 +53,23 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         // When do we start calculation ascospore maturity
         // Normally the date for "green tip"
         Date startDateAscosporeMaturity = null;
-        // Check to see if forecast has ended
-        Date dateEndWeatherData = configuration.getDateEnd().compareTo(SystemTime.getSystemTime()) < 0 ? configuration.getDateEnd() : SystemTime.getSystemTime();
-        // We need data until hour 23 of this date, need to fix that
+        // As long as forecast has not ended, try to get weather data 3 days into the future
         Calendar cal = Calendar.getInstance(timeZone);
+        cal.setTime(SystemTime.getSystemTime());
+        cal.add(Calendar.DATE, 3);
+        Date nearFuture = cal.getTime();
+        Date dateEndWeatherData = configuration.getDateEnd().compareTo(nearFuture) < 0 ? configuration.getDateEnd() : nearFuture;
+        
+        // We need data until hour 23 of this date, need to fix that
         cal.setTime(dateEndWeatherData);
         cal.set(Calendar.HOUR_OF_DAY, 23);
         dateEndWeatherData = cal.getTime();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(timeZone);
         try
-        {
-            startDateAscosporeMaturity = new SimpleDateFormat("yyyy-MM-dd").parse(configuration.getForecastModelConfigurationValue(APPLESCABM_START_DATE_ASCOSPORE_MATURITY));
+        {   
+            
+            startDateAscosporeMaturity = format.parse(configuration.getForecastModelConfigurationValue(APPLESCABM_START_DATE_ASCOSPORE_MATURITY));
         }catch (ParseException ex)
         {
             throw new PreprocessorException("Could not parse date for ascospore maturation date. Given string was: " + configuration.getForecastModelConfigurationValue(APPLESCABM_START_DATE_ASCOSPORE_MATURITY));
@@ -71,7 +78,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         
         // Use Jackson to parse JSON from server
         // Weather data collections
-        List<WeatherObservation> observations = getWeatherObservations(weatherStation.getDataFetchUri(), WeatherObservation.LOG_INTERVAL_ID_1H, new String[]{"TM", "RR", "BT"}, startDateAscosporeMaturity, dateEndWeatherData, timeZone);
+        List<WeatherObservation> observations = getWeatherObservations(weatherStation.getDataFetchUri(), WeatherObservation.LOG_INTERVAL_ID_1H, new String[]{"TM", "RR", "BT","UM"}, startDateAscosporeMaturity, dateEndWeatherData, timeZone);
         
         //System.out.println("Observations=" + observations.toString());
         
@@ -79,7 +86,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         ModelConfiguration retVal = new ModelConfiguration();
         retVal.setModelId(this.getModelId());
         
-        retVal.setConfigParameter("startDateAscosporeMaturity", new SimpleDateFormat("yyyy-MM-dd").format(startDateAscosporeMaturity));
+        retVal.setConfigParameter("startDateAscosporeMaturity", format.format(startDateAscosporeMaturity));
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
         return retVal;

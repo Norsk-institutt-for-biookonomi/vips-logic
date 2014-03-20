@@ -61,7 +61,6 @@ public class LocalizationFilter implements Filter{
         String userRequestedLocaleStr = ((HttpServletRequest)request).getParameter("userRequestedLocale");
         ULocale userRequestedLocale = userRequestedLocaleStr != null ? new ULocale(userRequestedLocaleStr) : null;
         
-        
         /* 
          * If currentLocale is not set, use either userRequestedLocale (1st priority) 
          * or browserRequestedLocale (2nd priority) or JVM's default locale (fallback)
