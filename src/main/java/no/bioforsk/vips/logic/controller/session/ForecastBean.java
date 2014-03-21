@@ -379,7 +379,7 @@ public class ForecastBean {
         .createAndSetIconStyle()
                 .withScale(0.55)
                 .createAndSetIcon()
-                    .withHref("http://www.vips-landbruk.no/graphics/dot_red.png");
+                    .withHref(iconPath + "dot_red.png");
 
         // Run through forecast configurations
         List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, theDate);
