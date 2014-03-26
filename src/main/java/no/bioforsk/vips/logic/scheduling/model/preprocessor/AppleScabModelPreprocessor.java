@@ -31,6 +31,7 @@ import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SystemTime;
+import no.bioforsk.vips.util.WeatherElements;
 
 /**
  * Gathers necessary data to run the Apple Scab Model (APPLESCABM).
@@ -78,7 +79,21 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         
         // Use Jackson to parse JSON from server
         // Weather data collections
-        List<WeatherObservation> observations = getWeatherObservations(weatherStation.getDataFetchUri(), WeatherObservation.LOG_INTERVAL_ID_1H, new String[]{"TM", "RR", "BT","UM"}, startDateAscosporeMaturity, dateEndWeatherData, timeZone);
+        List<WeatherObservation> observations = getWeatherObservations(
+                weatherStation.getDataFetchUri(), 
+                WeatherObservation.LOG_INTERVAL_ID_1H, 
+                new String[]{
+                    WeatherElements.TEMPERATURE_MEAN, 
+                    WeatherElements.PRECIPITATION,
+                    WeatherElements.LEAF_WETNESS,
+                    WeatherElements.RELATIVE_HUMIDITY,
+                    WeatherElements.GLOBAL_RADIATION,
+                    WeatherElements.WIND_SPEED_2M
+                }, 
+                startDateAscosporeMaturity, 
+                dateEndWeatherData, 
+                timeZone
+        );
         
         //System.out.println("Observations=" + observations.toString());
         
