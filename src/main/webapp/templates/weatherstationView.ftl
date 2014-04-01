@@ -95,6 +95,7 @@
 							<option value="BT">BT</option>
 							<option value="Q0">Q0</option>
 							<option value="UM">UM</option>
+							<option value="FM2">FM2</option>
 						</select>
 					</div>
 				</div>

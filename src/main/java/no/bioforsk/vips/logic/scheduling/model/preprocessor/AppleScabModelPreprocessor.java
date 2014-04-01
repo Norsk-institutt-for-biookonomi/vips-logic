@@ -18,20 +18,24 @@
  */
 package no.bioforsk.vips.logic.scheduling.model.preprocessor;
 
-import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SystemTime;
+import no.bioforsk.vips.model.ConfigValidationException;
 import no.bioforsk.vips.util.WeatherElements;
+import no.bioforsk.vips.util.WeatherObservationListException;
+import no.bioforsk.vips.util.WeatherUtil;
 
 /**
  * Gathers necessary data to run the Apple Scab Model (APPLESCABM).
@@ -95,6 +99,13 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                 timeZone
         );
         
+        try {
+            observations = validateAndSanitizeObservations(observations);
+        } catch (ConfigValidationException | WeatherObservationListException ex) {
+            ex.printStackTrace();
+            throw new PreprocessorException(ex.getMessage());
+        } 
+
         //System.out.println("Observations=" + observations.toString());
         
         // Create the complete model configuration object
@@ -111,5 +122,90 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
     public String getModelId() {
         return "APPLESCABM";
     }
+
+    /**
+     * Returns list of TM, RR and BT (possibly calculated, either in whole or partially)
+     * Should be complete series. 
+     * @param observations
+     * @return
+     * @throws ConfigValidationException
+     * @throws WeatherObservationListException 
+     */
+    private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations) throws ConfigValidationException, WeatherObservationListException {
+        // Now we need to validate and possibly try to fix the weather data
+        List<WeatherObservation> TM = new ArrayList<>();
+        List<WeatherObservation> RR = new ArrayList<>();
+        List<WeatherObservation> BT = new ArrayList<>();
+        List<WeatherObservation> UM = new ArrayList<>();
+        List<WeatherObservation> Q0 = new ArrayList<>();
+        List<WeatherObservation> FM2 = new ArrayList<>();
+        for(WeatherObservation o:observations)
+        {
+            switch(o.getElementMeasurementTypeId())
+            {
+                case WeatherElements.TEMPERATURE_MEAN:
+                    TM.add(o); 
+                    break;
+                case WeatherElements.PRECIPITATION:
+                    RR.add(o); 
+                    break;
+                case WeatherElements.LEAF_WETNESS:
+                    BT.add(o); 
+                    break;
+                case WeatherElements.RELATIVE_HUMIDITY:
+                    UM.add(o); 
+                    break;
+                case WeatherElements.GLOBAL_RADIATION:
+                    Q0.add(o);
+                    break;
+                case WeatherElements.WIND_SPEED_2M:
+                    FM2.add(o);
+                    break;
+                default:
+                    // Let it pass in silence 
+                    break;
+            }
+        }
+        WeatherUtil wUtil = new WeatherUtil();
+        // Problems with weather observations
+        
+        // Holes in series
+        TM = wUtil.checkForAndFixHourlyTimeSeriesHoles(TM);
+        RR = wUtil.checkForAndFixHourlyTimeSeriesHoles(RR);
+        BT = wUtil.checkForAndFixHourlyTimeSeriesHoles(BT);
+        
+        // Unequal length of lists
+        if  (        
+                RR.size() != TM.size()
+                || BT.size() != TM.size()
+                || RR.size() != TM.size()
+            )
+        {
+            UM = wUtil.checkForAndFixHourlyTimeSeriesHoles(UM);
+            // Fallback if missing leaf wetness: If we have relative humidity. leaf wetness may be calculated
+            if(BT.size() != TM.size() && UM.size() == TM.size())
+            {
+                Q0 = wUtil.checkForAndFixHourlyTimeSeriesHoles(Q0);
+                FM2 = wUtil.checkForAndFixHourlyTimeSeriesHoles(FM2);
+                BT = wUtil.calculateLeafWetnessHourSeriesBestEffort(BT,TM, RR, Q0, FM2, UM);
+                
+                if(BT.size() != TM.size())
+                {
+                   throw new ConfigValidationException("Missing leaf wetness data. Also, attempting to calculate leaf wetness from other weather parameters failed.");
+                }
+            }
+            else
+            {
+                throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() );
+            }
+        }
+        List<WeatherObservation> retVal = new ArrayList<>();
+        retVal.addAll(TM);
+        retVal.addAll(RR);
+        retVal.addAll(BT);
+        return retVal;
+    }
+
+    
 
 }

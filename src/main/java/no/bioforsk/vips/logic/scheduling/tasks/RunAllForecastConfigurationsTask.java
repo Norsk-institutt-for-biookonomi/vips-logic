@@ -68,7 +68,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     }
                     catch (PreprocessorException | RunModelException ex) 
                     {
-                        throw new RuntimeException(ex);   
+                        throw new RuntimeException("Error with forecast #" + forecastConfiguration.getForecastConfigurationId() + ": ", ex);   
                     }
                 }
                 double completeness = (double) ++counter/numberOfForecastConfigurations;
