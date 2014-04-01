@@ -41,6 +41,7 @@ import no.bioforsk.web.forms.FormField;
  */
 public class RunAllForecastConfigurationsTask extends VipsLogicTask{
     private I18nImpl i18n;
+    //private boolean DEBUG=true;
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         Integer weatherStationPointOfInterestId = null;
@@ -49,12 +50,14 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
             weatherStationPointOfInterestId =  Integer.valueOf(this.getConfiguration().get("weatherStationPointOfInterestId")[0]);
         }
         tec.setCompleteness(0d);
+        int totalNumberofForecastConfigurations = 0;
+        int numberOfCompletedForecastConfigurations = 0;
+        StringBuilder errorMessage = new StringBuilder();
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         for(Organization organization : SessionControllerGetter.getUserBean().getOrganizations())
         {
             List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(organization, SystemTime.getSystemTime());
-            int numberOfForecastConfigurations = currentForecastConfigurations.size();
-            int counter = 0;
+            
             for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
             {
                 if(
@@ -64,16 +67,34 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                 {
                     try 
                     {
+                        totalNumberofForecastConfigurations++;
                         SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
+                        /*
+                        if(DEBUG && totalNumberofForecastConfigurations == 2)
+                        {
+                            throw new RunModelException("This is a test!!!");
+                        }*/
+                        numberOfCompletedForecastConfigurations++;
+                        //System.out.println("All went well");
                     }
                     catch (PreprocessorException | RunModelException ex) 
                     {
-                        throw new RuntimeException("Error with forecast #" + forecastConfiguration.getForecastConfigurationId() + ": ", ex);   
+                        errorMessage.append("Error with forecast #").append(forecastConfiguration.getForecastConfigurationId()).append(": ").append(ex.getMessage());
+                        //System.out.println("Error caught");
+                        continue;
                     }
+                    
                 }
-                double completeness = (double) ++counter/numberOfForecastConfigurations;
+                
+                double completeness = (double) numberOfCompletedForecastConfigurations/totalNumberofForecastConfigurations;
                 tec.setCompleteness(completeness);
             }
+        }
+        if(tec.getTaskExecutor().getCompleteness() != 1.0)
+        {
+            //System.out.println("Error detected");
+            tec.setStatusMessage(errorMessage.toString());
+            throw new RuntimeException();
         }
     }
 

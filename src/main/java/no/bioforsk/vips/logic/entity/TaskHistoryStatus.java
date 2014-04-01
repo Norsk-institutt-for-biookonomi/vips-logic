@@ -48,7 +48,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "TaskHistoryStatus.findByDefaultTitle", query = "SELECT t FROM TaskHistoryStatus t WHERE t.defaultTitle = :defaultTitle")})
 public class TaskHistoryStatus implements Serializable {
     public final static String STATUS_OK = "taskHistoryStatusOK";
-    public final static String STATUS_FAILED = "taskHistoryStatusFailed";
+    public final static String STATUS_FAILED_PARTLY = "taskHistoryStatusFailedPartly";
+    public final static String STATUS_FAILED_COMPLETELY = "taskHistoryStatusFailedCompletely";
     
     
     private static final long serialVersionUID = 1L;

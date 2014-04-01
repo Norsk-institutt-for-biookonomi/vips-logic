@@ -52,7 +52,7 @@ public class UpdateModelInformationTask extends VipsLogicTask{
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         tec.setCompleteness(0d);
         SessionControllerGetter.getForecastBean().updateModelInformation();
-        tec.setCompleteness(100d);
+        tec.setCompleteness(1d);
     }
     
     @Override

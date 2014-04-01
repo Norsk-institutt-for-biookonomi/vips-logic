@@ -283,7 +283,7 @@ public class SchedulingBean {
         taskHistory.setFinishTime(new Date());
         taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
         em.persist(taskHistory);
-        //System.out.println("############ Task " + task.getName() + " finished OK at " + taskExecutor.getStartTime() + ", finished at " + new Date() + "!!! ############");
+        System.out.println("############ Task " + task.getName() + " started at " + new Date(taskExecutor.getStartTime()) + ", finished OK at " + new Date() + "!!! ############");
     }
     
     public void logTaskFailed(TaskExecutor taskExecutor, Throwable throwable)
@@ -291,26 +291,30 @@ public class SchedulingBean {
         VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
         TaskHistory taskHistory = new TaskHistory();
         taskHistory.setTaskFactoryId(task.getFactoryId());
-        taskHistory.setTaskHistoryStatusId(em.find(TaskHistoryStatus.class, TaskHistoryStatus.STATUS_FAILED));
+        
         taskHistory.setStartTime(new Date(taskExecutor.getStartTime()));
         taskHistory.setFinishTime(new Date());
         taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
+        String taskHistoryStatusId = taskHistory.getCompletenessAtFinish() > 0 ? TaskHistoryStatus.STATUS_FAILED_PARTLY : TaskHistoryStatus.STATUS_FAILED_COMPLETELY;
+        taskHistory.setTaskHistoryStatusId(em.find(TaskHistoryStatus.class, taskHistoryStatusId));
+        
         // Build stacktrace
+        /*
         StringBuilder stackTrace = new StringBuilder();
         stackTrace.append(throwable.getMessage());
         for(StackTraceElement element: throwable.getCause().getStackTrace())
         {
             stackTrace.append(element.toString());
-        }
-        taskHistory.setMessage(stackTrace.toString());
+        }*/
+        taskHistory.setMessage(taskExecutor.getStatusMessage());
         em.persist(taskHistory);
         
         
         System.out.println("############ Task " + task.getName() + 
                 " failed at + " + taskExecutor.getStartTime() + 
                 ", finished at " + new Date() + 
-                ". Status is " + taskExecutor.getStatusMessage() + 
-                ". Error was " + stackTrace.toString() +
+                ". Status is " + taskHistory.getTaskHistoryStatusId() + 
+                ". Error was " + taskHistory.getMessage()  +
                 " ############");
     }
     
