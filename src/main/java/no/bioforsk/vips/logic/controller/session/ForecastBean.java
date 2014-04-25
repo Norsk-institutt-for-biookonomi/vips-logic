@@ -310,6 +310,7 @@ public class ForecastBean {
                 request.setLoginInfo(loginInfo);
                 // We tell which client this is (the db Id in VIPSCoreManager)
                 request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserIdWithFallback());
+                //System.out.println("RunModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
                 Response resp = this.getManagerResource().runModel(config.getModelId(), request);
                 if(resp.getStatus() == Response.Status.OK.getStatusCode())
                 {
@@ -321,6 +322,7 @@ public class ForecastBean {
                 {
                     throw new RunModelException(resp.readEntity(String.class));
                 }
+                //System.out.println("Finished runModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
             
         }
     }

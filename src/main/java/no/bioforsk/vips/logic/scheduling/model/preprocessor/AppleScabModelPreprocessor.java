@@ -45,11 +45,16 @@ import no.bioforsk.vips.util.WeatherUtil;
  */
 public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
     
+    private final boolean DEBUG = false;
     public final static String APPLESCABM_START_DATE_ASCOSPORE_MATURITY = "APPLESCABM_START_DATE_ASCOSPORE_MATURITY";
 
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
+        if(DEBUG)
+        {
+            System.out.println("getModelConfiguration");
+        }
         //configuration.getDateStart();
         PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
         // What timezone is the calculation for
@@ -83,6 +88,10 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         
         // Use Jackson to parse JSON from server
         // Weather data collections
+        if(DEBUG)
+        {
+            System.out.println("Getting weather data at " + new Date().toString());
+        }
         List<WeatherObservation> observations = getWeatherObservations(
                 weatherStation.getDataFetchUri(), 
                 WeatherObservation.LOG_INTERVAL_ID_1H, 
@@ -99,14 +108,21 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                 timeZone
         );
         
+        if(DEBUG)
+        {
+            System.out.println("Finished getting weather data at " + new Date().toString());
+        }
         try {
             observations = validateAndSanitizeObservations(observations);
         } catch (ConfigValidationException | WeatherObservationListException ex) {
             ex.printStackTrace();
             throw new PreprocessorException(ex.getMessage());
         } 
+        if(DEBUG)
+        {        
+            System.out.println("Observations=" + observations.toString());
+        }
 
-        //System.out.println("Observations=" + observations.toString());
         
         // Create the complete model configuration object
         ModelConfiguration retVal = new ModelConfiguration();
@@ -132,6 +148,10 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
      * @throws WeatherObservationListException 
      */
     private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations) throws ConfigValidationException, WeatherObservationListException {
+        if(DEBUG)
+        {
+            System.out.println("validateAndSanitizeObservations");
+        }
         // Now we need to validate and possibly try to fix the weather data
         List<WeatherObservation> TM = new ArrayList<>();
         List<WeatherObservation> RR = new ArrayList<>();
@@ -170,6 +190,11 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         // Problems with weather observations
         
         // Holes in series
+        if(DEBUG)
+        {
+            System.out.println("checkForAndFixHourlyTimeSeriesHoles");
+            //System.out.println(wUtil.dumpWeatherObservationList(RR));
+        }
         TM = wUtil.checkForAndFixHourlyTimeSeriesHoles(TM);
         RR = wUtil.checkForAndFixHourlyTimeSeriesHoles(RR);
         BT = wUtil.checkForAndFixHourlyTimeSeriesHoles(BT);
