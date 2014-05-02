@@ -22,13 +22,13 @@
             "name" : "calculationStart",
             "dataType" : "TIMESTAMP",
             "dateFormat" : "yyyy-MM-dd",
-            "required" : true
+            "required" : false
         },
         {
             "name" : "calculationEnd",
             "dataType" : "TIMESTAMP",
             "dateFormat" : "yyyy-MM-dd",
-            "required" : true
+            "required" : false
         }
     ]
 }
