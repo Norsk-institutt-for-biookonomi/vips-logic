@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Bioforsk <http://www.bioforsk.no/>. 
+ * Copyright (c) 2013-2014 Bioforsk <http://www.bioforsk.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 
 package no.bioforsk.vips.logic.scheduling.model.preprocessor;
 
+import java.util.Calendar;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import no.bioforsk.vips.util.WeatherObservationListException;
 import no.bioforsk.vips.util.WeatherUtil;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
@@ -66,7 +67,13 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             {
                 calculationEnd = format.parse(configuration.getForecastModelConfigurationValue(NAERSTADMO_CALCULATION_END));
             }
-            Date dateEndWeatherData = configuration.getDateEnd().compareTo(SystemTime.getSystemTime()) < 0 ? configuration.getDateEnd() : SystemTime.getSystemTime();
+            
+            // We attempt to get data from near future
+            Calendar cal = Calendar.getInstance(timeZone);
+            cal.setTime(SystemTime.getSystemTime());
+            cal.add(Calendar.DATE, 3);
+            Date nearFuture = cal.getTime();
+            Date dateEndWeatherData = configuration.getDateEnd().compareTo(nearFuture) < 0 ? configuration.getDateEnd() : nearFuture;
             
             List<WeatherObservation> observations = getWeatherObservations(
                     weatherStation.getDataFetchUri(), 
