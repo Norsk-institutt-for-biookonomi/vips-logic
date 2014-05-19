@@ -416,9 +416,17 @@ public class ForecastBean {
      */
     private List<PointOfInterest> getPointOfInterestForecastsAggregate(Integer organizationId, Date theDate) {
         // TODO: More precise gathering of POIs...
-        List<PointOfInterest> pois = em.createNamedQuery("PointOfInterest.findByOrganizationId")
+        List<PointOfInterest> pois = null;
+        if(organizationId != null && organizationId > 0)
+        {
+            pois = em.createNamedQuery("PointOfInterest.findByOrganizationId")
                                 .setParameter("organizationId", em.find(Organization.class, organizationId))
                                 .getResultList();
+        }
+        else
+        {
+            pois = em.createNamedQuery("PointOfInterest.findAll").getResultList();
+        }
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         for(PointOfInterest poi: pois)
         {
