@@ -52,7 +52,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
         try {
-            PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getLocationPointOfInterestId();
+            PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
             TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
             Date calculationStart = null;
