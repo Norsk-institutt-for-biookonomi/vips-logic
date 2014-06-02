@@ -29,6 +29,7 @@
 		<thead>
 			<th>${i18nBundle.modelId}</th>
 			<th>${i18nBundle.poi}</th>
+			<th>${i18nBundle.weatherStationPointOfInterestId}</th>
 			<th>${i18nBundle.dateStart}</th>
 			<th>${i18nBundle.dateEnd}</th>
 		</thead>
@@ -43,6 +44,7 @@
 				</#if>
 		    	</td>
 		    	<td>${forecastConfiguration.locationPointOfInterestId.name}</td>
+		    	<td>${forecastConfiguration.weatherStationPointOfInterestId.name}</td>
 		    	<td>${forecastConfiguration.dateStart}</td>
 		    	<td>${forecastConfiguration.dateEnd}</td>
 		    </tr>
