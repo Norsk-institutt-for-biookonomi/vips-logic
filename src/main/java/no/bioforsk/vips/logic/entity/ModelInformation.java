@@ -66,7 +66,7 @@ public class ModelInformation implements Serializable {
     @Column(name = "date_last_registered")
     @Temporal(TemporalType.DATE)
     private Date dateLastRegistered;
-    @Size(max = 63)
+    @Size(max = 255)
     @Column(name = "default_name")
     private String defaultName;
     @Size(max = 255)
