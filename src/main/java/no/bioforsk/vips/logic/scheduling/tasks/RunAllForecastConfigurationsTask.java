@@ -79,7 +79,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     }
                     catch (PreprocessorException | RunModelException ex) 
                     {
-                        errorMessage.append("Error with forecast #").append(forecastConfiguration.getForecastConfigurationId()).append(": ").append(ex.getMessage());
+                        errorMessage.append("\nError with forecast #").append(forecastConfiguration.getForecastConfigurationId()).append(": ").append(ex.getMessage());
                         //System.out.println("Error caught");
                         continue;
                     }
