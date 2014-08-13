@@ -19,15 +19,19 @@
 
 package no.bioforsk.vips.logic.scheduling.model;
 
-import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -72,12 +76,53 @@ public abstract class ModelRunPreprocessor {
                 URL.append("&elementMeasurementTypes[]=").append(type);
         }
         //System.out.println("URL = " + URL.toString());
+        URLConnection URLConn = null;
+        InputStream URLStream = null;
+        InputStream error = null;
+        String URLOutput = "";
         try
         {
-            return new ObjectMapper().readValue(new URL(URL.toString()), new TypeReference<List<WeatherObservation>>(){});
+            URL weatherURL = new URL(URL.toString());
+            URLConn = weatherURL.openConnection();
+            URLStream = URLConn.getInputStream();
+            URLOutput = IOUtils.toString(URLStream);
+            return new ObjectMapper().readValue(URLOutput, new TypeReference<List<WeatherObservation>>(){});
         }catch(IOException ex)
         {
-            throw new PreprocessorException("Could not fetch weather observations from URI " + URL.toString());
+            // Create error message to logging system
+            StringBuilder errorMessage = new StringBuilder()
+                            .append("Could not fetch weather observations from URI ")
+                            .append(URL.toString()).append(".\n");
+            
+            // Try to get error message from weather server and append it
+            String errorOutput = "";
+            try
+            {
+                error = ((HttpURLConnection) URLConn).getErrorStream();
+                errorOutput = IOUtils.toString(error);
+            }
+            catch(IOException ex2) {}
+            
+            if(errorOutput.isEmpty())
+            {
+                errorMessage.append("There was no output from weather data server to explain this.");
+            }
+            else
+            {
+                errorMessage.append("Output from weather data server was: \n").append(errorOutput);
+            }
+            throw new PreprocessorException(errorMessage.toString());
+        }
+        finally
+        {
+            if(URLStream != null)
+            {
+                IOUtils.closeQuietly(URLStream);
+            }
+            if(error != null)
+            {
+                IOUtils.closeQuietly(error);
+            }
         }
         
     }
