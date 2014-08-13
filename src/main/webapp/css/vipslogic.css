@@ -74,3 +74,8 @@ legend {
     height: 400px;
     width: 100%;
 }
+
+.schedulingMessageBox{
+    max-height: 250px;
+    overflow-y: auto;
+}

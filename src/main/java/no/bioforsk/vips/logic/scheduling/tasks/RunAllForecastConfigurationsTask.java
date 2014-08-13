@@ -27,6 +27,7 @@ import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.logic.scheduling.SchedulingUtil;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTask;
 import no.bioforsk.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
@@ -79,7 +80,13 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     }
                     catch (PreprocessorException | RunModelException ex) 
                     {
-                        errorMessage.append("\nError with forecast #").append(forecastConfiguration.getForecastConfigurationId()).append(": ").append(ex.getMessage());
+                        errorMessage
+                                .append(
+                                    SchedulingUtil.createSchedulingMessageHTML(
+                                        "Error with forecast #" + forecastConfiguration.getForecastConfigurationId(), 
+                                        ex.getMessage(), 
+                                        SchedulingUtil.MESSAGE_STATUS_DANGER)
+                                );
                         //System.out.println("Error caught");
                         continue;
                     }
