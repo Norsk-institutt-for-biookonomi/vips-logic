@@ -23,6 +23,39 @@
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<form class="form-inline" role="form" action="/forecastConfiguration" method="GET">
+				<div class="form-group">
+					<label class="sr-only" for="modelId">Model</label>
+					<select name="modelId" multiple="multiple" size="3">
+						<#list modelInformation?values?sort_by("defaultName") as modelInformationItem>
+						<option value="${modelInformationItem.modelId}" ${selectedModelIds?seq_contains(modelInformationItem.modelId)?string(" selected=\"selected\"","")}>
+						<#if i18nBundle.containsKey(modelInformationItem.modelId)>
+							${i18nBundle[modelInformationItem.modelId]}
+						<#else>
+							${modelInformation[modelInformationItem.modelId].defaultName}
+						</#if>
+						</option>
+						</#list>
+					</select>
+				</div>
+				<#if user.isSuperUser() >
+				<div class="form-group">
+					<label class="sr-only" for="organizationId">Model</label>
+					<select name="organizationId" size="3" multiple="multiple">
+						<#list organizations?sort_by("organizationName") as organization>
+						<option value="${organization.organizationId}" ${selectedOrganizationIds?seq_contains(organization.organizationId)?string(" selected=\"selected\"","")}>
+						${organization.organizationName}
+						</option>
+						</#list>
+					</select>
+				</div>
+				</#if>
+				<button type="submit" class="btn btn-default">Filter</button>
+			</form>
+		</div>
+	</div>
 	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1'">${i18nBundle.addNew}</button>
         <div class="table-responsive">
 	<table class="table table-striped">
@@ -34,7 +67,7 @@
 			<th>${i18nBundle.dateEnd}</th>
 		</thead>
 		<tbody>
-		<#list forecastConfigurations?sort_by("dateStart")?reverse as forecastConfiguration>
+		<#list forecastConfigurations as forecastConfiguration>
 		    <tr style="cursor: pointer;" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';">
 		    	<td>
 				<#if i18nBundle.containsKey(forecastConfiguration.modelId)>

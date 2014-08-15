@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Bioforsk <http://www.bioforsk.no/>. 
+ * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Entity
@@ -53,13 +53,15 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "ForecastConfiguration.findAll", query = "SELECT f FROM ForecastConfiguration f"),
     @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationId", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId = :forecastConfigurationId"),
     @NamedQuery(name = "ForecastConfiguration.findByModelId", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId = :modelId"),
+    @NamedQuery(name = "ForecastConfiguration.findByModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId IN (:modelIds)"),
     @NamedQuery(name = "ForecastConfiguration.findByDateStart", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart = :dateStart"),
     @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd"),
     @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds)")
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds)"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds)")
 })
-public class ForecastConfiguration implements Serializable {
+public class ForecastConfiguration implements Serializable, Comparable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration", fetch = FetchType.EAGER)
     private Set<ForecastModelConfiguration> forecastModelConfigurationSet;
     private static final long serialVersionUID = 1L;
@@ -209,4 +211,25 @@ public class ForecastConfiguration implements Serializable {
         this.weatherStationPointOfInterestId = weatherStationPointOfInterestId;
     }
 
+    @Override
+    public int compareTo(Object t) {
+        return this.compareTo((ForecastConfiguration) t);
+    }
+
+    /**
+     * Sort by 1)ModelId, then 2) Location name
+     * @param other the forecast to compare with
+     * @return 
+     */
+    public int compareTo(ForecastConfiguration other)
+    {
+        if(this.getModelId().compareTo(other.getModelId()) != 0)
+        {
+            return this.getModelId().compareTo(other.getModelId());
+        }
+        else
+        {
+            return this.getLocationPointOfInterestId().getName().compareTo(other.getLocationPointOfInterestId().getName());
+        }
+    }
 }

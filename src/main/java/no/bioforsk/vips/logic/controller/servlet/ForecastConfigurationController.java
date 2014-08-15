@@ -20,6 +20,9 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -30,10 +33,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.controller.session.ForecastBean;
 import no.bioforsk.vips.logic.controller.session.UserBean;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.ModelInformation;
+import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
-import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.util.ArrayUtil;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
@@ -42,7 +48,7 @@ import no.bioforsk.web.forms.FormValidator;
 
 /**
  * Handles form configuration actions
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class ForecastConfigurationController extends HttpServlet {
@@ -74,17 +80,52 @@ public class ForecastConfigurationController extends HttpServlet {
         {
             if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
             {
+                Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedModelInformation();
+                
+                // Check filtering conditions
+                List<String> selectedModelIds;
+                try
+                {
+                    selectedModelIds = Arrays.asList(request.getParameterValues("modelId"));
+                }
+                catch(NullPointerException ex)
+                {
+                    selectedModelIds = new ArrayList(modelInformationMap.keySet());
+                }
+                
                 List<ForecastConfiguration> forecasts;
+                
                 if(user.isSuperUser())
                 {
-                    forecasts = forecastBean.getForecastConfigurations();
+                    // Filtering of organizations
+                    List<Organization> organizations = userBean.getOrganizations();
+                    List<Integer> selectedOrganizationIds;
+                    try
+                    {
+                        selectedOrganizationIds = Arrays.asList(ArrayUtil.stringArrayToIntegerArray(request.getParameterValues("organizationId")));
+                    }
+                    // No filter set -> select all organizations (default)
+                    catch(NullPointerException ex)
+                    {
+                        selectedOrganizationIds = new ArrayList<>();
+                        for(Organization o:organizations)
+                        {
+                            selectedOrganizationIds.add(o.getOrganizationId());
+                        }
+                    }
+                    forecasts = forecastBean.getForecastConfigurations(selectedOrganizationIds, selectedModelIds);
+                    
+                    request.setAttribute("organizations", organizations);
+                    request.setAttribute("selectedOrganizationIds", selectedOrganizationIds);
                 }
                 else
                 {
-                    forecasts = forecastBean.getForecastConfigurations(user.getOrganizationId());
+                    forecasts = forecastBean.getForecastConfigurations(user.getOrganizationId(), selectedModelIds);
                 }
+                Collections.sort(forecasts);
                 request.setAttribute("forecastConfigurations", forecasts);
-                request.setAttribute("modelInformation", forecastBean.getIndexedModelInformation());
+                request.setAttribute("modelInformation", modelInformationMap);
+                request.setAttribute("selectedModelIds", selectedModelIds);
                 // If this is a redirect from a controller, with a message to be passed on
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/forecastConfigurationList.ftl").forward(request, response);

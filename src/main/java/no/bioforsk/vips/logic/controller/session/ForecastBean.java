@@ -133,13 +133,69 @@ public class ForecastBean {
         return em.createNamedQuery("ForecastConfiguration.findAll").getResultList();
     }
     
+    /**
+     * 
+     * @return 
+     */
+    public List<ForecastConfiguration> getForecastConfigurations(List<String> modelIds)
+    {
+        return em.createNamedQuery("ForecastConfiguration.findByModelIds")
+                .setParameter("modelIds", modelIds)
+                .getResultList();
+    }
+    
     public List<ForecastConfiguration> getForecastConfigurations(Organization organization)
     {
         List<VipsLogicUser> organizationUsers = em
-                                                .createNamedQuery("VipsLogicUser.findByOrganizationId")
-                                                .setParameter("organizationId", organization)
-                                                .getResultList();
-        return em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIds").setParameter("vipsLogicUserIds", organizationUsers).getResultList();
+                .createNamedQuery("VipsLogicUser.findByOrganizationId")
+                .setParameter("organizationId", organization)
+                .getResultList();
+        return em
+                .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIds")
+                .setParameter("vipsLogicUserIds", organizationUsers)
+                .getResultList();
+    }
+    
+    public List<ForecastConfiguration> getForecastConfigurations(Organization organization, List<String> modelIds)
+    {
+        List<VipsLogicUser> organizationUsers = em
+                .createNamedQuery("VipsLogicUser.findByOrganizationId")
+                .setParameter("organizationId", organization)
+                .getResultList();
+        
+        if(!organizationUsers.isEmpty())
+        {
+            return em
+                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndModelIds")
+                    .setParameter("vipsLogicUserIds", organizationUsers)
+                    .setParameter("modelIds", modelIds)
+                    .getResultList();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
+    }
+    
+    public List<ForecastConfiguration> getForecastConfigurations(List<Integer> organizationIds, List<String> modelIds)
+    {
+        List<VipsLogicUser> organizationUsers = em
+                .createNamedQuery("VipsLogicUser.findByOrganizationIds")
+                .setParameter("organizationIds", organizationIds)
+                .getResultList();
+        
+        if(!organizationUsers.isEmpty())
+        {
+            return em
+                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndModelIds")
+                    .setParameter("vipsLogicUserIds", organizationUsers)
+                    .setParameter("modelIds", modelIds)
+                    .getResultList();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
     }
     
     /**
