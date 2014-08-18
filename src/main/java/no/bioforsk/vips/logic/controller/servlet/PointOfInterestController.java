@@ -169,6 +169,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        request.setAttribute("messageKey", request.getParameter("messageKey"));
                         if(user.isSuperUser())
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
