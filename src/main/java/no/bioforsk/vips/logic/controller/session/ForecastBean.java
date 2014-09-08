@@ -45,14 +45,15 @@ import no.bioforsk.vips.coremanager.service.ManagerResource;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.ModelRunRequest;
 import no.bioforsk.vips.entity.Result;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.entity.ModelInformation;
+import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
-import no.bioforsk.vips.logic.entity.ForecastConfiguration;
-import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
@@ -60,6 +61,7 @@ import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.RunModelException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.web.forms.FormField;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
@@ -121,6 +123,15 @@ public class ForecastBean {
         VipsLogicUser user = em.find(VipsLogicUser.class, userId);
         Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserId");
         q.setParameter("vipsLogicUserId", user);
+        return q.getResultList();
+    }
+    
+    public List<ForecastConfiguration> getForecastConfigurationsForUserAndCrops(Integer userId, List<Integer> cropOrganismIds)
+    {
+        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
+        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId");
+        q.setParameter("vipsLogicUserId", user);
+        q.setParameter("cropOrganismIds", cropOrganismIds);
         return q.getResultList();
     }
     
@@ -265,6 +276,7 @@ public class ForecastBean {
     public ForecastConfiguration storeForecastConfiguration(ForecastConfiguration forecastConfiguration, Map<String, FormField> formFields, Map<String, FormField> modelSpecificFormFields)
     {
         forecastConfiguration.setModelId(formFields.get("modelId").getWebValue());
+        forecastConfiguration.setCropOrganismId(em.find(Organism.class, formFields.get("cropOrganismId").getValueAsInteger()));
         PointOfInterest locationPoi = em.find(PointOfInterest.class, formFields.get("locationPointOfInterestId").getValueAsInteger());
         forecastConfiguration.setLocationPointOfInterestId(locationPoi);
         PointOfInterest weatherStationPoi = em.find(PointOfInterestWeatherStation.class, formFields.get("weatherStationPointOfInterestId").getValueAsInteger());
@@ -396,7 +408,7 @@ public class ForecastBean {
         return resource;
     }
     
-    public Kml getForecastsAggregateKml(Integer organizationId, Date theDate, String serverName)
+    public Kml getForecastsAggregateKml(Integer organizationId, List<Integer> cropOrganismIds, Date theDate, String serverName)
     {
         String iconPath = "http://" + serverName + "/public/images/";
         // Initialization
@@ -440,7 +452,7 @@ public class ForecastBean {
                     .withHref(iconPath + "dot_red.png");
 
         // Run through forecast configurations
-        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, theDate);
+        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
         for(PointOfInterest poiWithAggregate:poisWithAggregate)
         {
             final Placemark placemark = document.createAndAddPlacemark()
@@ -470,7 +482,7 @@ public class ForecastBean {
      * @param theDate
      * @return 
      */
-    private List<PointOfInterest> getPointOfInterestForecastsAggregate(Integer organizationId, Date theDate) {
+    private List<PointOfInterest> getPointOfInterestForecastsAggregate(Integer organizationId, List<Integer> cropOrganismIds, Date theDate) {
         // TODO: More precise gathering of POIs...
         List<PointOfInterest> pois = null;
         if(organizationId != null && organizationId > 0)
@@ -491,6 +503,7 @@ public class ForecastBean {
                                 "	SELECT forecast_configuration_id \n" +
                                 "	FROM forecast_configuration \n" +
                                 "	WHERE location_point_of_interest_id=:locationPointOfInterestId \n" +
+                                (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                                 ")\n" +
                                 "AND to_char(result_valid_time, 'yyyy-MM-dd') = :dateStr");
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());

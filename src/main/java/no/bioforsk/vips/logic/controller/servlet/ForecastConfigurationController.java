@@ -35,9 +35,11 @@ import no.bioforsk.vips.logic.controller.session.ForecastBean;
 import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ModelInformation;
+import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ArrayUtil;
 import no.bioforsk.vips.util.ServletUtil;
@@ -173,6 +175,10 @@ public class ForecastConfigurationController extends HttpServlet {
                             request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
                         }
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
+                        // All organisms used for parent organism list
+                        request.setAttribute("allOrganisms", em.createNamedQuery("Organism.findAll").getResultList());
+                        // Hierarchy categories
+                        request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                         request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);

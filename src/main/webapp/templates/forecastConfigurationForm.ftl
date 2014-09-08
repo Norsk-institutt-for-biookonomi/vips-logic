@@ -72,6 +72,20 @@
 	    <span class="help-block" id="${formId}_modelId_validation"></span>
 	  </div>
 	  <div class="form-group">
+	    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
+	    <select class="form-control" id="cropOrganismId" name="cropOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields();">
+	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
+	    	<#list allOrganisms?sort_by("latinName") as organism>
+			<option value="${organism.organismId}"
+				<#if (forecastConfiguration.cropOrganismId?has_content && forecastConfiguration.cropOrganismId.organismId == organism.organismId)>
+					selected="selected"
+				</#if>
+			>${organism.latinName!""}/${organism.tradeName!""}/${organism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(organism.hierarchyCategoryId)})</option>
+		</#list>
+	    </select>
+	    <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
+	  </div>
+	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
 	    <select class="form-control" name="locationPointOfInterestId" onblur="validateField(this);">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>

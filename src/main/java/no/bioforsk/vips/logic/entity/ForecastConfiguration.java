@@ -58,6 +58,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd"),
     @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds)"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds)"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds)")
 })
@@ -89,6 +90,9 @@ public class ForecastConfiguration implements Serializable, Comparable {
     @JoinColumn(name = "weather_station_point_of_interest_id", referencedColumnName = "point_of_interest_id")
     @ManyToOne
     private PointOfInterest weatherStationPointOfInterestId;
+    @JoinColumn(name = "crop_organism_id", referencedColumnName = "organism_id")
+    @ManyToOne
+    private Organism cropOrganismId;
 
     public ForecastConfiguration() {
     }
@@ -231,5 +235,19 @@ public class ForecastConfiguration implements Serializable, Comparable {
         {
             return this.getLocationPointOfInterestId().getName().compareTo(other.getLocationPointOfInterestId().getName());
         }
+    }
+
+    /**
+     * @return the organismiId
+     */
+    public Organism getCropOrganismId() {
+        return cropOrganismId;
+    }
+
+    /**
+     * @param organismiId the organismiId to set
+     */
+    public void setCropOrganismId(Organism cropOrganismId) {
+        this.cropOrganismId = cropOrganismId;
     }
 }

@@ -98,7 +98,9 @@ public class LogicService {
     @GET
     @Path("organizationforecastconfigurations/{organizationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getForecastConfigurationsForOrganization(@PathParam("organizationId") Integer organizationId)
+    public Response getForecastConfigurationsForOrganization(
+            @PathParam("organizationId") Integer organizationId, 
+            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds)
     {
         // First: Get all users for organization
         List<VipsLogicUser> organizationUsers = SessionControllerGetter.getUserBean().getUsersByOrganization(organizationId);
@@ -106,11 +108,14 @@ public class LogicService {
         List<ForecastConfiguration> forecasts = new ArrayList<>();
         for(VipsLogicUser user:organizationUsers)
         {
-            Integer userId = (Integer) user.getUserId();
+            Integer userId = user.getUserId();
+            List<ForecastConfiguration> result = cropOrganismIds != null && ! cropOrganismIds.isEmpty() ?
+                    SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndCrops(userId,cropOrganismIds)
+                    : SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(userId);
             if(forecasts == null)
-                forecasts = SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(userId);
+                forecasts = result;
             else
-                forecasts.addAll(SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(userId));
+                forecasts.addAll(result);
         }
         
         return Response.ok().entity(forecasts).build();
@@ -148,9 +153,11 @@ public class LogicService {
     @GET
     @Path("forecastresults/aggregate/{organizationId}")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getForecastResultsAggregate(@PathParam("organizationId") Integer organizationId)
+    public Response getForecastResultsAggregate(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds)
     {
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationId, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationId, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
             return Response.ok().entity(retVal).build();
     }
     
