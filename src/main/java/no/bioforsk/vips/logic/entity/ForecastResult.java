@@ -24,6 +24,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.Basic;
@@ -58,7 +59,7 @@ import org.codehaus.jackson.type.TypeReference;
     @NamedQuery(name = "ForecastResult.findByForecastConfigurationId", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByResultValidTime", query = "SELECT f FROM ForecastResult f WHERE f.resultValidTime = :resultValidTime ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByWarningStatus", query = "SELECT f FROM ForecastResult f WHERE f.warningStatus = :warningStatus ORDER BY f.resultValidTime ASC")})
-public class ForecastResult implements Serializable, Comparable {
+public class ForecastResult implements Serializable, Comparable{
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -77,6 +78,7 @@ public class ForecastResult implements Serializable, Comparable {
     @Column(name = "forecast_configuration_id")
     private Long forecastConfigurationId;
 
+    
     public ForecastResult() {
     }
     
@@ -208,4 +210,11 @@ public class ForecastResult implements Serializable, Comparable {
     public void setForecastConfigurationId(Long forecastConfigurationId) {
         this.forecastConfigurationId = forecastConfigurationId;
     }
+
+
+    @Transient
+    public Set<String> getKeys() {
+        return this.getAllValuesAsMap().keySet();
+    }
+    
 }
