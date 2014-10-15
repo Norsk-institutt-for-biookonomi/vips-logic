@@ -3,17 +3,17 @@
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Bioforsk Open Source License as published by 
+ * Bioforsk, either version 1 of the License, or (at your option) any
+ * later version.
  * 
  * VIPSLogic is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * Bioforsk Open Source License for more details.
  * 
- * You should have received a copy of the GNU Affero General Public License
- * along with VIPSLogic.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Bioforsk Open Source License
+ * along with VIPSLogic.  If not, see <http://www.bioforsk.no/licenses/>.
  * 
  */
 
@@ -55,8 +55,6 @@ public class VIPSLogicApplication extends Application
      * given list with all resources defined in the project.
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(no.bioforsk.vips.core.service.ModelResource.class);
-        resources.add(no.bioforsk.vips.coremanager.service.ManagerResource.class);
         resources.add(no.bioforsk.vips.logic.service.LogicService.class);
         
     }
