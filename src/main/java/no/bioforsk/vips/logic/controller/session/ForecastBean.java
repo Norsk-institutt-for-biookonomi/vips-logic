@@ -498,17 +498,20 @@ public class ForecastBean {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         for(PointOfInterest poi: pois)
         {
-            Query q = em.createNativeQuery("SELECT max(warning_status) FROM forecast_result \n" +
-                                "WHERE forecast_configuration_id IN( \n" +
-                                "	SELECT forecast_configuration_id \n" +
-                                "	FROM forecast_configuration \n" +
-                                "	WHERE location_point_of_interest_id=:locationPointOfInterestId \n" +
-                                (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
-                                ")\n" +
-                                "AND to_char(result_valid_time, 'yyyy-MM-dd') = :dateStr");
+            String sql = "SELECT max(warning_status) FROM forecast_result \n" +
+                        "WHERE forecast_configuration_id IN( \n" +
+                        "	SELECT forecast_configuration_id \n" +
+                        "	FROM forecast_configuration \n" +
+                        "	WHERE location_point_of_interest_id=:locationPointOfInterestId \n" +
+                        (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
+                        ")\n" +
+                        "AND to_char(result_valid_time, 'yyyy-MM-dd') = :dateStr";
+            
+            Query q = em.createNativeQuery(sql);
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
             q.setParameter("dateStr", format.format(theDate));
-            poi.getProperties().put("forecastsAggregate", (Integer) q.getSingleResult());
+            Integer result = (Integer) q.getSingleResult();
+            poi.getProperties().put("forecastsAggregate", result);
         }
         return pois;
     }
