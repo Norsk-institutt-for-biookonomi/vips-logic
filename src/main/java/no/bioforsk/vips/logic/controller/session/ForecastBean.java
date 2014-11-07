@@ -57,7 +57,6 @@ import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
-import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.RunModelException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
@@ -67,7 +66,7 @@ import org.codehaus.jackson.JsonNode;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Stateless

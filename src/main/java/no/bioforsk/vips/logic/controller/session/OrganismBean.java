@@ -178,20 +178,28 @@ public class OrganismBean {
      * @param localName
      * @param currentLocale 
      */
-    public void storeOrganismLocalName(Organism organism, String localName, ULocale currentLocale) {
+    public void setOrganismLocalName(Organism organism, String localName, ULocale currentLocale) {
         
         if(organism.getOrganismLocale(currentLocale.getLanguage()) == null)
         {
-            
             OrganismLocalePK pk = new OrganismLocalePK(organism.getOrganismId(), currentLocale.getLanguage());
             OrganismLocale oLocale = new OrganismLocale(pk);
             oLocale.setLocalName(localName);
-            em.persist(oLocale);
+            organism.getOrganismLocaleSet().add(oLocale);
         }
         else
         {
             OrganismLocale oLocale = organism.getOrganismLocale(currentLocale.getLanguage());
             oLocale.setLocalName(localName);
+        }
+    }
+    
+    public void removeOrganismLocalName(Organism organism, ULocale currentLocale)
+    {
+        OrganismLocale oLocale = organism.getOrganismLocale(currentLocale.getLanguage());
+        if(oLocale != null)
+        {
+            organism.getOrganismLocaleSet().remove(oLocale);
         }
     }
     

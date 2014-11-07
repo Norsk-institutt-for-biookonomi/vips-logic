@@ -75,7 +75,7 @@ public class Organism implements Serializable {
     private Integer parentOrganismId;
     @Column(name = "hierarchy_category_id")
     private Integer hierarchyCategoryId;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "organismId", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "organismId", fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<OrganismLocale> organismLocaleSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "organism", fetch = FetchType.EAGER)
     private Set<OrganismExternalResource> organismExternalResourceSet;
