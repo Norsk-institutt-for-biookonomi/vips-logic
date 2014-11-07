@@ -60,6 +60,7 @@ import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.RunModelException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
@@ -452,7 +453,9 @@ public class ForecastBean {
                     .withHref(iconPath + "dot_red.png");
 
         // Run through forecast configurations
+        //Date benchmark = new Date();
         List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
+        //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
         for(PointOfInterest poiWithAggregate:poisWithAggregate)
         {
             final Placemark placemark = document.createAndAddPlacemark()
@@ -472,14 +475,39 @@ public class ForecastBean {
                     poiWithAggregate.getAltitude() != null ? poiWithAggregate.getAltitude() : 0
             ));
         }
- 
         //System.out.println(kml.marshal());
         return kml;
     }
+    
+    /**
+     * The table forecast_result_cache always should contain the forecast
+     * results from TODAY (The system's time, which is configurable)
+     */
+    public void updateForecastResultCacheTable()
+    {
+        String dateFormat = "yyyy-MM-dd";
+        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+        String transactionSQL = new StringBuilder()
+                .append("BEGIN;")
+                .append("   LOCK TABLE forecast_result_cache;")
+                .append("   TRUNCATE forecast_result_cache;")
+                .append("   INSERT INTO forecast_result_cache ")
+                .append("       SELECT * FROM forecast_result ")
+                .append("       WHERE to_char(result_valid_time, '").append(dateFormat).append("') = :dateStr ;")
+                .append("END;")
+                .toString();
+        
+        Query query = em.createNativeQuery(transactionSQL);
+        query.setParameter("dateStr", format.format(SystemTime.getSystemTime()));
+        query.executeUpdate();
+    }
 
     /**
-     * TODO: This should be cached somehow. Here in app or in web server???
-     * @param theDate
+     * Selects the "worst" (highest infection risk) warning status for forecasts
+     * running at the pois connected to the given organization
+     * @param organizationId Filter for organization
+     * @param cropOrganismIds Filter for crops
+     * @param theDate Filter for date. If theDate=systemDate, data is fetched from the caching table forecast_result_cache
      * @return 
      */
     private List<PointOfInterest> getPointOfInterestForecastsAggregate(Integer organizationId, List<Integer> cropOrganismIds, Date theDate) {
@@ -495,23 +523,29 @@ public class ForecastBean {
         {
             pois = em.createNamedQuery("PointOfInterest.findAll").getResultList();
         }
-        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
+        
+        String dateFormat = "yyyy-MM-dd";
+        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+        // If theDate=systemDate, data is fetched from the caching table forecast_result_cache
+        String tableName = (format.format(theDate).equals(format.format(SystemTime.getSystemTime()))) ? "forecast_result_cache" : "forecast_result";
+        //this.updateForecastResultCacheTable();
         for(PointOfInterest poi: pois)
         {
-            String sql = "SELECT max(warning_status) FROM forecast_result \n" +
+            String sql = "SELECT max(warning_status) FROM " + tableName + " \n" +
                         "WHERE forecast_configuration_id IN( \n" +
                         "	SELECT forecast_configuration_id \n" +
                         "	FROM forecast_configuration \n" +
                         "	WHERE location_point_of_interest_id=:locationPointOfInterestId \n" +
                         (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                         ")\n" +
-                        "AND to_char(result_valid_time, 'yyyy-MM-dd') = :dateStr";
+                        "AND to_char(result_valid_time, '" + dateFormat + "') = :dateStr";
             
             Query q = em.createNativeQuery(sql);
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
             q.setParameter("dateStr", format.format(theDate));
             Integer result = (Integer) q.getSingleResult();
             poi.getProperties().put("forecastsAggregate", result);
+            
         }
         return pois;
     }

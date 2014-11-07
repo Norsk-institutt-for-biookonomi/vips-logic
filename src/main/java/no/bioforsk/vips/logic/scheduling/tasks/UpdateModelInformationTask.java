@@ -32,6 +32,11 @@ import no.bioforsk.web.forms.FormField;
  */
 public class UpdateModelInformationTask extends VipsLogicTask{
 
+    /**
+     * 
+     * @param language
+     * @return 
+     */
     @Override
     public String getConfigFormDefinition(String language) {
          StringBuilder retVal = new StringBuilder()
