@@ -76,6 +76,18 @@ public class LogicService {
         return Response.ok().entity(results).build();
     }
     
+    @GET
+    @Path("forecastresults/{forecastConfigurationId}/{latestDays}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastResults(
+            @PathParam("forecastConfigurationId") Long forecastConfigurationId,
+            @PathParam("latestDays") Integer latestDays
+    )
+    {
+        List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, latestDays);
+        return Response.ok().entity(results).build();
+    }
+    
     /**
      * Returns the requested forecast configuration
      * @param forecastConfigurationId

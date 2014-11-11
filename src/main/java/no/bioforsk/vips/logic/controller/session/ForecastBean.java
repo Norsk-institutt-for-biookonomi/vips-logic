@@ -19,6 +19,7 @@
 
 package no.bioforsk.vips.logic.controller.session;
 
+import com.ibm.icu.util.Calendar;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 import de.micromata.opengis.kml.v_2_2_0.Document;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
@@ -86,11 +87,46 @@ public class ForecastBean {
     
     public List<ForecastResult> getForecastResults(Long forecastConfigurationId)
     {
-        ForecastConfiguration config = this.getForecastConfiguration(forecastConfigurationId);
+        //ForecastConfiguration config = this.getForecastConfiguration(forecastConfigurationId);
         Query q = em.createNamedQuery("ForecastResult.findByForecastConfigurationId");
         q.setParameter("forecastConfigurationId", forecastConfigurationId);
         return q.getResultList();
         
+    }
+    
+    public List<ForecastResult> getForecastResults(Long forecastConfigurationId, Integer latestDays)
+    {
+        ForecastResult mostRecentForecastResult = this.getMostRecentForecastResult(forecastConfigurationId);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(mostRecentForecastResult.getResultValidTime());
+        cal.add(Calendar.DATE, -latestDays);
+        Date startDate = cal.getTime();
+        return this.getForecastResults(forecastConfigurationId, startDate, mostRecentForecastResult.getResultValidTime());
+        
+    }
+    
+    public List<ForecastResult> getForecastResults(Long forecastConfigurationId, Date timeStart, Date timeEnd)
+    {
+        Query q = em.createNamedQuery("ForecastResult.findByForecastConfigurationIdAndPeriod");
+        q.setParameter("forecastConfigurationId", forecastConfigurationId);
+        q.setParameter("timeStart", timeStart);
+        q.setParameter("timeEnd", timeEnd);
+        return q.getResultList();
+    }
+    
+    public ForecastResult getMostRecentForecastResult(Long forecastConfigurationId)
+    {
+        Query q = em.createNativeQuery(
+                "SELECT * FROM forecast_result "
+                + "WHERE forecast_configuration_id=:forecastConfigurationId "
+                + "AND result_valid_time = ("
+                        + "SELECT MAX(result_valid_time) "
+                        + "FROM forecast_result "
+                        + "WHERE forecast_configuration_id=:forecastConfigurationId "
+                + ");", ForecastResult.class);
+        
+        q.setParameter("forecastConfigurationId", forecastConfigurationId);
+        return (ForecastResult) q.getSingleResult();
     }
     
     /**

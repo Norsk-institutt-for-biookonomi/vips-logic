@@ -57,6 +57,7 @@ import org.codehaus.jackson.type.TypeReference;
     @NamedQuery(name = "ForecastResult.findAll", query = "SELECT f FROM ForecastResult f ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByForecastResultId", query = "SELECT f FROM ForecastResult f WHERE f.forecastResultId = :forecastResultId ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByForecastConfigurationId", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId ORDER BY f.resultValidTime ASC"),
+    @NamedQuery(name = "ForecastResult.findByForecastConfigurationIdAndPeriod", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId AND f.resultValidTime BETWEEN :timeStart AND :timeEnd ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByResultValidTime", query = "SELECT f FROM ForecastResult f WHERE f.resultValidTime = :resultValidTime ORDER BY f.resultValidTime ASC"),
     @NamedQuery(name = "ForecastResult.findByWarningStatus", query = "SELECT f FROM ForecastResult f WHERE f.warningStatus = :warningStatus ORDER BY f.resultValidTime ASC")})
 public class ForecastResult implements Serializable, Comparable{
