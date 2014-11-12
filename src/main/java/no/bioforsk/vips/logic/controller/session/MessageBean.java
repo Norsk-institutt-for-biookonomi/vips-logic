@@ -84,6 +84,7 @@ public class MessageBean {
             messageLocale = new MessageLocale();
             messageLocale.setMessageLocalePK(new MessageLocalePK(message.getMessageId(), formFields.get("locale").getWebValue()));
             messageLocale.setCreatedTimestamp(new Date());
+            messageLocale.setCreatedBy(user);
         }
         else
         {

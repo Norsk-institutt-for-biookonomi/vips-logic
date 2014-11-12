@@ -25,6 +25,8 @@ import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -68,6 +70,9 @@ public class MessageLocale implements Serializable {
     @Column(name = "created_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdTimestamp;
+    @JoinColumn(name = "created_by", referencedColumnName = "user_id")
+    @ManyToOne(optional = false)
+    private VipsLogicUser createdBy;
     @Column(name = "modified_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modifiedTimestamp;
@@ -162,6 +167,20 @@ public class MessageLocale implements Serializable {
     @Override
     public String toString() {
         return "no.bioforsk.vips.logic.entity.MessageLocale[ messageLocalePK=" + messageLocalePK + " ]";
+    }
+
+    /**
+     * @return the createdBy
+     */
+    public VipsLogicUser getCreatedBy() {
+        return createdBy;
+    }
+
+    /**
+     * @param createdBy the createdBy to set
+     */
+    public void setCreatedBy(VipsLogicUser createdBy) {
+        this.createdBy = createdBy;
     }
 
 }

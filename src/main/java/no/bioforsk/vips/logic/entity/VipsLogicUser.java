@@ -16,7 +16,6 @@
  * along with VIPSLogic.  If not, see <http://www.bioforsk.no/licenses/>.
  * 
  */
-
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
@@ -61,10 +60,11 @@ import org.codehaus.jackson.annotate.JsonIgnore;
     @NamedQuery(name = "VipsLogicUser.findByFirstName", query = "SELECT v FROM VipsLogicUser v WHERE v.firstName = :firstName"),
     @NamedQuery(name = "VipsLogicUser.findByLastName", query = "SELECT v FROM VipsLogicUser v WHERE v.lastName = :lastName")})
 public class VipsLogicUser implements Serializable {
+
     private static final long serialVersionUID = 1L;
-        private Integer userId;
+    private Integer userId;
     //if the field contains email address consider using this annotation to enforce field validation
-    @Pattern(regexp="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message="Invalid email")
+    @Pattern(regexp = "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message = "Invalid email")
     @Size(max = 1023)
     private String email;
     @Size(max = 255)
@@ -75,13 +75,13 @@ public class VipsLogicUser implements Serializable {
     private String approvalApplication;
     @Size(max = 2147483647)
     private String remarks;
-        private Set<UserAuthentication> userAuthenticationSet;
-        private Organization organizationId;
-        private Integer userStatusId;
-        private String emailVerificationCode;
-        private Set<VipsLogicRole> vipsLogicRoles;
-        private Integer vipsCoreUserId;
-    
+    private Set<UserAuthentication> userAuthenticationSet;
+    private Organization organizationId;
+    private Integer userStatusId;
+    private String emailVerificationCode;
+    private Set<VipsLogicRole> vipsLogicRoles;
+    private Integer vipsCoreUserId;
+
     public VipsLogicUser() {
     }
 
@@ -89,10 +89,11 @@ public class VipsLogicUser implements Serializable {
         this.userId = userId;
     }
 
-@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "user_id")
+    @JsonIgnore
     public Integer getUserId() {
         return userId;
     }
@@ -101,7 +102,7 @@ public class VipsLogicUser implements Serializable {
         this.userId = userId;
     }
 
-@Column(name = "email")
+    @Column(name = "email")
     public String getEmail() {
         return email;
     }
@@ -110,7 +111,7 @@ public class VipsLogicUser implements Serializable {
         this.email = email;
     }
 
-@Column(name = "first_name")
+    @Column(name = "first_name")
     public String getFirstName() {
         return firstName;
     }
@@ -119,7 +120,7 @@ public class VipsLogicUser implements Serializable {
         this.firstName = firstName;
     }
 
-@Column(name = "last_name")
+    @Column(name = "last_name")
     public String getLastName() {
         return lastName;
     }
@@ -128,7 +129,7 @@ public class VipsLogicUser implements Serializable {
         this.lastName = lastName;
     }
 
-@OneToMany(cascade = CascadeType.ALL, mappedBy = "vipsLogicUser")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "vipsLogicUser")
     @XmlTransient
     @JsonIgnore
     public Set<UserAuthentication> getUserAuthenticationSet() {
@@ -139,8 +140,9 @@ public class VipsLogicUser implements Serializable {
         this.userAuthenticationSet = userAuthenticationSet;
     }
 
-@JoinColumn(name = "organization_id", referencedColumnName = "organization_id")
+    @JoinColumn(name = "organization_id", referencedColumnName = "organization_id")
     @ManyToOne
+    @JsonIgnore
     public Organization getOrganizationId() {
         return organizationId;
     }
@@ -177,7 +179,8 @@ public class VipsLogicUser implements Serializable {
     /**
      * @return the approvalApplication
      */
-@Column(name = "approval_application")
+    @Column(name = "approval_application")
+    @JsonIgnore
     public String getApprovalApplication() {
         return approvalApplication;
     }
@@ -192,7 +195,8 @@ public class VipsLogicUser implements Serializable {
     /**
      * @return the remarks
      */
-@Column(name = "remarks")
+    @Column(name = "remarks")
+    @JsonIgnore
     public String getRemarks() {
         return remarks;
     }
@@ -207,7 +211,8 @@ public class VipsLogicUser implements Serializable {
     /**
      * @return the userStatusId
      */
-@Column(name = "user_status_id")
+    @JsonIgnore
+    @Column(name = "user_status_id")
     public Integer getUserStatusId() {
         return userStatusId;
     }
@@ -222,11 +227,14 @@ public class VipsLogicUser implements Serializable {
     /**
      * @return the vipsLogicRoles
      */
-@ManyToMany(fetch=FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonIgnore
     @JoinTable(
             name = "user_vips_logic_role",
-            joinColumns = {@JoinColumn(name = "user_id")},
-            inverseJoinColumns = {@JoinColumn(name = "vips_logic_role_id")}
+            joinColumns = {
+                @JoinColumn(name = "user_id")},
+            inverseJoinColumns = {
+                @JoinColumn(name = "vips_logic_role_id")}
     )
     public Set<VipsLogicRole> getVipsLogicRoles() {
         return vipsLogicRoles;
@@ -238,64 +246,54 @@ public class VipsLogicUser implements Serializable {
     public void setVipsLogicRoles(Set<VipsLogicRole> vipsLogicRoles) {
         this.vipsLogicRoles = vipsLogicRoles;
     }
-    
+
     @JsonIgnore
     @Transient
-    public boolean isSuperUser()
-    {
-        for(VipsLogicRole role:this.getVipsLogicRoles()){
-            if(role.getVipsLogicRoleId().equals(VipsLogicRole.SUPERUSER))
+    public boolean isSuperUser() {
+        for (VipsLogicRole role : this.getVipsLogicRoles()) {
+            if (role.getVipsLogicRoleId().equals(VipsLogicRole.SUPERUSER)) {
                 return true;
+            }
         }
         return false;
     }
-    
+
     @JsonIgnore
     @Transient
-    public boolean isOrganizationAdmin()
-    {
-        for(VipsLogicRole role:this.getVipsLogicRoles()){
-            if(role.getVipsLogicRoleId().equals(VipsLogicRole.ORGANIZATION_ADMINISTRATOR))
+    public boolean isOrganizationAdmin() {
+        for (VipsLogicRole role : this.getVipsLogicRoles()) {
+            if (role.getVipsLogicRoleId().equals(VipsLogicRole.ORGANIZATION_ADMINISTRATOR)) {
                 return true;
+            }
         }
         return false;
     }
-    
+
     @JsonIgnore
-    public boolean hasRole(Integer... roles)
-    {
-        if(this.getVipsLogicRoles() == null)
-        {
+    public boolean hasRole(Integer... roles) {
+        if (this.getVipsLogicRoles() == null) {
             return false;
         }
-        
-        for(VipsLogicRole userRole: this.getVipsLogicRoles())
-        {
-            for(Integer roleId: roles)
-            {
-                if(userRole.getVipsLogicRoleId().equals(roleId))
-                {
+
+        for (VipsLogicRole userRole : this.getVipsLogicRoles()) {
+            for (Integer roleId : roles) {
+                if (userRole.getVipsLogicRoleId().equals(roleId)) {
                     return true;
                 }
             }
         }
         return false;
     }
-    
+
     @JsonIgnore
-    public boolean hasRole(VipsLogicRole... roles)
-    {
-        if(this.getVipsLogicRoles() == null)
-        {
+    public boolean hasRole(VipsLogicRole... roles) {
+        if (this.getVipsLogicRoles() == null) {
             return false;
         }
-        
-        for(VipsLogicRole userRole: this.getVipsLogicRoles())
-        {
-            for(VipsLogicRole role: roles)
-            {
-                if(userRole.equals(role))
-                {
+
+        for (VipsLogicRole userRole : this.getVipsLogicRoles()) {
+            for (VipsLogicRole role : roles) {
+                if (userRole.equals(role)) {
                     return true;
                 }
             }
@@ -307,6 +305,7 @@ public class VipsLogicUser implements Serializable {
      * @return the vipsCoreUserId
      */
     @Column(name = "vips_core_user_id")
+    @JsonIgnore
     public Integer getVipsCoreUserId() {
         return vipsCoreUserId;
     }
@@ -317,17 +316,18 @@ public class VipsLogicUser implements Serializable {
     public void setVipsCoreUserId(Integer vipsCoreUserId) {
         this.vipsCoreUserId = vipsCoreUserId;
     }
-    
+
     @Transient
-    public Integer getVipsCoreUserIdWithFallback()
-    {
+    @JsonIgnore
+    public Integer getVipsCoreUserIdWithFallback() {
         return this.getVipsCoreUserId() != null ? this.getVipsCoreUserId() : this.getOrganizationId().getDefaultVipsCoreUserId();
     }
 
     /**
      * @return the emailVerificationCode
      */
-@Column(name = "email_verification_code")
+    @Column(name = "email_verification_code")
+    @JsonIgnore
     public String getEmailVerificationCode() {
         return emailVerificationCode;
     }
@@ -338,19 +338,15 @@ public class VipsLogicUser implements Serializable {
     public void setEmailVerificationCode(String emailVerificationCode) {
         this.emailVerificationCode = emailVerificationCode;
     }
-    
+
     @Transient
     @JsonIgnore
-    public UserAuthentication getPasswordAuthentication()
-    {
-        if(this.getUserAuthenticationSet() == null)
-        {
+    public UserAuthentication getPasswordAuthentication() {
+        if (this.getUserAuthenticationSet() == null) {
             return null;
         }
-        for(UserAuthentication auth:this.getUserAuthenticationSet())
-        {
-            if(auth.getUserAuthenticationType().getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD))
-            {
+        for (UserAuthentication auth : this.getUserAuthenticationSet()) {
+            if (auth.getUserAuthenticationType().getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD)) {
                 return auth;
             }
         }
