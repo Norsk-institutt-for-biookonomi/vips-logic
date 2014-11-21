@@ -32,7 +32,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * @copyright 2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -59,6 +59,7 @@ public class MessageIllustrationCaptionLocale implements Serializable {
         @JoinColumn(name = "file_name", referencedColumnName = "file_name", insertable = false, updatable = false)})
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private MessageIllustration messageIllustration;
+
 
     public MessageIllustrationCaptionLocale() {
     }
