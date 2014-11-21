@@ -3,6 +3,8 @@
   <deployment>  
     <dependencies>  
       <module name="org.postgresql" />  
+      <module name="org.codehaus.jackson.jackson-core-asl" />
+      <module name="org.codehaus.jackson.jackson-mapper-asl" />
     </dependencies>  
   </deployment>  
 </jboss-deployment-structure> 
