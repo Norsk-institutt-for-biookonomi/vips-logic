@@ -19,6 +19,7 @@
 
 package no.bioforsk.vips.logic.controller.session;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ibm.icu.util.Calendar;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 import de.micromata.opengis.kml.v_2_2_0.Document;
@@ -63,7 +64,6 @@ import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonNode;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
@@ -265,7 +265,7 @@ public class ForecastBean {
             Response resp = this.getManagerResource().printModelListJSON();
             for(JsonNode modelIdItem: resp.readEntity(JsonNode.class).findValues("modelId"))
             {
-                String modelId = modelIdItem.getValueAsText();
+                String modelId = modelIdItem.asText();
                 
                 // We get the corresponding modelInformation entry 
                 ModelInformation modelInformation = em.find(ModelInformation.class, modelId);
@@ -416,9 +416,10 @@ public class ForecastBean {
                 request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserIdWithFallback());
                 //System.out.println("RunModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
                 Response resp = this.getManagerResource().runModel(config.getModelId(), request);
+                
                 if(resp.getStatus() == Response.Status.OK.getStatusCode())
                 {
-                    List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
+                    List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
                     // We delete all former results before we store the new ones
                     SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
                 }

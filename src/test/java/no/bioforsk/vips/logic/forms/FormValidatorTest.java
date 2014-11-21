@@ -19,17 +19,15 @@
 
 package no.bioforsk.vips.logic.forms;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import no.bioforsk.web.forms.FormValidation;
 import no.bioforsk.web.forms.FormValidationException;
 import no.bioforsk.web.forms.FormValidator;
-import org.codehaus.jackson.JsonNode;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,7 +37,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author treinar
+ * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class FormValidatorTest {
     

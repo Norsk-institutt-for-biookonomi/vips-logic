@@ -19,6 +19,7 @@
 
 package no.bioforsk.web.forms;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
@@ -27,7 +28,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import org.codehaus.jackson.annotate.JsonIgnore;
+
 
 /**
  * Represents a (web) form field

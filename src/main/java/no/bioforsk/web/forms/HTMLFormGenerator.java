@@ -19,18 +19,18 @@
 
 package no.bioforsk.web.forms;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import no.bioforsk.vips.i18n.I18nImpl;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class HTMLFormGenerator {

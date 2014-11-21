@@ -19,14 +19,14 @@
 
 package no.bioforsk.vips.logic.forms;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import no.bioforsk.web.forms.HTMLFormGenerator;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author treinar
+ * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class HTMLFormGeneratorTest {
     
@@ -68,8 +68,8 @@ public class HTMLFormGeneratorTest {
             InputStream in = this.getClass().getResourceAsStream("/HTMLFormGeneratorTest/forecastConfigurationForm.json");
             InputStreamReader reader = new InputStreamReader(in,"UTF-8");
             ObjectMapper mapper = new ObjectMapper();
-            JsonFactory factory = mapper.getJsonFactory();
-            JsonParser parser = factory.createJsonParser(reader);
+            JsonFactory factory = mapper.getFactory();
+            JsonParser parser = factory.createParser(reader);
             JsonNode formDefinition = mapper.readTree(parser);
             InputStream in2 = this.getClass().getResourceAsStream("/HTMLFormGeneratorTest/forecastConfigurationForm_result.html");
             InputStreamReader reader2 = new InputStreamReader(in2, "UTF-8");

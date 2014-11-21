@@ -19,6 +19,8 @@
 
 package no.bioforsk.vips.logic.scheduling.model;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -32,12 +34,11 @@ import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+
 
 /**
  * All model preprocessors must implement this
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public abstract class ModelRunPreprocessor {

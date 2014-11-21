@@ -43,11 +43,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import no.bioforsk.vips.entity.Result;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Entity

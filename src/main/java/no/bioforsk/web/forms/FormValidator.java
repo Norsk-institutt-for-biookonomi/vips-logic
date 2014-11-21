@@ -19,6 +19,11 @@
 
 package no.bioforsk.web.forms;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,11 +43,6 @@ import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import org.apache.commons.validator.EmailValidator;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Uses form configuration set in JSON files in [WARFILE]/formdefinitions/, or 
@@ -351,9 +351,9 @@ public class FormValidator {
         {
             for(JsonNode item: relations)
             {
-                String relationType = item.findValue("relationType").getTextValue();
-                String primaryFieldName = item.findValue("primaryField").getTextValue();
-                String secondaryFieldName = item.findValue("secondaryField").getTextValue();
+                String relationType = item.findValue("relationType").asText();
+                String primaryFieldName = item.findValue("primaryField").asText();
+                String secondaryFieldName = item.findValue("secondaryField").asText();
                 FormField primaryField = retVal.getFormField(primaryFieldName);
                 FormField secondaryField = retVal.getFormField(secondaryFieldName);
                 if(primaryField == null || secondaryField == null)
@@ -405,10 +405,10 @@ public class FormValidator {
     public static JsonNode getFormDefinition(String formName, ServletContext servletContext) throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        JsonFactory factory = mapper.getJsonFactory();
+        JsonFactory factory = mapper.getFactory();
         InputStream in = servletContext.getResourceAsStream("/formdefinitions/" + formName + ".json");
 
-        JsonParser parser = factory.createJsonParser(in);
+        JsonParser parser = factory.createParser(in);
         JsonNode formDefinition = mapper.readTree(parser);
         return formDefinition;
     }
