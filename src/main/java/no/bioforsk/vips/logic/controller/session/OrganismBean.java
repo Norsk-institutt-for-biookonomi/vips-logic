@@ -36,7 +36,9 @@ import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.entity.OrganismExternalResource;
 import no.bioforsk.vips.logic.entity.OrganismLocale;
 import no.bioforsk.vips.logic.entity.OrganismLocalePK;
+import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.HierarchyCategoryLocaleNames;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
 
 /**
  * @copyright 2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -129,13 +131,26 @@ public class OrganismBean {
         }
     }
 
-    public Organism storeOrganism(Organism organism) {
+    public Organism storeOrganismWithLocalName(Organism organism, String localName, ULocale currentLocale) {
         // Ensure that parentOrganismId = -1 => null
         if(organism.getParentOrganismId().equals(-1))
         {
             organism.setParentOrganismId(null);
         }
-        return em.merge(organism);
+        organism = em.merge(organism);
+        // Adding local name only if it is set
+        if(!localName.isEmpty())
+        {
+            //SessionControllerGetter.getOrganismBean().setOrganismLocalName(organism, localName, currentLocale);
+            this.setOrganismLocalName(organism, localName, currentLocale);
+        }
+        // If local name form field is not set, but it already has a local name, delete it
+        else if(organism.getOrganismLocale(currentLocale.getLanguage()) != null)
+        {
+            //SessionControllerGetter.getOrganismBean().removeOrganismLocalName(organism, currentLocale);
+            this.removeOrganismLocalName(organism, currentLocale);
+        }
+        return organism;
     }
 
     public void storeOrganismExternalResource(OrganismExternalResource organismExternalResource) {
@@ -179,7 +194,6 @@ public class OrganismBean {
      * @param currentLocale 
      */
     public void setOrganismLocalName(Organism organism, String localName, ULocale currentLocale) {
-        
         if(organism.getOrganismLocale(currentLocale.getLanguage()) == null)
         {
             OrganismLocalePK pk = new OrganismLocalePK(organism.getOrganismId(), currentLocale.getLanguage());

@@ -19,6 +19,7 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -143,6 +144,8 @@ public class Organism implements Serializable {
 
     
     public Set<OrganismLocale> getOrganismLocaleSet() {
+        if(this.organismLocaleSet == null)
+            this.organismLocaleSet = new HashSet<>();
         return organismLocaleSet;
     }
 

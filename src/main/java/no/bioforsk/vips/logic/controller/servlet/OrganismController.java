@@ -199,19 +199,11 @@ public class OrganismController extends HttpServlet {
                     organism.setHierarchyCategoryId(formValidation.getFormField("hierarchyCategoryId").getValueAsInteger());
                     organism.setParentOrganismId(formValidation.getFormField("parentOrganismId").getValueAsInteger());
                     
-                    
-                    // Adding local name only if it is set
-                    if(!formValidation.getFormField("localName").getWebValue().isEmpty())
-                    {
-                        SessionControllerGetter.getOrganismBean().setOrganismLocalName(organism, formValidation.getFormField("localName").getWebValue(), SessionLocaleUtil.getCurrentLocale(request));
-                    }
-                    // If local name form field is not set, but it already has a local name, delete it
-                    else if(organism.getOrganismLocale(SessionLocaleUtil.getCurrentLocale(request).getLanguage()) != null)
-                    {
-                        SessionControllerGetter.getOrganismBean().removeOrganismLocalName(organism, SessionLocaleUtil.getCurrentLocale(request));
-                    }
-                    
-                    organism = SessionControllerGetter.getOrganismBean().storeOrganism(organism);
+                    organism = SessionControllerGetter.getOrganismBean().storeOrganismWithLocalName(
+                            organism,
+                            formValidation.getFormField("localName").getWebValue(),
+                            SessionLocaleUtil.getCurrentLocale(request)
+                            );
                     
                     //System.out.println(formValidation.getFormFields().toString());
                     Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
