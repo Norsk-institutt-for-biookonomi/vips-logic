@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import no.bioforsk.vips.logic.scheduling.tasks.RunAllForecastConfigurationsTask;
 import no.bioforsk.vips.logic.scheduling.tasks.UpdateForecastResultCacheTableTask;
+import no.bioforsk.vips.logic.scheduling.tasks.UpdateForecastSummaryTableTask;
 import no.bioforsk.vips.logic.scheduling.tasks.UpdateModelInformationTask;
 
 /**
@@ -37,8 +38,9 @@ public class VipsLogicTaskFactory {
     public static final int RUN_ALL_FORECAST_CONFIGURATIONS_TASK = 1;
     public static final int UPDATE_MODEL_INFORMATION_TASK = 2;
     public static final int UPDATE_FORECAST_RESULT_CACHE_TABLE_TASK = 3;
+    public static final int UPDATE_FORECAST_SUMMARY_TABLE_TASK = 4;
     
-    private final static int[] ALL_TASK_IDS = {1,2,3};
+    private final static int[] ALL_TASK_IDS = {1,2,3,4};
     
     private static List<VipsLogicTask> allTasksList;
     private static Map<String,VipsLogicTask> allTasksMap;
@@ -61,6 +63,9 @@ public class VipsLogicTaskFactory {
                 break;
             case UPDATE_FORECAST_RESULT_CACHE_TABLE_TASK:
                 retVal =  new UpdateForecastResultCacheTableTask();
+                break;
+            case UPDATE_FORECAST_SUMMARY_TABLE_TASK:
+                retVal =  new UpdateForecastSummaryTableTask();
                 break;
             default:
                 return null;

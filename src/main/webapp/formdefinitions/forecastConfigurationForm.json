@@ -45,6 +45,13 @@
             "required" : true
         },
         {
+            "name" : "pestOrganismId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
             "name" : "locationPointOfInterestId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

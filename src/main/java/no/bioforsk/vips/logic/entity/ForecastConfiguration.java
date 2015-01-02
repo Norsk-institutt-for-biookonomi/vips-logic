@@ -41,9 +41,11 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
+import javax.persistence.Transient;
 
 /**
- * @copyright 2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2014-2015 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Entity
@@ -56,6 +58,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
     @NamedQuery(name = "ForecastConfiguration.findByModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId IN (:modelIds)"),
     @NamedQuery(name = "ForecastConfiguration.findByDateStart", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart = :dateStart"),
     @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd"),
+    @NamedQuery(name = "ForecastConfiguration.findActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate"),
     @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds)"),
@@ -93,6 +96,13 @@ public class ForecastConfiguration implements Serializable, Comparable {
     @JoinColumn(name = "crop_organism_id", referencedColumnName = "organism_id")
     @ManyToOne
     private Organism cropOrganismId;
+    @JoinColumn(name = "pest_organism_id", referencedColumnName = "organism_id")
+    @ManyToOne
+    private Organism pestOrganismId;
+    
+    // Relations connected manually
+    @Transient
+    private List<ForecastSummary> forecastSummaries;
 
     public ForecastConfiguration() {
     }
@@ -249,5 +259,33 @@ public class ForecastConfiguration implements Serializable, Comparable {
      */
     public void setCropOrganismId(Organism cropOrganismId) {
         this.cropOrganismId = cropOrganismId;
+    }
+
+    /**
+     * @return the forecastSummaries
+     */
+    public List<ForecastSummary> getForecastSummaries() {
+        return forecastSummaries;
+    }
+
+    /**
+     * @param forecastSummaries the forecastSummaries to set
+     */
+    public void setForecastSummaries(List<ForecastSummary> forecastSummaries) {
+        this.forecastSummaries = forecastSummaries;
+    }
+
+    /**
+     * @return the pestOrganismId
+     */
+    public Organism getPestOrganismId() {
+        return pestOrganismId;
+    }
+
+    /**
+     * @param pestOrganismId the pestOrganismId to set
+     */
+    public void setPestOrganismId(Organism pestOrganismId) {
+        this.pestOrganismId = pestOrganismId;
     }
 }

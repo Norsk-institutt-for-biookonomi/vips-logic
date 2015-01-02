@@ -43,6 +43,7 @@ import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
+import no.bioforsk.vips.logic.entity.ForecastSummary;
 import no.bioforsk.vips.logic.entity.Message;
 import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.Observation;
@@ -55,7 +56,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
 /**
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Path("rest")
@@ -86,6 +87,18 @@ public class LogicService {
     {
         List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, latestDays);
         return Response.ok().entity(results).build();
+    }
+    
+    @GET
+    @Path("forecastconfigurationsummaries/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastSummaries(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds
+    )
+    {
+        List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(organizationId);
+        return Response.ok().entity(summaries).build();
     }
     
     /**
