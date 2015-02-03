@@ -97,7 +97,7 @@
 			>${organism.latinName!""}/${organism.tradeName!""}/${organism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(organism.hierarchyCategoryId)})</option>
 		</#list>
 	    </select>
-	    <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
+	    <span class="help-block" id="${formId}_pestOrganismId_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
