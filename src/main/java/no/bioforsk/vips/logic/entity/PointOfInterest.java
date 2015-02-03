@@ -39,6 +39,7 @@ import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.persistence.DiscriminatorType;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -47,12 +48,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "point_of_interest")
 @Inheritance(strategy=InheritanceType.JOINED)
-@DiscriminatorColumn(name="point_of_interest_type_id")
+@DiscriminatorColumn(name="point_of_interest_type_id", discriminatorType=DiscriminatorType.INTEGER)
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PointOfInterest.findAll", query = "SELECT p FROM PointOfInterest p"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId = :pointOfInterestId"),
-    @NamedQuery(name = "PointOfInterest.findByPointOfInterestTypeId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType = :pointOfInterestType"),
+    //@NamedQuery(name = "PointOfInterest.findByPointOfInterestTypeId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType = :pointOfInterestType"),
     @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE organizationId=:organizationId)"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     @NamedQuery(name = "PointOfInterest.findByLongitude", query = "SELECT p FROM PointOfInterest p WHERE p.longitude = :longitude"),
@@ -87,9 +88,9 @@ public class PointOfInterest implements Serializable, Comparable {
     @JoinColumn(name = "country_code", referencedColumnName = "country_code")
     @ManyToOne
     private Country countryCode;
-    @JoinColumn(name="point_of_interest_type_id", referencedColumnName="point_of_interest_type_id")
-    @ManyToOne
-    private PointOfInterestType pointOfInterestType;
+    //@JoinColumn(name="point_of_interest_type_id", referencedColumnName="point_of_interest_type_id")
+    //@ManyToOne
+    //private PointOfInterestType pointOfInterestType;
     
     // For attaching ad-hoc properties
     // e.g. Worst warning for map
@@ -179,17 +180,17 @@ public class PointOfInterest implements Serializable, Comparable {
 
     /**
      * @return the pointOfInterestType
-     */
+     *
     public PointOfInterestType getPointOfInterestType() {
         return pointOfInterestType;
     }
 
     /**
      * @param pointOfInterestType the pointOfInterestType to set
-     */
+     *
     public void setPointOfInterestType(PointOfInterestType pointOfInterestType) {
         this.pointOfInterestType = pointOfInterestType;
-    }
+    }*/
 
     @Override
     public int compareTo(Object t) {
