@@ -58,14 +58,23 @@ function renderModelSpecificFields()
  */
 function renderModelSpecificFieldsCallback(modelId)
 {
+    var fieldSet = document.getElementById("modelSpecificFields");
     var formDefinition = formDefinitions[modelId];
+    
+    // If there are no specific fields, erase what was there
+    if(formDefinition.fields.length === 0)
+    {
+        fieldSet.innerHTML = "";
+        fieldSet.style.display="none";
+        return;
+    }
+    
     var fieldsHTML = ["<legend>" + getI18nMsg("specificFieldsForX", [getI18nMsg(modelId)])+ "</legend>"];
     for(var i in formDefinition.fields){
         var fieldDefinition = formDefinition.fields[i];
         fieldsHTML.push(createFieldHTML(modelId, fieldDefinition));
     }
     
-    var fieldSet = document.getElementById("modelSpecificFields");
     fieldSet.innerHTML = fieldsHTML.join("\n");
     fieldSet.style.display="block";
     

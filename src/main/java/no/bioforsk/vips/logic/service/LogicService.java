@@ -26,8 +26,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -38,12 +41,12 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.bioforsk.vips.coremanager.service.ManagerResource;
+import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
 import no.bioforsk.vips.logic.entity.ForecastResult;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ForecastModelConfiguration;
-import no.bioforsk.vips.logic.entity.ForecastSummary;
 import no.bioforsk.vips.logic.entity.Message;
 import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.Observation;
@@ -52,6 +55,8 @@ import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.ServletUtil;
+import no.bioforsk.vips.util.weather.MetosDataParser;
+import no.bioforsk.vips.util.weather.ParseWeatherDataException;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
@@ -265,6 +270,21 @@ public class LogicService {
     public Response getObservationList(@QueryParam("organizationId") Integer organizationId)
     {
         List<Observation> observations = SessionControllerGetter.getObservationBean().getObservations(organizationId);
+        return Response.ok().entity(observations).build();
+    }
+    
+    @GET
+    @POST
+    @Path("weather/proxy/metos/{stationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getMetosWeatherData(@PathParam("stationId") String stationId)
+    {
+        List<WeatherObservation> observations;
+        try {
+            observations = new MetosDataParser().getWeatherObservations(stationId);
+        } catch (ParseWeatherDataException ex) {
+            return Response.serverError().entity(ex).build();
+        }
         return Response.ok().entity(observations).build();
     }
     

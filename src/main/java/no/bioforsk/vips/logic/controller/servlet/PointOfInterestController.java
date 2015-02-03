@@ -209,10 +209,10 @@ public class PointOfInterestController extends HttpServlet {
                             weatherStation.setWeatherStationRemoteId(formValidation.getFormField("weatherStationRemoteId").getWebValue());
                             weatherStation.setTimeZone(formValidation.getFormField("timeZone").getWebValue());
                             weatherStation.setCountryCode(em.find(Country.class, formValidation.getFormField("countryCode").getWebValue()));
-                            if(weatherStation.getPointOfInterestType() == null)
+                            /*if(weatherStation.getPointOfInterestType() == null)
                             {
-                                weatherStation.setPointOfInterestType(em.find(PointOfInterestType.class, Globals.POI_TYPE_WEATHERSTATION));
-                            }
+                                //weatherStation.setPointOfInterestType(em.find(PointOfInterestType.class, Globals.POI_TYPE_WEATHERSTATION));
+                            }*/
                             // If userId is set from form, always update
                             if(user.isSuperUser() && !formValidation.getFormField("userId").isEmpty())
                             {
