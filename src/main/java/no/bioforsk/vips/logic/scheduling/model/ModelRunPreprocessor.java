@@ -102,7 +102,7 @@ public abstract class ModelRunPreprocessor {
                 error = ((HttpURLConnection) URLConn).getErrorStream();
                 errorOutput = IOUtils.toString(error);
             }
-            catch(IOException ex2) {}
+            catch(IOException | NullPointerException ex2) {}
             
             if(errorOutput.isEmpty())
             {
