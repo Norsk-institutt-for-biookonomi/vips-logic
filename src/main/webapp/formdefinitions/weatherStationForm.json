@@ -1,6 +1,6 @@
 {
     "_licenseNote": [
-        "Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. ",
+        "Copyright (c) 2014-2015 Bioforsk <http://www.bioforsk.no/>. ",
         "",
         "This file is part of VIPSLogic. ",
         "VIPSLogic is free software: you can redistribute it and/or modify ",
@@ -33,6 +33,13 @@
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
+            "nullValue" : "-1"
+        },
+        {
+            "name" : "weatherForecastProviderId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : false,
             "nullValue" : "-1"
         },
         {

@@ -170,6 +170,18 @@
 	    <textarea class="form-control" name="messageIllustrationCaptionLocale" placeholder="${i18nBundle.messageIllustrationCaptionLocale}" onblur="validateField(this);" >${(localMessageIllustrationCaption.caption)!""}</textarea>
 	    <span class="help-block" id="${formId}_messageIllustrationCaptionLocale_validation"></span>
 	</div>
+	<#if user.isSuperUser()>
+		<div class="form-group">
+			<label for="organizationId">${i18nBundle.organizationId}</label>
+			<select name="organizationId" size="5" class="form-control" >
+				<#list organizations?sort_by("organizationName") as organization>
+				<option value="${organization.organizationId}" <#if message.organizationId == organization.organizationId> selected="selected"</#if>>
+				${organization.organizationName}
+				</option>
+				</#list>
+			</select>
+		</div>
+	</#if>
         <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
         <#if message.messageId?has_content && user.isSuperUser()>
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/message?action=deleteMessage&messageId=${message.messageId}';}">${i18nBundle.delete}</button>

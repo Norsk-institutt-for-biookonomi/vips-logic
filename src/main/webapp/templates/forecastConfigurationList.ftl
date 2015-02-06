@@ -42,7 +42,7 @@
 				</div>
 				<#if user.isSuperUser() >
 				<div class="form-group">
-					<label class="sr-only" for="organizationId">Model</label>
+					<label class="sr-only" for="organizationId">Organization</label>
 					<select name="organizationId" size="3" multiple="multiple">
 						<#list organizations?sort_by("organizationName") as organization>
 						<option value="${organization.organizationId}" ${selectedOrganizationIds?seq_contains(organization.organizationId)?string(" selected=\"selected\"","")}>

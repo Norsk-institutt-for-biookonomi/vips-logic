@@ -30,9 +30,7 @@ import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SystemTime;
-import no.bioforsk.vips.model.ConfigValidationException;
 import no.bioforsk.vips.util.WeatherElements;
-import no.bioforsk.vips.util.WeatherObservationListException;
 import no.bioforsk.vips.util.WeatherUtil;
 
 /**
@@ -56,7 +54,7 @@ public class PlasmoparaViticolaModelPreprocessor extends ModelRunPreprocessor{
         cal.set(Calendar.DATE, 1);
         Date startDate = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
         
-        List<WeatherObservation> observations = getWeatherObservations(
+        /*List<WeatherObservation> observations = getWeatherObservations(
                     weatherStation.getDataFetchUri(), 
                     WeatherObservation.LOG_INTERVAL_ID_1H, 
                     new String[]{
@@ -65,7 +63,16 @@ public class PlasmoparaViticolaModelPreprocessor extends ModelRunPreprocessor{
                     }, 
                     startDate, 
                     endDate, 
-                    timeZone);
+                    timeZone);*/
+        List<WeatherObservation> observations = getWeatherObservations(
+                    weatherStation, 
+                    WeatherObservation.LOG_INTERVAL_ID_1H, 
+                    new String[]{
+                        WeatherElements.TEMPERATURE_MEAN, 
+                        WeatherElements.PRECIPITATION
+                    }, 
+                    startDate, 
+                    endDate);
         // TODO:  weather data validation
         ModelConfiguration retVal = new ModelConfiguration();
         retVal.setModelId(this.getModelId());

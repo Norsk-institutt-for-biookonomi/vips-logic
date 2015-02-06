@@ -168,6 +168,7 @@ public class MessageController extends HttpServlet {
                 tags.removeAll(message.getMessageTagSet());
                 request.setAttribute("unusedTags", tags);
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
+                request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
             catch(NullPointerException | NumberFormatException ex)
@@ -188,6 +189,7 @@ public class MessageController extends HttpServlet {
                 );
                 request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                 request.setAttribute("unusedTags", em.createNamedQuery("MessageTag.findAll").getResultList());
+                request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
             catch(NullPointerException | NumberFormatException ex)

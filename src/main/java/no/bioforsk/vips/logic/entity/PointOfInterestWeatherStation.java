@@ -32,8 +32,6 @@ import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
 
 /**
  * Extension of {@see PointOfInterest}, with additional info for weather stations

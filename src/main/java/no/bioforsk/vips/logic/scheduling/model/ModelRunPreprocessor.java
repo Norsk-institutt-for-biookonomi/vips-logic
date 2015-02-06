@@ -27,12 +27,20 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.util.weather.ParseWeatherDataException;
+import no.bioforsk.vips.util.weather.WeatherForecastProvider;
+import no.bioforsk.vips.util.weather.WeatherStationProviderFactory;
 import org.apache.commons.io.IOUtils;
 
 
@@ -126,6 +134,92 @@ public abstract class ModelRunPreprocessor {
             }
         }
         
+    }
+    
+    protected List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime) throws PreprocessorException
+    {
+        List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()));
+        Collections.sort(observations);
+        Date latestTimeOfMeasuredObservations = observations.isEmpty() ? null : observations.get(observations.size()-1).getTimeMeasured();
+        // If the station has a weather forecast provider, add forecasts
+        if(station.getWeatherForecastProviderId() != null)
+        {
+            try
+            {
+                WeatherForecastProvider forecastProvider = WeatherStationProviderFactory.getWeatherForecastProvider(station.getWeatherForecastProviderId().getWeatherForecastProviderId());
+                List<WeatherObservation> forecasts = forecastProvider.getWeatherForecasts(station);
+                // Make sure we have the same amount and timing of the different parameters
+                // Create a map with one list for each parameter
+                Map<String, List<WeatherObservation>> obsMap = new HashMap<>();
+                for(String elementMeasurementType : elementMeasurementTypes)
+                {
+                    obsMap.put(elementMeasurementType, new ArrayList<WeatherObservation>());
+                }
+                // Populate the lists and see what we've got
+                for(WeatherObservation obs:forecasts)
+                {
+                    // We don't add irrelevant parameters from the forecast
+                    if(obs.getLogIntervalId().equals(logIntervalId) && obsMap.get(obs.getElementMeasurementTypeId()) != null)
+                    {
+                        obsMap.get(obs.getElementMeasurementTypeId()).add(obs);
+                    }
+                }
+                
+                // Find the latest date where all parameters are present
+                Date latestCommonDate = null;
+                for(String elementMeasurementType : elementMeasurementTypes)
+                {
+                    List<WeatherObservation> paramObs = obsMap.get(elementMeasurementType);
+                    Collections.sort(paramObs);
+                    latestCommonDate = latestCommonDate == null ?
+                            paramObs.get(paramObs.size()-1).getTimeMeasured()
+                            : new Date(Math.min(latestCommonDate.getTime(), paramObs.get(paramObs.size()-1).getTimeMeasured().getTime())
+                    );
+                }
+                // We remove all observations after that date
+                // And before the measured data ends
+                Integer previousObsSize = null;
+                for(String elementMeasurementType : elementMeasurementTypes)
+                {
+                    List<WeatherObservation> paramForecastObs = obsMap.get(elementMeasurementType);
+                    List<WeatherObservation> forecastsOutsideScope = new ArrayList<>();
+                    for(WeatherObservation obs:paramForecastObs)
+                    {
+                        if(obs.getTimeMeasured().compareTo(latestCommonDate) > 0
+                                || (latestTimeOfMeasuredObservations != null && obs.getTimeMeasured().compareTo(latestTimeOfMeasuredObservations) <= 0)
+                        )
+                        {
+                            forecastsOutsideScope.add(obs);
+                        }
+                    }
+                    paramForecastObs.removeAll(forecastsOutsideScope);
+                    // Have we got the same amount of observations for each parameter?
+                    if(previousObsSize != null && previousObsSize != paramForecastObs.size())
+                    {
+                        throw new PreprocessorException("Weather forecast from " 
+                                + station.getWeatherForecastProviderId().getName()
+                                + " does not provide consistent data. Array length differ "
+                                + "between parameters for same time span. First deviation "
+                                + "was found for " + elementMeasurementType + ", it has " 
+                                + paramForecastObs.size() + " elements, compared to " + previousObsSize
+                                + " for the previous parameter. End of the period is " + latestCommonDate
+                        );
+                    }
+                }
+                
+                // Everything seemingly OK, we add parameters to observation list
+                for(String elementMeasurementType : elementMeasurementTypes)
+                {
+                    observations.addAll(obsMap.get(elementMeasurementType));
+                }
+                
+            }
+            catch(ParseWeatherDataException ex)
+            {
+                throw new PreprocessorException(ex.getMessage());
+            }
+        }
+        return observations;
     }
     
 }

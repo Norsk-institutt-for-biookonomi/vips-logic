@@ -99,7 +99,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                     WeatherElements.TEMPERATURE_MEAN, 
                     WeatherElements.PRECIPITATION,
                     WeatherElements.LEAF_WETNESS,
-                    WeatherElements.RELATIVE_HUMIDITY,
+                    WeatherElements.RELATIVE_HUMIDITY_MEAN,
                     WeatherElements.GLOBAL_RADIATION,
                     WeatherElements.WIND_SPEED_2M
                 }, 
@@ -172,7 +172,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                 case WeatherElements.LEAF_WETNESS:
                     BT.add(o); 
                     break;
-                case WeatherElements.RELATIVE_HUMIDITY:
+                case WeatherElements.RELATIVE_HUMIDITY_MEAN:
                     UM.add(o); 
                     break;
                 case WeatherElements.GLOBAL_RADIATION:

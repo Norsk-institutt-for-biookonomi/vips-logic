@@ -85,6 +85,18 @@
 			     <span class="help-block" id="${formId}_weatherStationDataSourceId_validation"></span>
 			  </div>
 			  <div class="form-group">
+			    <label for="weatherForecastProviderId">${i18nBundle.weatherForecastProvider}</label>
+			    <select class="form-control" name="weatherForecastProviderId" onblur="validateField(this);">
+			    	<option value="-1">${i18nBundle.none} ${i18nBundle.weatherForecastProvider?lower_case}
+				<#list weatherForecastProviders as weatherForecastProvider>
+					<option value="${weatherForecastProvider.weatherForecastProviderId}"
+						<#if weatherStation.weatherForecastProviderId?has_content && weatherStation.weatherForecastProviderId.weatherForecastProviderId == weatherForecastProvider.weatherForecastProviderId>selected="selected"</#if>
+					>${weatherForecastProvider.name}</option>
+				</#list>
+			     </select>
+			     <span class="help-block" id="${formId}_weatherForecastProviderId_validation"></span>
+			  </div>
+			  <div class="form-group">
 			    <label for="weatherStationRemoteId">${i18nBundle.weatherStationRemoteId}</label>
 			    <input type="text" class="form-control" name="weatherStationRemoteId" placeholder="${i18nBundle.weatherStationRemoteId}" value="${(weatherStation.weatherStationRemoteId)!""}" onblur="validateField(this);"/>
 			    <span class="help-block" id="${formId}_weatherStationRemoteId_validation"></span>

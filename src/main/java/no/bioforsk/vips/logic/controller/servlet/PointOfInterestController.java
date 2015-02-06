@@ -30,15 +30,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.entity.Country;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
-import no.bioforsk.vips.logic.entity.PointOfInterestType;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.entity.WeatherStationDataSource;
-import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ExceptionUtil;
 import no.bioforsk.vips.util.ServletUtil;
+import no.bioforsk.vips.logic.entity.WeatherForecastProvider;
 import no.bioforsk.web.forms.FormValidation;
 import no.bioforsk.web.forms.FormValidationException;
 import no.bioforsk.web.forms.FormValidator;
@@ -136,6 +135,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         if(user.isSuperUser())
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
@@ -169,6 +169,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         if(user.isSuperUser())
                         {
@@ -206,6 +207,10 @@ public class PointOfInterestController extends HttpServlet {
                             weatherStation.setLongitude(formValidation.getFormField("location").getValueAsPointWGS84().getX());
                             weatherStation.setLatitude(formValidation.getFormField("location").getValueAsPointWGS84().getY());
                             weatherStation.setWeatherStationDataSourceId(em.find(WeatherStationDataSource.class, formValidation.getFormField("weatherStationDataSourceId").getValueAsInteger()));
+                            weatherStation.setWeatherForecastProviderId(formValidation.getFormField("weatherForecastProviderId").getWebValue() != null ?
+                                    em.find(WeatherForecastProvider.class, formValidation.getFormField("weatherForecastProviderId").getValueAsInteger())
+                                    : null
+                            );
                             weatherStation.setWeatherStationRemoteId(formValidation.getFormField("weatherStationRemoteId").getWebValue());
                             weatherStation.setTimeZone(formValidation.getFormField("timeZone").getWebValue());
                             weatherStation.setCountryCode(em.find(Country.class, formValidation.getFormField("countryCode").getWebValue()));

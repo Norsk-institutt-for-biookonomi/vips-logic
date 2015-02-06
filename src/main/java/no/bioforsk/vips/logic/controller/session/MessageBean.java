@@ -42,7 +42,6 @@ import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.web.forms.FormField;
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -74,7 +73,10 @@ public class MessageBean {
         // Add data
         message.setDatePub(formFields.get("datePub").getValueAsDate());
         message.setDateValidTo(formFields.get("dateValidTo").getValueAsDate());
-        message.setOrganizationId(user.getOrganizationId().getOrganizationId());
+        message.setOrganizationId(formFields.get("organizationId") != null && formFields.get("organizationId").getWebValue() != null ?
+                                    formFields.get("organizationId").getValueAsInteger()
+                                    : user.getOrganizationId().getOrganizationId()
+        );
         
         // Storing language specific fields
         // New or existing language version?

@@ -70,6 +70,11 @@
             "name" : "messageIllustrationCaptionLocale",
             "dataType" : "STRING",
             "required" : false
+        },
+        {
+            "name" : "organizationId",
+            "dataType" : "INTEGER",
+            "required" : false
         }
         
     ]

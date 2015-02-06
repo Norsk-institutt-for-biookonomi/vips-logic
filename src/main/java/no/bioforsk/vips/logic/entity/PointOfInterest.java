@@ -88,9 +88,9 @@ public class PointOfInterest implements Serializable, Comparable {
     @JoinColumn(name = "country_code", referencedColumnName = "country_code")
     @ManyToOne
     private Country countryCode;
-    //@JoinColumn(name="point_of_interest_type_id", referencedColumnName="point_of_interest_type_id")
-    //@ManyToOne
-    //private PointOfInterestType pointOfInterestType;
+    @JoinColumn(name = "weather_forecast_provider_id", referencedColumnName = "weather_forecast_provider_id")
+    @ManyToOne
+    private WeatherForecastProvider weatherForecastProviderId;
     
     // For attaching ad-hoc properties
     // e.g. Worst warning for map
@@ -254,5 +254,19 @@ public class PointOfInterest implements Serializable, Comparable {
      */
     public void setUserId(VipsLogicUser userId) {
         this.userId = userId;
+    }
+
+    /**
+     * @return the weatherForecastProviderId
+     */
+    public WeatherForecastProvider getWeatherForecastProviderId() {
+        return weatherForecastProviderId;
+    }
+
+    /**
+     * @param weatherForecastProviderId the weatherForecastProviderId to set
+     */
+    public void setWeatherForecastProviderId(WeatherForecastProvider weatherForecastProviderId) {
+        this.weatherForecastProviderId = weatherForecastProviderId;
     }
 }
