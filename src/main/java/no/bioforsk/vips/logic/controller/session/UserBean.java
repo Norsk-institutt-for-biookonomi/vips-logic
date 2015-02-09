@@ -365,6 +365,15 @@ public class UserBean {
     }
     
     /**
+     * 
+     * @return only the organizations without parent
+     */
+    public List<Organization> getTopLevelOrganizations()
+    {
+        return em.createNamedQuery("Organization.findAllTopLevelOrganizations").getResultList();
+    }
+    
+    /**
      * Returns the available user status Ids
      * @return 
      */

@@ -38,6 +38,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.persistence.FetchType;
 import org.hibernate.annotations.Type;
 
 /**
@@ -49,6 +50,7 @@ import org.hibernate.annotations.Type;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Organization.findAll", query = "SELECT o FROM Organization o"),
+    @NamedQuery(name = "Organization.findAllTopLevelOrganizations", query = "SELECT o FROM Organization o WHERE o.parentOrganizationId IS NULL"),
     @NamedQuery(name = "Organization.findByOrganizationId", query = "SELECT o FROM Organization o WHERE o.organizationId = :organizationId"),
     @NamedQuery(name = "Organization.findByOrganizationName", query = "SELECT o FROM Organization o WHERE o.organizationName = :organizationName"),
     @NamedQuery(name = "Organization.findByAddress1", query = "SELECT o FROM Organization o WHERE o.address1 = :address1"),
@@ -86,7 +88,7 @@ public class Organization implements Serializable {
     @Type(type = "org.hibernate.spatial.GeometryType")
     @Column(name = "default_map_center", columnDefinition = "Geometry")
     private Point defaultMapCenter;
-    @OneToMany(mappedBy = "parentOrganizationId")
+    @OneToMany(mappedBy = "parentOrganizationId", fetch = FetchType.EAGER)
     private Set<Organization> organizationSet;
     @JoinColumn(name = "parent_organization_id", referencedColumnName = "organization_id")
     @ManyToOne

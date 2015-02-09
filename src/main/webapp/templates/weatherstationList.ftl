@@ -27,8 +27,14 @@
 	<script type="text/javascript" src="/js/weatherStationListMap.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
-			initMap([${(defaultMapCenter.x?c)!"0"},${(defaultMapCenter.y?c)!"0"}],${defaultMapZoom!"1"},${user.organizationId.organizationId});
+			initMap([${(defaultMapCenter.x?c)!"0"},${(defaultMapCenter.y?c)!"0"}],${defaultMapZoom!"1"},${organizationId!user.organizationId.organizationId});
 		});
+		
+		function changeOrganization(selectList)
+		{
+			var organizationId = selectList.options[selectList.selectedIndex].value;
+			window.location="/weatherStation?organizationId=" + organizationId;
+		}
 	</script>
 </#macro>
 <#macro page_contents>
@@ -43,6 +49,19 @@
 		</div>
 	</div>
 	<div class="col-md-4">
+		 <#if user.isSuperUser() >
+		<div class="form-group">
+			<label for="organizationId">${i18nBundle.organizationId}</label>
+			<select name="organizationId" class="form-control" onchange="changeOrganization(this);">
+				<option value="-1">${i18nBundle.allOrganizations}</option>
+				<#list organizations?sort_by("organizationName") as organization>
+				<option value="${organization.organizationId}" <#if organizationId == organization.organizationId> selected="selected"</#if>>
+				${organization.organizationName}
+				</option>
+				</#list>
+			</select>
+		</div>
+		 </#if>
 		 <div class="table-responsive">
 			 <table class="table table-striped">
 				<thead>

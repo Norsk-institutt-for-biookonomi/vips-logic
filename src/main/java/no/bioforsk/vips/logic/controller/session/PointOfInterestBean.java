@@ -25,6 +25,7 @@ import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Point;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import javax.ejb.LocalBean;
@@ -91,7 +92,22 @@ public class PointOfInterestBean {
 
     public Kml getWeatherstationsForOrganization(Integer organizationId, Integer excludeWeatherStationId, Integer highlightWeatherStationId, String serverName, ResourceBundle i18nBundle) {
         String iconPath = "http://" + serverName + "/public/images/";
-        Organization organization = em.find(Organization.class, organizationId);
+        
+        List<PointOfInterestWeatherStation> weatherStations = new ArrayList<>();
+        if(organizationId.equals(-1))
+        {
+            List<Organization> organizations = em.createNamedQuery("Organization.findAllTopLevelOrganizations").getResultList();
+            for(Organization organization:organizations)
+            {
+                weatherStations.addAll(this.getWeatherstationsForOrganization(organization));
+            }
+        }
+        else
+        {
+            weatherStations.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId)));
+        }
+ 
+        
         // Initialization
         final Kml kml = KmlFactory.createKml();
         final Document document = kml.createAndSetDocument()
@@ -111,7 +127,8 @@ public class PointOfInterestBean {
                 .createAndSetIcon()
                     .withHref(iconPath + "anemometer_mono.png");
         
-        List<PointOfInterestWeatherStation> weatherStations = this.getWeatherstationsForOrganization(organization);
+        
+        
         String description = "";
         for(PointOfInterestWeatherStation weatherStation:weatherStations)
         {
@@ -158,8 +175,16 @@ public class PointOfInterestBean {
     }
 
     public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization) {
-        return em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId", PointOfInterestWeatherStation.class)
+        List<PointOfInterestWeatherStation> retVal = em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId", PointOfInterestWeatherStation.class)
                                                 .setParameter("organizationId", organization)
                                                 .getResultList();
+        for(Organization subdivision:organization.getOrganizationSet())
+        {
+            retVal.addAll(em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId", PointOfInterestWeatherStation.class)
+                                .setParameter("organizationId", subdivision)
+                                .getResultList()
+            );
+        }
+        return retVal;
     }
 }

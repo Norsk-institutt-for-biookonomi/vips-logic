@@ -19,6 +19,9 @@
 
 package no.bioforsk.vips.logic.controller.servlet;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
 import java.util.List;
 import java.util.TimeZone;
@@ -29,6 +32,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.entity.Country;
+import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
@@ -85,16 +89,46 @@ public class PointOfInterestController extends HttpServlet {
                 // List view
                 if(pointOfInterestId == null)
                 {
+                    Organization organization = null;
                     List<PointOfInterestWeatherStation> weatherStations;
                     if(user.isSuperUser()){
-                        weatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+                        Integer organizationId = request.getParameter("organizationId") != null ?
+                                Integer.parseInt(request.getParameter("organizationId"))
+                                :user.getOrganizationId().getOrganizationId();
+                        if(organizationId.equals(-1))
+                        {
+                            weatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+                        }
+                        else
+                        {
+                            organization = em.find(Organization.class, organizationId);
+                            weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization);
+                        }
+                        request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
+                        request.setAttribute("organizationId", organizationId);
+                        
                     }
                     else
                     {
-                        weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(user.getOrganizationId());
+                        organization = user.getOrganizationId();
+                        weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization);
+                        request.setAttribute("organizationId", organization.getOrganizationId());
                     }
-                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
-                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                    
+                    if(organization != null)
+                    {
+                        request.setAttribute("defaultMapCenter",organization.getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", organization.getDefaultMapZoom());
+                    }
+                    else
+                    {
+                        // Set map to cover Europe
+                        GeometryFactory gFact = new GeometryFactory();
+                        Coordinate coord = new Coordinate(16.51699219, 55.39404223);
+                        Point mapCenter = gFact.createPoint(coord);
+                        request.setAttribute("defaultMapCenter",mapCenter);
+                        request.setAttribute("defaultMapZoom", 3);
+                    }
                     request.getSession().setAttribute("weatherStations", weatherStations);
                     request.getRequestDispatcher("/weatherstationList.ftl").forward(request, response);
                 }
