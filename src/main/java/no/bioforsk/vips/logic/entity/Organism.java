@@ -48,6 +48,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Organism.findAll", query = "SELECT o FROM Organism o"),
+    @NamedQuery(name = "Organism.findAllCrops", query = "SELECT o FROM Organism o WHERE o.isCrop = true AND o.logicallyDeleted = false"),
+    @NamedQuery(name = "Organism.findAllPests", query = "SELECT o FROM Organism o WHERE o.isPest = true AND o.logicallyDeleted = false"),
     @NamedQuery(name = "Organism.findByOrganismId", query = "SELECT o FROM Organism o WHERE o.organismId = :organismId"),
     @NamedQuery(name = "Organism.findByParentOrganismId", query = "SELECT o FROM Organism o WHERE o.parentOrganismId = :parentOrganismId"),
     @NamedQuery(name = "Organism.findByLatinName", query = "SELECT o FROM Organism o WHERE o.latinName = :latinName"),
@@ -70,6 +72,10 @@ public class Organism implements Serializable {
     @NotNull
     @Column(name = "logically_deleted")
     private boolean logicallyDeleted;
+    @Column(name = "is_pest")
+    private Boolean isPest;
+    @Column(name = "is_crop")
+    private Boolean isCrop;
     
     // We simplify this to avoid very large queries
     @Column(name = "parent_organism_id")
@@ -283,5 +289,33 @@ public class Organism implements Serializable {
             }
         }
         return null;
+    }
+
+    /**
+     * @return the isPest
+     */
+    public Boolean getIsPest() {
+        return isPest;
+    }
+
+    /**
+     * @param isPest the isPest to set
+     */
+    public void setIsPest(Boolean isPest) {
+        this.isPest = isPest;
+    }
+
+    /**
+     * @return the isCrop
+     */
+    public Boolean getIsCrop() {
+        return isCrop;
+    }
+
+    /**
+     * @param isCrop the isCrop to set
+     */
+    public void setIsCrop(boolean isCrop) {
+        this.isCrop = isCrop;
     }
 }

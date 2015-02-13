@@ -194,6 +194,8 @@ public class OrganismController extends HttpServlet {
                 FormValidation formValidation = FormValidator.validateForm("organismForm",request,getServletContext());
                 if(formValidation.isValid())
                 {
+                    organism.setIsCrop(formValidation.getFormField("isCrop").getWebValue() != null);
+                    organism.setIsPest(formValidation.getFormField("isPest").getWebValue() != null);
                     organism.setLatinName(formValidation.getFormField("latinName").getWebValue());
                     organism.setTradeName(formValidation.getFormField("tradeName").getWebValue());
                     organism.setHierarchyCategoryId(formValidation.getFormField("hierarchyCategoryId").getValueAsInteger());

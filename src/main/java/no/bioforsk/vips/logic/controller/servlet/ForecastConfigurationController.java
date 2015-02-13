@@ -35,7 +35,6 @@ import no.bioforsk.vips.logic.controller.session.ForecastBean;
 import no.bioforsk.vips.logic.controller.session.UserBean;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
 import no.bioforsk.vips.logic.entity.ModelInformation;
-import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
@@ -176,7 +175,8 @@ public class ForecastConfigurationController extends HttpServlet {
                         }
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
                         // All organisms used for parent organism list
-                        request.setAttribute("allOrganisms", em.createNamedQuery("Organism.findAll").getResultList());
+                        request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
+                        request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
                         // Hierarchy categories
                         request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                         request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());

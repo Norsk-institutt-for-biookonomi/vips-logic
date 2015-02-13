@@ -75,7 +75,7 @@
 	    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
 	    <select class="form-control" id="cropOrganismId" name="cropOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields();">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
-	    	<#list allOrganisms?sort_by("latinName") as organism>
+	    	<#list allCrops?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
 				<#if (forecastConfiguration.cropOrganismId?has_content && forecastConfiguration.cropOrganismId.organismId == organism.organismId)>
 					selected="selected"
@@ -89,7 +89,7 @@
 	    <label for="pestOrganismId">${i18nBundle.pestOrganismId}</label>
 	    <select class="form-control" id="pestOrganismId" name="pestOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields();">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.pestOrganismId?lower_case}</option>
-	    	<#list allOrganisms?sort_by("latinName") as organism>
+	    	<#list allPests?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
 				<#if (forecastConfiguration.pestOrganismId?has_content && forecastConfiguration.pestOrganismId.organismId == organism.organismId)>
 					selected="selected"

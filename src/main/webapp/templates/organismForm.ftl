@@ -62,6 +62,7 @@
 		</#list>
 	     </select>
 	</div>
+	
         <div class="form-group">
 	    <label for="latinName">${i18nBundle.latinName}</label>
 	    <input type="text" class="form-control" name="latinName" placeholder="${i18nBundle.latinName}" value="${organism.latinName!""}" onblur="validateField(this);" />
@@ -90,6 +91,20 @@
 		</#list>
 	     </select>
 	</div>
+	<div class="form-group">
+		<div class="checkbox">
+		  <label>
+		    <input type="checkbox" name="isPest" value="true"<#if (organism.isPest?has_content && organism.isPest == true)> checked="checked"</#if>/>
+		    ${i18nBundle.isPest}
+		  </label>
+		</div>
+		<div class="checkbox">
+		  <label>
+		    <input type="checkbox" name="isCrop" value="true"<#if (organism.isCrop?has_content && organism.isCrop == true)> checked="checked"</#if>/>
+		    ${i18nBundle.isCrop}
+		  </label>
+		</div>
+	</div>
 	<fieldset>
 	<h3>${i18nBundle.externalResources}</h3>
 	<#if organism.organismExternalResourceSet?has_content>
@@ -111,5 +126,6 @@
         <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
         <a href="/organism?action=listChildOrganisms&organismId=${organism.parentOrganismId!"null"}" class="btn btn-default" role="button">${i18nBundle.cancel}</a>
 	</form>
+	
 </#macro>
 <@page_html/>

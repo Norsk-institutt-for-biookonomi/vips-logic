@@ -31,6 +31,16 @@
             "nullValue" : "-1"
         },
         {
+            "name" : "isCrop",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "isPest",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "hierarchyCategoryId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",
