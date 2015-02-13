@@ -40,6 +40,7 @@ import no.bioforsk.vips.logic.entity.MessageLocale;
 import no.bioforsk.vips.logic.entity.MessageLocalePK;
 import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
@@ -254,6 +255,19 @@ public class MessageBean {
                 + "WHERE message_tag_id IN (:tagIds)"
                 + ")", Message.class);
         q.setParameter("tagIds", tagIds);
+        return q.getResultList();
+    }
+    
+    public List<Message> getCurrentFilteredMessagesForOrganization(List<Integer> tagIds, Integer organizationId) {
+        Query q = em.createNativeQuery("SELECT * FROM message WHERE message_id IN ("
+                + "SELECT message_id FROM message_message_tag "
+                + "WHERE message_tag_id IN (:tagIds) "
+                + "AND :systemTime BETWEEN date_pub AND date_valid_to "
+                + "AND organization_id = :organizationId "
+                + ")", Message.class);
+        q.setParameter("tagIds", tagIds);
+        q.setParameter("systemTime", SystemTime.getSystemTime());
+        q.setParameter("organizationId", organizationId);
         return q.getResultList();
     }
 

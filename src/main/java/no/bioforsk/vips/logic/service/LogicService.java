@@ -241,13 +241,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
     {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(SystemTime.getSystemTime());
-        cal.add(Calendar.YEAR, -1);
-        Date datePubStart = cal.getTime();
-        cal.add(Calendar.YEAR, 2);
-        Date datePubEnd = cal.getTime();
-        List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getFilteredMessages(organizationId, tagIds, datePubStart, datePubEnd);
+        List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
         return Response.ok().entity(messageListWithTags).build();
     }
     
