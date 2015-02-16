@@ -61,10 +61,10 @@ public class YrWeatherForecastProviderTest {
     public void testGetWeatherForecasts() throws Exception {
         System.out.println("getWeatherForecasts");
         PointOfInterestWeatherStation weatherStation = new PointOfInterestWeatherStation();
-        //Testing in Bosnia
-        weatherStation.setAltitude(210.0);
-        weatherStation.setLongitude(18.41);
-        weatherStation.setLatitude(44.86);
+        //Testing in Bosnia (Rodoc, Mostar)
+        weatherStation.setAltitude(67.0);
+        weatherStation.setLongitude(17.8094);
+        weatherStation.setLatitude(43.301);
         YrWeatherForecastProvider instance = new YrWeatherForecastProvider();
         List<WeatherObservation> result = instance.getWeatherForecasts(weatherStation);
         /*Collections.sort(result);
