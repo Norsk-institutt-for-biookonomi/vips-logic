@@ -28,13 +28,13 @@
 			<form class="form-inline" role="form" action="/forecastConfiguration" method="GET">
 				<div class="form-group">
 					<label class="sr-only" for="modelId">Model</label>
-					<select name="modelId" multiple="multiple" size="3">
+					<select name="modelId" multiple="multiple" size="3" class="form-control">
 						<#list modelInformation?values?sort_by("defaultName") as modelInformationItem>
 						<option value="${modelInformationItem.modelId}" ${selectedModelIds?seq_contains(modelInformationItem.modelId)?string(" selected=\"selected\"","")}>
 						<#if i18nBundle.containsKey(modelInformationItem.modelId)>
-							${i18nBundle[modelInformationItem.modelId]}
+							${i18nBundle[modelInformationItem.modelId][0..*25]}
 						<#else>
-							${modelInformation[modelInformationItem.modelId].defaultName}
+							${modelInformation[modelInformationItem.modelId].defaultName[0..*25]}
 						</#if>
 						</option>
 						</#list>
@@ -43,7 +43,7 @@
 				<#if user.isSuperUser() >
 				<div class="form-group">
 					<label class="sr-only" for="organizationId">Organization</label>
-					<select name="organizationId" size="3" multiple="multiple">
+					<select name="organizationId" size="3" multiple="multiple" class="form-control">
 						<#list organizations?sort_by("organizationName") as organization>
 						<option value="${organization.organizationId}" ${selectedOrganizationIds?seq_contains(organization.organizationId)?string(" selected=\"selected\"","")}>
 						${organization.organizationName}
@@ -52,6 +52,14 @@
 					</select>
 				</div>
 				</#if>
+				<div class="form-group">
+					<input type="date" class="form-control" name="from" placeholder="${i18nBundle.from}" value="${(from?date)!""}"/>
+				</div>
+				-
+				<div class="form-group">
+					<input type="date" class="form-control" name="to" placeholder="${i18nBundle.to}" value="${(to?date)!""}"/>
+				</div>
+				
 				<button type="submit" class="btn btn-default">Filter</button>
 			</form>
 		</div>

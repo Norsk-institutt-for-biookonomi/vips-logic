@@ -212,7 +212,7 @@ public class ForecastBean {
                 .getResultList();
     }
     
-    public List<ForecastConfiguration> getForecastConfigurations(Organization organization, List<String> modelIds)
+    public List<ForecastConfiguration> getForecastConfigurations(Organization organization, List<String> modelIds, Date from, Date to)
     {
         List<VipsLogicUser> organizationUsers = em
                 .createNamedQuery("VipsLogicUser.findByOrganizationId")
@@ -222,9 +222,11 @@ public class ForecastBean {
         if(!organizationUsers.isEmpty())
         {
             return em
-                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndModelIds")
+                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate")
                     .setParameter("vipsLogicUserIds", organizationUsers)
                     .setParameter("modelIds", modelIds)
+                    .setParameter("from", from)
+                    .setParameter("to", to)
                     .getResultList();
         }
         else
@@ -233,7 +235,7 @@ public class ForecastBean {
         }
     }
     
-    public List<ForecastConfiguration> getForecastConfigurations(List<Integer> organizationIds, List<String> modelIds)
+    public List<ForecastConfiguration> getForecastConfigurations(List<Integer> organizationIds, List<String> modelIds, Date from, Date to)
     {
         List<VipsLogicUser> organizationUsers = em
                 .createNamedQuery("VipsLogicUser.findByOrganizationIds")
@@ -243,9 +245,11 @@ public class ForecastBean {
         if(!organizationUsers.isEmpty())
         {
             return em
-                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndModelIds")
+                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate")
                     .setParameter("vipsLogicUserIds", organizationUsers)
                     .setParameter("modelIds", modelIds)
+                    .setParameter("from", from)
+                    .setParameter("to", to)
                     .getResultList();
         }
         else

@@ -19,11 +19,16 @@
 
 package no.bioforsk.vips.logic.controller.servlet;
 
+import com.ibm.icu.util.Calendar;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -40,6 +45,7 @@ import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
+import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.ArrayUtil;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
@@ -94,6 +100,22 @@ public class ForecastConfigurationController extends HttpServlet {
                     selectedModelIds = new ArrayList(modelInformationMap.keySet());
                 }
                 
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                Date from,to;
+                try
+                {
+                    from = format.parse(request.getParameter("from"));
+                    to = format.parse(request.getParameter("to"));
+                }
+                catch(NullPointerException | ParseException ex)
+                {
+                    to = SystemTime.getSystemTime();
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(to);
+                    cal.add(Calendar.MONTH, -2);
+                    from = cal.getTime();
+                }
+                
                 List<ForecastConfiguration> forecasts;
                 
                 if(user.isSuperUser())
@@ -114,19 +136,21 @@ public class ForecastConfigurationController extends HttpServlet {
                             selectedOrganizationIds.add(o.getOrganizationId());
                         }
                     }
-                    forecasts = forecastBean.getForecastConfigurations(selectedOrganizationIds, selectedModelIds);
+                    forecasts = forecastBean.getForecastConfigurations(selectedOrganizationIds, selectedModelIds, from, to);
                     
                     request.setAttribute("organizations", organizations);
                     request.setAttribute("selectedOrganizationIds", selectedOrganizationIds);
                 }
                 else
                 {
-                    forecasts = forecastBean.getForecastConfigurations(user.getOrganizationId(), selectedModelIds);
+                    forecasts = forecastBean.getForecastConfigurations(user.getOrganizationId(), selectedModelIds, from, to);
                 }
                 Collections.sort(forecasts);
                 request.setAttribute("forecastConfigurations", forecasts);
                 request.setAttribute("modelInformation", modelInformationMap);
                 request.setAttribute("selectedModelIds", selectedModelIds);
+                request.setAttribute("from", from);
+                request.setAttribute("to", to);
                 // If this is a redirect from a controller, with a message to be passed on
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/forecastConfigurationList.ftl").forward(request, response);

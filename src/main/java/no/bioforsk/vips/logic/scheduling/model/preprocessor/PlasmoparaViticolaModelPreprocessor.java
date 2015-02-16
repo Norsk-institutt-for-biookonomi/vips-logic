@@ -54,16 +54,7 @@ public class PlasmoparaViticolaModelPreprocessor extends ModelRunPreprocessor{
         cal.set(Calendar.DATE, 1);
         Date startDate = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
         
-        /*List<WeatherObservation> observations = getWeatherObservations(
-                    weatherStation.getDataFetchUri(), 
-                    WeatherObservation.LOG_INTERVAL_ID_1H, 
-                    new String[]{
-                        WeatherElements.TEMPERATURE_MEAN, 
-                        WeatherElements.PRECIPITATION
-                    }, 
-                    startDate, 
-                    endDate, 
-                    timeZone);*/
+        ModelConfiguration retVal = new ModelConfiguration();
         List<WeatherObservation> observations = getWeatherObservations(
                     weatherStation, 
                     WeatherObservation.LOG_INTERVAL_ID_1H, 
@@ -73,8 +64,8 @@ public class PlasmoparaViticolaModelPreprocessor extends ModelRunPreprocessor{
                     }, 
                     startDate, 
                     endDate);
+        
         // TODO:  weather data validation
-        ModelConfiguration retVal = new ModelConfiguration();
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
