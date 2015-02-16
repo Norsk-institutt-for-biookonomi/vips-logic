@@ -120,6 +120,9 @@ public abstract class ModelRunPreprocessor {
             {
                 errorMessage.append("Output from weather data server was: \n").append(errorOutput);
             }
+            // Getting the first parts of the error message from code
+            errorMessage.append("\nFirst error output from code was: \n")
+                    .append(ex.getMessage());
             throw new PreprocessorException(errorMessage.toString());
         }
         finally
