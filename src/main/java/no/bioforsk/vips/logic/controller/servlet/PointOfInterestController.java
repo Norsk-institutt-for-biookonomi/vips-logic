@@ -149,7 +149,7 @@ public class PointOfInterestController extends HttpServlet {
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-
+                    request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUserId().getOrganizationId().getOrganizationId());
                     request.getRequestDispatcher("/weatherstationView.ftl").forward(request, response);
 
                 }
@@ -174,6 +174,8 @@ public class PointOfInterestController extends HttpServlet {
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
                         }
+                        Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
+                        request.setAttribute("returnURL","weatherStation?organizationId=" + organizationId);
                         request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
                     }
                     catch(NullPointerException | NumberFormatException ex)
@@ -209,6 +211,7 @@ public class PointOfInterestController extends HttpServlet {
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
                         }
+                        request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUserId().getOrganizationId().getOrganizationId());
                         request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
                     }
                     catch(NullPointerException | NumberFormatException ex)

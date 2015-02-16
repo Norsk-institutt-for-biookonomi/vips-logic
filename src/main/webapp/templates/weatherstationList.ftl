@@ -40,7 +40,7 @@
 <#macro page_contents>
 <h1>${i18nBundle.weatherStations}</h1>
 <p>
-	<a href="/weatherStation?action=newWeatherStationForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
+	<a href="/weatherStation?action=newWeatherStationForm&organizationId=${organizationId}" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
 </p>
 <div class="row">
 	<div class="col-md-8">

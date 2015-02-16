@@ -50,7 +50,7 @@
 </#macro>
 
 <#macro page_contents>
-	<p><a href="/weatherStation" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+	<p><a href="${returnURL}" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1>${weatherStation.name}</h1>
         <div class="row">
 		<div class="col-md-6">
@@ -156,6 +156,7 @@
 		</div>
 		<div class="col-md-6">
 			<div id="weatherStationViewMap" class="map">
+			<div id="popover"></div>
 			</div>
 		</div>
 	</div>

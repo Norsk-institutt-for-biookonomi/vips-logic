@@ -44,7 +44,7 @@
 	</script>
 </#macro>
 <#macro page_contents>
-	<p><a href="/weatherStation" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+	<p><a href="${returnURL}" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1><#if weatherStation.pointOfInterestId?has_content>${i18nBundle.editWeatherStation}<#else>${i18nBundle.newWeatherStation}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
