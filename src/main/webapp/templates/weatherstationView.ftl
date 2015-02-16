@@ -36,7 +36,7 @@
 		// If weather station already registered, center on location
 		// Otherwise, center and zoom to organizations's default
 		<#if weatherStation.longitude?has_content && weatherStation.latitude?has_content>
-		initMap([${(weatherStation.longitude?c)!""},${(weatherStation.latitude?c)!""}],10,${user.organizationId.organizationId},${weatherStation.pointOfInterestId!"null"});
+		initMap([${(weatherStation.longitude?c)!""},${(weatherStation.latitude?c)!""}],10,${weatherStation.userId.organizationId.organizationId},${weatherStation.pointOfInterestId!"null"});
 		<#else>
 		initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},${user.organizationId.organizationId},${weatherStation.pointOfInterestId!"null"});
 		</#if>
