@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,14 +89,14 @@ public abstract class ModelRunPreprocessor {
         URLConnection URLConn = null;
         InputStream URLStream = null;
         InputStream error = null;
-        String URLOutput = "";
+        String URLOutput;
         try
         {
             URL weatherURL = new URL(URL.toString());
             URLConn = weatherURL.openConnection();
             URLStream = URLConn.getInputStream();
             URLOutput = IOUtils.toString(URLStream);
-            return new ObjectMapper().readValue(URLOutput, new TypeReference<List<WeatherObservation>>(){});
+            return this.getWeatherObservations(URLOutput);
         }catch(IOException ex)
         {
             // Create error message to logging system
@@ -137,6 +138,11 @@ public abstract class ModelRunPreprocessor {
             }
         }
         
+    }
+    
+    public List<WeatherObservation> getWeatherObservations(String JSONtext) throws IOException
+    {
+        return new ObjectMapper().readValue(JSONtext, new TypeReference<List<WeatherObservation>>(){});
     }
     
     protected List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime) throws PreprocessorException
