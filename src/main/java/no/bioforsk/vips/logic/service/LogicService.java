@@ -19,11 +19,9 @@
 
 package no.bioforsk.vips.logic.service;
 
-import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.ULocale;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -59,7 +57,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
 /**
- * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2015 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Path("rest")

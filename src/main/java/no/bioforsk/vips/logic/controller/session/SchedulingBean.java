@@ -159,18 +159,27 @@ public class SchedulingBean {
         // Also: the Task may be configured _here_ (since we use the Tasks constructor), 
         // at creation time.
         
+        // Running all forecasts every hour:30
         VIPSLogicTaskCollector testCollector = new VIPSLogicTaskCollector(-1);
         SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
         testCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK));
         testCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
         
+        // Update forecast cache
         VIPSLogicTaskCollector cacheHandlerCollector = new VIPSLogicTaskCollector(-1);
         SchedulingPattern every10MinsPattern = new SchedulingPattern("*/10 * * * *");
         cacheHandlerCollector.getTasks().add(every10MinsPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_RESULT_CACHE_TABLE_TASK));
         
+        // Update forecast summaries every 20 minutes
+        VIPSLogicTaskCollector summariesCollector = new VIPSLogicTaskCollector(-1);
+        SchedulingPattern every20MinsPattern = new SchedulingPattern("*/20 * * * *");
+        summariesCollector.getTasks().add(every20MinsPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK));
+        
+        
         List<TaskCollector> definedTasks = new ArrayList<>();
         definedTasks.add(testCollector);
         definedTasks.add(cacheHandlerCollector);
+        definedTasks.add(summariesCollector);
         return definedTasks;
     }
     

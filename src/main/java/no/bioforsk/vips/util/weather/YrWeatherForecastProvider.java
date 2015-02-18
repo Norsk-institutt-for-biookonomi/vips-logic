@@ -36,7 +36,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
-import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.util.DOMUtils;
 import no.bioforsk.vips.util.WeatherElements;
 import org.w3c.dom.Document;
@@ -153,7 +152,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
         }
         catch(IOException | ParserConfigurationException | SAXException | ParseException ex)
         {
-            throw new ParseWeatherDataException(ex.getMessage());
+            throw new ParseWeatherDataException(ex.getClass().getName() + ": " + ex.getMessage());
         }
         return this.createHourlyDataFromYr(yrValues);
     }
