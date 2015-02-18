@@ -54,6 +54,32 @@ public class MessageBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
 
+    public List<Message> getMessageList(Integer organizationId, Date publishedFrom, Date publishedTo)
+    {
+        if(publishedFrom != null && publishedTo != null)
+        {
+            return em.createNamedQuery("Message.findByOrganizationIdAndPublicationPeriod", Message.class)
+                    .setParameter("organizationId", organizationId)
+                    .setParameter("publishedFrom", publishedFrom)
+                    .setParameter("publishedTo", publishedTo)
+                    .getResultList();
+        }
+        else if(publishedFrom == null)
+        {
+            return em.createNamedQuery("Message.findByOrganizationIdAndMaxPublicationPeriod", Message.class)
+                    .setParameter("organizationId", organizationId)
+                    .setParameter("publishedTo", publishedTo)
+                    .getResultList();
+        }
+        else
+        {
+            return em.createNamedQuery("Message.findByOrganizationIdAndMinPublicationPeriod", Message.class)
+                    .setParameter("organizationId", organizationId)
+                    .setParameter("publishedFrom", publishedFrom)
+                    .getResultList();
+        }
+    }
+    
     public List<Message> getMessageList(Integer organizationId) {
         return em.createNamedQuery("Message.findByOrganizationId", Message.class).setParameter("organizationId", organizationId).getResultList();
     }

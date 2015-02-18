@@ -52,6 +52,9 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m"),
     @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId"),
     @NamedQuery(name = "Message.findByOrganizationId", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId"),
+    @NamedQuery(name = "Message.findByOrganizationIdAndPublicationPeriod", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId AND m.datePub <= :publishedTo AND m.dateValidTo >= :publishedFrom"),
+    @NamedQuery(name = "Message.findByOrganizationIdAndMaxPublicationPeriod", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId AND m.datePub <= :publishedTo "),
+    @NamedQuery(name = "Message.findByOrganizationIdAndMinPublicationPeriod", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId AND  m.dateValidTo >= :publishedFrom"),
     @NamedQuery(name = "Message.findByDatePub", query = "SELECT m FROM Message m WHERE m.datePub = :datePub"),
     @NamedQuery(name = "Message.findByDateValidTo", query = "SELECT m FROM Message m WHERE m.dateValidTo = :dateValidTo")})
 public class Message implements Serializable {

@@ -21,7 +21,11 @@ package no.bioforsk.vips.logic.service;
 
 import com.ibm.icu.util.ULocale;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -228,10 +232,34 @@ public class LogicService {
     @GET
     @Path("message/list/{organizationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getMessageList(@PathParam("organizationId") Integer organizationId)
+    public Response getMessageList(
+            @QueryParam("publishedFrom") String publishedFrom , @QueryParam("publishedTo") String publishedTo,
+            @PathParam("organizationId") Integer organizationId
+    )
     {
-        List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId);
-        return Response.ok().entity(messageList).build();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try
+        {
+            Date datePublishedFrom;// = publishedFrom == null ? SystemTime.getSystemTime() : format.parse(publishedFrom);
+            Date datePublishedTo;// = publishedTo == null ? SystemTime.getSystemTime() : format.parse(publishedTo);
+            if(publishedFrom == null && publishedTo == null)
+            {
+                datePublishedFrom = SystemTime.getSystemTime();
+                datePublishedTo = datePublishedFrom;
+            }
+            else
+            {
+                datePublishedFrom = publishedFrom == null ? null : format.parse(publishedFrom);
+                datePublishedTo = publishedTo == null ? null : format.parse(publishedTo);
+            }
+            
+            List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId, datePublishedFrom, datePublishedTo);
+
+            return Response.ok().entity(messageList).build();
+        }
+        catch(ParseException ex){
+            return Response.serverError().entity(ex.getMessage()).build();
+        }
     }
     
     @GET
