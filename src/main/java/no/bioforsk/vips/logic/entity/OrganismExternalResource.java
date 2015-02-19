@@ -31,6 +31,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -85,6 +86,7 @@ public class OrganismExternalResource implements Serializable {
         this.resourceIdentifier = resourceIdentifier;
     }
 
+    @XmlTransient
     public Organism getOrganism() {
         return organism;
     }

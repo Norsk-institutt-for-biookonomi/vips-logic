@@ -39,7 +39,12 @@ import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Set;
+import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorType;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -62,6 +67,8 @@ import javax.persistence.DiscriminatorType;
     @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.userId = :userId")
 })
 public class PointOfInterest implements Serializable, Comparable {
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "pointOfInterest", fetch = FetchType.EAGER)
+    private Set<PointOfInterestExternalResource> pointOfInterestExternalResourceSet;
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -91,6 +98,7 @@ public class PointOfInterest implements Serializable, Comparable {
     @JoinColumn(name = "weather_forecast_provider_id", referencedColumnName = "weather_forecast_provider_id")
     @ManyToOne
     private WeatherForecastProvider weatherForecastProviderId;
+   
     
     // For attaching ad-hoc properties
     // e.g. Worst warning for map
@@ -269,4 +277,15 @@ public class PointOfInterest implements Serializable, Comparable {
     public void setWeatherForecastProviderId(WeatherForecastProvider weatherForecastProviderId) {
         this.weatherForecastProviderId = weatherForecastProviderId;
     }
+
+    //@XmlTransient
+    public Set<PointOfInterestExternalResource> getPointOfInterestExternalResourceSet() {
+        return pointOfInterestExternalResourceSet;
+    }
+
+    public void setPointOfInterestExternalResourceSet(Set<PointOfInterestExternalResource> pointOfInterestExternalResourceSet) {
+        this.pointOfInterestExternalResourceSet = pointOfInterestExternalResourceSet;
+    }
+
+    
 }

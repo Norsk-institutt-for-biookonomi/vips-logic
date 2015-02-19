@@ -761,6 +761,7 @@ public class ForecastBean {
         
         retVal.put("forecastConfigurations", mappedForecastConfigurations);
         retVal.put("results", results);
+        retVal.put("pointOfInterest", poi);
         
         return retVal;
         
