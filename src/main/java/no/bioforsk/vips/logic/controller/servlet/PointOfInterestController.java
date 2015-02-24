@@ -24,6 +24,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -34,6 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.entity.Country;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.PointOfInterestExternalResource;
+import no.bioforsk.vips.logic.entity.PointOfInterestExternalResourcePK;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
@@ -42,6 +45,7 @@ import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ExceptionUtil;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.vips.logic.entity.WeatherForecastProvider;
+import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
 import no.bioforsk.web.forms.FormValidationException;
 import no.bioforsk.web.forms.FormValidator;
@@ -170,6 +174,9 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
+                        // Finding all external resources where entry is missing
+                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(weatherStation));
+                
                         if(user.isSuperUser())
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
@@ -206,6 +213,8 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
+                        // Finding all external resources where entry is missing
+                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(weatherStation));
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         if(user.isSuperUser())
                         {
@@ -256,6 +265,8 @@ public class PointOfInterestController extends HttpServlet {
                                 //weatherStation.setPointOfInterestType(em.find(PointOfInterestType.class, Globals.POI_TYPE_WEATHERSTATION));
                             }*/
                             // If userId is set from form, always update
+                            
+                            
                             if(user.isSuperUser() && !formValidation.getFormField("userId").isEmpty())
                             {
                                 weatherStation.setUserId(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
@@ -267,6 +278,22 @@ public class PointOfInterestController extends HttpServlet {
                             }
                             // Store
                             weatherStation = SessionControllerGetter.getPointOfInterestBean().storeWeatherStation(weatherStation);
+                            
+                            Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
+                            for(String key:externalResourceIdentifiers.keySet())
+                            {
+                                FormField identifierField = externalResourceIdentifiers.get(key);
+                                if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
+                                {
+                                    continue;
+                                }
+                                Integer externalResourceId = Integer.valueOf(key);
+                                PointOfInterestExternalResource poiExternalResource = new PointOfInterestExternalResource();
+                                PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(weatherStation.getPointOfInterestId(), externalResourceId);
+                                poiExternalResource.setPointOfInterestExternalResourcePK(pk);
+                                poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
+                                SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                            }
                             
                             // Redirect to form
                             response.sendRedirect(new StringBuilder("http://")

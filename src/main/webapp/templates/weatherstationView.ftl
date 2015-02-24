@@ -81,6 +81,12 @@
 				
 				<dt>${i18nBundle.vipsLogicUserId}</dt>
 				<dd>${user.lastName}, ${user.firstName} (${user.organizationId.organizationName})</dd>
+				<dt>${i18nBundle.externalForecastProviders}</dt>
+				<dd>
+					<#list weatherStation.pointOfInterestExternalResourceSet as poiExternal>
+					<a href="${poiExternal.externalResourceUrl}" target="new">${poiExternal.externalResource.name}</a>
+					</#list>
+				</dd>
 				
 			</dl>
 			<#if weatherStation.weatherStationDataSourceId?has_content>

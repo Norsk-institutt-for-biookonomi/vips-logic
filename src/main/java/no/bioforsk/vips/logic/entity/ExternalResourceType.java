@@ -48,6 +48,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class ExternalResourceType implements Serializable {
     
     public static final int ORGANISM_DATABASE = 2;
+    public static final int FORECAST_PROVIDER = 3;
     
     private static final long serialVersionUID = 1L;
     @Id

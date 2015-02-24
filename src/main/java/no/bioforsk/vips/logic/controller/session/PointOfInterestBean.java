@@ -33,8 +33,11 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.bioforsk.vips.logic.entity.ExternalResource;
+import no.bioforsk.vips.logic.entity.ExternalResourceType;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.PointOfInterestExternalResource;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.WeatherStationDataSource;
 import no.bioforsk.vips.logic.util.Globals;
@@ -186,5 +189,34 @@ public class PointOfInterestBean {
             );
         }
         return retVal;
+    }
+
+    public List<ExternalResource> getUnusedExternalResourcesForPointOfInterest(PointOfInterest weatherStation) {
+        StringBuilder sql = new StringBuilder()
+                .append("SELECT * FROM external_resource ")
+                .append("WHERE external_resource_type_id=")
+                .append(ExternalResourceType.FORECAST_PROVIDER).append(" \n");
+        if(weatherStation.getPointOfInterestExternalResourceSet() == null  || weatherStation.getPointOfInterestExternalResourceSet().isEmpty())
+        {
+            return em.createNativeQuery(sql.toString(), ExternalResource.class).getResultList();
+
+        }
+        else
+        {
+            sql.append("AND external_resource_id NOT IN (:externalResourceIds)");
+            List<Integer> ids = new ArrayList<>();
+            for(PointOfInterestExternalResource poier : weatherStation.getPointOfInterestExternalResourceSet())
+            {
+                ids.add(poier.getExternalResource().getExternalResourceId());
+            }
+            
+            Query q = em.createNativeQuery(sql.toString(), ExternalResource.class);
+            q.setParameter("externalResourceIds", ids);
+            return q.getResultList();
+        }
+    }
+
+    public void storePointOfInterestExternalResource(PointOfInterestExternalResource poiExternalResource) {
+        em.merge(poiExternalResource);
     }
 }

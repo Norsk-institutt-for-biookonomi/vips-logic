@@ -125,6 +125,24 @@
 			     </select>
 			     <span class="help-block" id="${formId}_countryCode_validation"></span>
 			  </div>
+			  <fieldset>
+			<h3>${i18nBundle.externalResources}</h3>
+			<#if weatherStation.pointOfInterestExternalResourceSet?has_content>
+				<#list weatherStation.pointOfInterestExternalResourceSet as poiExternalResource>
+				<div class="form-group">
+				    <label for="externalResourceIdentifier_${poiExternalResource.externalResource.externalResourceId}">${i18nBundle.externalResourceIdentifier} - ${poiExternalResource.externalResource.name} (${poiExternalResource.externalResource.uri}${poiExternalResource.externalResource.identifierTemplate})</label>
+				    <input type="text" class="form-control" name="externalResourceIdentifier_${poiExternalResource.externalResource.externalResourceId}" placeholder="${i18nBundle.externalResourceIdentifier}" value="${poiExternalResource.resourceIdentifier}" />
+				</div>
+				 </#list>
+			 </#if>
+			 <#list unreferencedExternalResources as externalResource>
+			<div class="form-group">
+			    <label for="externalResourceIdentifier_${externalResource.externalResourceId}">${i18nBundle.externalResourceIdentifier} - ${externalResource.name} (${externalResource.uri}${externalResource.identifierTemplate})</label>
+			    <input type="text" class="form-control" name="externalResourceIdentifier_${externalResource.externalResourceId}" placeholder="${i18nBundle.externalResourceIdentifier}" value="" />
+			</div>
+			 </#list>
+			 
+			</fieldset>
 			  <#if user.isSuperUser()>
 			  <div class="form-group">
 			    <label for="userId">${i18nBundle.vipsLogicUserId}</label>

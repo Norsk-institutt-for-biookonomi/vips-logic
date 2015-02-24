@@ -73,6 +73,12 @@
             "name" : "userId",
             "dataType" : "INTEGER",
             "required" : false
+        },
+        {
+            "name" : "externalResourceIdentifier",
+            "dataType" : "STRING",
+            "fieldType" : "MULTIPLE_MAP",
+            "required" : false
         }
         
     ]

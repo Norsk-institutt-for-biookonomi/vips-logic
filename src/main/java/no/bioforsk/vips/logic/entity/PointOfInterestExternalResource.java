@@ -29,6 +29,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -132,6 +133,12 @@ public class PointOfInterestExternalResource implements Serializable {
      */
     public void setExternalResource(ExternalResource externalResource) {
         this.externalResource = externalResource;
+    }
+    
+    @Transient
+    public String getExternalResourceUrl()
+    {
+        return this.getExternalResource().getUri() + this.getExternalResource().getIdentifierTemplate().replace("%s", this.getResourceIdentifier());
     }
 
 }
