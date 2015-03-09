@@ -57,6 +57,7 @@
 		</ul>
 	      </li>
 	      </#if>
+	      <li><a href="/userguide/VIPSLogic_user_guide.html">${i18nBundle.help}</a></li>
 	    </ul>
 	    <form class="navbar-form navbar-right"  action="/logout" method="POST" role="logout">
 	      <div class="form-group">
@@ -116,7 +117,7 @@
 	<@page_contents/>
 	<@page_contentwrap_end/>
 	<!-- jQuery (necessary for Bootstraps JavaScript plugins) -->
-	<script src="http://code.jquery.com/jquery.js"></script>
+	<script src="/js/3rdparty/jquery.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<script src="/js/3rdparty/bootstrap.min.js"></script>
 	<@custom_js/>

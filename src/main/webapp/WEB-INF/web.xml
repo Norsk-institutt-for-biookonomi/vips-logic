@@ -63,6 +63,10 @@
         <servlet-name>ObservationServlet</servlet-name>
         <servlet-class>no.bioforsk.vips.logic.controller.servlet.ObservationController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>HelpFileServlet</servlet-name>
+        <servlet-class>no.bioforsk.vips.logic.controller.servlet.HelpFileServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -108,6 +112,10 @@
     <servlet-mapping>
         <servlet-name>ObservationServlet</servlet-name>
         <url-pattern>/observation</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>HelpFileServlet</servlet-name>
+        <url-pattern>/help</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
