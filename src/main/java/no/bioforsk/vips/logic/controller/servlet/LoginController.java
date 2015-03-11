@@ -19,28 +19,35 @@
 
 package no.bioforsk.vips.logic.controller.servlet;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import no.bioforsk.vips.logic.authenticate.OpenIdAuthAttributes;
-import no.bioforsk.vips.logic.authenticate.OpenIdRelyingParty;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ServletUtil;
-import org.openid4java.consumer.ConsumerException;
 
 /**
  * Logs a user in or out
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2015 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class LoginController extends HttpServlet {
@@ -57,64 +64,70 @@ public class LoginController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
         // Assigning nextpage to request, so that login.ftl gets access it
-        String nextPage = request.getParameter("nextPage");
-        if(nextPage == null)
-        {
-            nextPage="/";
-        }
+        String nextPage = getNextPage(request);
         request.setAttribute("nextPage", nextPage);
+        // We remove the session attribute, so it doesn't stick
+        request.getSession().removeAttribute("nextPage");
         
         // This means that an OpenId authentication has returned the user to this URL
         // See code below
-        if(request.getServletPath().indexOf("remoteloginsuccess") >= 0)
+        if(request.getServletPath().contains("oauth2callback"))
         {
-            try 
+            // Is it an authorization response?
+            if(request.getParameter("code") != null)
             {
-                Integer userAuthenticationTypeId = Integer.valueOf(request.getParameter("userAuthenticationTypeId"));
-                OpenIdRelyingParty relP = new OpenIdRelyingParty();
-                OpenIdAuthAttributes attributes = relP.verifyResponse(request);
-                if(attributes != null)
+                String authorizationCode = request.getParameter("code");
+                // Verify state
+                String storedState = (String) request.getSession().getAttribute("state");
+                String receivedState = request.getParameter("state");
+                if(receivedState == null || storedState == null || ! storedState.equals(receivedState))
                 {
-                    VipsLogicUser user = SessionControllerGetter.getUserBean().getUser(attributes.getOpenId(), userAuthenticationTypeId);
-                    if(user != null)
-                    {
-                        request.getSession().setAttribute("user", user);
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
-                    }
-                    else
-                    {
-                        // This might be 
-                        // * a new user
-                        // * an existing user logging in with OpenId/Google for the first time.
-                        // Sending user to form asking this question
-                        request.setAttribute("userAuthenticationTypeId", userAuthenticationTypeId);
-                        request.getSession().setAttribute("openId", attributes.getOpenId());
-                        request.getRequestDispatcher("/registerOpenIdForm.ftl").forward(request, response);
-                    }
+                    request.setAttribute("errorMessageKey", "invalidcredentials");
+                    request.getRequestDispatcher("/login.ftl").forward(request, response);
+                    return;
+                }
+                
+                // Use code, make request to Google for getting token with user information
+                GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
+                        new NetHttpTransport(), 
+                        new JacksonFactory(),
+                        System.getProperty("no.bioforsk.vips.logic.GOOGLE_OPENID_CLIENT_ID"),
+                        System.getProperty("no.bioforsk.vips.logic.GOOGLE_OPENID_CLIENT_SECRET"),
+                        authorizationCode,
+                        "http://" + ServletUtil.getServerName(request) + "/oauth2callback" 
+                ).execute();
+                GoogleIdToken idToken = GoogleIdToken.parse(new JacksonFactory(), tokenResponse.getIdToken());
+                Payload payload = idToken.getPayload();
+                
+                // Try to find the user
+                VipsLogicUser user = SessionControllerGetter.getUserBean().getUser(payload.getSubject(), UserAuthenticationType.TYPE_OPENID_GOOGLE);
+                if(user != null)
+                {
+                    request.getSession().setAttribute("user", user);
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                 }
                 else
                 {
-                    request.setAttribute("errorMessageKey", "remoteloginfailed");
-                    request.getRequestDispatcher("/login.ftl").forward(request, response);
+                    // This might be 
+                    // * a new user
+                    // * an existing user logging in with OpenId/Google for the first time.
+                    // Sending user to form asking this question
+                    request.setAttribute("userAuthenticationTypeId", UserAuthenticationType.TYPE_OPENID_GOOGLE);
+                    request.getSession().setAttribute("openId", payload.getSubject());
+                    request.getRequestDispatcher("/registerOpenIdForm.ftl").forward(request, response);
                 }
-            } 
-            catch (ConsumerException | NullPointerException | NumberFormatException ex) {
-                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
-        //String logout = request.getParameter("logout");
         // A log out request
-        else if(request.getServletPath().indexOf("logout") >= 0)
+        else if(request.getServletPath().contains("logout"))
         {
             request.getSession().removeAttribute("user");
             request.setAttribute("messageKey","logoutsuccess");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
         // A login attempt
-        else if(request.getServletPath().indexOf("loginsubmit") >= 0)
+        else if(request.getServletPath().contains("loginsubmit"))
         {
             // Which login method?
             Integer userAuthenticationTypeId = -1;
@@ -156,35 +169,36 @@ public class LoginController extends HttpServlet {
 
                 }
             }
-            // Login with OpenId (Including Google's version)
-            else if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID) || userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID_GOOGLE))
+            /*  Login with Google OpenConnect/OAuth2
+                For documentation about how this is done, see:
+                https://developers.google.com/accounts/docs/OAuth2WebServer
+                and https://developers.google.com/accounts/docs/OpenIDConnect 
+                ClientID, ClientSecret, callbacks etc. has been created by logging
+                in to https://console.developers.google.com as tor-einar.skog@bioforsk.no
+            */
+            else if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID_GOOGLE))
             {
-                try
-                {
                     // configure the return_to URL where your application will receive
-                    // the authentication responses from the OpenID provider
+                    // the authentication responses from the OpenID Connect provider
                     String serverName = ServletUtil.getServerName(request);
-                    String returnToUrl = "http://" + serverName + "/remoteloginsuccess?userAuthenticationTypeId=" + userAuthenticationTypeId + "&nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
+                    String callbackUrl = "http://" + serverName + "/oauth2callback" ;
+                    // We store the information about the next page in a session
+                    // as Google does not accept to forward it
+                    request.getSession().setAttribute("nextPage", URLEncoder.encode(nextPage, "UTF-8"));
+                    // Token to check for security (avoid man-in-the-middle)
+                    String state = new BigInteger(130, new SecureRandom()).toString(32);
+                    request.getSession().setAttribute("state", state);
+                    String url =
+                        new GoogleAuthorizationCodeRequestUrl(
+                                System.getProperty("no.bioforsk.vips.logic.GOOGLE_OPENID_CLIENT_ID"),
+                                callbackUrl,
+                                Arrays.asList(
+                                "https://www.googleapis.com/auth/userinfo.email")
+                        )
+                        .setState(state).build();
                     
-                    String openIdStr;
-                    // Google is of course special....
-                    if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID_GOOGLE))
-                    {
-                        openIdStr = "https://www.google.com/accounts/o8/id";
-                    }
-                    else
-                    {
-                        openIdStr= request.getParameter("openIdStr");
-                    }
-                    // Send the authentication request to third party
-                    OpenIdRelyingParty openId = new OpenIdRelyingParty();
-                    openId.authRequest(openIdStr, returnToUrl, request, response);
-                }
-                catch(ConsumerException ex)
-                {
-                    request.setAttribute("errorMessageKey", ex.getMessage());
-                    request.getRequestDispatcher("/login.ftl").forward(request, response);
-                }
+                    // Redirect to Google for authentication
+                    response.sendRedirect(url);
             }
             // Authentication method not recognized, redirect to standard form
             else
@@ -200,6 +214,29 @@ public class LoginController extends HttpServlet {
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
     }
+    
+    /**
+     * Utility method (hiding noisy code)
+     * @param request
+     * @return
+     * @throws UnsupportedEncodingException 
+     */
+    private String getNextPage(HttpServletRequest request) throws UnsupportedEncodingException
+    {
+        String nextPage = request.getParameter("nextPage") != null ? 
+                request.getParameter("nextPage")
+                : request.getSession().getAttribute("nextPage") != null ?
+                    URLDecoder.decode((String)request.getSession().getAttribute("nextPage"),"UTF-8")
+                    :null;
+        if(nextPage == null)
+        {
+            nextPage="/";
+        }
+        
+        return nextPage;
+    }
+    
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP

@@ -37,6 +37,7 @@ public class Globals {
         "/login",
         "/formdefinitions",
         "/remoteloginsuccess",
+        "/oauth2callback",
         "/css",
         "/403",
         "/404",
