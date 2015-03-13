@@ -21,10 +21,10 @@ package no.bioforsk.vips.logic.service;
 
 import com.ibm.icu.util.ULocale;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -130,18 +130,32 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getForecastConfigurationsForOrganization(
             @PathParam("organizationId") Integer organizationId, 
-            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds)
+            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds,
+            @QueryParam("from") Date from,
+            @QueryParam("to") Date to
+            )
     {
+        
+        if(from == null || to == null)
+        {
+            to = SystemTime.getSystemTime();
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(to);
+            cal.add(Calendar.MONTH, -2);
+            from = cal.getTime();
+        }
+
         // First: Get all users for organization
         List<VipsLogicUser> organizationUsers = SessionControllerGetter.getUserBean().getUsersByOrganization(organizationId);
         // Then: Get forecasts for these users, collate and return
         List<ForecastConfiguration> forecasts = new ArrayList<>();
+        
         for(VipsLogicUser user:organizationUsers)
         {
             Integer userId = user.getUserId();
             List<ForecastConfiguration> result = cropOrganismIds != null && ! cropOrganismIds.isEmpty() ?
-                    SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndCrops(userId,cropOrganismIds)
-                    : SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(userId);
+                    SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndCropsAndDate(userId,cropOrganismIds, from, to)
+                    : SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndDate(userId, from, to);
             if(forecasts == null)
                 forecasts = result;
             else

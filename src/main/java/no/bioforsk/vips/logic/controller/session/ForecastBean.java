@@ -171,6 +171,16 @@ public class ForecastBean {
         return q.getResultList();
     }
     
+    public List<ForecastConfiguration> getForecastConfigurationsForUserAndDate(Integer userId, Date from, Date to)
+    {
+        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
+        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdAndDate");
+        q.setParameter("vipsLogicUserId", user);
+        q.setParameter("from", from);
+        q.setParameter("to", to);
+        return q.getResultList();
+    }
+    
     public List<ForecastConfiguration> getForecastConfigurationsForUserAndCrops(Integer userId, List<Integer> cropOrganismIds)
     {
         VipsLogicUser user = em.find(VipsLogicUser.class, userId);
@@ -179,6 +189,17 @@ public class ForecastBean {
         q.setParameter("cropOrganismIds", cropOrganismIds);
         return q.getResultList();
     }
+    public List<ForecastConfiguration> getForecastConfigurationsForUserAndCropsAndDate(Integer userId, List<Integer> cropOrganismIds, Date from, Date to)
+    {
+        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
+        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismIdsAndDate");
+        q.setParameter("vipsLogicUserId", user);
+        q.setParameter("cropOrganismIds", cropOrganismIds);
+        q.setParameter("from", from);
+        q.setParameter("to", to);
+        return q.getResultList();
+    }
+    
     
     /**
      * Returns _ALL_ forecasts. Not for the faint hearted

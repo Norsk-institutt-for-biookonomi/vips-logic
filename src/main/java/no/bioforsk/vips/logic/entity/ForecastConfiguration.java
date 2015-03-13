@@ -61,11 +61,12 @@ import javax.persistence.Transient;
     @NamedQuery(name = "ForecastConfiguration.findActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate"),
     @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.dateStart <= :to AND f.dateEnd >= :from" ),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds)"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds) AND f.dateStart <= :to AND f.dateEnd >= :from"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds)"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds)"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds) AND f.dateStart <= :to AND f.dateEnd >= :from")
-})
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds) AND f.dateStart <= :to AND f.dateEnd >= :from")})
 public class ForecastConfiguration implements Serializable, Comparable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration", fetch = FetchType.EAGER)
     private Set<ForecastModelConfiguration> forecastModelConfigurationSet;
