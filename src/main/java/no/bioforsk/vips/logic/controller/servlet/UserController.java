@@ -217,6 +217,10 @@ public class UserController extends HttpServlet {
                                 Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
                                 viewUser.setOrganizationId(organization);
                             }
+                            else
+                            {
+                                viewUser.setOrganizationId(user.getOrganizationId());
+                            }
                             Integer oldUserStatusId = viewUser.getUserStatusId();
                             viewUser.setUserStatusId(formValidation.getFormField("userStatusId").getValueAsInteger());
                             viewUser.setRemarks(formValidation.getFormField("remarks").getWebValue());
