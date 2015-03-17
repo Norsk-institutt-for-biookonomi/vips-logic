@@ -60,6 +60,7 @@ import javax.persistence.Transient;
     @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd"),
     @NamedQuery(name = "ForecastConfiguration.findActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate"),
     @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId"),
+    @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.dateStart <= :to AND f.dateEnd >= :from" ),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds)"),
@@ -93,7 +94,7 @@ public class ForecastConfiguration implements Serializable, Comparable {
     @ManyToOne
     private PointOfInterest locationPointOfInterestId;
     @JoinColumn(name = "weather_station_point_of_interest_id", referencedColumnName = "point_of_interest_id")
-    @ManyToOne
+    @ManyToOne()
     private PointOfInterest weatherStationPointOfInterestId;
     @JoinColumn(name = "crop_organism_id", referencedColumnName = "organism_id")
     @ManyToOne

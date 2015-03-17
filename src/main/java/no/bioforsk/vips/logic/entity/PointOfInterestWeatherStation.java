@@ -44,8 +44,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PointOfInterestWeatherStation.findAll", query = "SELECT p FROM PointOfInterestWeatherStation p"),
+    @NamedQuery(name = "PointOfInterestWeatherStation.findAllByActivity", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByPointOfInterestId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.pointOfInterestId = :pointOfInterestId"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId)"),
+    @NamedQuery(name = "PointOfInterestWeatherStation.findByActivityAndOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active AND p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId)"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByUserId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.userId = :userId")
 })
 public class PointOfInterestWeatherStation extends PointOfInterest implements Serializable {
@@ -59,6 +61,8 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
     @JoinColumn(name = "point_of_interest_id", referencedColumnName = "point_of_interest_id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     private PointOfInterest pointOfInterest;
+    @Column(name="active")
+    private Boolean active;
 
     public PointOfInterestWeatherStation() {
     }
@@ -130,6 +134,20 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
     {
         String dataRequestUri = String.format(this.getWeatherStationDataSourceId().getDatafetchUriExpression(),this.getWeatherStationRemoteId());
         return dataRequestUri;
+    }
+
+    /**
+     * @return the active
+     */
+    public Boolean getActive() {
+        return active;
+    }
+
+    /**
+     * @param active the active to set
+     */
+    public void setActive(Boolean active) {
+        this.active = active;
     }
     
 }

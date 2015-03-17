@@ -41,6 +41,7 @@ import no.bioforsk.vips.logic.entity.PointOfInterestExternalResource;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.WeatherStationDataSource;
 import no.bioforsk.vips.logic.util.Globals;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
 
 
 /**
@@ -80,6 +81,15 @@ public class PointOfInterestBean {
         return q.getResultList();
     }
     
+    public List<PointOfInterestWeatherStation> getAllWeatherStations(Boolean active)
+    {
+        // Default is to find active
+        active = active == null ? true : active;
+        Query q = em.createNamedQuery("PointOfInterestWeatherStation.findAllByActivity")
+                .setParameter("active", active);
+        return q.getResultList();
+    }
+    
     /**
      * 
      * @param pointOfInterestId
@@ -102,12 +112,12 @@ public class PointOfInterestBean {
             List<Organization> organizations = em.createNamedQuery("Organization.findAllTopLevelOrganizations").getResultList();
             for(Organization organization:organizations)
             {
-                weatherStations.addAll(this.getWeatherstationsForOrganization(organization));
+                weatherStations.addAll(this.getWeatherstationsForOrganization(organization,null));
             }
         }
         else
         {
-            weatherStations.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId)));
+            weatherStations.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),null));
         }
  
         
@@ -175,11 +185,14 @@ public class PointOfInterestBean {
     public PointOfInterestWeatherStation storeWeatherStation(PointOfInterestWeatherStation weatherStation) {
         weatherStation = em.merge(weatherStation);
         return weatherStation;
-    }
+    }  
 
-    public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization) {
-        List<PointOfInterestWeatherStation> retVal = em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId", PointOfInterestWeatherStation.class)
+    public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization, Boolean active) {
+        // Avoid nulls
+        active = active == null ? true : active;
+        List<PointOfInterestWeatherStation> retVal = em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId", PointOfInterestWeatherStation.class)
                                                 .setParameter("organizationId", organization)
+                                                .setParameter("active", active)
                                                 .getResultList();
         for(Organization subdivision:organization.getOrganizationSet())
         {
@@ -218,5 +231,12 @@ public class PointOfInterestBean {
 
     public void storePointOfInterestExternalResource(PointOfInterestExternalResource poiExternalResource) {
         em.merge(poiExternalResource);
+    }
+    
+    public void deleteWeatherStation(Integer pointOfInterestId)
+    {
+        PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
+        SessionControllerGetter.getForecastBean().deleteForecastConfigurations(weatherStation);
+        em.remove(weatherStation);
     }
 }

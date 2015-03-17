@@ -168,6 +168,10 @@ public class UserBean {
         em.merge(user);
     }
     
+    /**
+     * TODO: Make sure user's data (weather stations, forecasts etc.) are not lost
+     * @param user 
+     */
     public void deleteUser(VipsLogicUser user)
     {
         user = em.find(VipsLogicUser.class, user.getUserId());

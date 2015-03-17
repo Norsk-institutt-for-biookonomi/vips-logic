@@ -63,6 +63,14 @@
 			    <span class="help-block" id="${formId}_name_validation"></span>
 			  </div>
 			  <div class="form-group">
+				  <div class="checkbox">
+					  <label>
+					    <input type="checkbox" name="active" value="true"<#if (weatherStation.active?has_content && weatherStation.active == true)> checked="checked"</#if>/>
+					    ${i18nBundle.active}
+					  </label>
+				  </div>
+			  </div>
+			  <div class="form-group">
 			    <label for="location">${i18nBundle.location} (<a href="http://en.wikipedia.org/wiki/World_Geodetic_System#A_new_World_Geodetic_System:_WGS_84" target="new">WGS84</a>: ${i18nBundle.longitude},${i18nBundle.latitude})</label>
 			    <input type="text" class="form-control" id="location" name="location" placeholder="${i18nBundle.location}" value="${(weatherStation.longitude?c)!""},${(weatherStation.latitude?c)!""}" onblur="validateField(this);" onchange="if(validateField(this)){updateMarkerPosition();}" />
 			    <span class="help-block" id="${formId}_location_validation"></span>
@@ -158,7 +166,7 @@
 			  </#if>
 			  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			  <#if weatherStation.pointOfInterestId?has_content>
-			  <!--button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/weatherStation?action=deleteWeatherStation&pointOfInterestId=${weatherStation.pointOfInterestId}';}">${i18nBundle.delete}</button-->
+			  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/weatherStation?action=deleteWeatherStationPreview&pointOfInterestId=${weatherStation.pointOfInterestId}';}">${i18nBundle.delete}</button>
 			  </#if>
 			</form>
 		</div>

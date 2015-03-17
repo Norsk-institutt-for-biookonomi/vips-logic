@@ -279,6 +279,30 @@ public class ForecastBean {
         }
     }
     
+    public List<ForecastConfiguration> getForecastConfigurations(PointOfInterestWeatherStation weatherStation)
+    {
+        return em
+                .createNamedQuery("ForecastConfiguration.findByWeatherStationPointOfInterestId", ForecastConfiguration.class)
+                .setParameter("weatherStationPointOfInterestId", weatherStation)
+                .getResultList();
+    }
+    
+    /**
+     * Deletes all forecasts and results from the given weather station
+     * @param weatherStation 
+     */
+    public void deleteForecastConfigurations(PointOfInterestWeatherStation weatherStation)
+    {
+        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurations(weatherStation);
+        for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
+        {
+            em.createNativeQuery("DELETE FROM forecast_result WHERE forecast_configuration_id=:forecastConfigurationId")
+                    .setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId())
+                    .executeUpdate();
+            em.remove(forecastConfiguration);
+        }
+    }
+    
     /**
      * Fetches one specific forecast configuration
      * @param forecastConfigurationId

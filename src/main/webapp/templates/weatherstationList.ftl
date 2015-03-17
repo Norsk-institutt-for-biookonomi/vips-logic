@@ -39,6 +39,9 @@
 </#macro>
 <#macro page_contents>
 <h1>${i18nBundle.weatherStations}</h1>
+<#if messageKey?has_content>
+	<div class="alert alert-success">${i18nBundle(messageKey)}</div>
+</#if>
 <p>
 	<a href="/weatherStation?action=newWeatherStationForm&organizationId=${organizationId}" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
 </p>
@@ -63,6 +66,7 @@
 		</div>
 		 </#if>
 		 <div class="table-responsive">
+		 	<h3>${i18nBundle.activeWeatherStations}</h3>
 			 <table class="table table-striped">
 				<thead>
 					<th>${i18nBundle.name}</th>
@@ -72,7 +76,36 @@
 					<th>${i18nBundle.dataSourceName}</th>
 				</thead>
 				<tbody>
-				<#list weatherStations?sort_by("name") as weatherStation>
+				<#list activeWeatherStations?sort_by("name") as weatherStation>
+				    <tr>
+					<td>
+						<a href="weatherStation?pointOfInterestId=${weatherStation.pointOfInterestId}">${weatherStation.name!""}</a>
+					</td>
+					<#if user.isOrganizationAdmin() || user.isSuperUser() >
+					<td>
+						<a href="/weatherStation?action=editWeatherStationForm&pointOfInterestId=${weatherStation.pointOfInterestId}" class="btn btn-default" role="button">${i18nBundle.edit}</a>
+					</td>
+					</#if>
+					<td>
+					<#if weatherStation.weatherStationDataSourceId?has_content>
+						<a href="${weatherStation.weatherStationDataSourceId.uri}">${weatherStation.weatherStationDataSourceId.name}</a>
+					</#if>
+					</td>
+				    </tr>
+				</#list>
+				</tbody>
+			</table>
+			<h3>${i18nBundle.inactiveWeatherStations}</h3>
+			 <table class="table table-striped">
+				<thead>
+					<th>${i18nBundle.name}</th>
+					<#if user.isOrganizationAdmin() || user.isSuperUser() >
+					<th></th>
+					</#if>
+					<th>${i18nBundle.dataSourceName}</th>
+				</thead>
+				<tbody>
+				<#list inactiveWeatherStations?sort_by("name") as weatherStation>
 				    <tr>
 					<td>
 						<a href="weatherStation?pointOfInterestId=${weatherStation.pointOfInterestId}">${weatherStation.name!""}</a>

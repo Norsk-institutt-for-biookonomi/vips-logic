@@ -29,6 +29,11 @@
             "required" : true
         },
         {
+            "name" : "active",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "weatherStationDataSourceId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

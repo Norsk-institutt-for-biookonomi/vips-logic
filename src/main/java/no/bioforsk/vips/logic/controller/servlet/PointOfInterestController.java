@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
+ * Copyright (c) 2015 Bioforsk <http://www.bioforsk.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.entity.Country;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.ModelInformation;
 import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestExternalResource;
@@ -52,7 +54,7 @@ import no.bioforsk.web.forms.FormValidator;
 
 /**
  * Handles transactions for POIs
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2015 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class PointOfInterestController extends HttpServlet {
@@ -94,19 +96,22 @@ public class PointOfInterestController extends HttpServlet {
                 if(pointOfInterestId == null)
                 {
                     Organization organization = null;
-                    List<PointOfInterestWeatherStation> weatherStations;
+                    List<PointOfInterestWeatherStation> activeWeatherStations;
+                    List<PointOfInterestWeatherStation> inactiveWeatherStations;
                     if(user.isSuperUser()){
                         Integer organizationId = request.getParameter("organizationId") != null ?
                                 Integer.parseInt(request.getParameter("organizationId"))
                                 :user.getOrganizationId().getOrganizationId();
                         if(organizationId.equals(-1))
                         {
-                            weatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+                            activeWeatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations(true);
+                            inactiveWeatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations(false);
                         }
                         else
                         {
                             organization = em.find(Organization.class, organizationId);
-                            weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization);
+                            activeWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, true);
+                            inactiveWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, false);
                         }
                         request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
                         request.setAttribute("organizationId", organizationId);
@@ -115,7 +120,8 @@ public class PointOfInterestController extends HttpServlet {
                     else
                     {
                         organization = user.getOrganizationId();
-                        weatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization);
+                        activeWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization,true);
+                        inactiveWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, false);
                         request.setAttribute("organizationId", organization.getOrganizationId());
                     }
                     
@@ -133,7 +139,9 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("defaultMapCenter",mapCenter);
                         request.setAttribute("defaultMapZoom", 3);
                     }
-                    request.getSession().setAttribute("weatherStations", weatherStations);
+                    request.getSession().setAttribute("activeWeatherStations", activeWeatherStations);
+                    request.getSession().setAttribute("inactiveWeatherStations", inactiveWeatherStations);
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.getRequestDispatcher("/weatherstationList.ftl").forward(request, response);
                 }
                 // Single view
@@ -153,6 +161,7 @@ public class PointOfInterestController extends HttpServlet {
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUserId().getOrganizationId().getOrganizationId());
                     request.getRequestDispatcher("/weatherstationView.ftl").forward(request, response);
 
@@ -249,6 +258,7 @@ public class PointOfInterestController extends HttpServlet {
                         {
                             // Set values
                             weatherStation.setName(formValidation.getFormField("name").getWebValue());
+                            weatherStation.setActive(formValidation.getFormField("active").getWebValue() != null);
                             weatherStation.setAltitude(formValidation.getFormField("altitude").getValueAsDouble());
                             weatherStation.setLongitude(formValidation.getFormField("location").getValueAsPointWGS84().getX());
                             weatherStation.setLatitude(formValidation.getFormField("location").getValueAsPointWGS84().getY());
@@ -318,6 +328,70 @@ public class PointOfInterestController extends HttpServlet {
                         }
                     }
                     catch(NullPointerException | NumberFormatException | FormValidationException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+            else if(action.equals("deleteWeatherStationPreview"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                        PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
+                        List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurations(weatherStation);
+                        // If no strings attached, delete immediately
+                        if(forecastConfigurations.isEmpty())
+                        {
+                            response.sendRedirect(new StringBuilder("http://")
+                                .append(ServletUtil.getServerName(request))
+                                .append("/weatherStation?action=deleteWeatherStation&pointOfInterestId=").append(weatherStation.getPointOfInterestId())
+                                .toString()
+                            );
+                        }
+                        else
+                        {
+                            Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedModelInformation();
+                            request.setAttribute("returnURL","weatherStation?action=editWeatherStationForm&pointOfInterestId=" + pointOfInterestId);
+                            request.setAttribute("weatherStation", weatherStation);
+                            request.setAttribute("forecastConfigurations", forecastConfigurations);
+                            request.setAttribute("modelInformation", modelInformationMap);
+                            request.getRequestDispatcher("/weatherstationDeletePreview.ftl").forward(request, response);
+                        }
+                    }
+                    catch(NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+            else if(action.equals("deleteWeatherStation"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                        //PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
+                        SessionControllerGetter.getPointOfInterestBean().deleteWeatherStation(pointOfInterestId);
+                        response.sendRedirect(new StringBuilder("http://")
+                                .append(ServletUtil.getServerName(request))
+                                .append("/weatherStation")
+                                .append("?messageKey=").append("weatherStationDeleted").toString()
+
+                            );
+                    }
+                    catch(NumberFormatException ex)
                     {
                         response.sendError(500, ExceptionUtil.getStackTrace(ex));
                     }
