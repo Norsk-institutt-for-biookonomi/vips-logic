@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,6 +178,10 @@ public abstract class ModelRunPreprocessor {
                 for(String elementMeasurementType : elementMeasurementTypes)
                 {
                     List<WeatherObservation> paramObs = obsMap.get(elementMeasurementType);
+                    if(paramObs.isEmpty())
+                    {
+                        continue;
+                    }
                     Collections.sort(paramObs);
                     latestCommonDate = latestCommonDate == null ?
                             paramObs.get(paramObs.size()-1).getTimeMeasured()

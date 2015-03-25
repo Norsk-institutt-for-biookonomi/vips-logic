@@ -101,7 +101,10 @@
 							<option value="BT">BT</option>
 							<option value="Q0">Q0</option>
 							<option value="UM">UM</option>
+							<option value="TJM5">TJM5</option>
+							<option value="TJM10">TJM10</option>
 							<option value="FM2">FM2</option>
+							
 						</select>
 					</div>
 				</div>

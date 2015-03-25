@@ -56,7 +56,7 @@ public class MetosDataParserTest {
      * Test of getWeatherObservations method, of class MetosDataParser.
      * Could be time consuming, so we test only when needed
      */
-    //@Test
+    @Test
     public void testGetWeatherObservations() throws Exception {
         System.out.println("getWeatherObservations");
         String stationID = "00002085";
@@ -66,8 +66,18 @@ public class MetosDataParserTest {
         List<WeatherObservation> result = instance.getWeatherObservations(stationID);
         assertNotNull(result);
         assertNotSame(expResult, result.size());
-        System.out.println("Result sample: " + result.get(0).toString());
+        System.out.println("Result sample: " + result.get(10).toString());
         
+        // Testing different station with different parameters
+        stationID = "00000428";
+        result = instance.getWeatherObservations(stationID);
+        assertNotNull(result);
+        assertNotSame(expResult, result.size());
+        System.out.println("Result sample: " + result.get(10).toString());
+        /*for(WeatherObservation obs:result)
+        {
+            System.out.println(obs.toString());
+        }*/
     }
     
 }

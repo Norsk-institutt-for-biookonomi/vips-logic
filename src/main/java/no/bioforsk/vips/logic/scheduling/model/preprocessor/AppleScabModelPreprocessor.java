@@ -93,7 +93,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             System.out.println("Getting weather data at " + new Date().toString());
         }
         List<WeatherObservation> observations = getWeatherObservations(
-                weatherStation.getDataFetchUri(), 
+                weatherStation, 
                 WeatherObservation.LOG_INTERVAL_ID_1H, 
                 new String[]{
                     WeatherElements.TEMPERATURE_MEAN, 
@@ -104,8 +104,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                     WeatherElements.WIND_SPEED_2M
                 }, 
                 startDateAscosporeMaturity, 
-                dateEndWeatherData, 
-                timeZone
+                dateEndWeatherData
         );
         
         if(DEBUG)

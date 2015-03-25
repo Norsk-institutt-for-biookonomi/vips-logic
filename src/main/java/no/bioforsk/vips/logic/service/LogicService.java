@@ -20,6 +20,7 @@
 package no.bioforsk.vips.logic.service;
 
 import com.ibm.icu.util.ULocale;
+import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -309,12 +310,17 @@ public class LogicService {
     @POST
     @Path("weather/proxy/metos/{stationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getMetosWeatherData(@PathParam("stationId") String stationId)
+    public Response getMetosWeatherData(@PathParam("stationId") String stationId, @QueryParam("timeZone") String timeZone, @QueryParam("startDate") String startDate)
     {
         List<WeatherObservation> observations;
-        try {
-            observations = new MetosDataParser().getWeatherObservations(stationId);
-        } catch (ParseWeatherDataException ex) {
+        try 
+        {
+            TimeZone timeZone1 = TimeZone.getTimeZone(timeZone);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone1);
+            Date startDate1 = format.parse(startDate);
+            observations = new MetosDataParser().getWeatherObservations(stationId, startDate1);
+        } catch (ParseWeatherDataException | ParseException ex) {
             return Response.serverError().entity(ex).build();
         }
         return Response.ok().entity(observations).build();
