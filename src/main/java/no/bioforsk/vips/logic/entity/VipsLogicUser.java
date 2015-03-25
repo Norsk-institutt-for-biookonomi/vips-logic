@@ -53,7 +53,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @NamedQueries({
     @NamedQuery(name = "VipsLogicUser.findAll", query = "SELECT v FROM VipsLogicUser v"),
     @NamedQuery(name = "VipsLogicUser.findByUserId", query = "SELECT v FROM VipsLogicUser v WHERE v.userId = :userId"),
-    @NamedQuery(name = "VipsLogicUser.findByOrganizationId", query = "SELECT v FROM VipsLogicUser v WHERE v.organizationId = :organizationId"),
+    @NamedQuery(name = "VipsLogicUser.findByOrganizationId", query = "SELECT v FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)"),
     @NamedQuery(name = "VipsLogicUser.findByOrganizationIds", query = "SELECT v FROM VipsLogicUser v WHERE v.organizationId.organizationId IN (:organizationIds)"),
     @NamedQuery(name = "VipsLogicUser.findByEmail", query = "SELECT v FROM VipsLogicUser v WHERE v.email = :email"),
     @NamedQuery(name = "VipsLogicUser.findByEmailVerificationCode", query = "SELECT v FROM VipsLogicUser v WHERE v.emailVerificationCode = :emailVerificationCode"),
