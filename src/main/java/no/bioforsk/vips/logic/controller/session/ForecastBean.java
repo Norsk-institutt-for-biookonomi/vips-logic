@@ -436,10 +436,13 @@ public class ForecastBean {
     {
         // The entity relationship between ForecastConfiguration and ForecastResult
         // is not explicit in EJB model, but in the database there is a foreign key 
-        // in forecast_result referencing the forecast_configuration
+        // in forecast_result (and in forecast summary) referencing the forecast_configuration
         // Explicit deletion of forecast_results rows is therefore necessary.
         ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
         Query q = em.createNativeQuery("DELETE FROM public.forecast_result WHERE forecast_configuration_id=:forecastConfigurationId");
+        q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
+        q.executeUpdate();
+        q = em.createNativeQuery("DELETE FROM public.forecast_summary WHERE forecast_configuration_id=:forecastConfigurationId");
         q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
         q.executeUpdate();
         em.remove(forecastConfiguration);

@@ -23,7 +23,9 @@ import java.util.Calendar;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -90,7 +92,8 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                     dateEndWeatherData, 
                     timeZone);
             try {
-            observations = validateAndSanitizeObservations(observations);
+                
+            observations = validateAndSanitizeObservations(observations, configuration.getDateStart());
         } catch (ConfigValidationException | WeatherObservationListException ex) {
             ex.printStackTrace();
             throw new PreprocessorException(ex.getMessage());
@@ -121,14 +124,28 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
         return "NAERSTADMO";
     }
 
-    private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations) throws WeatherObservationListException, ConfigValidationException {
+    /**
+     * Attempts to fix problems with weather data sets
+     * @param observations
+     * @return
+     * @throws WeatherObservationListException
+     * @throws ConfigValidationException 
+     */
+    private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations, Date firstTimestamp) throws WeatherObservationListException, ConfigValidationException {
+        
+        WeatherUtil wUtil = new WeatherUtil();
+        List<WeatherObservation> fixedObservations = wUtil.fixHourlyValuesForParameters(
+                observations, 
+                new HashSet(Arrays.asList("TM","RR","UM")), 
+                firstTimestamp, 
+                null
+        );
+        
         // Now we need to validate and possibly try to fix the weather data
         List<WeatherObservation> TM = new ArrayList<>();
         List<WeatherObservation> RR = new ArrayList<>();
-        List<WeatherObservation> BT = new ArrayList<>();
         List<WeatherObservation> UM = new ArrayList<>();
-        List<WeatherObservation> Q0 = new ArrayList<>();
-        List<WeatherObservation> FM2 = new ArrayList<>();
+        
         for(WeatherObservation o:observations)
         {
             switch(o.getElementMeasurementTypeId())
@@ -139,11 +156,24 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                 case WeatherElements.PRECIPITATION:
                     RR.add(o); 
                     break;
-                case WeatherElements.LEAF_WETNESS:
-                    BT.add(o); 
-                    break;
                 case WeatherElements.RELATIVE_HUMIDITY_MEAN:
                     UM.add(o); 
+                    break;
+                default:
+                    // Let it pass in silence 
+                    break;
+            }
+        }
+        
+        List<WeatherObservation> BT = new ArrayList<>();
+        List<WeatherObservation> Q0 = new ArrayList<>();
+        List<WeatherObservation> FM2 = new ArrayList<>();
+        for(WeatherObservation o:observations)
+        {
+            switch(o.getElementMeasurementTypeId())
+            {
+                case WeatherElements.LEAF_WETNESS:
+                    BT.add(o); 
                     break;
                 case WeatherElements.GLOBAL_RADIATION:
                     Q0.add(o);
@@ -156,7 +186,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                     break;
             }
         }
-        WeatherUtil wUtil = new WeatherUtil();
+        
         // Problems with weather observations
         
         
