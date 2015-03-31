@@ -151,8 +151,15 @@ public class MetosDataParser {
             Date timestamp = null;
             for(String[] lineData: data)
             {
-                
-                if(lineData[1].split(":")[1].equals("00") && shouldBe00Now)
+                // Skip lines that are not exactly :00 or :30
+                if(
+                        !lineData[1].split(":")[1].equals("00")
+                        && ! lineData[1].split(":")[1].equals("30")
+                        )
+                {
+                    continue;
+                }
+                else if(lineData[1].split(":")[1].equals("00") && shouldBe00Now)
                 {
                     data00 = lineData;
                     try
