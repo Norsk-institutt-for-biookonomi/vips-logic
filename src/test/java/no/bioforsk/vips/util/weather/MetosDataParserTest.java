@@ -19,6 +19,7 @@
 package no.bioforsk.vips.util.weather;
 
 import java.util.List;
+import java.util.TimeZone;
 import no.bioforsk.vips.entity.WeatherObservation;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -63,17 +64,17 @@ public class MetosDataParserTest {
         MetosDataParser instance = new MetosDataParser();
         //List<WeatherObservation> expResult = null;
         Integer expResult = 0;
-        List<WeatherObservation> result = instance.getWeatherObservations(stationID);
+        List<WeatherObservation> result = instance.getWeatherObservations(stationID, TimeZone.getTimeZone("Europe/Sofia"));
         assertNotNull(result);
         assertNotSame(expResult, result.size());
-        System.out.println("Result sample: " + result.get(10).toString());
+        //System.out.println("Result sample: " + result.get(10).toString());
         
         // Testing different station with different parameters
         stationID = "00000428";
-        result = instance.getWeatherObservations(stationID);
+        result = instance.getWeatherObservations(stationID, TimeZone.getTimeZone("Europe/Sarajevo"));
         assertNotNull(result);
         assertNotSame(expResult, result.size());
-        System.out.println("Result sample: " + result.get(10).toString());
+        //System.out.println("Result sample: " + result.get(10).toString());
         /*for(WeatherObservation obs:result)
         {
             System.out.println(obs.toString());

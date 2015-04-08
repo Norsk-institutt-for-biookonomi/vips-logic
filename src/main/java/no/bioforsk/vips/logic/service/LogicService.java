@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -310,17 +311,25 @@ public class LogicService {
     @POST
     @Path("weather/proxy/metos/{stationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getMetosWeatherData(@PathParam("stationId") String stationId, @QueryParam("timeZone") String timeZone, @QueryParam("startDate") String startDate)
+    public Response getMetosWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET
+            )
     {
         List<WeatherObservation> observations;
         try 
         {
-            TimeZone timeZone1 = TimeZone.getTimeZone(timeZone);
+            String timeZoneParam = timeZonePOST != null ? timeZonePOST : timeZoneGET != null ? timeZoneGET : "UTC";
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneParam);
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            format.setTimeZone(timeZone1);
-            Date startDate1 = format.parse(startDate);
-            observations = new MetosDataParser().getWeatherObservations(stationId, startDate1);
-        } catch (ParseWeatherDataException | ParseException ex) {
+            format.setTimeZone(timeZone);
+            String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
+            Date startDate1 = format.parse(startDateParam);
+            observations = new MetosDataParser().getWeatherObservations(stationId, timeZone, startDate1);
+        } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
             return Response.serverError().entity(ex).build();
         }
         return Response.ok().entity(observations).build();

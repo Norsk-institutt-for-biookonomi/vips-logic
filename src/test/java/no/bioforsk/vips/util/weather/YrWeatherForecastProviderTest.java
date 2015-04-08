@@ -18,6 +18,7 @@
  */
 package no.bioforsk.vips.util.weather;
 
+import java.util.Collections;
 import java.util.List;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
@@ -81,6 +82,19 @@ public class YrWeatherForecastProviderTest {
             weatherStation.setLatitude(59.63851390);
             result = instance.getWeatherForecasts(weatherStation);
             assertNotNull(result);
+            
+            // Testing Jablanica (Republika Srpska, Bosnia)
+            weatherStation.setAltitude(219.0);
+            weatherStation.setLongitude(16.988056);
+            weatherStation.setLatitude(45.115);
+            result = instance.getWeatherForecasts(weatherStation);
+            assertNotNull(result);
+            
+            /**Collections.sort(result);
+            for(WeatherObservation obs:result)
+            {
+                System.out.println(obs.toString());
+            }*/
         }
         catch(ParseWeatherDataException ex)
         {
@@ -90,11 +104,7 @@ public class YrWeatherForecastProviderTest {
             }
         }
         
-        /*Collections.sort(result);
-        for(WeatherObservation obs:result)
-        {
-            System.out.println(obs.toString());
-        }*/
+        
     }
     
 }

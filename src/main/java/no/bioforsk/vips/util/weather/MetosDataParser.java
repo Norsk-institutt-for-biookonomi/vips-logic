@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import no.bioforsk.vips.entity.WeatherObservation;
 
 /**
@@ -61,10 +62,10 @@ public class MetosDataParser {
      * @return
      * @throws ParseWeatherDataException 
      */
-    public List<WeatherObservation> getWeatherObservations(String stationID, Date startDate) throws ParseWeatherDataException 
+    public List<WeatherObservation> getWeatherObservations(String stationID, TimeZone timeZone, Date startDate) throws ParseWeatherDataException 
     {
         List<WeatherObservation> retVal = new ArrayList<>();
-        List<WeatherObservation> allObservations = this.getWeatherObservations(stationID);
+        List<WeatherObservation> allObservations = this.getWeatherObservations(stationID, timeZone);
         for(WeatherObservation obs: allObservations)
         {
             if(obs.getTimeMeasured().compareTo(startDate) >= 0)
@@ -80,10 +81,11 @@ public class MetosDataParser {
      * @param stationID the METOS station ID
      * @return 
      */
-    public List<WeatherObservation> getWeatherObservations(String stationID) throws ParseWeatherDataException 
+    public List<WeatherObservation> getWeatherObservations(String stationID, TimeZone timeZone) throws ParseWeatherDataException 
     {
         List<WeatherObservation> retVal = new ArrayList<>();
         SimpleDateFormat dFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        dFormat.setTimeZone(timeZone);
         // Assuming 1 hour resolution until we find a timestamp that says :30
         Integer logIntervalId = WeatherObservation.LOG_INTERVAL_ID_1H;
         List<String[]> data = new ArrayList<>();

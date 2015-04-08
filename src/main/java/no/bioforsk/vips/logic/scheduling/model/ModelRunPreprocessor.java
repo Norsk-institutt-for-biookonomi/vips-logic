@@ -95,7 +95,17 @@ public abstract class ModelRunPreprocessor {
             URLConn = weatherURL.openConnection();
             URLStream = URLConn.getInputStream();
             URLOutput = IOUtils.toString(URLStream);
-            return this.getWeatherObservations(URLOutput);
+            List<WeatherObservation> preliminaryResult = this.getWeatherObservations(URLOutput);
+            // Need to filter only the values with correct resolution (logIntervalId)
+            List<WeatherObservation> filteredObservations = new ArrayList<>();
+            for(WeatherObservation candidateObs:preliminaryResult)
+            {
+                if(candidateObs.getLogIntervalId().equals(logIntervalId))
+                {
+                    filteredObservations.add(candidateObs);
+                }
+            }
+            return filteredObservations;
         }catch(IOException ex)
         {
             // Create error message to logging system
@@ -144,6 +154,23 @@ public abstract class ModelRunPreprocessor {
         return new ObjectMapper().readValue(JSONtext, new TypeReference<List<WeatherObservation>>(){});
     }
     
+    /**
+     * Fetches measured data from the stations weather data source, and optionally
+     * a weather forecast provider (if so specified in the weather station configuration).
+     * Regarding weather forecast parameters: All requested parameters need be present in the
+     * forecast in order for any parameters to be fetched. So if you request e.g. TJM5 and TM, 
+     * you won't get forecast values for any of them, because TJM5 is not present. Solve this
+     * by calling this method twice: Once for the parameters with forecasts, and one for the 
+     * remaining.
+     * 
+     * @param station The WeatherStation to fetch data from
+     * @param logIntervalId hourly/daily etc.
+     * @param elementMeasurementTypes Which parameters should be fetched
+     * @param startTime When to start
+     * @param endTime When to stop
+     * @return
+     * @throws PreprocessorException 
+     */
     protected List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime) throws PreprocessorException
     {
         List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()));
