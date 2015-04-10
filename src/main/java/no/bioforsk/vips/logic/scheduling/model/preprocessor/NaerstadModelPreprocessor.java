@@ -225,7 +225,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
         retVal.addAll(BT);
         retVal.addAll(UM);
         retVal.addAll(Q0);
-
+        retVal = wUtil.truncateToLastCommonObservation(retVal);
         return retVal;
     }
 
