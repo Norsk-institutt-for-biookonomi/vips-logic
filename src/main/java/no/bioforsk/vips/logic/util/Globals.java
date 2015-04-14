@@ -67,6 +67,7 @@ public class Globals {
     public static String defaultDateFormat = "yyyy-MM-dd";
     
     public static String[] availableTimeZones = {
+        "UTC",
         "Etc/GMT-1",
         "Europe/Oslo",
         "Europe/Sarajevo",

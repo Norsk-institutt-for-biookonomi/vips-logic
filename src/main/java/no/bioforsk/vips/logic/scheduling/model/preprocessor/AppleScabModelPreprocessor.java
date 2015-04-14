@@ -21,8 +21,11 @@ package no.bioforsk.vips.logic.scheduling.model.preprocessor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
 import no.bioforsk.vips.entity.ModelConfiguration;
@@ -68,7 +71,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         cal.setTime(SystemTime.getSystemTime());
         cal.add(Calendar.DATE, 3);
         Date nearFuture = cal.getTime();
-        Date dateEndWeatherData = configuration.getDateEnd().compareTo(nearFuture) < 0 ? configuration.getDateEnd() : nearFuture;
+        Date dateEndWeatherData = configuration.getDateEndInTimeZone().compareTo(nearFuture) < 0 ? configuration.getDateEndInTimeZone(): nearFuture;
         
         // We need data until hour 23 of this date, need to fix that
         cal.setTime(dateEndWeatherData);
@@ -112,7 +115,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             System.out.println("Finished getting weather data at " + new Date().toString());
         }
         try {
-            observations = validateAndSanitizeObservations(observations);
+            observations = validateAndSanitizeObservations(observations, startDateAscosporeMaturity);
         } catch (ConfigValidationException | WeatherObservationListException ex) {
             ex.printStackTrace();
             throw new PreprocessorException(ex.getMessage());
@@ -146,19 +149,31 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
      * @throws ConfigValidationException
      * @throws WeatherObservationListException 
      */
-    private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations) throws ConfigValidationException, WeatherObservationListException {
+    private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations, Date firstTimeStamp) throws ConfigValidationException, WeatherObservationListException {
         if(DEBUG)
         {
             System.out.println("validateAndSanitizeObservations");
         }
+        
+        WeatherUtil wUtil = new WeatherUtil();
+        
+        // First we remove all duplicates
+        observations = wUtil.removeDuplicateWeatherObservations(observations, null);
+        
+        // Fix weather data
+        List<WeatherObservation> fixedObservations = wUtil.fixHourlyValuesForParameters(
+                observations, 
+                new HashSet(Arrays.asList("TM","RR")), 
+                firstTimeStamp, 
+                null
+        );
+        
+        
         // Now we need to validate and possibly try to fix the weather data
         List<WeatherObservation> TM = new ArrayList<>();
         List<WeatherObservation> RR = new ArrayList<>();
-        List<WeatherObservation> BT = new ArrayList<>();
-        List<WeatherObservation> UM = new ArrayList<>();
-        List<WeatherObservation> Q0 = new ArrayList<>();
-        List<WeatherObservation> FM2 = new ArrayList<>();
-        for(WeatherObservation o:observations)
+        
+        for(WeatherObservation o:fixedObservations)
         {
             switch(o.getElementMeasurementTypeId())
             {
@@ -168,6 +183,18 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                 case WeatherElements.PRECIPITATION:
                     RR.add(o); 
                     break;
+                    
+            }
+        }
+        
+        List<WeatherObservation> BT = new ArrayList<>();
+        List<WeatherObservation> UM = new ArrayList<>();
+        List<WeatherObservation> Q0 = new ArrayList<>();
+        List<WeatherObservation> FM2 = new ArrayList<>();
+        for(WeatherObservation o:observations)
+        {
+            switch(o.getElementMeasurementTypeId())
+            {
                 case WeatherElements.LEAF_WETNESS:
                     BT.add(o); 
                     break;
@@ -185,7 +212,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                     break;
             }
         }
-        WeatherUtil wUtil = new WeatherUtil();
+        
         // Problems with weather observations
         
         // Holes in series
@@ -194,8 +221,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             System.out.println("checkForAndFixHourlyTimeSeriesHoles");
             //System.out.println(wUtil.dumpWeatherObservationList(RR));
         }
-        TM = wUtil.checkForAndFixHourlyTimeSeriesHoles(TM);
-        RR = wUtil.checkForAndFixHourlyTimeSeriesHoles(RR);
+
         BT = wUtil.checkForAndFixHourlyTimeSeriesHoles(BT);
         
         // Unequal length of lists
