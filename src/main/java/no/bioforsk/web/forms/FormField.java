@@ -127,6 +127,12 @@ public class FormField {
     }
     
     @JsonIgnore
+    public Date getValueAsDate(String timeZone)
+    {
+        return this.getValueAsDate(TimeZone.getTimeZone(timeZone));
+    }
+    
+    @JsonIgnore
     public Date getValueAsTimestamp()
     {
         try

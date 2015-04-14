@@ -42,7 +42,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
+import java.util.TimeZone;
 import javax.persistence.Transient;
+import no.bioforsk.vips.util.WeatherUtil;
 
 /**
  * @copyright 2014-2015 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -86,6 +88,9 @@ public class ForecastConfiguration implements Serializable, Comparable {
     @Column(name = "date_end")
     @Temporal(TemporalType.DATE)
     private Date dateEnd;
+    @Size(max = 255)
+    @Column(name = "time_zone")
+    private String timeZone;
     @JsonIgnore
     @JoinColumn(name = "vips_logic_user_id", referencedColumnName = "user_id")
     @ManyToOne(optional = false)
@@ -103,11 +108,15 @@ public class ForecastConfiguration implements Serializable, Comparable {
     @ManyToOne
     private Organism pestOrganismId;
     
+    @Transient
+    private WeatherUtil weatherUtil;
+    
     // Relations connected manually
     @Transient
     private List<ForecastSummary> forecastSummaries;
 
     public ForecastConfiguration() {
+        
     }
 
     public ForecastConfiguration(Long forecastConfigurationId) {
@@ -291,4 +300,72 @@ public class ForecastConfiguration implements Serializable, Comparable {
     public void setPestOrganismId(Organism pestOrganismId) {
         this.pestOrganismId = pestOrganismId;
     }
+    
+    @Transient
+    private WeatherUtil getWeatherUtil()
+    {
+        if(this.weatherUtil == null)
+        {
+            this.weatherUtil = new WeatherUtil();
+        }
+        return this.weatherUtil;
+    }
+
+    /**
+     * @return the timeZone
+     */
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    /**
+     * @param timeZone the timeZone to set
+     */
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+    
+    @Transient
+    public Date getDateStartInTimeZone()
+    {
+        return this.getDateInTimeZone(this.getDateStart());
+    }
+    
+    @Transient
+    public Date getDateEndInTimeZone()
+    {
+        return this.getDateInTimeZone(this.getDateEnd());
+    }
+    
+    @Transient
+    public Date getDateInTimeZone(Date theDate)
+    {
+        return this.getWeatherUtil().changeDateTimeZone(
+                theDate, 
+                TimeZone.getDefault(), 
+                this.getTimeZone() != null ? TimeZone.getTimeZone(this.getTimeZone()) : TimeZone.getDefault()
+        );
+    }
+    
+    /*
+    
+    @Transient
+    public String getISOFormattedDateStart()
+    {
+        TimeZone timeZone1 = this.getTimeZone() != null ? TimeZone.getTimeZone(this.getTimeZone())
+                : TimeZone.getDefault();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(timeZone1);
+        return format.format(this.getDateStart());
+    }
+    
+    @Transient
+    public String getISOFormattedDateEnd()
+    {
+        TimeZone timeZone1 = this.getTimeZone() != null ? TimeZone.getTimeZone(this.getTimeZone())
+                : TimeZone.getDefault();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(timeZone1);
+        return format.format(this.getDateEnd());
+    }*/
 }

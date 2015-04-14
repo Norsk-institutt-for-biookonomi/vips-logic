@@ -24,6 +24,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -75,7 +76,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             cal.setTime(SystemTime.getSystemTime());
             cal.add(Calendar.DATE, 3);
             Date nearFuture = cal.getTime();
-            Date dateEndWeatherData = configuration.getDateEnd().compareTo(nearFuture) < 0 ? configuration.getDateEnd() : nearFuture;
+            Date dateEndWeatherData = configuration.getDateEndInTimeZone().compareTo(nearFuture) < 0 ? configuration.getDateEndInTimeZone(): nearFuture;
             
             List<WeatherObservation> observations = getWeatherObservations(
                     weatherStation.getDataFetchUri(), 
@@ -88,12 +89,13 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                         WeatherElements.GLOBAL_RADIATION,
                         WeatherElements.WIND_SPEED_2M
                     }, 
-                    configuration.getDateStart(), 
+                    configuration.getDateStartInTimeZone(), 
                     dateEndWeatherData, 
                     timeZone);
             try {
                 
-            observations = validateAndSanitizeObservations(observations, configuration.getDateStart());
+            observations = validateAndSanitizeObservations(observations, configuration.getDateStartInTimeZone());    
+                //System.out.println(configuration.getDateStartInTimeZone());
         } catch (ConfigValidationException | WeatherObservationListException ex) {
             ex.printStackTrace();
             throw new PreprocessorException(ex.getMessage());
@@ -133,10 +135,20 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
      */
     private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations, Date firstTimestamp) throws WeatherObservationListException, ConfigValidationException {
         
+        
         WeatherUtil wUtil = new WeatherUtil();
+        
+        // First we truncate observations at end of the period, so that all
+        // parameter series end at the same time
+        // Then we fix holes
         List<WeatherObservation> fixedObservations = wUtil.fixHourlyValuesForParameters(
-                observations, 
-                new HashSet(Arrays.asList("TM","RR","UM")), 
+                wUtil.truncateToLastCommonObservation(
+                    wUtil.filterWeatherObservationsByParameter(
+                            observations, 
+                            new HashSet(Arrays.asList("TM","RR","UM","Q0"))
+                    )
+                ), 
+                new HashSet(Arrays.asList("TM","RR","UM","Q0")), 
                 firstTimestamp, 
                 null
         );
@@ -145,8 +157,9 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
         List<WeatherObservation> TM = new ArrayList<>();
         List<WeatherObservation> RR = new ArrayList<>();
         List<WeatherObservation> UM = new ArrayList<>();
+        List<WeatherObservation> Q0 = new ArrayList<>();
         
-        for(WeatherObservation o:observations)
+        for(WeatherObservation o:fixedObservations)
         {
             switch(o.getElementMeasurementTypeId())
             {
@@ -159,14 +172,18 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                 case WeatherElements.RELATIVE_HUMIDITY_MEAN:
                     UM.add(o); 
                     break;
+                case WeatherElements.GLOBAL_RADIATION:
+                    Q0.add(o);
+                    break;
                 default:
                     // Let it pass in silence 
                     break;
             }
         }
         
+        // BT (Leaf wetness) may be optionally calculated
+        // FM2 (Mean wind speed at 2m above ground)
         List<WeatherObservation> BT = new ArrayList<>();
-        List<WeatherObservation> Q0 = new ArrayList<>();
         List<WeatherObservation> FM2 = new ArrayList<>();
         for(WeatherObservation o:observations)
         {
@@ -175,9 +192,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                 case WeatherElements.LEAF_WETNESS:
                     BT.add(o); 
                     break;
-                case WeatherElements.GLOBAL_RADIATION:
-                    Q0.add(o);
-                    break;
+                
                 case WeatherElements.WIND_SPEED_2M:
                     FM2.add(o);
                     break;
@@ -186,12 +201,9 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                     break;
             }
         }
-        
+                
         // Problems with weather observations
-        
-        
-        TM = wUtil.checkForAndFixHourlyTimeSeriesHoles(TM);
-        RR = wUtil.checkForAndFixHourlyTimeSeriesHoles(RR);
+        //System.out.println("BT=" + BT.size() + " [First=," + BT.get(0).getTimeMeasured() + " last=" + BT.get(BT.size()-1).getTimeMeasured() + "]");
         BT = wUtil.checkForAndFixHourlyTimeSeriesHoles(BT);
         
         // Unequal length of lists
@@ -205,13 +217,34 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             // Fallback if missing leaf wetness: If we have relative humidity. leaf wetness may be calculated
             if(BT.size() != TM.size() && UM.size() == TM.size())
             {
-                Q0 = wUtil.checkForAndFixHourlyTimeSeriesHoles(Q0);
+                //Collections.sort(BT);
+                //System.out.println("BT=" + BT.size() + " [First=," + BT.get(0).getTimeMeasured() + " last=" + BT.get(BT.size()-1).getTimeMeasured() + "]");
                 FM2 = wUtil.checkForAndFixHourlyTimeSeriesHoles(FM2);
                 BT = wUtil.calculateLeafWetnessHourSeriesBestEffort(BT,TM, RR, Q0, FM2, UM);
                 
                 if(BT.size() != TM.size())
                 {
-                   throw new ConfigValidationException("Missing leaf wetness data. Also, attempting to calculate leaf wetness from other weather parameters failed.");
+                    // Last attempt, trying to fix minor problems:
+                    fixedObservations.addAll(BT);
+                    fixedObservations = wUtil.fixHourlyValuesForParameters(
+                            fixedObservations, 
+                            new HashSet(Arrays.asList("TM","RR","UM","Q0","BT")), 
+                            firstTimestamp, 
+                            null
+                    );
+                    BT = wUtil.filterWeatherObservationsByParameter(fixedObservations, new HashSet(Arrays.asList("BT")));
+                            
+                    /* 
+                    // DEBUG
+                    Collections.sort(BT);Collections.sort(TM);
+                            
+                    System.out.println("BT=" + BT.size() + " [First=," + BT.get(0).getTimeMeasured() + " last=" + BT.get(BT.size()-1).getTimeMeasured() 
+                            + "], TM=" + TM.size()+ " [First=" + TM.get(0).getTimeMeasured() + ", last=" + TM.get(TM.size()-1).getTimeMeasured() + "]");
+                    */
+                    if(BT.size() != TM.size())
+                    {
+                        throw new ConfigValidationException("Missing leaf wetness data. Also, attempting to calculate leaf wetness from other weather parameters failed.");
+                    }
                 }
             }
             else

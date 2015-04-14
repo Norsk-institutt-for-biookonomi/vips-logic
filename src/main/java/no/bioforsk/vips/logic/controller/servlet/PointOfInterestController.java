@@ -25,7 +25,6 @@ import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -47,6 +46,7 @@ import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.util.ExceptionUtil;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.vips.logic.entity.WeatherForecastProvider;
+import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
 import no.bioforsk.web.forms.FormValidationException;
@@ -157,7 +157,7 @@ public class PointOfInterestController extends HttpServlet {
                     {
                         request.getSession().setAttribute("weatherStation", weatherStation);
                     }
-                    request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                    request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
@@ -178,7 +178,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                         request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
-                        request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
@@ -217,7 +217,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                         request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
-                        request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
@@ -320,7 +320,7 @@ public class PointOfInterestController extends HttpServlet {
                             request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                             request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                             request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
-                            request.getSession().setAttribute("availableTimeZones", TimeZone.getAvailableIDs());
+                            request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
                             request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                             request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                             request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());

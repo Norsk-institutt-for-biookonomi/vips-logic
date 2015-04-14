@@ -74,6 +74,12 @@
             "name" : "dateEnd",
             "dataType" : "DATE",
             "required" : true
+        },
+        {
+            "name" : "timeZone",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true
         }
         
     ],

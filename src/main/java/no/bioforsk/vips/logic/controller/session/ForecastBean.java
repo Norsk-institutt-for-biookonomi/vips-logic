@@ -376,6 +376,8 @@ public class ForecastBean {
         forecastConfiguration.setLocationPointOfInterestId(locationPoi);
         PointOfInterest weatherStationPoi = em.find(PointOfInterestWeatherStation.class, formFields.get("weatherStationPointOfInterestId").getValueAsInteger());
         forecastConfiguration.setWeatherStationPointOfInterestId(weatherStationPoi);
+        String timeZone = formFields.get("timeZone").getWebValue();
+        forecastConfiguration.setTimeZone(timeZone);
         forecastConfiguration.setDateStart(formFields.get("dateStart").getValueAsDate());
         forecastConfiguration.setDateEnd(formFields.get("dateEnd").getValueAsDate());
         VipsLogicUser forecastConfigurationUser = em.find(VipsLogicUser.class, formFields.get("vipsLogicUserId").getValueAsInteger());

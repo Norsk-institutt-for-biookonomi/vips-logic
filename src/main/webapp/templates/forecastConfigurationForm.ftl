@@ -130,6 +130,18 @@
 	    <span class="help-block" id="${formId}_dateEnd_validation"></span>
 	  </div>
 	  <div class="form-group">
+	    <label for="timeZone">${i18nBundle.timeZone}</label>
+	    <select class="form-control" name="timeZone" onblur="validateField(this);">
+		<#list availableTimeZones as timeZoneId>
+			<option value="${timeZoneId}"<#if 
+						(forecastConfiguration.timeZone?has_content && timeZoneId == forecastConfiguration.timeZone)
+						|| (!forecastConfiguration.timeZone?has_content && timeZoneId == defaultTimeZoneId)
+						> selected="selected"</#if>>${timeZoneId}</option>
+		</#list>
+	     </select>
+	     <span class="help-block" id="${formId}_timeZone_validation"></span>
+	  </div>
+	  <div class="form-group">
 	    <label for="vipsLogicUserId">${i18nBundle.vipsLogicUserId}</label>
 	    <select class="form-control" name="vipsLogicUserId" onblur="validateField(this);">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.vipsLogicUserId?lower_case}</option>

@@ -66,4 +66,13 @@ public class Globals {
     public static String defaultTimestampFormat = "yyyy-MM-dd HH:mm:ssXXX";
     public static String defaultDateFormat = "yyyy-MM-dd";
     
+    public static String[] availableTimeZones = {
+        "Etc/GMT-1",
+        "Europe/Oslo",
+        "Europe/Sarajevo",
+        "Europe/Stockholm",
+        "Europe/Helsinki",
+        "Europe/Sofia"
+    };
+    
 }
