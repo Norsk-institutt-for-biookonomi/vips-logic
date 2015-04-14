@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 
 /**
@@ -103,6 +104,21 @@ public class FormField {
         try
         {
             return new SimpleDateFormat(this.getDateFormat()).parse(this.getWebValue());
+        }
+        catch(ParseException ex)
+        {
+            return null;
+        }
+    }
+    
+    @JsonIgnore
+    public Date getValueAsDate(TimeZone timeZone)
+    {
+        try
+        {
+            SimpleDateFormat format = new SimpleDateFormat(this.getDateFormat());
+            format.setTimeZone(timeZone);
+            return format.parse(this.getWebValue());
         }
         catch(ParseException ex)
         {
