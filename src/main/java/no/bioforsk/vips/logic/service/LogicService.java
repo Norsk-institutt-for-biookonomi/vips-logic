@@ -53,6 +53,9 @@ import no.bioforsk.vips.logic.entity.Message;
 import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.Observation;
 import no.bioforsk.vips.logic.entity.Organism;
+import no.bioforsk.vips.logic.entity.Organization;
+import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
@@ -230,6 +233,16 @@ public class LogicService {
     public Response getWeatherStations(@QueryParam("excludeWeatherStationId") Integer excludeWeatherStationId, @QueryParam("highlightWeatherStationId") Integer highlightWeatherStationId, @PathParam("organizationId") Integer organizationId)
     {
         Kml retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest));
+        return Response.ok().entity(retVal).build();
+    }
+    
+    @GET
+    @Path("poi/organization/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId)
+    {
+        Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
+        List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE);
         return Response.ok().entity(retVal).build();
     }
     
