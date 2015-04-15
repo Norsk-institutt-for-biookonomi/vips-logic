@@ -81,6 +81,10 @@ public class LogicService {
     public Response getForecastResults(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
     {
         List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId);
+        if(results == null)
+        {
+            results = new ArrayList<>();
+        }
         return Response.ok().entity(results).build();
     }
     
@@ -93,6 +97,10 @@ public class LogicService {
     )
     {
         List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, latestDays);
+        if(results == null)
+        {
+            results = new ArrayList<>();
+        }
         return Response.ok().entity(results).build();
     }
     

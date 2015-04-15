@@ -106,6 +106,10 @@ public class ForecastBean {
     public List<ForecastResult> getForecastResults(Long forecastConfigurationId, Integer latestDays)
     {
         ForecastResult mostRecentForecastResult = this.getMostRecentForecastResult(forecastConfigurationId);
+        if(mostRecentForecastResult == null)
+        {
+            return null;
+        }
         Calendar cal = Calendar.getInstance();
         cal.setTime(mostRecentForecastResult.getResultValidTime());
         cal.add(Calendar.DATE, -latestDays);
@@ -120,7 +124,14 @@ public class ForecastBean {
         q.setParameter("forecastConfigurationId", forecastConfigurationId);
         q.setParameter("timeStart", timeStart);
         q.setParameter("timeEnd", timeEnd);
-        return q.getResultList();
+        try
+        {
+            return q.getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
     }
     
     public ForecastResult getMostRecentForecastResult(Long forecastConfigurationId)
@@ -135,7 +146,14 @@ public class ForecastBean {
                 + ");", ForecastResult.class);
         
         q.setParameter("forecastConfigurationId", forecastConfigurationId);
-        return (ForecastResult) q.getSingleResult();
+        try
+        {
+            return (ForecastResult) q.getSingleResult();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
     }
     
     /**
