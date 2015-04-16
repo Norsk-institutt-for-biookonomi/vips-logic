@@ -71,6 +71,7 @@ import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.RunModelException;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
+import no.bioforsk.vips.util.WeatherUtil;
 import no.bioforsk.web.forms.FormField;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -658,9 +659,10 @@ public class ForecastBean {
             
             // Get all results that are within +/- 10 days from TODAY (taking 
             // time zone into account)
-            TimeZone forecastTimeZone = TimeZone.getTimeZone(
-                    forecastConfiguration.getVipsLogicUserId().getOrganizationId().getDefaultTimeZone()
-            );
+            TimeZone forecastTimeZone = forecastConfiguration.getTimeZone() != null ?
+                    TimeZone.getTimeZone(forecastConfiguration.getTimeZone())
+                    : TimeZone.getTimeZone(forecastConfiguration.getVipsLogicUserId().getOrganizationId().getDefaultTimeZone())
+                    ;
             Calendar cal = Calendar.getInstance(forecastTimeZone);
             cal.setTime(currentDate);
             cal.add(Calendar.DATE, -10);
@@ -698,7 +700,8 @@ public class ForecastBean {
             {
                 Date aggregateDay;
                 try {
-                    aggregateDay = format.parse(dayStamp);
+                    // PostgreSQL date is a mess. Need to convert to default timezone to get it right
+                    aggregateDay = new WeatherUtil().changeDateTimeZone(format.parse(dayStamp), forecastTimeZone, TimeZone.getDefault());
                     ForecastSummaryPK summaryPK = new ForecastSummaryPK(
                         forecastConfiguration.getForecastConfigurationId(),
                         aggregateDay
