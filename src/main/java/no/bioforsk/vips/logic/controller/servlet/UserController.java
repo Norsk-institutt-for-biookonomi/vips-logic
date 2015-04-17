@@ -20,6 +20,7 @@
 package no.bioforsk.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -37,16 +38,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.controller.session.UserBean;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.Message;
+import no.bioforsk.vips.logic.entity.MessageLocale;
 import no.bioforsk.vips.logic.entity.Organization;
+import no.bioforsk.vips.logic.entity.PointOfInterest;
+import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationPK;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicRole;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.entity.misc.UserResources;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
-import no.bioforsk.vips.logic.util.StringUtils;
 import no.bioforsk.vips.util.ServletUtil;
 import no.bioforsk.web.forms.FormField;
 import no.bioforsk.web.forms.FormValidation;
@@ -290,6 +296,48 @@ public class UserController extends HttpServlet {
         }
         
         // DELETE user
+        // First: Display resources that user has. Ask for transfer to new user
+        else if(action.equals("userDeleteForm"))
+        {
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                try
+                {
+                    Integer userId = Integer.valueOf(request.getParameter("userId"));
+                    VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                    UserResources userResources = SessionControllerGetter.getUserBean().getUserResources(viewUser);
+ 
+                    // If some resources connected, render form, otherwise, route to user delete
+                    if(userResources.isEmpty())
+                    {
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user").append("?action=deleteUser&userId=").append(userId).toString());
+                    }
+                    else
+                    {
+                        // Get all possible users to transfer to
+                        // For orgadmin: All users of same organization
+                        // For superuser: All users
+                        List<VipsLogicUser> users = user.isSuperUser() ?
+                            em.createNamedQuery("VipsLogicUser.findAll").getResultList()
+                            : em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList();
+                        
+                        request.setAttribute("viewUser", viewUser);
+                        request.setAttribute("userResources", userResources);
+                        request.setAttribute("users", users);
+                        request.setAttribute("errorMsg", request.getParameter("errorMsg"));
+                        request.getRequestDispatcher("/userDeleteForm.ftl").forward(request, response);
+                    }
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, ex.getMessage());
+                }
+            }
+            else
+            {
+                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+            }
+        }
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("deleteUser"))
         {
@@ -299,6 +347,36 @@ public class UserController extends HttpServlet {
                 {
                     Integer userId = Integer.valueOf(request.getParameter("userId"));
                     VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                    
+                    // Are there resources connected to this user?
+                    UserResources userResources = SessionControllerGetter.getUserBean().getUserResources(viewUser);
+                    if(! userResources.isEmpty())
+                    {
+                        boolean resourcesTransferred = false;
+                        try
+                        {
+                            Integer transferToUserId = Integer.valueOf(request.getParameter("transferToUserId"));
+                            VipsLogicUser transferToUser = em.find(VipsLogicUser.class, transferToUserId);
+                            if(transferToUser != null)
+                            {
+                                SessionControllerGetter.getUserBean().transferUserResources(viewUser,transferToUser);
+                                resourcesTransferred = true;
+                            }
+                        }
+                        catch(NullPointerException | NumberFormatException ex ){
+                            resourcesTransferred = false;
+                        }
+                        if(!resourcesTransferred)
+                        {
+                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request))
+                                    .append("/user")
+                                    .append("?action=userDeleteForm&userId=").append(userId)
+                                    .append("&errorMsg=").append(URLEncoder.encode("User has resources that must be transferred", "UTF-8"))
+                                    .toString()
+                            );
+                            return;
+                        }
+                    }
                     //em.remove(viewUser);
                     userBean.deleteUser(viewUser);
                     response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userDeleted").toString());

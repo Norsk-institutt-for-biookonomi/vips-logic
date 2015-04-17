@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.bioforsk.vips.logic.entity.Message;
@@ -82,6 +83,21 @@ public class MessageBean {
     
     public List<Message> getMessageList(Integer organizationId) {
         return em.createNamedQuery("Message.findByOrganizationId", Message.class).setParameter("organizationId", organizationId).getResultList();
+    }
+    
+    // Returns all messages where the given user is the author
+    public List<MessageLocale> getMessageLocaleList(VipsLogicUser user)
+    {
+        try
+        {
+            return em.createNamedQuery("MessageLocale.findByCreatedBy")
+                    .setParameter("createdBy", user)
+                    .getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
     }
 
     public Message storeMessage(Map<String, FormField> formFields, VipsLogicUser user) {

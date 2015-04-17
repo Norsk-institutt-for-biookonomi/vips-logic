@@ -46,6 +46,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @NamedQueries({
     @NamedQuery(name = "MessageLocale.findAll", query = "SELECT m FROM MessageLocale m"),
     @NamedQuery(name = "MessageLocale.findByMessageId", query = "SELECT m FROM MessageLocale m WHERE m.messageLocalePK.messageId = :messageId"),
+    @NamedQuery(name = "MessageLocale.findByCreatedBy", query = "SELECT m FROM MessageLocale m WHERE m.createdBy = :createdBy"),
     @NamedQuery(name = "MessageLocale.findByLocale", query = "SELECT m FROM MessageLocale m WHERE m.messageLocalePK.locale = :locale"),
     @NamedQuery(name = "MessageLocale.findByHeading", query = "SELECT m FROM MessageLocale m WHERE m.heading = :heading"),
     @NamedQuery(name = "MessageLocale.findByLeadParagraph", query = "SELECT m FROM MessageLocale m WHERE m.leadParagraph = :leadParagraph"),

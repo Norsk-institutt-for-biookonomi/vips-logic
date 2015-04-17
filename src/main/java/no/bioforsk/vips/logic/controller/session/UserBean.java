@@ -50,13 +50,18 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.bioforsk.vips.logic.authenticate.PasswordValidationException;
+import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.logic.entity.MessageLocale;
 import no.bioforsk.vips.logic.entity.Organization;
+import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationPK;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
+import no.bioforsk.vips.logic.entity.misc.UserResources;
 import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.Globals;
+import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SimpleMailSender;
 import no.bioforsk.vips.logic.util.StringUtils;
 import no.bioforsk.vips.util.MD5Encrypter;
@@ -176,6 +181,32 @@ public class UserBean {
     {
         user = em.find(VipsLogicUser.class, user.getUserId());
         em.remove(user);
+    }
+    
+    public UserResources getUserResources(VipsLogicUser user)
+    {
+        UserResources retVal = new UserResources();
+        retVal.setWeatherStations(SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(user));
+        retVal.setMessageLocales(SessionControllerGetter.getMessageBean().getMessageLocaleList(user));
+        retVal.setForecastConfigurations(SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(user.getUserId()));
+        return retVal;
+    }
+    
+    public void transferUserResources(VipsLogicUser fromUser, VipsLogicUser toUser) {
+        UserResources userResources = this.getUserResources(fromUser);
+        for(PointOfInterestWeatherStation ws:userResources.getWeatherStations())
+        {
+            ws.setUserId(toUser);
+        }
+        for(MessageLocale ml:userResources.getMessageLocales())
+        {
+            ml.setCreatedBy(toUser);
+        }
+        for(ForecastConfiguration fc: userResources.getForecastConfigurations())
+        {
+            fc.setVipsCoreUserId(toUser);
+        }
+        
     }
     
     /**
@@ -513,4 +544,6 @@ public class UserBean {
         mailSender.sendMail("noreply@" + serverName, resetPasswordUser.getEmail(), subject, body);
         return null;
     }
+
+    
 }

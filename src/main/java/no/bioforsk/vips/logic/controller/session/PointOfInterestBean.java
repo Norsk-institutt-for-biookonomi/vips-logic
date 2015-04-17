@@ -31,6 +31,7 @@ import java.util.ResourceBundle;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.bioforsk.vips.logic.entity.ExternalResource;
@@ -39,6 +40,7 @@ import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestExternalResource;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
+import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.entity.WeatherStationDataSource;
 import no.bioforsk.vips.logic.util.Globals;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
@@ -68,11 +70,18 @@ public class PointOfInterestBean {
      * @param userId
      * @return all weather stations related to the user
      */
-    public List<PointOfInterestWeatherStation> getWeatherstationsForUser(Integer userId)
+    public List<PointOfInterestWeatherStation> getWeatherstationsForUser(VipsLogicUser user)
     {
         Query q = em.createNamedQuery("PointOfInterestWeatherStation.findByUserId");
-        q.setParameter("userId", userId);
-        return q.getResultList();
+        q.setParameter("userId", user);
+        try
+        {
+            return q.getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
     }
     
     public List<PointOfInterestWeatherStation> getAllWeatherStations()

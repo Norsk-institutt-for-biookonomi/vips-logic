@@ -112,7 +112,7 @@
 	  </#if>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 	  <#if viewUser.userId?has_content>
-	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/user?action=deleteUser&userId=${viewUser.userId}';}">${i18nBundle.delete}</button>
+	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/user?action=userDeleteForm&userId=${viewUser.userId}';}">${i18nBundle.delete}</button>
 	  </#if>
 	</form>
 
