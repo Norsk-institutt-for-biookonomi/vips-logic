@@ -587,6 +587,14 @@ public class ForecastBean {
         //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
         for(PointOfInterest poiWithAggregate:poisWithAggregate)
         {
+            // If it's an inactive weather station, we don't produce a placemark
+            if(poiWithAggregate instanceof PointOfInterestWeatherStation
+                    && ((PointOfInterestWeatherStation) poiWithAggregate).getActive().equals(Boolean.FALSE)
+                   )
+            {
+                continue;
+            }
+            
             final Placemark placemark = document.createAndAddPlacemark()
             .withName(poiWithAggregate.getName())
             .withDescription("<![CDATA[Mangler informasjon om varsler for " + poiWithAggregate.getName() + "]]>")
