@@ -40,6 +40,7 @@ import no.bioforsk.vips.logic.entity.MessageIllustrationPK;
 import no.bioforsk.vips.logic.entity.MessageLocale;
 import no.bioforsk.vips.logic.entity.MessageLocalePK;
 import no.bioforsk.vips.logic.entity.MessageTag;
+import no.bioforsk.vips.logic.entity.Organization;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.web.forms.FormField;
@@ -57,32 +58,52 @@ public class MessageBean {
 
     public List<Message> getMessageList(Integer organizationId, Date publishedFrom, Date publishedTo)
     {
-        if(publishedFrom != null && publishedTo != null)
+        Organization mainOrg = em.find(Organization.class, organizationId);
+        List<Organization> organizations = em.createNamedQuery("Organization.findAllRelated")
+                .setParameter("organizationId",mainOrg).getResultList();
+        
+        List<Message> retVal = new ArrayList<Message>();
+        for(Organization org : organizations)
         {
-            return em.createNamedQuery("Message.findByOrganizationIdAndPublicationPeriod", Message.class)
-                    .setParameter("organizationId", organizationId)
-                    .setParameter("publishedFrom", publishedFrom)
-                    .setParameter("publishedTo", publishedTo)
-                    .getResultList();
+            if(publishedFrom != null && publishedTo != null)
+            {
+                retVal.addAll(em.createNamedQuery("Message.findByOrganizationIdAndPublicationPeriod", Message.class)
+                        .setParameter("organizationId", org.getOrganizationId())
+                        .setParameter("publishedFrom", publishedFrom)
+                        .setParameter("publishedTo", publishedTo)
+                        .getResultList()
+                );
+            }
+            else if(publishedFrom == null)
+            {
+                retVal.addAll(em.createNamedQuery("Message.findByOrganizationIdAndMaxPublicationPeriod", Message.class)
+                        .setParameter("organizationId", org.getOrganizationId())
+                        .setParameter("publishedTo", publishedTo)
+                        .getResultList()
+                );
+            }
+            else
+            {
+                retVal.addAll(em.createNamedQuery("Message.findByOrganizationIdAndMinPublicationPeriod", Message.class)
+                        .setParameter("organizationId", org.getOrganizationId())
+                        .setParameter("publishedFrom", publishedFrom)
+                        .getResultList()
+                );
+            }
         }
-        else if(publishedFrom == null)
-        {
-            return em.createNamedQuery("Message.findByOrganizationIdAndMaxPublicationPeriod", Message.class)
-                    .setParameter("organizationId", organizationId)
-                    .setParameter("publishedTo", publishedTo)
-                    .getResultList();
-        }
-        else
-        {
-            return em.createNamedQuery("Message.findByOrganizationIdAndMinPublicationPeriod", Message.class)
-                    .setParameter("organizationId", organizationId)
-                    .setParameter("publishedFrom", publishedFrom)
-                    .getResultList();
-        }
+        return retVal;
     }
     
     public List<Message> getMessageList(Integer organizationId) {
-        return em.createNamedQuery("Message.findByOrganizationId", Message.class).setParameter("organizationId", organizationId).getResultList();
+        Organization mainOrg = em.find(Organization.class, organizationId);
+        List<Organization> organizations = em.createNamedQuery("Organization.findAllRelated")
+                .setParameter("organizationId",mainOrg).getResultList();
+        List<Message> retVal = new ArrayList<Message>();
+        for(Organization org : organizations)
+        {
+            retVal.addAll(em.createNamedQuery("Message.findByOrganizationId", Message.class).setParameter("organizationId", organizationId).getResultList());
+        }
+        return retVal;
     }
     
     // Returns all messages where the given user is the author
@@ -270,7 +291,7 @@ public class MessageBean {
                 .append("WHERE date_pub BETWEEN :datePubStart AND :datePubEnd \n");
         if(organizationId != null)
         {
-            sql.append("AND organization_id = :organizationId \n");
+            sql.append("AND organization_id IN (SELECT organization_id FROM organization WHERE organization_id=:organizationId or parent_organization_id = :organizationId) \n");
             parameters.put("organizationId", organizationId);
         }
         
@@ -305,7 +326,7 @@ public class MessageBean {
                 + "SELECT message_id FROM message_message_tag "
                 + "WHERE message_tag_id IN (:tagIds) "
                 + "AND :systemTime BETWEEN date_pub AND date_valid_to "
-                + "AND organization_id = :organizationId "
+                + "AND organization_id IN (SELECT organization_id FROM organization WHERE organization_id=:organizationId or parent_organization_id = :organizationId) "
                 + ")", Message.class);
         q.setParameter("tagIds", tagIds);
         q.setParameter("systemTime", SystemTime.getSystemTime());
