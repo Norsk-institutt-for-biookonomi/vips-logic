@@ -50,6 +50,7 @@ import org.hibernate.annotations.Type;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Organization.findAll", query = "SELECT o FROM Organization o"),
+    @NamedQuery(name = "Organization.findAllRelated", query = "SELECT o FROM Organization o where o = :organizationId OR o.parentOrganizationId = :organizationId"),
     @NamedQuery(name = "Organization.findAllTopLevelOrganizations", query = "SELECT o FROM Organization o WHERE o.parentOrganizationId IS NULL"),
     @NamedQuery(name = "Organization.findByOrganizationId", query = "SELECT o FROM Organization o WHERE o.organizationId = :organizationId"),
     @NamedQuery(name = "Organization.findByOrganizationName", query = "SELECT o FROM Organization o WHERE o.organizationName = :organizationName"),
