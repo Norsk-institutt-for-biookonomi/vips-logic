@@ -60,6 +60,7 @@ import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.ServletUtil;
+import no.bioforsk.vips.util.weather.ALabDataParser;
 import no.bioforsk.vips.util.weather.MetosDataParser;
 import no.bioforsk.vips.util.weather.ParseWeatherDataException;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -350,6 +351,40 @@ public class LogicService {
             String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
             Date startDate1 = format.parse(startDateParam);
             observations = new MetosDataParser().getWeatherObservations(stationId, timeZone, startDate1);
+        } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
+            return Response.serverError().entity(ex).build();
+        }
+        return Response.ok().entity(observations).build();
+    }
+    
+    @GET
+    @POST
+    @Path("weather/proxy/alab/{stationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getALabWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET,
+            @FormParam("userName") String userNamePOST,
+            @QueryParam("userName") String userNameGET,
+            @FormParam("password") String passwordPOST,
+            @QueryParam("password") String passwordGET
+            )
+    {
+        List<WeatherObservation> observations;
+        try 
+        {
+            String timeZoneParam = timeZonePOST != null ? timeZonePOST : timeZoneGET != null ? timeZoneGET : "UTC";
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneParam);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone);
+            String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
+            Date startDate1 = format.parse(startDateParam);
+            String userName = userNamePOST != null ? userNamePOST:userNameGET;
+            String password = passwordPOST != null ? passwordPOST:passwordGET;
+            observations = new ALabDataParser().getWeatherObservations(stationId, timeZone, startDate1, userName, password);
         } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
             return Response.serverError().entity(ex).build();
         }

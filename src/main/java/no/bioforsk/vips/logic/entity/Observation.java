@@ -56,7 +56,7 @@ import org.hibernate.annotations.Type;
     @NamedQuery(name = "Observation.findByTimeOfObservation", query = "SELECT o FROM Observation o WHERE o.timeOfObservation = :timeOfObservation"),
     @NamedQuery(name = "Observation.findByObservedValue", query = "SELECT o FROM Observation o WHERE o.observedValue = :observedValue"),
     @NamedQuery(name = "Observation.findByDenominator", query = "SELECT o FROM Observation o WHERE o.denominator = :denominator")})
-public class Observation implements Serializable {
+public class Observation implements Serializable, no.bioforsk.vips.observation.Observation {
 
     private static final long serialVersionUID = 1L;
     private Integer observationId;
@@ -213,6 +213,24 @@ public class Observation implements Serializable {
      */
     public void setOrganism(Organism organism) {
         this.organism = organism;
+    }
+
+    @Override
+    @Transient
+    public Double getLatitude() {
+        return this.getLocationCoordinate().y;
+    }
+
+    @Override
+    @Transient
+    public Double getLongitude() {
+        return this.getLocationCoordinate().x;
+    }
+
+    @Override
+    @Transient
+    public String getName() {
+        return this.getOrganism().getLatinName();
     }
 
 }
