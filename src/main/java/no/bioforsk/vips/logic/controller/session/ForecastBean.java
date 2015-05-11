@@ -496,7 +496,16 @@ public class ForecastBean {
                 loginInfo.put("password",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_PASSWORD"));
                 request.setLoginInfo(loginInfo);
                 // We tell which client this is (the db Id in VIPSCoreManager)
-                request.setVipsCoreUserId(forecastConfiguration.getVipsLogicUserId().getVipsCoreUserIdWithFallback());
+                Integer VIPSCoreUserId = forecastConfiguration.getVipsLogicUserId().getVipsCoreUserIdWithFallback();
+                if(VIPSCoreUserId == null)
+                {
+                    throw new PreprocessorException("No user id found for forecast #" + forecastConfiguration.getForecastConfigurationId() + 
+                            ". Possible reason: The user's organization (" 
+                            + forecastConfiguration.getVipsLogicUserId().getOrganizationId().getOrganizationName() 
+                            + ") hasn't got a VIPSCoreUserId.");
+                }
+                //System.out.println("VIPSCoreUserId = " + VIPSCoreUserId + ", name=" + forecastConfiguration.getVipsLogicUserId().getLastName());
+                request.setVipsCoreUserId(VIPSCoreUserId);
                 //System.out.println("RunModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
                 Response resp = this.getManagerResource().runModel(config.getModelId(), request);
                 
