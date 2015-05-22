@@ -30,6 +30,7 @@ import java.util.List;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
+import no.bioforsk.vips.util.weather.WeatherDataSourceUtil;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -77,7 +78,7 @@ public class PlasmoparaViticolaModelPreprocessorTest {
             URLConnection URLConn = weatherURL.openConnection();
             InputStream URLStream = URLConn.getInputStream();
             String URLOutput = IOUtils.toString(URLStream);
-            List<WeatherObservation> result =  instance.getWeatherObservations(URLOutput);
+            List<WeatherObservation> result =  new WeatherDataSourceUtil().getWeatherObservations(URLOutput);
             
         }catch(IOException ex)
         {

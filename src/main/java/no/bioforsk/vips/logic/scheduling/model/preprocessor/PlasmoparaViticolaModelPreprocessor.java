@@ -25,6 +25,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
@@ -35,6 +37,8 @@ import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.WeatherElements;
 import no.bioforsk.vips.util.WeatherObservationListException;
 import no.bioforsk.vips.util.WeatherUtil;
+import no.bioforsk.vips.util.weather.WeatherDataSourceException;
+import no.bioforsk.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  * @copyright 2015 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -58,36 +62,40 @@ public class PlasmoparaViticolaModelPreprocessor extends ModelRunPreprocessor{
         Date startDate = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
         
         ModelConfiguration retVal = new ModelConfiguration();
-        List<WeatherObservation> observations = getWeatherObservations(
-                    weatherStation, 
-                    WeatherObservation.LOG_INTERVAL_ID_1H, 
+        WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
+        List<WeatherObservation> observations;
+        try {
+            observations = wdsUtil.getWeatherObservations( 
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
                         WeatherElements.TEMPERATURE_MEAN, 
                         WeatherElements.PRECIPITATION
-                    }, 
+                    },
                     startDate, 
                     endDate);
         
-        /*Collections.sort(observations);
-        cal.set(2015, Calendar.APRIL, 10, 0, 0, 0);
-        Date tenth = cal.getTime();
-        cal.set(2015, Calendar.APRIL, 11, 0, 0, 0);
-        Date eleventh = cal.getTime();
-        for(WeatherObservation obs: observations)
-        {
-            if(obs.getElementMeasurementTypeId().equals("TM") 
-                    && obs.getTimeMeasured().compareTo(tenth) > 0
-                    && obs.getTimeMeasured().compareTo(eleventh) < 0
-                    )
-            {
-                System.out.println(obs.toString());
-            }
-        }*/
         
-        // Weather data validation/sanitation
-        try {
+            /*Collections.sort(observations);
+            cal.set(2015, Calendar.APRIL, 10, 0, 0, 0);
+            Date tenth = cal.getTime();
+            cal.set(2015, Calendar.APRIL, 11, 0, 0, 0);
+            Date eleventh = cal.getTime();
+            for(WeatherObservation obs: observations)
+            {
+                if(obs.getElementMeasurementTypeId().equals("TM") 
+                        && obs.getTimeMeasured().compareTo(tenth) > 0
+                        && obs.getTimeMeasured().compareTo(eleventh) < 0
+                        )
+                {
+                    System.out.println(obs.toString());
+                }
+            }*/
+
+            // Weather data validation/sanitation
+      
             observations = wUtil.fixHourlyValuesForParameters(observations, new HashSet(Arrays.asList(WeatherElements.TEMPERATURE_MEAN, WeatherElements.PRECIPITATION)), startDate, null);
-        } catch (WeatherObservationListException ex) {
+        } catch (WeatherDataSourceException | WeatherObservationListException ex) {
             throw new PreprocessorException(this.getClass().getName() + ": Missing weather data. Error message was :\n" + ex.getMessage());
         }
 

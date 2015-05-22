@@ -19,8 +19,10 @@
 package no.bioforsk.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -51,6 +53,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Organism.findAllCrops", query = "SELECT o FROM Organism o WHERE o.isCrop = true AND o.logicallyDeleted = false"),
     @NamedQuery(name = "Organism.findAllPests", query = "SELECT o FROM Organism o WHERE o.isPest = true AND o.logicallyDeleted = false"),
     @NamedQuery(name = "Organism.findByOrganismId", query = "SELECT o FROM Organism o WHERE o.organismId = :organismId"),
+    @NamedQuery(name = "Organism.findByOrganismIds", query = "SELECT o FROM Organism o WHERE o.organismId IN :organismIds"),
     @NamedQuery(name = "Organism.findByParentOrganismId", query = "SELECT o FROM Organism o WHERE o.parentOrganismId = :parentOrganismId"),
     @NamedQuery(name = "Organism.findByLatinName", query = "SELECT o FROM Organism o WHERE o.latinName = :latinName"),
     @NamedQuery(name = "Organism.findByTradeName", query = "SELECT o FROM Organism o WHERE o.tradeName = :tradeName"),
@@ -89,6 +92,9 @@ public class Organism implements Serializable {
     
     @Transient
     private List<Organism> childOrganisms;
+    
+    @Transient
+    private Map<String,Object> extraProperties;
     
     /*@OneToMany(cascade = CascadeType.ALL, mappedBy = "organism")
     private Set<OrganismLocale> organismLocaleSet;
@@ -317,5 +323,25 @@ public class Organism implements Serializable {
      */
     public void setIsCrop(boolean isCrop) {
         this.isCrop = isCrop;
+    }
+
+    /**
+     * @return the extraProperties
+     */
+    @Transient
+    public Map<String,Object> getExtraProperties() {
+        if(this.extraProperties == null)
+        {
+            this.extraProperties = new HashMap<>();
+        }
+        return extraProperties;
+    }
+
+    /**
+     * @param extraProperties the extraProperties to set
+     */
+    @Transient
+    public void setExtraProperties(Map<String,Object> extraProperties) {
+        this.extraProperties = extraProperties;
     }
 }

@@ -42,6 +42,8 @@ import no.bioforsk.vips.model.ConfigValidationException;
 import no.bioforsk.vips.util.WeatherElements;
 import no.bioforsk.vips.util.WeatherObservationListException;
 import no.bioforsk.vips.util.WeatherUtil;
+import no.bioforsk.vips.util.weather.WeatherDataSourceException;
+import no.bioforsk.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  * @copyright 2013-2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -77,29 +79,31 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             cal.add(Calendar.DATE, 3);
             Date nearFuture = cal.getTime();
             Date dateEndWeatherData = configuration.getDateEndInTimeZone().compareTo(nearFuture) < 0 ? configuration.getDateEndInTimeZone(): nearFuture;
+            WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
             
-            List<WeatherObservation> observations = getWeatherObservations(
-                    weatherStation.getDataFetchUri(), 
-                    WeatherObservation.LOG_INTERVAL_ID_1H, 
-                    new String[]{
-                        WeatherElements.TEMPERATURE_MEAN, 
-                        WeatherElements.PRECIPITATION,
-                        WeatherElements.LEAF_WETNESS,
-                        WeatherElements.RELATIVE_HUMIDITY_MEAN,
-                        WeatherElements.GLOBAL_RADIATION,
-                        WeatherElements.WIND_SPEED_2M
-                    }, 
-                    configuration.getDateStartInTimeZone(), 
-                    dateEndWeatherData, 
-                    timeZone);
+            List<WeatherObservation> observations;
+            
             try {
-                
-            observations = validateAndSanitizeObservations(observations, configuration.getDateStartInTimeZone());    
+                observations = wdsUtil.getWeatherObservations(
+                        weatherStation.getDataFetchUri(),
+                        WeatherObservation.LOG_INTERVAL_ID_1H,
+                        new String[]{
+                            WeatherElements.TEMPERATURE_MEAN,
+                            WeatherElements.PRECIPITATION,
+                            WeatherElements.LEAF_WETNESS,
+                            WeatherElements.RELATIVE_HUMIDITY_MEAN,
+                            WeatherElements.GLOBAL_RADIATION,
+                            WeatherElements.WIND_SPEED_2M
+                        },
+                        configuration.getDateStartInTimeZone(),
+                        dateEndWeatherData,
+                        timeZone);
+                observations = validateAndSanitizeObservations(observations, configuration.getDateStartInTimeZone());    
                 //System.out.println(configuration.getDateStartInTimeZone());
-        } catch (ConfigValidationException | WeatherObservationListException ex) {
-            ex.printStackTrace();
-            throw new PreprocessorException(ex.getMessage());
-        } 
+            } catch (ConfigValidationException | WeatherObservationListException | WeatherDataSourceException ex) {
+                ex.printStackTrace();
+                throw new PreprocessorException(ex.getMessage());
+            } 
             
             ModelConfiguration retVal = new ModelConfiguration();
             retVal.setModelId(this.getModelId());

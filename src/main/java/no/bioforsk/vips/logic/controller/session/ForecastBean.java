@@ -524,6 +524,31 @@ public class ForecastBean {
         }
     }
     
+    public List<Result> runForecast(ModelConfiguration config, Integer VIPSCoreUserId) throws RunModelException
+    {
+        ModelRunRequest request = new ModelRunRequest(config);
+        Map<String,String> loginInfo = new HashMap<>();
+        // VIPSLogic logs in on behalf of client
+        loginInfo.put("username",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_USERNAME"));
+        //loginInfo.put("username","wrongusername");
+        loginInfo.put("password",System.getProperty("no.bioforsk.vips.logic.CORE_BATCH_PASSWORD"));
+        request.setLoginInfo(loginInfo);
+        //System.out.println("VIPSCoreUserId = " + VIPSCoreUserId + ", name=" + forecastConfiguration.getVipsLogicUserId().getLastName());
+        request.setVipsCoreUserId(VIPSCoreUserId);
+        //System.out.println("RunModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
+        Response resp = this.getManagerResource().runModel(config.getModelId(), request);
+
+        if(resp.getStatus() == Response.Status.OK.getStatusCode())
+        {
+            List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
+            return results;
+        }
+        else
+        {
+            throw new RunModelException(resp.readEntity(String.class));
+        }
+    }
+    
     /**
      * Get the interface for REST resources in VIPSCoreManager
      * @return 

@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
@@ -36,6 +38,8 @@ import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.WeatherElements;
 import no.bioforsk.vips.util.WeatherObservationListException;
 import no.bioforsk.vips.util.WeatherUtil;
+import no.bioforsk.vips.util.weather.WeatherDataSourceException;
+import no.bioforsk.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -59,52 +63,66 @@ public class HoplocampaFlavaModelPreprocessor extends ModelRunPreprocessor {
         
         ModelConfiguration retVal = new ModelConfiguration();
         
+        WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
+        
         // Getting the parameters one by one
         // TM first
-        List<WeatherObservation> TM = getWeatherObservations(
-                    weatherStation, 
-                    WeatherObservation.LOG_INTERVAL_ID_1D, 
+        List<WeatherObservation> TM;
+        try {
+            TM = wdsUtil.getWeatherObservations( 
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1D,
                     new String[]{
                         WeatherElements.TEMPERATURE_MEAN
-                    }, 
+                    },
                     startDate, 
                     endDate);
         
         
-        // If daily observations are not available, try hourly
-        if(TM == null || TM.isEmpty())
-        {
-            TM = getWeatherObservations(
-                    weatherStation, 
-                    WeatherObservation.LOG_INTERVAL_ID_1H, 
-                    new String[]{
-                        WeatherElements.TEMPERATURE_MEAN
-                    }, 
-                    startDate, 
-                    endDate);
+        
+            // If daily observations are not available, try hourly
+            if(TM == null || TM.isEmpty())
+            {
+                TM = wdsUtil.getWeatherObservations(
+                        weatherStation, 
+                        WeatherObservation.LOG_INTERVAL_ID_1H, 
+                        new String[]{
+                            WeatherElements.TEMPERATURE_MEAN
+                        }, 
+                        startDate, 
+                        endDate);
+            }
+        } catch (WeatherDataSourceException ex) {
+            throw new PreprocessorException(ex.getMessage());
         }
         
         // TJM5 (soil temp at 5 cm)
-        List<WeatherObservation> TJM5 = getWeatherObservations(
-                    weatherStation, 
-                    WeatherObservation.LOG_INTERVAL_ID_1D, 
+        List<WeatherObservation> TJM5;
+        try {
+            TJM5 = wdsUtil.getWeatherObservations( 
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1D,
                     new String[]{
                         WeatherElements.SOIL_TEMPERATURE_5CM_MEAN
-                    }, 
+                    },
                     startDate, 
                     endDate);
         
-        // If daily observations are not available, try hourly
-        if(TJM5 == null || TJM5.isEmpty())
-        {
-            TJM5 = getWeatherObservations(
-                    weatherStation, 
-                    WeatherObservation.LOG_INTERVAL_ID_1H, 
-                    new String[]{
-                        WeatherElements.SOIL_TEMPERATURE_5CM_MEAN
-                    }, 
-                    startDate, 
-                    endDate);
+        
+            // If daily observations are not available, try hourly
+            if(TJM5 == null || TJM5.isEmpty())
+            {
+                TJM5 = wdsUtil.getWeatherObservations(
+                        weatherStation, 
+                        WeatherObservation.LOG_INTERVAL_ID_1H, 
+                        new String[]{
+                            WeatherElements.SOIL_TEMPERATURE_5CM_MEAN
+                        }, 
+                        startDate, 
+                        endDate);
+            }
+        } catch (WeatherDataSourceException ex) {
+            throw new PreprocessorException(ex.getMessage());
         }
         
         

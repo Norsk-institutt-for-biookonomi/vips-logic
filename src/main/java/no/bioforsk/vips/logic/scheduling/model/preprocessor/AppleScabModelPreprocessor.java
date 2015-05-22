@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
@@ -39,6 +41,8 @@ import no.bioforsk.vips.model.ConfigValidationException;
 import no.bioforsk.vips.util.WeatherElements;
 import no.bioforsk.vips.util.WeatherObservationListException;
 import no.bioforsk.vips.util.WeatherUtil;
+import no.bioforsk.vips.util.weather.WeatherDataSourceException;
+import no.bioforsk.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  * Gathers necessary data to run the Apple Scab Model (APPLESCABM).
@@ -95,20 +99,26 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         {
             System.out.println("Getting weather data at " + new Date().toString());
         }
-        List<WeatherObservation> observations = getWeatherObservations(
-                weatherStation, 
-                WeatherObservation.LOG_INTERVAL_ID_1H, 
-                new String[]{
-                    WeatherElements.TEMPERATURE_MEAN, 
-                    WeatherElements.PRECIPITATION,
-                    WeatherElements.LEAF_WETNESS,
-                    WeatherElements.RELATIVE_HUMIDITY_MEAN,
-                    WeatherElements.GLOBAL_RADIATION,
-                    WeatherElements.WIND_SPEED_2M
-                }, 
-                startDateAscosporeMaturity, 
-                dateEndWeatherData
-        );
+        WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
+        List<WeatherObservation> observations;
+        try {
+            observations = wdsUtil.getWeatherObservations(
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1H,
+                    new String[]{
+                        WeatherElements.TEMPERATURE_MEAN,
+                        WeatherElements.PRECIPITATION,
+                        WeatherElements.LEAF_WETNESS,
+                        WeatherElements.RELATIVE_HUMIDITY_MEAN,
+                        WeatherElements.GLOBAL_RADIATION,
+                        WeatherElements.WIND_SPEED_2M
+                    },
+                    startDateAscosporeMaturity,
+                    dateEndWeatherData
+            );
+        } catch (WeatherDataSourceException ex) {
+            throw new PreprocessorException(ex.getMessage());
+        }
         
         if(DEBUG)
         {

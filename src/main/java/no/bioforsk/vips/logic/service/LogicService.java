@@ -54,7 +54,6 @@ import no.bioforsk.vips.logic.entity.MessageTag;
 import no.bioforsk.vips.logic.entity.Observation;
 import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.entity.Organization;
-import no.bioforsk.vips.logic.entity.PointOfInterest;
 import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.VipsLogicUser;
 import no.bioforsk.vips.logic.util.SessionControllerGetter;

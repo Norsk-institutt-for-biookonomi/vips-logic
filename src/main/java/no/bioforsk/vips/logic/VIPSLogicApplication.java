@@ -46,6 +46,7 @@ public class VIPSLogicApplication extends Application
      */
     private void addRestResourceClassesManually(Set<Class<?>> resources) {
         resources.add(no.bioforsk.vips.logic.service.LogicService.class);
+        resources.add(no.bioforsk.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
         //resources.add(no.bioforsk.vips.logic.service.JacksonConfig.class);
         //resources.add(no.bioforsk.vips.coremanager.service.ManagerResourceImpl.class);
     }
@@ -56,6 +57,8 @@ public class VIPSLogicApplication extends Application
      * given list with all resources defined in the project.
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
+        
+        resources.add(no.bioforsk.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
         resources.add(no.bioforsk.vips.logic.service.JacksonConfig.class);
         resources.add(no.bioforsk.vips.logic.service.LogicService.class);
         

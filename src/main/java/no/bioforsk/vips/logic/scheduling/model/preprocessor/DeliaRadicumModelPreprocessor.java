@@ -23,6 +23,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import no.bioforsk.vips.entity.ModelConfiguration;
 import no.bioforsk.vips.entity.WeatherObservation;
 import no.bioforsk.vips.logic.entity.ForecastConfiguration;
@@ -32,6 +34,8 @@ import no.bioforsk.vips.logic.scheduling.model.PreprocessorException;
 import no.bioforsk.vips.logic.util.SystemTime;
 import no.bioforsk.vips.util.WeatherElements;
 import no.bioforsk.vips.util.WeatherUtil;
+import no.bioforsk.vips.util.weather.WeatherDataSourceException;
+import no.bioforsk.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -55,28 +59,38 @@ public class DeliaRadicumModelPreprocessor extends ModelRunPreprocessor {
         Date startDate = wUtil.normalizeToExactDate(configuration.getDateStart(), timeZone);
         
         ModelConfiguration retVal = new ModelConfiguration();
-        List<WeatherObservation> observations = getWeatherObservations(
-                    weatherStation, 
-                    WeatherObservation.LOG_INTERVAL_ID_1D, 
+        WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
+        List<WeatherObservation> observations;
+        try {
+            observations = wdsUtil.getWeatherObservations( 
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1D,
                     new String[]{
                         WeatherElements.TEMPERATURE_MEAN, 
                         WeatherElements.SOIL_TEMPERATURE_10CM_MEAN
-                    }, 
+                    },
                     startDate, 
                     endDate);
+        } catch (WeatherDataSourceException ex) {
+            throw new PreprocessorException(ex.getMessage());
+        }
         
         // If daily observations are not available, try hourly
         if(observations == null || observations.isEmpty())
         {
-            observations = getWeatherObservations(
-                    weatherStation, 
-                    WeatherObservation.LOG_INTERVAL_ID_1H, 
-                    new String[]{
-                        WeatherElements.TEMPERATURE_MEAN, 
-                        WeatherElements.SOIL_TEMPERATURE_10CM_MEAN
-                    }, 
-                    startDate, 
-                    endDate);
+            try {
+                observations = wdsUtil.getWeatherObservations(
+                        weatherStation,
+                        WeatherObservation.LOG_INTERVAL_ID_1H,
+                        new String[]{
+                            WeatherElements.TEMPERATURE_MEAN,
+                            WeatherElements.SOIL_TEMPERATURE_10CM_MEAN
+                        },
+                        startDate,
+                        endDate);
+            } catch (WeatherDataSourceException ex) {
+                throw new PreprocessorException(ex.getMessage());
+            }
         }
         
         // TODO:  weather data validation

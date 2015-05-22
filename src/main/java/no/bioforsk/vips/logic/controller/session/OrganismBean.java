@@ -23,10 +23,10 @@ import com.ibm.icu.util.ULocale;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.bioforsk.vips.logic.entity.ExternalResource;
@@ -36,9 +36,7 @@ import no.bioforsk.vips.logic.entity.Organism;
 import no.bioforsk.vips.logic.entity.OrganismExternalResource;
 import no.bioforsk.vips.logic.entity.OrganismLocale;
 import no.bioforsk.vips.logic.entity.OrganismLocalePK;
-import no.bioforsk.vips.logic.i18n.SessionLocaleUtil;
 import no.bioforsk.vips.logic.util.HierarchyCategoryLocaleNames;
-import no.bioforsk.vips.logic.util.SessionControllerGetter;
 
 /**
  * @copyright 2014 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -217,4 +215,36 @@ public class OrganismBean {
         }
     }
     
+    /**
+     * 
+     * @param latinName Latin name of the species (assuming that latin name is unique for species)
+     * @return children of the specified species
+     */
+    public List<Organism> getSpeciesChildren(String latinName)
+    {
+        HierarchyCategory speciesCat = em.createNamedQuery("HierarchyCategory.findByDefaultName", HierarchyCategory.class)
+                .setParameter("defaultName", "Species")
+                .getSingleResult();
+        try
+        {
+            List<Organism> tmp = em.createNamedQuery("Organism.findByLatinName")
+                    .setParameter("latinName", latinName)
+                    .getResultList();
+            for(Organism org : tmp)
+            {
+                if(org.getHierarchyCategoryId().equals(speciesCat.getHierarchyCategoryId()))
+                {
+                    return em.createNamedQuery("Organism.findByParentOrganismId")
+                            .setParameter("parentOrganismId", org.getOrganismId())
+                            .getResultList();
+                }
+            }
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+        
+        return null;
+    }
 }
