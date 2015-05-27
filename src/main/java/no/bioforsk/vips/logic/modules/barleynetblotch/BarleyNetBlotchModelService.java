@@ -181,7 +181,7 @@ public class BarleyNetBlotchModelService {
         try {
              observations = wsdUtil.getWeatherObservations(
                     weatherStation,
-                    WeatherObservation.LOG_INTERVAL_ID_1D,
+                    WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
                         WeatherElements.TEMPERATURE_MEAN,
                         WeatherElements.PRECIPITATION
