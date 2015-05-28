@@ -160,6 +160,11 @@ public class BarleyNetBlotchModelService {
         TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
         Date sowingDate = parseUtil.parseISODate(sowingDateStr, timeZone);
         Date observationDate = parseUtil.parseISODateTime(observationDateStr, timeZone);
+        // In case it's just a date string
+        if(observationDate == null)
+        {
+            observationDate = parseUtil.parseISODate(observationDateStr, timeZone);
+        }
         Double observationValue = parseUtil.parseDouble(observationValueStr);
         Boolean sameCropAsLastSeason = parseUtil.parseCheckbox(sameCropAsLastSeasonStr);
         Boolean plowed =  parseUtil.parseCheckbox(plowedStr);
@@ -211,6 +216,7 @@ public class BarleyNetBlotchModelService {
             observation.setName("Pyrenophora teres");
             observation.setObservedValue(observationValue);
             observation.setDenominator(100);
+            observation.setTimeOfObservation(observationDate);
             config.setConfigParameter("observation", observation);
         }
         if(sprayingDate != null && preparationId != null && preparationDose != null)
