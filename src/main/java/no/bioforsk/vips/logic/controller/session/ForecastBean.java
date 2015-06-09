@@ -19,7 +19,9 @@
 
 package no.bioforsk.vips.logic.controller.session;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Calendar;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
@@ -507,6 +509,17 @@ public class ForecastBean {
                 //System.out.println("VIPSCoreUserId = " + VIPSCoreUserId + ", name=" + forecastConfiguration.getVipsLogicUserId().getLastName());
                 request.setVipsCoreUserId(VIPSCoreUserId);
                 //System.out.println("RunModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
+                //System.out.println(config.toJSON());
+                /* DEBUG STUFF */
+                /*ObjectMapper mapper = new ObjectMapper();
+                try
+                {
+                    System.out.println(mapper.writeValueAsString(request));
+                }
+                catch(JsonProcessingException ex)
+                {
+                    ex.printStackTrace();
+                }*/
                 Response resp = this.getManagerResource().runModel(config.getModelId(), request);
                 
                 if(resp.getStatus() == Response.Status.OK.getStatusCode())
