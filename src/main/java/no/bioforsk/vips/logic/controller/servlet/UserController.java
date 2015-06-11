@@ -1,19 +1,19 @@
 /*
- * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
+ * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the Bioforsk Open Source License as published by 
- * Bioforsk, either version 1 of the License, or (at your option) any
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
  * later version.
  * 
  * VIPSLogic is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * Bioforsk Open Source License for more details.
+ * NIBIO Open Source License for more details.
  * 
- * You should have received a copy of the Bioforsk Open Source License
- * along with VIPSLogic.  If not, see <http://www.bioforsk.no/licenses/>.
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
  * 
  */
 
@@ -38,12 +38,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.bioforsk.vips.logic.controller.session.UserBean;
-import no.bioforsk.vips.logic.entity.ForecastConfiguration;
-import no.bioforsk.vips.logic.entity.Message;
-import no.bioforsk.vips.logic.entity.MessageLocale;
 import no.bioforsk.vips.logic.entity.Organization;
-import no.bioforsk.vips.logic.entity.PointOfInterest;
-import no.bioforsk.vips.logic.entity.PointOfInterestWeatherStation;
 import no.bioforsk.vips.logic.entity.UserAuthentication;
 import no.bioforsk.vips.logic.entity.UserAuthenticationPK;
 import no.bioforsk.vips.logic.entity.UserAuthenticationType;
@@ -61,7 +56,7 @@ import no.bioforsk.web.forms.FormValidator;
 
 /**
  * Handles user actions
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class UserController extends HttpServlet {
@@ -162,7 +157,20 @@ public class UserController extends HttpServlet {
                 request.setAttribute("viewUser", viewUser);
                 request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                 request.setAttribute("userStatusIds", userBean.getUserStatusIds());
-                request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
+                List<VipsLogicRole> roles = em.createNamedQuery("VipsLogicRole.findAll").getResultList();
+                // Only super users can create super users
+                if(!user.isSuperUser())
+                {
+                    for(VipsLogicRole role:roles)
+                    {
+                        if(role.getVipsLogicRoleId().equals(VipsLogicRole.SUPERUSER))
+                        {
+                            roles.remove(role);
+                            break;
+                        }
+                    }
+                }
+                request.setAttribute("vipsLogicRoles", roles);
                 // In case this is a redirect from another action, and a message should be forwarded
                 request.setAttribute("messageKey", request.getParameter("messageKey")); 
                 request.getRequestDispatcher("/userForm.ftl").forward(request, response);
