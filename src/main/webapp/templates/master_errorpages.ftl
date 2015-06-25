@@ -89,7 +89,7 @@
 	</div><!-- End row with sidebar and contents container -->
 	<hr>
 	<footer>
-		<p>&copy; ${.now?string("yyyy")} <a href="http://www.bioforsk.no/" target="new">Bioforsk</a></p>
+		<p>&copy; ${.now?string("yyyy")} <a href="http://www.nibio.no/" target="new">NIBIO</a></p>
 	</footer>
 </div>
 <!-- end contentwrapper-->

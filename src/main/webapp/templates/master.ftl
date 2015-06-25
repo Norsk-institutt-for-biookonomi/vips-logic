@@ -85,7 +85,7 @@
 	<hr>
 	<footer>
 		<div class="row">
-			<div class="col-md-2">&copy; ${.now?string("yyyy")} <a href="http://www.bioforsk.no/" target="new">Bioforsk</a></div>
+			<div class="col-md-2">&copy; ${.now?string("yyyy")} <a href="http://www.nibio.no/" target="new">NIBIO</a></div>
 			<div class="col-md-10"><p class="text-right"><small>[${i18nBundle.systemTime}: ${systemTime?datetime}]</small></p></div>
 		</div>
 	</footer>
