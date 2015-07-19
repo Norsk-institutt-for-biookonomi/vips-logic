@@ -3,8 +3,8 @@
     Created on : Dec 6, 2013, 5:11:53 PM
     Author     : treinar
 --%>
-<%@page import="no.bioforsk.vips.logic.controller.session.ForecastBean"%>
-<%@page import="no.bioforsk.vips.logic.util.SessionControllerGetter"%>
+<%@page import="no.nibio.vips.logic.controller.session.ForecastBean"%>
+<%@page import="no.nibio.vips.logic.util.SessionControllerGetter"%>
 <%
     ForecastBean fb = SessionControllerGetter.getForecastBean();
     

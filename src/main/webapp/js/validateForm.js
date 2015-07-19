@@ -1,28 +1,28 @@
 /*
- * Copyright (c) 2014 Bioforsk <http://www.bioforsk.no/>. 
+ * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the Bioforsk Open Source License as published by 
- * Bioforsk, either version 1 of the License, or (at your option) any
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
  * later version.
  * 
  * VIPSLogic is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * Bioforsk Open Source License for more details.
+ * NIBIO Open Source License for more details.
  * 
- * You should have received a copy of the Bioforsk Open Source License
- * along with VIPSLogic.  If not, see <http://www.bioforsk.no/licenses/>.
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
  * 
  */
 /*
- * This validator has its Java counterpart in no.bioforsk.web.forms.FormValidator.java 
+ * This validator has its Java counterpart in no.nibio.web.forms.FormValidator.java 
  * (for server side validation). They use the same JSON file for form validation. 
  * Changes in logic client side should be reflected server side
  */
 
-// Constant defs for field types. Also found in no.bioforsk.web.forms.FormField
+// Constant defs for field types. Also found in no.nibio.web.forms.FormField
 var dataTypes = {
     TYPE_STRING: "STRING",
     TYPE_INTEGER: "INTEGER",
@@ -64,8 +64,8 @@ var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
 
 /**
  * Validation function for all forms
- * @copyright 2013 <a href="http://www.bioforsk.no/">Bioforsk</a>
- * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  * 
  * It depends on the following:
  * <ul>

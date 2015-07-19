@@ -3,8 +3,8 @@
     Created on : Nov 25, 2013, 4:04:27 PM
     Author     : treinar
 --%>
-<%@page import="no.bioforsk.vips.logic.authenticate.OpenIdAuthAttributes"%>
-<%@page import="no.bioforsk.vips.logic.authenticate.OpenIdRelyingParty"%>
+<%@page import="no.nibio.vips.logic.authenticate.OpenIdAuthAttributes"%>
+<%@page import="no.nibio.vips.logic.authenticate.OpenIdRelyingParty"%>
 <%@page import="org.openid4java.discovery.Identifier"%>
 <%@page import="org.openid4java.consumer.ConsumerManager"%>
 <%@page import="org.openid4java.consumer.VerificationResult"%>

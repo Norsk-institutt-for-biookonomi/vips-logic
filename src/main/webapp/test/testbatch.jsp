@@ -3,21 +3,21 @@
     Created on : Dec 13, 2013, 1:02:00 PM
     Author     : treinar
 --%>
-<%@page import="no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessorFactory"%>
-<%@page import="no.bioforsk.vips.logic.scheduling.model.ModelRunPreprocessor"%>
+<%@page import="no.nibio.vips.logic.scheduling.model.ModelRunPreprocessorFactory"%>
+<%@page import="no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor"%>
 <%@page import="java.util.Calendar"%>
-<%@page import="no.bioforsk.vips.logic.entity.ForecastConfiguration"%>
-<%@page import="no.bioforsk.vips.logic.util.SystemTime"%>
+<%@page import="no.nibio.vips.logic.entity.ForecastConfiguration"%>
+<%@page import="no.nibio.vips.logic.util.SystemTime"%>
 <%@page import="java.util.Date"%>
-<%@page import="no.bioforsk.vips.logic.controller.session.UserBean"%>
-<%@page import="no.bioforsk.vips.logic.entity.Organization"%>
+<%@page import="no.nibio.vips.logic.controller.session.UserBean"%>
+<%@page import="no.nibio.vips.logic.entity.Organization"%>
 <%@page import="java.util.List"%>
-<%@page import="no.bioforsk.vips.logic.controller.session.ForecastBean"%>
-<%@page import="no.bioforsk.vips.logic.util.SessionControllerGetter"%>
+<%@page import="no.nibio.vips.logic.controller.session.ForecastBean"%>
+<%@page import="no.nibio.vips.logic.util.SessionControllerGetter"%>
 <%
     ForecastBean forecastBean = SessionControllerGetter.getForecastBean();
     UserBean userBean = SessionControllerGetter.getUserBean();
-    Organization organization = userBean.getOrganization(2); // Bioforsk plantehelse
+    Organization organization = userBean.getOrganization(2); // NIBIO plantehelse
     Calendar cal = Calendar.getInstance();
     cal.set(Calendar.MONTH, Calendar.JUNE);
     //Date currentTime = SystemTime.getSystemTime();
@@ -57,7 +57,7 @@
             <%
         }
         %>
-        <h2>Valid forecast configurations for Bioforsk plantehelse at <%=currentTime%></h2>
+        <h2>Valid forecast configurations for NIBIO plantehelse at <%=currentTime%></h2>
         <ul>
             <% for(ForecastConfiguration validConfig : validForecastConfigs) { %>
             <li>

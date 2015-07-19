@@ -3,7 +3,7 @@
     Created on : Nov 25, 2013, 12:46:33 PM
     Author     : treinar
 --%>
-<%@page import="no.bioforsk.vips.logic.authenticate.OpenIdRelyingParty"%>
+<%@page import="no.nibio.vips.logic.authenticate.OpenIdRelyingParty"%>
 <%@page import="org.openid4java.message.AuthRequest"%>
 <%@page import="org.openid4java.discovery.Identifier"%>
 <%@page import="org.openid4java.discovery.DiscoveryInformation"%>

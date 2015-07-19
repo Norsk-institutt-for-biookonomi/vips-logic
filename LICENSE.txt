@@ -1,13 +1,13 @@
-		BIOFORSK OPEN SOURCE LICENSE V.1.0 (2014)
+		NIBIO OPEN SOURCE LICENSE V.1.0 (2014)
 
 			PREAMBLE AND ADDITIONAL TERMS
 
   The original licensor is the Norwegian Institute for Agricultural and 
 Environmental Research, registered in Norway with registration number 988 983 
 837, and business address NO-1430 ÅS, NORWAY, hereafter referred to as 
-"BIOFORSK". 
+"NIBIO". 
 
-  This BIOFORSK OPEN SOURCE LICENSE V.1.0 (2014), in short the BIOFORSK Open 
+  This NIBIO OPEN SOURCE LICENSE V.1.0 (2014), in short the NIBIO Open 
 Source License, is based on the GNU Affero General Public License, version 3.
 All of the terms and conditions of the GNU Affero General Public License, 
 version 3, have been set out below, save the below mentioned additional 
@@ -15,26 +15,26 @@ prevailing terms that have priority over the terms otherwise identical to the
 GNU Affero General Public License, version 3, and that Section 0 ("This 
 License" definition changed), 13 ("version 3 of the GNU General Public License" 
 replaced by "this License") and 14 ("The Free Software Foundation" replaced by 
-"BIOFORSK" and "GNU Affero General Public License" replaced by "License") have 
+"NIBIO" and "GNU Affero General Public License" replaced by "License") have 
 been adjusted as a consequence of this.
 
 			ADDITONAL PREVAILING TERMS
 
-  (a) The BIOFORSK Open Source License regulates the BIOFORSK VIPS Platform 
+  (a) The NIBIO Open Source License regulates the NIBIO VIPS Platform 
 software, an Internet based system enabling prediction of infection risk of 
-plant diseases, pests and weeds. The BIOFORSK Open Source License DOES NOT 
+plant diseases, pests and weeds. The NIBIO Open Source License DOES NOT 
 INCLUDE the specific forecasting models, neither their algorithms nor their 
-implementation to be used by the BIOFORSK VIPS Platform. You are free to 
-implement any other forecasting model to be used by the BIOFORSK VIPS Platform, 
+implementation to be used by the NIBIO VIPS Platform. You are free to 
+implement any other forecasting model to be used by the NIBIO VIPS Platform, 
 regardless of license terms at your own responsibility. 
 
   (b) This license is governed by Norwegian law, as far as any party or third 
-party purports or sets forward any claim towards BIOFORSK. Any claims towards 
-BIOFORSK shall be solved by the exclusive venue of Oslo City Courts, Norway. 
+party purports or sets forward any claim towards NIBIO. Any claims towards 
+NIBIO shall be solved by the exclusive venue of Oslo City Courts, Norway. 
 This paragraph is not applicable for claims only between any later parties to 
 this license. 
 
-  (c) By entering into this agreement you also agree to indemnify BIOFORSK and 
+  (c) By entering into this agreement you also agree to indemnify NIBIO and 
 its employees / consultants / board, for any claims of liability related to 
 this license set forward by yourself or any party deviating its rights from you. 
 
@@ -44,17 +44,17 @@ this license set forward by yourself or any party deviating its rights from you.
  
 	This file is part of <application name>. <application name> is free 
 	software: you can redistribute it and/or modify it under the terms of 
-	the Bioforsk Open Source License as published by Bioforsk, either 
+	the NIBIO Open Source License as published by NIBIO, either 
 	version 1 of the License, or (at your option) any later version.
 
 	<application name> is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	Bioforsk Open Source License for more details.
+	NIBIO Open Source License for more details.
 
-	You should have received a copy of the Bioforsk Open Source License
+	You should have received a copy of the NIBIO Open Source License
 	along with <application name>.  If not, see 
-	<http://www.bioforsk.no/licenses/>.
+	<http://www.nibio.no/licenses/>.
 
       It is also recommended that you add information on how to contact you by 
       electronic and paper mail.
@@ -63,7 +63,7 @@ this license set forward by yourself or any party deviating its rights from you.
 
   2. 0. Definitions.
 
-  "This License" refers to BIOFORSK Open Source License v.1.0 (2014). 
+  "This License" refers to NIBIO Open Source License v.1.0 (2014). 
 
   "Copyright" also means copyright-like laws that apply to other kinds of
 works, such as semiconductor masks.
@@ -562,7 +562,7 @@ but the work with which it is combined will remain governed by version
 
   16. 14. Revised Versions of this License.
 
-  BIOFORSK may publish revised and/or new versions of the License from time to 
+  NIBIO may publish revised and/or new versions of the License from time to 
 time. Such new versions will be similar in spirit to the present version, but 
 may differ in detail to address new problems or concerns.
 
@@ -570,8 +570,8 @@ may differ in detail to address new problems or concerns.
 Program specifies that a certain numbered version of the License "or any later 
 version" applies to it, you have the option of following the terms and 
 conditions either of that numbered version or of any later version published by 
-BIOFORSK. If the Program does not specify a version number of the License, you 
-may choose any version ever published by the BIOFORSK.
+NIBIO. If the Program does not specify a version number of the License, you 
+may choose any version ever published by the NIBIO.
 
   If the Program specifies that a proxy can decide which future
 versions of the License can be used, that proxy's public statement of 
