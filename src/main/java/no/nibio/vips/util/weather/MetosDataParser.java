@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * NIBIO Open Source License for more details.
  * 
- * You should have received a copy of the NIBIOk Open Source License
+ * You should have received a copy of the NIBIO Open Source License
  * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
  * 
  */
