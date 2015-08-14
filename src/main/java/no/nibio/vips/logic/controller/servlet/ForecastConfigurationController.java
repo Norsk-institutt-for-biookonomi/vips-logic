@@ -49,6 +49,7 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ArrayUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
+import no.nibio.web.forms.FormSelectOption;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
@@ -81,7 +82,7 @@ public class ForecastConfigurationController extends HttpServlet {
         ForecastBean forecastBean = SessionControllerGetter.getForecastBean();
         UserBean userBean = SessionControllerGetter.getUserBean();
         
-        // Default: View list of users
+        // Default: View list of forecast configurations
         // for SUPERUSERS and ORGANIZATION ADMINS
         if(action == null)
         {
@@ -172,10 +173,13 @@ public class ForecastConfigurationController extends HttpServlet {
                 {
                     Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
                     ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
+                    boolean multipleNew = false;
                     // No forecastconfiguration found, assuming user want to register new
                     if(forecastConfiguration == null)
                     {
                         forecastConfiguration = new ForecastConfiguration();
+                        multipleNew =   request.getParameter("multipleNew") != null 
+                                        && request.getParameter("multipleNew").equals("true");
                     }
                     // Only superusers can view and edit forecasts from other organizations
                     if(! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getOrganizationId().equals(user.getOrganizationId()))
@@ -198,6 +202,8 @@ public class ForecastConfigurationController extends HttpServlet {
                             request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
                         }
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
+                        request.setAttribute("formId", multipleNew ? "forecastConfigurationMultipleNewForm" : "forecastConfigurationForm");
+                        request.setAttribute("multipleNew", multipleNew);
                         request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         // All organisms used for parent organism list
@@ -223,7 +229,7 @@ public class ForecastConfigurationController extends HttpServlet {
             }
         }
         
-        // Store forecast configuration
+        // Store forecast configuration(s)
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("forecastConfigurationFormSubmit"))
         {
@@ -245,26 +251,40 @@ public class ForecastConfigurationController extends HttpServlet {
                     }
                     else
                     {
-                        // Standard form validation
-                        FormValidation formValidation = FormValidator.validateForm("forecastConfigurationForm",request,getServletContext());
+                        String formId = request.getParameter("multipleNew") != null && request.getParameter("multipleNew").equals("true") ? 
+                                "forecastConfigurationMultipleNewForm" 
+                                :"forecastConfigurationForm";
+                        FormValidation formValidation = FormValidator.validateForm(formId,request,getServletContext());
                         // Also validation the model specific fields
                         String modelId = formValidation.getFormField("modelId").getWebValue();
                         FormValidation modelFieldFormValidation = FormValidator.validateForm("models/" + modelId, request, getServletContext());
                         
                         if(formValidation.isValid() && modelFieldFormValidation.isValid())
                         {
-                            forecastConfiguration = forecastBean.storeForecastConfiguration(forecastConfiguration, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
-                            // Store form config
-                            
+                            if(formId.equals("forecastConfigurationForm"))
+                            {
+                                forecastConfiguration = forecastBean.storeForecastConfiguration(forecastConfiguration, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
+                                // Store form config
 
-                            //forecastBean.storeForecastModelConfigurations(forecastConfiguration, modelFieldFormValidation.getFormFields());
-                            // TODO: Store model specific fields
-                            // First: Delete all o
-                            
-                            
-                            request.setAttribute("messageKey", request.getParameter("formConfigurationUpdated"));
-                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=").append(forecastConfiguration.getForecastConfigurationId()).append("&messageKey=").append("forecastConfigurationUpdated").toString());
 
+                                //forecastBean.storeForecastModelConfigurations(forecastConfiguration, modelFieldFormValidation.getFormFields());
+                                // TODO: Store model specific fields
+                                // First: Delete all o
+
+
+                                request.setAttribute("messageKey", request.getParameter("formConfigurationUpdated"));
+                                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=").append(forecastConfiguration.getForecastConfigurationId()).append("&messageKey=").append("forecastConfigurationUpdated").toString());
+                            }
+                            else
+                            {
+                                for(String optionVal:formValidation.getFormField("weatherStationPointOfInterestIds").getWebValues())
+                                {
+                                    Integer weatherStationPointOfInterestId = Integer.valueOf(optionVal);
+                                    forecastBean.storeNewMultipleForecastConfiguration(weatherStationPointOfInterestId, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());    
+                                }
+                                request.setAttribute("messageKey", request.getParameter("multipleForecastConfigurationsCreated"));
+                                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?messageKey=").append("multipleForecastConfigurationsCreated").toString());
+                            }
                         }
                         else
                         {

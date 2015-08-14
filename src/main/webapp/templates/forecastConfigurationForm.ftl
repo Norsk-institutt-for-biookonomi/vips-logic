@@ -34,12 +34,12 @@
 		}
 		
 		// Load main form definition (for validation)
-		loadFormDefinition("forecastConfigurationForm");
+		loadFormDefinition("${formId}");
 		
 		// Show specific fields for model
 		if(document.getElementById('modelId').options.selectedIndex > 0)
 		{
-			renderModelSpecificFields();
+			renderModelSpecificFields("${formId}");
 		}
 	</script>
 </#macro>
@@ -52,12 +52,11 @@
 	<#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
-        <#assign formId = "forecastConfigurationForm">
         <form id="${formId}" role="form" action="/forecastConfiguration?action=forecastConfigurationFormSubmit" method="POST" onsubmit2="return false;" onsubmit="try{ return (validateForm(this) && validateForm(this, this.modelId.options[this.modelId.selectedIndex].value));}catch(err){alert(err);return false;}">
           <input type="hidden" id="forecastConfigurationId" name="forecastConfigurationId" value="${forecastConfiguration.forecastConfigurationId!"-1"}"/>
           <div class="form-group">
 	    <label for="modelId">${i18nBundle.modelId}</label>
-	    <select class="form-control" id="modelId" name="modelId" onblur="validateField(this);" onchange="renderModelSpecificFields();">
+	    <select class="form-control" id="modelId" name="modelId" onblur="validateField(this);" onchange="renderModelSpecificFields('${formId}');">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.modelId?lower_case}</option>
 	    	<#list modelInformations as modelInformation>
 	    	<option value="${modelInformation.modelId}"<#if forecastConfiguration.modelId?has_content && modelInformation.modelId == forecastConfiguration.modelId> selected="selected"</#if>>
@@ -73,7 +72,7 @@
 	  </div>
 	  <div class="form-group">
 	    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-	    <select class="form-control" id="cropOrganismId" name="cropOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields();">
+	    <select class="form-control" id="cropOrganismId" name="cropOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields('${formId}');">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 	    	<#list allCrops?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
@@ -87,7 +86,7 @@
 	  </div>
 	  <div class="form-group">
 	    <label for="pestOrganismId">${i18nBundle.pestOrganismId}</label>
-	    <select class="form-control" id="pestOrganismId" name="pestOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields();">
+	    <select class="form-control" id="pestOrganismId" name="pestOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields('${formId}');">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.pestOrganismId?lower_case}</option>
 	    	<#list allPests?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
@@ -99,6 +98,7 @@
 	    </select>
 	    <span class="help-block" id="${formId}_pestOrganismId_validation"></span>
 	  </div>
+	  <#if !multipleNew>
 	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
 	    <select class="form-control" name="locationPointOfInterestId" onblur="validateField(this);">
@@ -119,6 +119,18 @@
 	    </select>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
+	  <#else>
+	  <input type="hidden" name="multipleNew" value="true"/>
+	  <div class="form-group">
+	    <label for="weatherStationPointOfInterestIds">${i18nBundle.weatherStationPointOfInterestIds}</label>
+	    <select class="form-control" name="weatherStationPointOfInterestIds" onblur="validateField(this);" multiple="multiple" size="5">
+	    	<#list weatherStationPointOfInterests?sort_by("name") as poi>
+	    	<option value="${poi.pointOfInterestId}">${poi.name}</option>
+	    	</#list>
+	    </select>
+	    <span class="help-block" id="${formId}_weatherStationPointOfInterestIds_validation"></span>
+	  </div>
+	  </#if>
           <div class="form-group">
 	    <label for="dateStart">${i18nBundle.dateStart}</label>
 	    <input type="date" class="form-control" name="dateStart" placeholder="${i18nBundle.dateStart}" value="${(forecastConfiguration.dateStart)!""}" onblur="validateField(this);" />
@@ -155,6 +167,7 @@
 	  	
 	  </fieldset>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
+	  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');validateForm(theForm);validateForm(theForm, theForm.modelId.options[theForm.modelId.selectedIndex].value); ">Test</button-->
 	  <button type="button" class="btn btn-warning" onclick="if(confirm('${i18nBundle.confirmLeaveForm}')){window.location.href='/forecastConfiguration';}">${i18nBundle.leaveForm}</button>
 	  <#if forecastConfiguration.forecastConfigurationId?has_content>
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/forecastConfiguration?action=deleteForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';}">${i18nBundle.delete}</button>

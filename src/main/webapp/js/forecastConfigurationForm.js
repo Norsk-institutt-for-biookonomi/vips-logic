@@ -20,7 +20,7 @@
 /* 
  * Helpers for the template forecastConfigurationForm.ftl.
  * Depends on /js/validateForm.js
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  * 
  */
@@ -29,7 +29,7 @@
  * Responsible for rendering the model specific fields
  * @returns {void}
  */
-function renderModelSpecificFields()
+function renderModelSpecificFields(formId)
 {
     // Get the model Id
     var modelIdEl = document.getElementById("modelId");
@@ -42,12 +42,12 @@ function renderModelSpecificFields()
      $.getJSON( "/formdefinitions/models/" + modelId + ".json")
         .done(function(json){
             formDefinitions[modelId] = json;
-            renderModelSpecificFieldsCallback(modelId);
+            renderModelSpecificFieldsCallback(modelId, formId);
         });
     }
     else
     {
-        renderModelSpecificFieldsCallback(modelId);
+        renderModelSpecificFieldsCallback(modelId, formId);
     }
 }
 
@@ -56,7 +56,7 @@ function renderModelSpecificFields()
  * @param {type} modelId
  * @returns {undefined}
  */
-function renderModelSpecificFieldsCallback(modelId)
+function renderModelSpecificFieldsCallback(modelId,formId)
 {
     var fieldSet = document.getElementById("modelSpecificFields");
     var formDefinition = formDefinitions[modelId];
@@ -72,7 +72,7 @@ function renderModelSpecificFieldsCallback(modelId)
     var fieldsHTML = ["<legend>" + getI18nMsg("specificFieldsForX", [getI18nMsg(modelId)])+ "</legend>"];
     for(var i in formDefinition.fields){
         var fieldDefinition = formDefinition.fields[i];
-        fieldsHTML.push(createFieldHTML(modelId, fieldDefinition));
+        fieldsHTML.push(createFieldHTML(modelId, formId, fieldDefinition));
     }
     
     fieldSet.innerHTML = fieldsHTML.join("\n");
@@ -151,11 +151,11 @@ var FIELD_PREFIX =  [
                     ].join("\n");
                     
 var FIELD_SUFFIX =  [
-                        '<span class="help-block" id="forecastConfigurationForm_{0}_validation"></span>',
+                        '<span class="help-block" id="{1}_{0}_validation"></span>',
                         '</div>'
                     ].join("\n");
 
-function createFieldHTML(modelId, fieldDefinition)
+function createFieldHTML(modelId, formId, fieldDefinition)
 {
     var fieldHTML = "";
     if(fieldDefinition.fieldType !== fieldTypes.TYPE_SELECT_SINGLE && fieldDefinition.fieldType !== fieldTypes.TYPE_SELECT_MULTIPLE)
@@ -167,7 +167,7 @@ function createFieldHTML(modelId, fieldDefinition)
     return [
             replaceParams(FIELD_PREFIX,[fieldDefinition.name, getI18nMsg(fieldDefinition.name)]),
             fieldHTML,
-            replaceParams(FIELD_SUFFIX,[fieldDefinition.name])
+            replaceParams(FIELD_SUFFIX,[fieldDefinition.name,formId])
     ].join("\n");
 }
 

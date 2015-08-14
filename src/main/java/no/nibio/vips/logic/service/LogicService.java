@@ -59,6 +59,7 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ServletUtil;
+import no.nibio.vips.util.SolarRadiationUtil;
 import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.MetosDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
@@ -329,6 +330,36 @@ public class LogicService {
     }
     
     @GET
+    @Path("weather/calculation/solarradiation")
+    @Produces("application/json;charset=UTF-8")
+    public Response getCalculatedSolarRadiationAtLocationAndTime(
+            @QueryParam("latitude") Double latitude, 
+            @QueryParam("longitude") Double longitude, 
+            @QueryParam("startTime") String startTimeStr, 
+            @QueryParam("endTime") String endTimeStr, 
+            @QueryParam("timeZone") String timeZoneStr,
+            @QueryParam("logIntervalId") Integer logIntervalId
+    )
+    {
+        try
+        {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
+            Date startTime = format.parse(startTimeStr);
+            Date endTime = format.parse(endTimeStr);
+            logIntervalId = logIntervalId == null ? WeatherObservation.LOG_INTERVAL_ID_1H : logIntervalId;
+            SolarRadiationUtil srUtil = new SolarRadiationUtil();
+            List<WeatherObservation> radiationValues = srUtil.getCalculatedSolarRadiation(latitude, longitude, startTime, endTime, timeZone, logIntervalId);
+            return Response.ok().entity(radiationValues).build();
+        }
+        catch(ParseException ex)
+        {
+            return Response.serverError().entity(ex).build();
+        }
+    }
+    
+    
+    @GET
     @POST
     @Path("weather/proxy/metos/{stationId}")
     @Produces("application/json;charset=UTF-8")
@@ -389,6 +420,8 @@ public class LogicService {
         }
         return Response.ok().entity(observations).build();
     }
+    
+    
     
     private ManagerResource getManagerResource()
     {

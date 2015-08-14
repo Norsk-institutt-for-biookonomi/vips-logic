@@ -1,4 +1,4 @@
-		NIBIO OPEN SOURCE LICENSE V.1.0 (2014)
+		NIBIO OPEN SOURCE LICENSE V.1.0 (2015)
 
 			PREAMBLE AND ADDITIONAL TERMS
 
@@ -7,7 +7,7 @@ Environmental Research, registered in Norway with registration number 988 983
 837, and business address NO-1430 ÅS, NORWAY, hereafter referred to as 
 "NIBIO". 
 
-  This NIBIO OPEN SOURCE LICENSE V.1.0 (2014), in short the NIBIO Open 
+  This NIBIO OPEN SOURCE LICENSE V.1.0 (2015), in short the NIBIO Open 
 Source License, is based on the GNU Affero General Public License, version 3.
 All of the terms and conditions of the GNU Affero General Public License, 
 version 3, have been set out below, save the below mentioned additional 
@@ -63,7 +63,7 @@ this license set forward by yourself or any party deviating its rights from you.
 
   2. 0. Definitions.
 
-  "This License" refers to NIBIO Open Source License v.1.0 (2014). 
+  "This License" refers to NIBIO Open Source License v.1.0 (2015). 
 
   "Copyright" also means copyright-like laws that apply to other kinds of
 works, such as semiconductor masks.

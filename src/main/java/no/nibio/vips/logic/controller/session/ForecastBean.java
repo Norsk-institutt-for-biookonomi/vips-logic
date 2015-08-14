@@ -892,5 +892,36 @@ public class ForecastBean {
         return retVal;
         
     }
+
+    public ForecastConfiguration storeNewMultipleForecastConfiguration(Integer weatherStationPointOfInterestId,Map<String, FormField> formFields, Map<String, FormField> modelSpecificFormFields) {
+        ForecastConfiguration forecastConfiguration = new ForecastConfiguration();
+        forecastConfiguration.setModelId(formFields.get("modelId").getWebValue());
+        forecastConfiguration.setCropOrganismId(em.find(Organism.class, formFields.get("cropOrganismId").getValueAsInteger()));
+        forecastConfiguration.setPestOrganismId(em.find(Organism.class, formFields.get("pestOrganismId").getValueAsInteger()));
+        // In the multiple form, location and weatherstation is the same
+        PointOfInterest locationPoi = em.find(PointOfInterest.class, weatherStationPointOfInterestId);
+        forecastConfiguration.setLocationPointOfInterestId(locationPoi);
+        PointOfInterest weatherStationPoi = em.find(PointOfInterestWeatherStation.class, weatherStationPointOfInterestId);
+        forecastConfiguration.setWeatherStationPointOfInterestId(weatherStationPoi);
+        String timeZone = formFields.get("timeZone").getWebValue();
+        forecastConfiguration.setTimeZone(timeZone);
+        forecastConfiguration.setDateStart(formFields.get("dateStart").getValueAsDate());
+        forecastConfiguration.setDateEnd(formFields.get("dateEnd").getValueAsDate());
+        VipsLogicUser forecastConfigurationUser = em.find(VipsLogicUser.class, formFields.get("vipsLogicUserId").getValueAsInteger());
+        forecastConfiguration.setVipsCoreUserId(forecastConfigurationUser);
+        
+        forecastConfiguration = em.merge(forecastConfiguration);
+        
+        // Store new values
+        for(FormField field : modelSpecificFormFields.values())
+        {
+            String deCamelizedFieldName = getDeCamelizedFieldName(forecastConfiguration.getModelId(), field.getName());
+            ForecastModelConfiguration forecastModelConfiguration = new ForecastModelConfiguration(forecastConfiguration.getForecastConfigurationId(), deCamelizedFieldName);
+            forecastModelConfiguration.setParameterValue(field.getWebValue());
+            em.merge(forecastModelConfiguration);
+        }
+        
+        return forecastConfiguration;
+    }
     
 }

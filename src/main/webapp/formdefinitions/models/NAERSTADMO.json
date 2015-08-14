@@ -17,18 +17,5 @@
         "along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>. "
     ],
     "_comment" : "Structure of the specific fields for NAERSTADMO",
-    "fields": [
-        {
-            "name" : "calculationStart",
-            "dataType" : "TIMESTAMP",
-            "dateFormat" : "yyyy-MM-dd",
-            "required" : false
-        },
-        {
-            "name" : "calculationEnd",
-            "dataType" : "TIMESTAMP",
-            "dateFormat" : "yyyy-MM-dd",
-            "required" : false
-        }
-    ]
+    "fields": []
 }

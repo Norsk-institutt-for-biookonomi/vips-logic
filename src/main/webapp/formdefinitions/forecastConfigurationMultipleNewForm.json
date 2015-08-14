@@ -1,0 +1,82 @@
+{
+    "_licenseNote": [
+        "Copyright (c) 2014 NIBIO <http://www.nibio.no/>. ",
+        "",
+        "This file is part of VIPSLogic. ",
+        "VIPSLogic is free software: you can redistribute it and/or modify ",
+        "it under the terms of the NIBIO Open Source License as published by ",
+        "NIBIO, either version 1 of the License, or (at your option) any ",
+        "later version. ",
+        "",
+        "VIPSLogic is distributed in the hope that it will be useful, ",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of ",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the ",
+        "NIBIO Open Source License for more details. ",
+        "",
+        "You should have received a copy of the NIBIO Open Source License ",
+        "along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>. "
+    ],
+    "_comment" : "Structure of the forecastConfigurationMultipleNewForm and how to validate it",
+    "fields": [
+        {
+            "name" : "forecastConfigurationId",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "vipsLogicUserId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "modelId",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "cropOrganismId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "pestOrganismId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "weatherStationPointOfInterestIds",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_MULTIPLE",
+            "nullValue": "-1",
+            "required" : true
+        },
+        {
+            "name" : "dateStart",
+            "dataType" : "DATE",
+            "required" : true
+        },
+        {
+            "name" : "dateEnd",
+            "dataType" : "DATE",
+            "required" : true
+        },
+        {
+            "name" : "timeZone",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true
+        }
+        
+    ],
+    "relations":[
+        {"primaryField":"dateEnd","secondaryField":"dateStart", "relationType": "AFTER"}
+    ]
+}

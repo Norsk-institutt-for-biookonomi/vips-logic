@@ -65,6 +65,7 @@
 		</div>
 	</div>
 	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1'">${i18nBundle.addNew}</button>
+	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1&multipleNew=true'">${i18nBundle.addMultipleNew}</button>
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>
