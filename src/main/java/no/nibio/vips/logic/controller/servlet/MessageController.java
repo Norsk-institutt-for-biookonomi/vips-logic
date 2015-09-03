@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.i18n.LanguageUtil;
 import no.nibio.vips.logic.entity.Message;
+import no.nibio.vips.logic.entity.MessageLocale;
 import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -158,12 +159,54 @@ public class MessageController extends HttpServlet {
                 Integer messageId = Integer.valueOf(request.getParameter("messageId"));
                 Message message = em.find(Message.class, messageId);
                 request.setAttribute("message", message);
-                request.setAttribute("messageLocale", 
-                        request.getParameter("messageLocale") != null ? 
+                String messageLocale = request.getParameter("messageLocale") != null ? 
                                 request.getParameter("messageLocale") 
-                                : SessionLocaleUtil.getCurrentLocale(request).getLanguage()
-                );
+                                : SessionLocaleUtil.getCurrentLocale(request).getLanguage();
+                request.setAttribute("messageLocale", messageLocale);
                 request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
+                // If whe have existing versions of the message in other languages, 
+                // we must find the most relevant translation and use as reference
+                if(message.getMessageLocaleSet().size() > 1)
+                {
+                    // Need to determine the most likely reference translation
+                    MessageLocale referenceTranslationLocale = null;
+                    // 1) the user's preferred language? Only if it's not already selected as current message language
+                    if(!messageLocale.equals(SessionLocaleUtil.getCurrentLocale(request).getLanguage()))
+                    {
+                        // Check that it exists among the translations
+                        for(MessageLocale ml : message.getMessageLocaleSet())
+                        {
+                            if(ml.getMessageLocalePK().getLocale().equals(SessionLocaleUtil.getCurrentLocale(request).getLanguage()))
+                            {
+                                referenceTranslationLocale = ml;
+                            }
+                        }
+                    }
+                    // 2) English
+                    if(referenceTranslationLocale == null)
+                    {
+                        // Check that English translation exists
+                        for(MessageLocale ml : message.getMessageLocaleSet())
+                        {
+                            if(ml.getMessageLocalePK().getLocale().equals("en"))
+                            {
+                                referenceTranslationLocale = ml;
+                            }
+                        }
+                    }
+                    // 3) The first other translation available
+                    if(referenceTranslationLocale == null)
+                    {
+                        for(MessageLocale ml : message.getMessageLocaleSet())
+                        {
+                            if(!ml.getMessageLocalePK().getLocale().equals(messageLocale))
+                            {
+                                referenceTranslationLocale = ml;
+                            }
+                        }
+                    }
+                    request.setAttribute("referenceTranslationLocale", referenceTranslationLocale);
+                }
                 List<MessageTag> tags = em.createNamedQuery("MessageTag.findAll").getResultList();
                 tags.removeAll(message.getMessageTagSet());
                 request.setAttribute("unusedTags", tags);

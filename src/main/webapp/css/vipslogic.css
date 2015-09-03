@@ -79,3 +79,8 @@ legend {
     max-height: 250px;
     overflow-y: auto;
 }
+
+.referenceTranslationText {
+    font-size: smaller;
+    font-style: italic;
+}

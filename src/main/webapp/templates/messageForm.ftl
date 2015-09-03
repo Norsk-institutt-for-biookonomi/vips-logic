@@ -19,6 +19,7 @@
 <#if message.getLocalMessage(messageLocale)?has_content>
 <#assign localMessage = message.getLocalMessage(messageLocale)>
 </#if>
+
 <#macro page_head>
         	<title><#if message.messageId?has_content>${i18nBundle.editMessage} - ${(localMessage.heading)!""}<#else>${i18nBundle.newMessage}</#if></title>
 </#macro>
@@ -80,7 +81,7 @@
 
 </#macro>
 <#macro page_contents>
-	<p><a href="/message" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+	<p><a href="/message" class="btn btn-default back" role="button">${i18nBundle.back}</a><#if message.messageId?has_content><a href="/message?action=newMessageForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a></#if></p>
 	<#if message.messageId?has_content>
 	<h1>${i18nBundle.editMessage}</h1>
 	<#else>
@@ -105,6 +106,17 @@
 		</#list>
 	     </select>
 	</div>
+	<#if message.messageLocaleSet?has_content && message.messageLocaleSet?size gt 1>
+	<p>
+		${i18nBundle.availableTranslations}: 
+		<#list message.messageLocaleSet as availableMessageLocale>
+			<#if availableMessageLocale.messageLocalePK.locale != messageLocale >
+				<a href="/message?action=editMessageForm&messageId=${message.messageId}&messageLocale=${availableMessageLocale.messageLocalePK.locale}">${availableMessageLocale.messageLocalePK.locale}</a>,
+			</#if>
+		</#list>
+		
+	</p>
+	</#if>
 	<div class="form-group">
 	    <label for="messageTagIds">${i18nBundle.messageTags}</label>
 	    <select class="form-control" name="messageTagIds" onblur="validateField(this);" multiple="multiple">
@@ -123,16 +135,25 @@
 	    <label for="heading">${i18nBundle.heading}</label>
 	    <input type="text" class="form-control" name="heading" placeholder="${i18nBundle.heading}" value="${(localMessage.heading)!""}" onblur="validateField(this);" />
 	    <span class="help-block" id="${formId}_heading_validation"></span>
+	    <#if referenceTranslationLocale?has_content >
+	    <span class="referenceTranslationText">[${i18nBundle.reference}]: ${referenceTranslationLocale.heading}</span>
+	    </#if>
 	</div>
 	<div class="form-group">
 	    <label for="leadParagraph">${i18nBundle.leadParagraph}</label>
 	    <textarea class="form-control" name="leadParagraph" placeholder="${i18nBundle.leadParagraph}" onblur="validateField(this);" >${(localMessage.leadParagraph)!""}</textarea>
 	    <span class="help-block" id="${formId}_leadParagraph_validation"></span>
+	    <#if referenceTranslationLocale?has_content >
+	    <span class="referenceTranslationText">[${i18nBundle.reference}]: ${referenceTranslationLocale.leadParagraph}</span>
+	    </#if>
 	</div>
 	<div class="form-group">
 	    <label for="body">${i18nBundle.body}</label>
 	    <textarea class="form-control" name="body" placeholder="${i18nBundle.body}" onblur="validateField(this);" >${(localMessage.body)!""}</textarea>
 	    <span class="help-block" id="${formId}_body_validation"></span>
+	    <#if referenceTranslationLocale?has_content >
+	    <span class="referenceTranslationText">[${i18nBundle.reference}]: ${referenceTranslationLocale.body}</span>
+	    </#if>
 	</div>
 	<div class="form-group">
 	    <label for="datePub">${i18nBundle.datePub}</label>
