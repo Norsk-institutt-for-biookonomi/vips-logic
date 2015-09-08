@@ -178,10 +178,26 @@ public class BarleyNetBlotchModelService {
         // Get weather data from weather station
         PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, weatherStationId);
         WeatherDataSourceUtil wsdUtil = new WeatherDataSourceUtil();
+        
+        // End date for weather data depends on season
+        // We try to add 5 months to the sowing date. If thats in the future,
+        // We add 10 days to today
+        Date dateOfLastWeatherData;
         Calendar cal = Calendar.getInstance(timeZone);
-        cal.setTime(SystemTime.getSystemTime());
-        cal.add(Calendar.DATE, 10);
-        Date nearFuture = cal.getTime();
+        cal.setTime(sowingDate);
+        cal.add(Calendar.MONTH, 5);
+        Date fiveMonthsAfterSowingDate = cal.getTime();
+        if(fiveMonthsAfterSowingDate.after(SystemTime.getSystemTime()))
+        {
+            cal.setTime(SystemTime.getSystemTime());
+            cal.add(Calendar.DATE, 10);
+            dateOfLastWeatherData = cal.getTime();
+        }
+        else
+        {
+            dateOfLastWeatherData = fiveMonthsAfterSowingDate;
+        }
+
         List<WeatherObservation> observations;
         try {
              observations = wsdUtil.getWeatherObservations(
@@ -192,7 +208,7 @@ public class BarleyNetBlotchModelService {
                         WeatherElements.PRECIPITATION
                     },
                     sowingDate, 
-                    nearFuture
+                    dateOfLastWeatherData
             );
         } catch (WeatherDataSourceException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
