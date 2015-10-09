@@ -58,6 +58,7 @@ import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
 import no.nibio.vips.util.weather.ALabDataParser;
@@ -330,9 +331,9 @@ public class LogicService {
     }
     
     @GET
-    @Path("weather/calculation/solarradiation")
+    @Path("weather/calculation/solarradiation/json")
     @Produces("application/json;charset=UTF-8")
-    public Response getCalculatedSolarRadiationAtLocationAndTime(
+    public Response getCalculatedSolarRadiationAtLocationAndTimeJSON(
             @QueryParam("latitude") Double latitude, 
             @QueryParam("longitude") Double longitude, 
             @QueryParam("startTime") String startTimeStr, 
@@ -343,19 +344,72 @@ public class LogicService {
     {
         try
         {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
-            Date startTime = format.parse(startTimeStr);
-            Date endTime = format.parse(endTimeStr);
-            logIntervalId = logIntervalId == null ? WeatherObservation.LOG_INTERVAL_ID_1H : logIntervalId;
-            SolarRadiationUtil srUtil = new SolarRadiationUtil();
-            List<WeatherObservation> radiationValues = srUtil.getCalculatedSolarRadiation(latitude, longitude, startTime, endTime, timeZone, logIntervalId);
+
+            List<WeatherObservation> radiationValues = getCalculatedSolarRadiationAtLocationAndTime (
+                    latitude,
+                    longitude,
+                    startTimeStr,
+                    endTimeStr,
+                    timeZoneStr,
+                    logIntervalId
+            );
             return Response.ok().entity(radiationValues).build();
         }
         catch(ParseException ex)
         {
             return Response.serverError().entity(ex).build();
         }
+    }
+    
+    @GET
+    @Path("weather/calculation/solarradiation/csv")
+    @Produces("text/csv;charset=UTF-8")
+    public Response getCalculatedSolarRadiationAtLocationAndTimeCSV(
+            @QueryParam("latitude") Double latitude, 
+            @QueryParam("longitude") Double longitude, 
+            @QueryParam("startTime") String startTimeStr, 
+            @QueryParam("endTime") String endTimeStr, 
+            @QueryParam("timeZone") String timeZoneStr,
+            @QueryParam("logIntervalId") Integer logIntervalId
+    )
+    {
+        try
+        {
+
+            List<WeatherObservation> radiationValues = getCalculatedSolarRadiationAtLocationAndTime (
+                    latitude,
+                    longitude,
+                    startTimeStr,
+                    endTimeStr,
+                    timeZoneStr,
+                    logIntervalId
+            );
+            //return Response.ok().entity(radiationValues).build();
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
+            return Response.ok(new CSVPrintUtil().printWeatherObservations(radiationValues, timeZone, "\t")).build();
+        }
+        catch(ParseException ex)
+        {
+            return Response.serverError().entity(ex).build();
+        }
+    }
+    
+    private List<WeatherObservation> getCalculatedSolarRadiationAtLocationAndTime (
+            Double latitude,
+            Double longitude,
+            String startTimeStr,
+            String endTimeStr,
+            String timeZoneStr,
+            Integer logIntervalId
+    ) throws ParseException
+    {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
+            Date startTime = format.parse(startTimeStr);
+            Date endTime = format.parse(endTimeStr);
+            logIntervalId = logIntervalId == null ? WeatherObservation.LOG_INTERVAL_ID_1H : logIntervalId;
+            SolarRadiationUtil srUtil = new SolarRadiationUtil();
+            return srUtil.getCalculatedSolarRadiation(latitude, longitude, startTime, endTime, timeZone, logIntervalId);
     }
     
     
