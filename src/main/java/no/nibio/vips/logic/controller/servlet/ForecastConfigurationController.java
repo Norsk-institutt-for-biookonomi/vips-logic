@@ -49,7 +49,6 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ArrayUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
-import no.nibio.web.forms.FormSelectOption;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
