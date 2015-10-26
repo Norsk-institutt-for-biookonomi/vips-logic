@@ -37,6 +37,12 @@
             "required" : false
         },
         {
+            "name" : "cropOrganismIds",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_MULTIPLE",
+            "required" : false
+        },
+        {
             "name" : "heading",
             "dataType" : "STRING",
             "required" : true

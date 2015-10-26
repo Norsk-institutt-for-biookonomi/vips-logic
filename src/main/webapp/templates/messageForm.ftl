@@ -29,6 +29,7 @@
 	<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
 	<link href="http://code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
 	<script type="text/javascript">
 		// Make sure that there is a date picker present for HTML5 
 		// date input fields
@@ -59,6 +60,8 @@
 				}
 				
 			});
+			// Activating chosen plugin
+			$(".chosen-select").chosen();
 		});		
 		// Reload with new locale
 		function reloadWithNewLocale(localeSelectList)
@@ -80,6 +83,9 @@
 	</script>
 
 </#macro>
+<#macro custom_css>
+	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
+</#macro>
 <#macro page_contents>
 	<p><a href="/message" class="btn btn-default back" role="button">${i18nBundle.back}</a><#if message.messageId?has_content><a href="/message?action=newMessageForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a></#if></p>
 	<#if message.messageId?has_content>
@@ -99,7 +105,7 @@
         <input type="hidden" name="messageId" value="${message.messageId!"-1"}"/>
         <div class="form-group">
 	    <label for="locale">${i18nBundle.language}</label>
-	    <select class="form-control" name="locale" onchange="reloadWithNewLocale(this);">
+	    <select class="form-control chosen-select" name="locale" onchange="reloadWithNewLocale(this);">
 	    	<option value="NOLANGUAGE">${i18nBundle.pleaseSelect} ${i18nBundle.language?lower_case}</option>
 		<#list availableLocales?sort_by("displayLanguage") as locale>
 			<option value="${locale.language}"<#if locale.language == messageLocale> selected="selected"</#if>>${locale.getDisplayLanguage(currentLocale)}</option>
@@ -119,7 +125,7 @@
 	</#if>
 	<div class="form-group">
 	    <label for="messageTagIds">${i18nBundle.messageTags}</label>
-	    <select class="form-control" name="messageTagIds" onblur="validateField(this);" multiple="multiple">
+	    <select class="form-control chosen-select" name="messageTagIds" onblur="validateField(this);" multiple="multiple">
 	    	<#if message.messageTagSet?has_content >
 			<#list message.messageTagSet as messageTag>
 				<option value="${messageTag.messageTagId}" selected="selected">${(messageTag.getLocalName(currentLocale))!messageTag.defaultTagName}</option>
@@ -129,6 +135,20 @@
 			<option value="${messageTag.messageTagId}">${(messageTag.getLocalName(currentLocale))!messageTag.defaultTagName}</option>
 		</#list>
 	     </select>
+	</div>
+	<div class="form-group">
+		<label for="cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
+		<select class="form-control chosen-select" name="cropOrganismIds" onblur="validateField(this);" multiple="multiple">
+			<#list allCrops?sort_by("latinName") as organism>
+			<option value="${organism.organismId}"
+			<#list message.messageCropOrganismIds as organismId>
+				<#if organismId == organism.organismId>
+				selected="selected"
+				</#if>
+			</#list>
+			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
+		</#list>
+		</select>
 	</div>
 	
        <div class="form-group">

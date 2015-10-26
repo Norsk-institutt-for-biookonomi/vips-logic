@@ -247,4 +247,9 @@ public class OrganismBean {
         
         return null;
     }
+    
+    public List<Organism> getAllCrops()
+    {
+        return em.createNamedQuery("Organism.findAllCrops").getResultList();
+    }
 }

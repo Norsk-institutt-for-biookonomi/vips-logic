@@ -257,6 +257,14 @@ public class LogicService {
         return Response.ok().entity(organismList).build();
     }
     
+    @GET
+    @Path("organism/crop/list")
+    @Produces("application/json;charset=UTF-8")
+    public Response getCropOrganismList()
+    {
+        List<Organism> organismList = SessionControllerGetter.getOrganismBean().getAllCrops();
+        return Response.ok().entity(organismList).build();
+    }
     
     
     @GET
@@ -265,6 +273,7 @@ public class LogicService {
     public Response getMessage(@PathParam("messageId") Integer messageId)
     {
         Message message = SessionControllerGetter.getMessageBean().getMessage(messageId);
+        message.setMessageCropOrganismIds(SessionControllerGetter.getMessageBean().getMessageCropOrganismIds(message));
         return Response.ok().entity(message).build();
     }
     
@@ -293,7 +302,9 @@ public class LogicService {
             }
             
             List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId, datePublishedFrom, datePublishedTo);
-
+            // Adding the crop connections manually
+            messageList = SessionControllerGetter.getMessageBean().addMessageOrganismIds(messageList);
+            
             return Response.ok().entity(messageList).build();
         }
         catch(ParseException ex){
@@ -307,6 +318,7 @@ public class LogicService {
     public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
     {
         List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
+        messageListWithTags = SessionControllerGetter.getMessageBean().addMessageOrganismIds(messageListWithTags);
         return Response.ok().entity(messageListWithTags).build();
     }
     

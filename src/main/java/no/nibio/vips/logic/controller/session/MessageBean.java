@@ -92,6 +92,23 @@ public class MessageBean {
             }
         }
         return retVal;
+        
+    }
+    
+    /**
+     * Crops are not part of persistence scheme for performance reasons.
+     * Must be added manually
+     * @param messages
+     * @return 
+     */
+    public List<Message> addMessageOrganismIds(List<Message> messages)
+    {
+        // Need to add all crops
+        for(Message message:messages)
+        {
+            message.setMessageCropOrganismIds(this.getMessageCropOrganismIds(message));
+        }
+        return messages;
     }
     
     public List<Message> getMessageList(Integer organizationId) {
@@ -162,7 +179,7 @@ public class MessageBean {
         messageLocale.setBody(formFields.get("body").getWebValue());
         em.persist(messageLocale);
         
-        // TODO Storing message tags
+        // Storing message tags
         Set<MessageTag> tags = new HashSet<>();
         if(formFields.get("messageTagIds").getWebValues() != null)
         {
@@ -173,7 +190,19 @@ public class MessageBean {
         }
         message.setMessageTagSet(tags);
         
-        
+        // Store message organisms
+        List<Integer> cropOrganismIds = new ArrayList<>();
+        if(formFields.get("cropOrganismIds").getWebValues() != null)
+        {
+            for(String cropOrganismId:formFields.get("cropOrganismIds").getWebValues())
+            {
+                cropOrganismIds.add(Integer.valueOf(cropOrganismId));
+            }
+        }
+        message.setMessageCropOrganismIds(cropOrganismIds);
+        // This property is not part of the automatic persistence scheme, need
+        // to store manually
+        this.storeMessageOrganismIds(message);
         return message;
     }
 
@@ -401,4 +430,43 @@ public class MessageBean {
         }
     }
 
+    /**
+     * Retreiving connected crop organisms as list of ids, for simplicity
+     * @param message
+     * @return 
+     */
+    public List<Integer> getMessageCropOrganismIds(Message message)
+    {
+        Query q = em.createNativeQuery("SELECT organism_id FROM public.organism_message WHERE message_id = :messageId");
+        q.setParameter("messageId", message.getMessageId());
+        try
+        {
+            return q.getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 
+     * @param message 
+     */
+    public void storeMessageOrganismIds(Message message)
+    {
+        if(message.getMessageCropOrganismIds() != null && ! message.getMessageCropOrganismIds().isEmpty())
+        {
+            Query q = em.createNativeQuery("DELETE FROM public.organism_message WHERE message_id = :messageId");
+            q.setParameter("messageId", message.getMessageId());
+            q.executeUpdate();
+            q = em.createNativeQuery("INSERT INTO public.organism_message(organism_id, message_id) VALUES(:organismId,:messageId);");
+            q.setParameter("messageId", message.getMessageId());
+            for(Integer organismId : message.getMessageCropOrganismIds())
+            {
+                q.setParameter("organismId", organismId);
+                q.executeUpdate();
+            }
+        }
+    }
 }

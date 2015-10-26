@@ -20,7 +20,9 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -39,6 +41,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -51,6 +54,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @NamedQueries({
     @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m"),
     @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId"),
+    @NamedQuery(name = "Message.findByMessageIds", query = "SELECT m FROM Message m WHERE m.messageId IN(:messageIds)"),
     @NamedQuery(name = "Message.findByOrganizationId", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId"),
     @NamedQuery(name = "Message.findByOrganizationIdAndPublicationPeriod", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId AND m.datePub <= :publishedTo AND m.dateValidTo >= :publishedFrom"),
     @NamedQuery(name = "Message.findByOrganizationIdAndMaxPublicationPeriod", query = "SELECT m FROM Message m WHERE m.organizationId = :organizationId AND m.datePub <= :publishedTo "),
@@ -66,6 +70,7 @@ public class Message implements Serializable {
     private Set<MessageIllustration> messageIllustrationSet;
     private Set<MessageLocale> messageLocaleSet;
     private Integer organizationId;
+    private List<Integer> messageCropOrganismIds;
 
     public Message() {
     }
@@ -242,6 +247,21 @@ public class Message implements Serializable {
         
         return null;
         
+    }
+
+    /**
+     * @return the messageCropOrganismIds
+     */
+    @Transient
+    public List<Integer> getMessageCropOrganismIds() {
+        return this.messageCropOrganismIds != null ? this.messageCropOrganismIds : new ArrayList<Integer>();
+    }
+
+    /**
+     * @param messageCropOrganismIds the messageCropOrganismIds to set
+     */
+    public void setMessageCropOrganismIds(List<Integer> messageCropOrganismIds) {
+        this.messageCropOrganismIds = messageCropOrganismIds;
     }
 
 }
