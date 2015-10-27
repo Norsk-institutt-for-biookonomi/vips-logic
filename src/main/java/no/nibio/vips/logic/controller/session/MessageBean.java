@@ -455,7 +455,7 @@ public class MessageBean {
      */
     public void storeMessageOrganismIds(Message message)
     {
-        if(message.getMessageCropOrganismIds() != null && ! message.getMessageCropOrganismIds().isEmpty())
+        if(message.getMessageCropOrganismIds() != null)
         {
             Query q = em.createNativeQuery("DELETE FROM public.organism_message WHERE message_id = :messageId");
             q.setParameter("messageId", message.getMessageId());
