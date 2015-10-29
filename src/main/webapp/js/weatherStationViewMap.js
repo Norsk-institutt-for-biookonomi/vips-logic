@@ -45,9 +45,10 @@ function initMap(center, zoomLevel, organizationId, highlightWeatherStationId)
     
     // The weather station layer
     var weatherStationLayer = new ol.layer.Vector({
-    source: new ol.source.KML({
+    source: new ol.source.Vector({
         url: "/rest/weatherstations/kml/" + organizationId + (highlightWeatherStationId !== null ? "?highlightWeatherStationId=" + highlightWeatherStationId : ""),
-            projection: "EPSG:3857"
+        projection: "EPSG:3857",
+        format: new ol.format.KML()
       })
     });
     
@@ -68,7 +69,7 @@ function initMap(center, zoomLevel, organizationId, highlightWeatherStationId)
 
     // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
     // center to correct map projection)
-    var view = new ol.View2D({
+    var view = new ol.View({
             center: centerPosition,
             zoom:zoomLevel
     });

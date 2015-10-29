@@ -55,7 +55,7 @@ function initMap(center, zoomLevel, displayMarker)
 
     // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
     // center to correct map projection)
-    var view = new ol.View2D({
+    var view = new ol.View({
             center: centerPosition,
             zoom:zoomLevel
     });
