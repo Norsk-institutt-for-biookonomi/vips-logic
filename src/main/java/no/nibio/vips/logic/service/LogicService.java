@@ -22,6 +22,7 @@ package no.nibio.vips.logic.service;
 import com.ibm.icu.util.ULocale;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -487,7 +488,29 @@ public class LogicService {
         return Response.ok().entity(observations).build();
     }
     
-    
+    /**
+     * Service available locally for cron jobs. Most useful on test servers
+     * @return 
+     */
+    @GET
+    @Path("batch/updateforecastcaches")
+    @Produces("text/plain;charset=UTF-8")
+    public Response updateForecastCaches()
+    {
+        //System.out.println(httpServletRequest.getHeader("X-Forwarded-For"));
+        if(!ServletUtil.getClientIP(httpServletRequest).equals("127.0.0.1"))
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        Date start = new Date();
+        SessionControllerGetter.getForecastBean().updateForecastResultCacheTable();
+        SessionControllerGetter.getForecastBean().updateForecastSummaryTable(SystemTime.getSystemTime());
+        Long timeLapsed = new Date().getTime() - start.getTime();
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        return Response.ok().entity("Forecast caches were successfully updated with data from today (" 
+                + format.format(SystemTime.getSystemTime()) 
+                + "). Time spent=" + timeLapsed + " milliseconds.\n").build();
+    }
     
     private ManagerResource getManagerResource()
     {
