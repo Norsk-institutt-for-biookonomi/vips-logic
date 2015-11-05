@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -27,25 +27,23 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
 
 /**
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class UpdateForecastSummaryTableTask  extends VipsLogicTask{
 
     @Override
     public String getConfigFormDefinition(String language) {
-        StringBuilder retVal = new StringBuilder()
-                .append("{")
-                .append("   \"fields\":[")
-                .append("       {")
-                .append("           \"name\":\"factoryId\",")
-                .append("           \"dataType\":\"").append(FormField.DATA_TYPE_INTEGER).append("\",")
-                .append("           \"fieldType\":\"").append(FormField.FIELD_TYPE_HIDDEN).append("\",")
-                .append("           \"webValue\":[\"").append(VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK).append("\"]")
-                .append("       }")
-                .append("    ]")
-                .append("}");
-         return retVal.toString();
+        String retVal = "{"
+                        + "   \"fields\":["
+                        + "       {"
+                        + "           \"name\":\"factoryId\","
+                        + "           \"dataType\":\"" + FormField.DATA_TYPE_INTEGER + "\","
+                        + "           \"fieldType\":\"" + FormField.FIELD_TYPE_HIDDEN + "\","
+                        + "           \"webValue\":[\"" + VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK + "\"]"
+                        + "       }"
+                        + "    ]}";
+         return retVal;
     }
 
     @Override

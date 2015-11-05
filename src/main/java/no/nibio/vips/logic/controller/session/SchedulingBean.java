@@ -175,11 +175,16 @@ public class SchedulingBean {
         SchedulingPattern every20MinsPattern = new SchedulingPattern("*/20 * * * *");
         summariesCollector.getTasks().add(every20MinsPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK));
         
+        // Clean up UUIDs (for cookies/remembering client logins) once a day
+        VIPSLogicTaskCollector deleteAllExpiredUserUuidsCollector = new VIPSLogicTaskCollector(-1);
+        SchedulingPattern everyNightPattern = new SchedulingPattern("0 6 * * *");
+        deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK));
         
         List<TaskCollector> definedTasks = new ArrayList<>();
         definedTasks.add(testCollector);
         definedTasks.add(cacheHandlerCollector);
         definedTasks.add(summariesCollector);
+        definedTasks.add(deleteAllExpiredUserUuidsCollector);
         return definedTasks;
     }
     

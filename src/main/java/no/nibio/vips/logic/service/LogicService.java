@@ -30,6 +30,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -510,6 +511,28 @@ public class LogicService {
         return Response.ok().entity("Forecast caches were successfully updated with data from today (" 
                 + format.format(SystemTime.getSystemTime()) 
                 + "). Time spent=" + timeLapsed + " milliseconds.\n").build();
+    }
+    
+    /**
+     * TODO: Should only be available for trusted clients (like VIPSWeb)
+     * @param userUUID
+     * @return 
+     */
+    @GET
+    @Path("user/uuid/{userUUID}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getVipsLogicUserByUUID(@PathParam("userUUID") String userUUID)
+    {
+        UUID uUUID = UUID.fromString(userUUID);
+        VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+        if(user != null)
+        {
+            return Response.ok().entity(user).build();
+        }
+        else
+        {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
     
     private ManagerResource getManagerResource()

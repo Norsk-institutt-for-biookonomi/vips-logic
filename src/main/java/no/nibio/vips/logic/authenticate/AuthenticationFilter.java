@@ -22,11 +22,14 @@ package no.nibio.vips.logic.authenticate;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.UUID;
 import javax.servlet.*;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 
 /**
@@ -62,8 +65,22 @@ public class AuthenticationFilter implements Filter{
         }
         else
         {
-            boolean redirectToLogin = (httpRequest.getSession().getAttribute("user") == null || !( httpRequest.getSession().getAttribute("user")  instanceof VipsLogicUser));
-            if(redirectToLogin)
+            // First: Check for session variable
+            boolean clientAuthenticated = (httpRequest.getSession().getAttribute("user") != null &&  httpRequest.getSession().getAttribute("user") instanceof VipsLogicUser);
+            // Then for UUID cookie that has not expired
+            boolean clientRemembered = false;
+            Cookie remembered = ServletUtil.getCookie(httpRequest, "rememberedUser");
+            if(remembered != null)
+            {
+                VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(remembered.getValue()));
+                if(user != null)
+                {
+                    httpRequest.getSession().setAttribute("user", user);
+                    clientRemembered = true;
+                }
+            }
+            
+            if(! clientAuthenticated && ! clientRemembered)
             {
                 String nextPageDirective = "";
                 if(!httpRequest.getServletPath().equals("/login"))
@@ -83,9 +100,9 @@ public class AuthenticationFilter implements Filter{
     
     private boolean isUnprivilegedURL(HttpServletRequest request) {
         String path = request.getServletPath();
-        for(int i=0;i<this.getUnprivilegedURLs().length;i++)
+        for (String unprivilegedURL : this.getUnprivilegedURLs()) 
         {
-            if(path.indexOf(this.getUnprivilegedURLs()[i]) >= 0)
+            if (path.contains(unprivilegedURL)) 
             {
                 return true;
             }

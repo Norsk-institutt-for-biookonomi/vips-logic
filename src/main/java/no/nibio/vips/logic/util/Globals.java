@@ -76,4 +76,6 @@ public class Globals {
         "Europe/Sofia"
     };
     
+    public static int DEFAULT_UUID_VALIDITY_DURATION_DAYS = 30;
+    
 }

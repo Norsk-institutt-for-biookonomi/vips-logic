@@ -19,6 +19,8 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import com.ibm.icu.util.Calendar;
+import com.ibm.icu.util.TimeZone;
 import com.ibm.icu.util.ULocale;
 import edu.vt.middleware.password.CharacterCharacteristicsRule;
 import edu.vt.middleware.password.CharacterRule;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.UUID;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -57,6 +60,8 @@ import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.UserAuthentication;
 import no.nibio.vips.logic.entity.UserAuthenticationPK;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
+import no.nibio.vips.logic.entity.UserUuid;
+import no.nibio.vips.logic.entity.UserUuidPK;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -64,6 +69,7 @@ import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.MD5Encrypter;
 
 /**
@@ -545,5 +551,71 @@ public class UserBean {
         return null;
     }
 
+    /**
+     * 
+     * @param uuid
+     * @return 
+     */
+    public VipsLogicUser findVipsLogicUser(UUID uuid)
+    {
+        try
+        {
+            Query q = em.createNamedQuery("UserUuid.findByUserUUID", UserUuid.class);
+            q.setParameter("userUUID", uuid);
+            UserUuid uUuid = (UserUuid) q.getSingleResult();
+            // If the uuid credential has expired, delete it and return nothing(null)
+            if(uUuid.getExpiresAt().before(new Date()))
+            {
+                this.deleteUserUuid(uuid);
+                return null;
+            }
+            q = em.createNamedQuery("VipsLogicUser.findByUserId", VipsLogicUser.class);
+            q.setParameter("userId", uUuid.getUserUuidPK().getUserId());
+            return (VipsLogicUser) q.getSingleResult(); 
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
     
+    /**
+     * 
+     * @param user
+     * @return 
+     */
+    public UserUuid createAndPersistUserUuid(VipsLogicUser user)
+    {
+        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+        cal.setTime(new Date());
+        cal.add(Calendar.DATE, Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS);
+        UserUuid u = new UserUuid();
+        u.setExpiresAt(cal.getTime());
+        UserUuidPK uPK = new UserUuidPK(UUID.randomUUID(), user.getUserId());
+        u.setUserUuidPK(uPK);
+        em.persist(u);
+        return u;
+    }
+    
+    /**
+     * 
+     * @param uuid 
+     */
+    public void deleteUserUuid(UUID uuid)
+    {
+        try
+        {
+            UserUuid u = (UserUuid) em.createNamedQuery("UserUuid.findByUserUUID").setParameter("userUUID", uuid).getSingleResult();
+            em.remove(u);
+        }
+        catch(NoResultException ex) {}
+    }
+    
+    /**
+     * Cleanup method. Should be rund daily as a batch job
+     */
+    public void deleteAllExpiredUserUuids()
+    {
+        em.createNamedQuery("DELETE FROM public.user_uuid WHERE expires_at < now()").executeUpdate();
+    }
 }

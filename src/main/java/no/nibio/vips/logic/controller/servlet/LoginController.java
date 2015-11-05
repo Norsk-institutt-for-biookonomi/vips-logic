@@ -36,12 +36,16 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
+import no.nibio.vips.logic.entity.UserUuid;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 
@@ -105,6 +109,7 @@ public class LoginController extends HttpServlet {
                 if(user != null)
                 {
                     request.getSession().setAttribute("user", user);
+                    this.handleRememberUser(request, response, user);
                     response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                 }
                 else
@@ -123,6 +128,13 @@ public class LoginController extends HttpServlet {
         else if(request.getServletPath().contains("logout"))
         {
             request.getSession().removeAttribute("user");
+            Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
+            if(rememberedUser != null)
+            {
+                rememberedUser.setMaxAge(0);
+                response.addCookie(rememberedUser);
+                SessionControllerGetter.getUserBean().deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
+            }
             request.setAttribute("messageKey","logoutsuccess");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
@@ -158,6 +170,7 @@ public class LoginController extends HttpServlet {
                     if(user != null)
                     {
                         request.getSession().setAttribute("user", user);
+                        this.handleRememberUser(request, response, user);
                         response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                     }
                     else
@@ -185,6 +198,7 @@ public class LoginController extends HttpServlet {
                     // We store the information about the next page in a session
                     // as Google does not accept to forward it
                     request.getSession().setAttribute("nextPage", URLEncoder.encode(nextPage, "UTF-8"));
+                    request.getSession().setAttribute("rememberUser", request.getParameter("rememberUser"));
                     // Token to check for security (avoid man-in-the-middle)
                     String state = new BigInteger(130, new SecureRandom()).toString(32);
                     request.getSession().setAttribute("state", state);
@@ -235,6 +249,40 @@ public class LoginController extends HttpServlet {
         
         return nextPage;
     }
+    
+    /**
+     * 
+     * @param request
+     * @param response
+     * @param user 
+     */
+    private void handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user)
+    {
+        
+        String rememberUser = request.getParameter("rememberUser") != null ? 
+                request.getParameter("rememberUser") 
+                : (String) request.getSession().getAttribute("rememberUser");
+        request.getSession().removeAttribute("rememberUser");
+        if(rememberUser != null && rememberUser.equals("on"))
+        {
+            UserUuid uUUID = SessionControllerGetter.getUserBean().createAndPersistUserUuid(user);
+            Cookie rememberedUser = new Cookie("rememberedUser", uUUID.getUserUuidPK().getUserUuid().toString());
+            rememberedUser.setPath("/");
+            rememberedUser.setMaxAge(Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS * 24 * 60 * 60);
+            response.addCookie(rememberedUser);
+        }
+        else
+        {
+            Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
+            if(rememberedUser != null)
+            {
+                rememberedUser.setMaxAge(0);
+                response.addCookie(rememberedUser);
+                SessionControllerGetter.getUserBean().deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
+            }
+        }
+    }
+    
     
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
