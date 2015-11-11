@@ -571,7 +571,9 @@ public class UserBean {
             }
             q = em.createNamedQuery("VipsLogicUser.findByUserId", VipsLogicUser.class);
             q.setParameter("userId", uUuid.getUserUuidPK().getUserId());
-            return (VipsLogicUser) q.getSingleResult(); 
+            VipsLogicUser user = (VipsLogicUser) q.getSingleResult(); 
+            user.setUserUuid(uuid);
+            return user;
         }
         catch(NoResultException ex)
         {

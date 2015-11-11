@@ -42,6 +42,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.UUID;
 
 /**
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
@@ -81,6 +82,8 @@ public class VipsLogicUser implements Serializable {
     private String emailVerificationCode;
     private Set<VipsLogicRole> vipsLogicRoles;
     private Integer vipsCoreUserId;
+    
+    private UUID userUuid;
 
     public VipsLogicUser() {
     }
@@ -351,5 +354,20 @@ public class VipsLogicUser implements Serializable {
             }
         }
         return null;
+    }
+
+    /**
+     * @return the userUuid
+     */
+    @Transient
+    public UUID getUserUuid() {
+        return userUuid;
+    }
+
+    /**
+     * @param userUuid the userUuid to set
+     */
+    public void setUserUuid(UUID userUuid) {
+        this.userUuid = userUuid;
     }
 }

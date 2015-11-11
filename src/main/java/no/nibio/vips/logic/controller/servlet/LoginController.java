@@ -55,6 +55,7 @@ import no.nibio.vips.util.ServletUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class LoginController extends HttpServlet {
+    //private static final String CLOSE_AND_RELOAD_PARENT = "close_and_reload_parent";
     
     /**
      * Processes requests for both HTTP
@@ -110,7 +111,14 @@ public class LoginController extends HttpServlet {
                 {
                     request.getSession().setAttribute("user", user);
                     this.handleRememberUser(request, response, user);
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                    if(nextPage.indexOf("http") == 0)
+                    {
+                        response.sendRedirect(nextPage);
+                    }
+                    else
+                    {
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                    }
                 }
                 else
                 {
@@ -171,7 +179,14 @@ public class LoginController extends HttpServlet {
                     {
                         request.getSession().setAttribute("user", user);
                         this.handleRememberUser(request, response, user);
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                        if(nextPage.indexOf("http") == 0)
+                        {
+                            response.sendRedirect(nextPage);
+                        }
+                        else
+                        {
+                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                        }
                     }
                     else
                     {
@@ -223,6 +238,7 @@ public class LoginController extends HttpServlet {
         // No login attempt. Show form
         else
         {
+            request.setAttribute("checkRemember", request.getParameter("nextPage").indexOf("http") == 0);
             request.setAttribute("messageKey", request.getParameter("messageKey"));
             request.setAttribute("errorMessageKey", request.getParameter("errorMessageKey"));
             request.getRequestDispatcher("/login.ftl").forward(request, response);

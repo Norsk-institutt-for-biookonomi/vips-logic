@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -523,15 +524,39 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getVipsLogicUserByUUID(@PathParam("userUUID") String userUUID)
     {
-        UUID uUUID = UUID.fromString(userUUID);
-        VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
-        if(user != null)
+        try
         {
-            return Response.ok().entity(user).build();
+            UUID uUUID = UUID.fromString(userUUID);
+            VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            if(user != null)
+            {
+                return Response.ok().entity(user).build();
+            }
+            else
+            {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
         }
-        else
+        catch(IllegalArgumentException ex)
         {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.serverError().entity(ex.getMessage()).build();
+        }
+    }
+    
+    @DELETE
+    @Path("user/uuid/{userUUID}")
+    @Produces("application/json;charset=UTF-8")
+    public Response deleteVipsLogicUserUUID(@PathParam("userUUID") String userUUID)
+    {
+        try
+        {
+            UUID uUUID = UUID.fromString(userUUID);
+            SessionControllerGetter.getUserBean().deleteUserUuid(uUUID);
+            return Response.ok().build();
+        }
+        catch(IllegalArgumentException ex)
+        {
+            return Response.serverError().entity(ex.getMessage()).build();
         }
     }
     

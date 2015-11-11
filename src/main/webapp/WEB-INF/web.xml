@@ -79,6 +79,7 @@
         <url-pattern>/logout</url-pattern>
         <url-pattern>/loginsubmit</url-pattern>
         <url-pattern>/oauth2callback</url-pattern>
+        <url-pattern>/closeAndReloadParentAfterLogin</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>UserControllerServlet</servlet-name>

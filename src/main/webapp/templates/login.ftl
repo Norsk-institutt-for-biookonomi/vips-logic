@@ -42,7 +42,7 @@
 		 <input type="text" class="form-control" placeholder="${i18nBundle.username}" name="username" size="15" autofocus/>
 		<input type="password" class="form-control" placeholder="${i18nBundle.password}" name="password" size="15"/>
 		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.login}</button>
-		<input type="checkbox" name="rememberUser"/> ${i18nBundle.rememberLogin}<br/>
+		<input type="checkbox" name="rememberUser"<#if checkRemember?has_content && checkRemember> checked="checked"</#if>/> ${i18nBundle.rememberLogin}<br/>
 		<a href="/user?action=registerNewUserForm&userAuthenticationTypeId=1">${i18nBundle.registerNewUser}</a><br/>
 		<a href="/user?action=resetPasswordRequestForm">${i18nBundle.forgottenPassword}</a>
 	</form>
@@ -50,8 +50,8 @@
 		<input type="hidden" name="userAuthenticationTypeId" value="3"/>
 		<input type="hidden" name="nextPage" value="${nextPage!"/"}"/>
 		<h2 class="form-signin-heading">${i18nBundle.or}</h2>
-		<input type="image"src="/images/btn_sign_in_with_google.png" alt="${i18nBundle.signInWith} Google"/><br/>
-		<input type="checkbox" name="rememberUser"/> ${i18nBundle.rememberLogin}
+		<input type="image" src="/images/btn_sign_in_with_google.png" alt="${i18nBundle.signInWith} Google"/><br/>
+		<input type="checkbox" name="rememberUser"<#if checkRemember?has_content && checkRemember> checked="checked"</#if>/> ${i18nBundle.rememberLogin}
 	</form>
 </div>
 </#macro>
