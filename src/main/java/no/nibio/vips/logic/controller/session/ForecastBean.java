@@ -23,7 +23,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Calendar;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
+import de.micromata.opengis.kml.v_2_2_0.Data;
 import de.micromata.opengis.kml.v_2_2_0.Document;
+import de.micromata.opengis.kml.v_2_2_0.ExtendedData;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
@@ -640,13 +642,31 @@ public class ForecastBean {
                 continue;
             }
             
+            // Adding infoUri (direct link to weather station information) as extra attribute
+            String infoUriValue = "";
+            if(poiWithAggregate instanceof PointOfInterestWeatherStation)
+            {
+                String infoUriExpression = ((PointOfInterestWeatherStation) poiWithAggregate).getWeatherStationDataSourceId().getInfoUriExpression();
+                if(!infoUriExpression.isEmpty())
+                {
+                    infoUriValue = String.format(infoUriExpression, ((PointOfInterestWeatherStation) poiWithAggregate).getWeatherStationRemoteId());
+                }
+            }
+            Data infoUri = new Data(infoUriValue);
+            infoUri.setName("infoUri");
+            List<Data> dataList = new ArrayList<>();
+            dataList.add(infoUri);
+            ExtendedData extendedData = document.createAndSetExtendedData()
+                    .withData(dataList);
+            
             final Placemark placemark = document.createAndAddPlacemark()
             .withName(poiWithAggregate.getName())
             .withDescription("<![CDATA[Mangler informasjon om varsler for " + poiWithAggregate.getName() + "]]>")
             .withStyleUrl("#warning_type_" 
                     + (poiWithAggregate.getProperties().get("forecastsAggregate") != null ? poiWithAggregate.getProperties().get("forecastsAggregate") : "0")
                 )
-             .withId(poiWithAggregate.getPointOfInterestId().toString());
+             .withId(poiWithAggregate.getPointOfInterestId().toString())
+             .withExtendedData(extendedData);
             
             
             final Point point = placemark.createAndSetPoint();

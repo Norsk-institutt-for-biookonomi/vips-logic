@@ -66,6 +66,9 @@ public class WeatherStationDataSource implements Serializable {
     @Size(max = 1024)
     @Column(name = "datafetch_uri_expression")
     private String datafetchUriExpression;
+    @Size(max = 1024)
+    @Column(name = "info_uri_expression")
+    private String infoUriExpression;
 
     public WeatherStationDataSource() {
     }
@@ -134,6 +137,20 @@ public class WeatherStationDataSource implements Serializable {
     @Override
     public String toString() {
         return "no.nibio.vips.logic.entity.WeatherStationDataSource[ weatherStationDataSourceId=" + weatherStationDataSourceId + " ]";
+    }
+
+    /**
+     * @return the infoUriExpression
+     */
+    public String getInfoUriExpression() {
+        return infoUriExpression;
+    }
+
+    /**
+     * @param infoUriExpression the infoUriExpression to set
+     */
+    public void setInfoUriExpression(String infoUriExpression) {
+        this.infoUriExpression = infoUriExpression;
     }
 
     
