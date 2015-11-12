@@ -18,7 +18,15 @@
 (function(){
 
     //allowed domains
-    var whitelist = ["localhost","vipsweb","nibio.no"];
+    // Defined from the system property no.nibio.vips.logic.ALLOWED_X_DOMAINS
+    var whitelist = [<% 
+        boolean first = true;
+        for(String domain : System.getProperty("no.nibio.vips.logic.ALLOWED_X_DOMAINS").split(","))
+        {
+            if(first) { first = false; } else { out.print(","); }
+            out.print("\"" + domain + "\"");
+        }
+    %>];
 
     function verifyOrigin(origin){
         var domain = origin.replace(/^https?:\/\/|:\d{1,4}$/g, "").toLowerCase(),
