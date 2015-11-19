@@ -203,7 +203,7 @@ public class VIPSMobileService {
                 }
                 
                 VIPSMobilePresentation pres = new VIPSMobilePresentation(
-                        -1, 
+                        config.getForecastConfigurationId(), 
                         today, 
                         2, 
                         statusList[0], 
