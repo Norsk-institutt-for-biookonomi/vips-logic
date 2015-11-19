@@ -25,7 +25,7 @@ import javax.ws.rs.core.Application;
 
 /**
  * Responsible for adding REST resources
- * @copyright 2013 {@link http://www.nibio.no NIBIO}
+ * @copyright 2015 {@link http://www.nibio.no NIBIO}
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @ApplicationPath("/rest/")
@@ -46,6 +46,7 @@ public class VIPSLogicApplication extends Application
      */
     private void addRestResourceClassesManually(Set<Class<?>> resources) {
         resources.add(no.nibio.vips.logic.service.LogicService.class);
+        resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
         //resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         //resources.add(no.nibio.vips.coremanager.service.ManagerResourceImpl.class);
@@ -61,6 +62,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         resources.add(no.nibio.vips.logic.service.LogicService.class);
+        resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         
     }
 }

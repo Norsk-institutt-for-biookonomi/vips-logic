@@ -285,6 +285,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getMessageList(
             @QueryParam("publishedFrom") String publishedFrom , @QueryParam("publishedTo") String publishedTo,
+            @QueryParam("locale") String locale,
             @PathParam("organizationId") Integer organizationId
     )
     {

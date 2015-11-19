@@ -28,6 +28,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -66,6 +67,16 @@ public class MessageTagLocale implements Serializable {
 
     public MessageTagLocalePK getMessageTagLocalePK() {
         return messageTagLocalePK;
+    }
+    
+    /**
+     * Decorator for inferior JSON deserializers like Sencha Touch
+     * @return 
+     */
+    @Transient
+    public String getMessageTagLocaleSyntheticPK()
+    {
+        return this.messageTagLocalePK.getMessageTagId() + "_" + this.messageTagLocalePK.getLocale();
     }
 
     public void setMessageTagLocalePK(MessageTagLocalePK messageTagLocalePK) {

@@ -56,6 +56,7 @@ import no.nibio.vips.util.WeatherUtil;
 @NamedQueries({
     @NamedQuery(name = "ForecastConfiguration.findAll", query = "SELECT f FROM ForecastConfiguration f"),
     @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationId", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId = :forecastConfigurationId"),
+    @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId IN(:forecastConfigurationIds)"),
     @NamedQuery(name = "ForecastConfiguration.findByModelId", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId = :modelId"),
     @NamedQuery(name = "ForecastConfiguration.findByModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId IN (:modelIds)"),
     @NamedQuery(name = "ForecastConfiguration.findByDateStart", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart = :dateStart"),
@@ -63,6 +64,7 @@ import no.nibio.vips.util.WeatherUtil;
     @NamedQuery(name = "ForecastConfiguration.findActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate"),
     @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId"),
     @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId"),
+    @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId AND f.dateStart <= :to AND f.dateEnd >= :from"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.dateStart <= :to AND f.dateEnd >= :from" ),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds)"),

@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @NamedQueries({
     @NamedQuery(name = "ForecastSummary.findAll", query = "SELECT f FROM ForecastSummary f"),
     @NamedQuery(name = "ForecastSummary.findByForecastConfigurationId", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.forecastConfigurationId = :forecastConfigurationId"),
+    @NamedQuery(name = "ForecastSummary.findByForecastConfigurationIds", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.forecastConfigurationId IN(:forecastConfigurationIds)"),
     @NamedQuery(name = "ForecastSummary.findBySummaryForDate", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.summaryForDate = :summaryForDate"),
     @NamedQuery(name = "ForecastSummary.findBySummaryCreatedTime", query = "SELECT f FROM ForecastSummary f WHERE f.summaryCreatedTime = :summaryCreatedTime"),
     @NamedQuery(name = "ForecastSummary.findByWarningStatus", query = "SELECT f FROM ForecastSummary f WHERE f.warningStatus = :warningStatus")})

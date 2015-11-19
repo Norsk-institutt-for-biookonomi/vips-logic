@@ -35,6 +35,7 @@ import de.micromata.opengis.kml.v_2_2_0.Vec2;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -79,7 +80,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
- * @copyright 2013-2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
@@ -305,6 +306,16 @@ public class ForecastBean {
         return em
                 .createNamedQuery("ForecastConfiguration.findByWeatherStationPointOfInterestId", ForecastConfiguration.class)
                 .setParameter("weatherStationPointOfInterestId", weatherStation)
+                .getResultList();
+    }
+    
+    public List<ForecastConfiguration> getForecastConfigurations(PointOfInterestWeatherStation weatherStation,Date from, Date to)
+    {
+        return em
+                .createNamedQuery("ForecastConfiguration.findByWeatherStationPointOfInterestIdAndDate", ForecastConfiguration.class)
+                .setParameter("weatherStationPointOfInterestId", weatherStation)
+                .setParameter("from", from)
+                .setParameter("to", to)
                 .getResultList();
     }
     
@@ -795,6 +806,22 @@ public class ForecastBean {
                 + "WHERE forecast_configuration_id NOT IN :activeForecastIds")
                 .setParameter("activeForecastIds", activeForecastIds)
                 .executeUpdate();
+    }
+    
+    public List<ForecastConfiguration> getForecastConfigurationWithSummaries(List<Long> forecastConfigurationIds)
+    {
+        List<ForecastConfiguration> retVal = em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationIds")
+                .setParameter("forecastConfigurationIds", forecastConfigurationIds)
+                .getResultList();
+        for(ForecastConfiguration config: retVal)
+        {
+            Query q = em.createNamedQuery("ForecastSummary.findByForecastConfigurationId");
+            config.setForecastSummaries(
+                    q.setParameter("forecastConfigurationId", config.getForecastConfigurationId())
+                    .getResultList()
+            );
+        }
+        return retVal;
     }
     
     public List<ForecastConfiguration> getForecastConfigurationSummaries(Integer organizationId)
