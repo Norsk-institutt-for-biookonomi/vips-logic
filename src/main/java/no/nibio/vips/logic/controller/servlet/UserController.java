@@ -203,7 +203,7 @@ public class UserController extends HttpServlet {
                         
                         // Standard form validation
                         FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
-                        // If new user: check if username already exists
+                        // If new user: check if username or email already exists
                         if(userId <= 0)
                         {
                             try
@@ -219,6 +219,24 @@ public class UserController extends HttpServlet {
                             catch(NoResultException ex)
                             {
                                 // All is well, proceed...
+                            }
+                            
+                            // Extra check: That user's email is not already in use
+                            FormField emailField = formValidation.getFormField("email");
+                            Boolean emailAlreadyInUse = false;
+                            try
+                            {
+                                VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue());
+                                emailAlreadyInUse = (foundUser != null);
+                            }
+                            catch(NonUniqueResultException ex)
+                            {
+                                emailAlreadyInUse = true;
+                            }
+                            if(emailAlreadyInUse)
+                            {
+                                emailField.setValid(false);
+                                emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
                             }
                         }
                         if(formValidation.isValid())
@@ -282,6 +300,7 @@ public class UserController extends HttpServlet {
                         }
                         else
                         {
+                            viewUser.setOrganizationId(user.getOrganizationId());
                             request.setAttribute("formValidation", formValidation);
                             request.setAttribute("viewUser", viewUser);
                             request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
@@ -465,7 +484,17 @@ public class UserController extends HttpServlet {
                                                 );
                 // Extra check: That user's email is not already in use
                 FormField emailField = formValidation.getFormField("email");
-                if(userBean.getUserByEmail(emailField.getWebValue()) != null)
+                Boolean emailAlreadyInUse = false;
+                try
+                {
+                    VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue());
+                    emailAlreadyInUse = (foundUser != null);
+                }
+                catch(NonUniqueResultException ex)
+                {
+                    emailAlreadyInUse = true;
+                }
+                if(emailAlreadyInUse)
                 {
                     emailField.setValid(false);
                     emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));

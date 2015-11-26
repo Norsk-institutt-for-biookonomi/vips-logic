@@ -50,6 +50,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
@@ -220,7 +221,7 @@ public class UserBean {
      * @param email
      * @return The user, or null if no user with given email is registered
      */
-    public VipsLogicUser getUserByEmail(String email)
+    public VipsLogicUser getUserByEmail(String email) throws NonUniqueResultException
     {
         Query q = em.createNamedQuery("VipsLogicUser.findByEmail",VipsLogicUser.class);
         q.setParameter("email", email);
