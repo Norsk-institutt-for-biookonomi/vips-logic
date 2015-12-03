@@ -48,6 +48,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.service.LogicService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
+        resources.add(no.nibio.vips.logic.modules.roughage.RoughageService.class);
         //resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         //resources.add(no.nibio.vips.coremanager.service.ManagerResourceImpl.class);
     }
@@ -60,6 +61,7 @@ public class VIPSLogicApplication extends Application
     private void addRestResourceClasses(Set<Class<?>> resources) {
         
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
+        resources.add(no.nibio.vips.logic.modules.roughage.RoughageService.class);
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         resources.add(no.nibio.vips.logic.service.LogicService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
