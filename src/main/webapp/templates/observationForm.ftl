@@ -28,6 +28,7 @@
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+        <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/validateForm.js"></script>
