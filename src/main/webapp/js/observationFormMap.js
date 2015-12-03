@@ -443,4 +443,4 @@ function initMap(center, zoomLevel, displayMarker) {
       }, 500, function() {});
     });
   }
-}// end initMap
+}
