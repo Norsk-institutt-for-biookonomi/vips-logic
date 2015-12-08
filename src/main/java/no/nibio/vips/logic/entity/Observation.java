@@ -18,8 +18,6 @@
  */
 package no.nibio.vips.logic.entity;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Point;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
@@ -39,7 +37,9 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.Type;
+import com.vividsolutions.jts.geom.Geometry;
+import java.util.List;
+import no.nibio.vips.logic.util.GISUtil;
 
 /**
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -63,12 +63,16 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Date timeOfObservation;
     private Organism organism;
     private Integer userId;
-    private Point location;
+    //private Point location;
+    private List<Gis> geoinfo;
     private Double observedValue;
     private Integer denominator;
     private ObservationMethod observationMethodId;
+    
+    private GISUtil GISUtil;
 
     public Observation() {
+        this.GISUtil = new GISUtil();
     }
 
     public Observation(Integer observationId) {
@@ -97,6 +101,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     @Basic(optional = false)
     @Column(name = "time_of_observation")
     @Temporal(TemporalType.TIMESTAMP)
+    @Override
     public Date getTimeOfObservation() {
         return timeOfObservation;
     }
@@ -105,8 +110,9 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.timeOfObservation = timeOfObservation;
     }
 
+    
     // Using PostGIS + Hibernate-spatial + Java Topology Suite to make this work
-    @JsonIgnore
+    /*@JsonIgnore
     @Type(type = "org.hibernate.spatial.GeometryType")
     @Column(name = "location", columnDefinition = "Geometry")
     public Point getLocation() {
@@ -115,17 +121,43 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 
     public void setLocation(Point location) {
         this.location = location;
+    }*/
+    
+    public void setGeoinfos(List<Gis> geoinfo)
+    {
+        this.geoinfo = geoinfo;
+    }
+    
+    @JsonIgnore
+    @Transient
+    public List<Gis> getGeoinfos()
+    {
+        return this.geoinfo;
+    }
+    
+    
+    public void setGeoinfo(String json)
+    {
+        this.setGeoinfos(this.GISUtil.getGisFromGeoJSON(json));
     }
     
     @Transient
+    @Override
+    public String getGeoinfo()
+    {
+        return this.GISUtil.getGeoJSONFromGis(this.geoinfo);
+    }
+    
+    /*@Transient
     public Coordinate getLocationCoordinate()
     {
         return this.location.getCoordinate();
-    }
+    }*/
     
     @NotNull
     @Basic(optional = false)
     @Column(name = "observed_value")
+    @Override
     public Double getObservedValue() {
         return observedValue;
     }
@@ -135,6 +167,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     }
 
     @Column(name = "denominator")
+    @Override
     public Integer getDenominator() {
         return denominator;
     }
@@ -215,6 +248,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.organism = organism;
     }
 
+    /*
     @Override
     @Transient
     public Double getLatitude() {
@@ -226,7 +260,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public Double getLongitude() {
         return this.getLocationCoordinate().x;
     }
-
+    */
+    
     @Override
     @Transient
     public String getName() {

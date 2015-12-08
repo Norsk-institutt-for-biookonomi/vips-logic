@@ -51,6 +51,7 @@ public class FormField {
     public final static String DATA_TYPE_PASSWORD = "PASSWORD";
     public final static String DATA_TYPE_EMAIL = "EMAIL";
     public final static String DATA_TYPE_POINT_WGS84 = "POINT_WGS84";
+    public final static String DATA_TYPE_GEOJSON = "GEOJSON";
     
     public final static String FIELD_TYPE_INPUT = "INPUT";
     public final static String FIELD_TYPE_HIDDEN = "HIDDEN";

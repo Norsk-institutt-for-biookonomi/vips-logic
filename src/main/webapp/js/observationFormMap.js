@@ -21,14 +21,16 @@
  * Logic for registering location of an observation using an OpenLayers v3 map
  */
 
+var featureOverlay;
+
 /**
  *
  * @param {ol.Coordinate} center - coordinates for the map's center (WGS84)
  * @param {int} zoomLevel - the zoom level (1-15, 1 is world wide view, 15 is greatest zoom)
  * @param {boolean} displayMarker - show observation marker in center location
+ * @param {string} drawnObjs - GeoJSON with geometries to display
  * @returns {void}
  */
-
 function initMap(center, zoomLevel, displayMarker, drawnObjs) {
 
 
@@ -54,16 +56,6 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
       key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3'
     })
   });
-
-   
-
-   
-
-
-
-  
-
-
 
   var fylke_layer = new ol.layer.Vector({
     title: 'Fylkesgrenser',
@@ -153,7 +145,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   // This collection is passed to the modify and also the draw
   // interaction, so that both can add or modify features.
   var features = new ol.Collection();
-  var featureOverlay = new ol.layer.Vector({
+  featureOverlay = new ol.layer.Vector({
     source: new ol.source.Vector({
       features: features
     }),
@@ -348,4 +340,23 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
       }, 500, function() {});
     });
   }
+}
+
+function getFeatures()
+{
+    var features = featureOverlay.getSource().getFeatures();
+    // create an object to write features on a output KML file 
+    
+    //var desimalDegrees = features[0].getGeometry().clone().transform('EPSG:4326','EPSG:3857').getCoordinates();
+//debugger;
+
+    var format = new ol.format.GeoJSON();
+    // write features to GeoJSON format using projection EPSG:4326
+
+    var result = format.writeFeatures(features, {
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:3857'
+    });
+    
+    return result;
 }

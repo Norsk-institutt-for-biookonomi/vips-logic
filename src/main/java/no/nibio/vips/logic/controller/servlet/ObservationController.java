@@ -108,8 +108,11 @@ public class ObservationController extends HttpServlet {
                 try
                 {
                     Integer observationId = Integer.valueOf(request.getParameter("observationId"));
-                    Observation observation = em.find(Observation.class, observationId);
+                    Observation observation = SessionControllerGetter.getObservationBean().getObservation(observationId);//em.find(Observation.class, observationId);
                     request.setAttribute("observation", observation);
+                    //System.out.println(observation.getGeoinfo());
+                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
                     request.setAttribute("allOrganisms", allOrganisms);
                     // Hierarchy categories
@@ -123,7 +126,7 @@ public class ObservationController extends HttpServlet {
                 }
                 catch(NullPointerException | NumberFormatException ex)
                 {
-                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    response.sendError(500, ex.getMessage() + ": " + ExceptionUtil.getStackTrace(ex));
                 }
             }
             else
@@ -151,7 +154,9 @@ public class ObservationController extends HttpServlet {
                         observation.setTimeOfObservation(formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
                         observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
                         observation.setUserId(user.getUserId());
-                        observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
+                        //observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
+                        //System.out.println(formValidation.getFormField("geoInfo").getWebValue());
+                        observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
                         observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
                         
                         // Redirect to form

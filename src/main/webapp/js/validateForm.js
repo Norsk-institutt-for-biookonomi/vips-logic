@@ -31,9 +31,8 @@ var dataTypes = {
     TYPE_TIMESTAMP: "TIMESTAMP",
     TYPE_PASSWORD: "PASSWORD",
     TYPE_EMAIL: "EMAIL",
-    TYPE_POINT_WGS84: "POINT_WGS84"
-    
-    
+    TYPE_POINT_WGS84: "POINT_WGS84",
+    TYPE_GEOJSON: "GEOJSON"
 };
 
 var fieldTypes= {
@@ -420,6 +419,17 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
         validizeField(fieldEl, theForm);
         return true;
     }
+    if(fieldDefinition.dataType === dataTypes.TYPE_GEOJSON)
+    {
+        // For now: Check that it's valid JSON??
+        if((webValue === "{}" || webValue === fieldDefinition.nullValue) && fieldDefinition.required === true)
+        {   
+            alert(getI18nMsg("mapDataIsRequired"));
+            return false;
+        }
+        validizeField(fieldEl, theForm);
+        return true;
+    }
     
     // Passwords are evaluated in evaluatePassword
     if(fieldDefinition.dataType === dataTypes.TYPE_PASSWORD)
@@ -511,6 +521,7 @@ function invalidizeField(inputEl, theForm, message)
     // Make sure we don't try to manipulate hidden fields
     if(inputEl.type === "hidden")
     {
+        alert(message);
         return;
     }
     styleInvalid(theForm[inputEl.name]);

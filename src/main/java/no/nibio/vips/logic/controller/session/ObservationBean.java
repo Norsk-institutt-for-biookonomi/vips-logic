@@ -19,16 +19,20 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import com.vividsolutions.jts.geom.Geometry;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 
 /**
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
@@ -43,11 +47,93 @@ public class ObservationBean {
                                         .setParameter("organizationId", organization)
                                         .getResultList();
         
-        return em.createNamedQuery("Observation.findAll").getResultList();
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findAll").getResultList());
+        
+        return retVal;
+    }
+    
+    public Observation getObservation(Integer observationId)
+    {
+        Observation retVal = em.find(Observation.class, observationId);
+        if(retVal != null)
+        {
+            retVal.setGeoinfos(this.getGeoinfoForObservation(retVal));
+        }
+        return retVal;
+    }
+    
+    public List<Gis> getGeoinfoForObservation(Observation obs)
+    {
+        List<Integer> gisIds = em.createNativeQuery("SELECT gis_id FROM public.gis_observation WHERE observation_id = :observationId")
+                .setParameter("observationId", obs.getObservationId())
+                .getResultList();
+        
+        if(gisIds != null && ! gisIds.isEmpty())
+        {
+            return em.createNamedQuery("Gis.findByGisIds",Gis.class)
+                    .setParameter("gisIds", gisIds)
+                    .getResultList();
+        }
+        else
+        {
+            return null;
+        }
+    }
+    
+    public List<Observation> getObservationsWithGeoInfo(List<Observation> observations)
+    {
+        Query q1 = em.createNamedQuery("Gis.findByGisIds",Gis.class);
+        
+        Query q2 = em.createNativeQuery("SELECT gis_id FROM public.gis_observation WHERE observation_id = :observationId");
+        
+        for(Observation obs:observations)
+        {
+            List<Integer> gisIds = q2.setParameter("observationId", obs.getObservationId()).getResultList();
+            if(!gisIds.isEmpty())
+            {
+                obs.setGeoinfos(q1.setParameter("gisIds", gisIds).getResultList());
+            }
+            //
+        }
+        return observations;
     }
 
     public Observation storeObservation(Observation observation) {
-        return em.merge(observation);
+        Observation retVal = em.merge(observation);
+        // Store geoinfo
+        // First delete all old observations
+        em.createNativeQuery("DELETE FROM public.gis where gis_id IN (SELECT gis_id FROM public.gis_observation WHERE observation_id=:observationId)")
+                .setParameter("observationId", observation.getObservationId())
+                .executeUpdate();
+        em.createNativeQuery("DELETE FROM public.gis_observation WHERE observation_id=:observationId")
+                .setParameter("observationId", observation.getObservationId())
+                .executeUpdate();
+        // Then persist the new ones
+        if(observation.getGeoinfos() != null && ! observation.getGeoinfos().isEmpty())
+        {
+            for(Gis gis : observation.getGeoinfos())
+            {
+                em.persist(gis);
+            }
+            
+            Query q = em.createNativeQuery("INSERT INTO public.gis_observation(gis_id,observation_id) VALUES(:gisId,:observationId)")
+                .setParameter("observationId", observation.getObservationId());
+            for(Gis gis:observation.getGeoinfos())
+            {
+                q.setParameter("gisId", gis.getGisId())
+                        .executeUpdate();
+            }
+        }
+        /*
+        for(Geometry geom:observation.getGeometries())
+        {
+            Gis gis = new Gis();
+            gis.setGisGeom(geom);
+            em.persist(gis);
+            gises.add(gis);
+        }*/
+        
+        return retVal;
     }
 
     public void deleteObservation(Integer observationId) {
