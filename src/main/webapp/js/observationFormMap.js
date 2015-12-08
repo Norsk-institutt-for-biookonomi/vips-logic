@@ -29,7 +29,7 @@
  * @returns {void}
  */
 
-function initMap(center, zoomLevel, displayMarker) {
+function initMap(center, zoomLevel, displayMarker, drawnObjs) {
 
 
   var osm = new ol.layer.Tile({
@@ -54,6 +54,16 @@ function initMap(center, zoomLevel, displayMarker) {
       key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3'
     })
   });
+
+   
+
+   
+
+
+
+  
+
+
 
   var fylke_layer = new ol.layer.Vector({
     title: 'Fylkesgrenser',
@@ -88,109 +98,6 @@ function initMap(center, zoomLevel, displayMarker) {
     })
   });
 
-
-  /* var vector_layer = new ol.layer.Vector({
-    title: 'Tegnelayer',
-    type: 'overlay',
-    visible: true,
-    name: 'my_vectorlayer',
-    source: new ol.source.Vector(),
-    style: new ol.style.Style({
-      fill: new ol.style.Fill({
-        color: 'rgba(255, 00, 255, 0.2)'
-      }),
-      stroke: new ol.style.Stroke({
-        color: '#ff00ff',
-        width: 2
-      }),
-      image: new ol.style.Circle({
-        radius: 7,
-        fill: new ol.style.Fill({
-          color: '#ff00ff'
-        })
-      })
-    })
-  });
-
-
-  function switchLayer() {
-    var checkedLayer = $('#layerswitcher input[name=layer]:checked').val();
-    for (i = 0, ii = layers.length; i < ii; ++i) layers[i].setVisible(i == checkedLayer);
-  }
-
-  $(function() {
-    switchLayer()
-  });
-  $("#layerswitcher input[name=layer]").change(function() {
-    switchLayer()
-  });
-
-  /*var layers = [
-
-    new ol.layer.Group({
-      'title': 'Bakgrunnskart',
-      layers: [
-        new ol.layer.Tile({
-          title: 'Bing Arial',
-          type: 'base',
-          visible: false,
-          source: new ol.source.BingMaps({
-            imagerySet: 'Aerial',
-            key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3'
-          })
-        }),
-        new ol.layer.Tile({
-          'title': 'OSM',
-          type: 'base',
-          visible: true,
-          source: new ol.source.OSM({
-            attributions: [
-              new ol.Attribution({
-                html: mapConstants.MAP_ATTRIBUTION
-              })
-            ]
-          })
-        })
-      ]
-    }),
-    new ol.layer.Group({
-      title: 'Kartlag',
-      layers: [
-
-        new ol.layer.Vector({
-          title: 'Fylkesgrenser',
-          type: 'overlay',
-          visible: false,
-          source: new ol.source.GeoJSON({
-            projection: 'EPSG:3857',
-            url: '/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&'
-          }),
-          style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-              color: 'rgba(0, 0, 255, 1.0)',
-              width: 3
-            })
-          })
-        }),
-        new ol.layer.Vector({
-          title: 'Kommunegrenser',
-          type: 'overlay',
-          visible: false,
-          source: new ol.source.GeoJSON({
-            projection: 'EPSG:3857',
-            url: '/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&'
-          }),
-          style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-              color: 'rgba(255, 0, 0, 1.0)',
-              width: 1
-            })
-          })
-        }),
-        vector_layer
-      ]
-    })
-  ];*/
 
   // Creating the map
   var map = new ol.Map({
@@ -266,6 +173,17 @@ function initMap(center, zoomLevel, displayMarker) {
       })
     })
   });
+
+  if (drawnObjs){ // Get drawn objs param from initMap
+    var format = new ol.format.GeoJSON();
+    var drawnfeatures = format.readFeatures(drawnObjs, {
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:3857'
+    });
+    //featureOverlay.clear(true);
+    featureOverlay.getSource().addFeatures(drawnfeatures);
+  }
+
   featureOverlay.setMap(map);
 
   var modify = new ol.interaction.Modify({
@@ -309,23 +227,18 @@ function initMap(center, zoomLevel, displayMarker) {
     // get the features drawn on the map
     var features = featureOverlay.getSource().getFeatures();
     // create an object to write features on a output KML file 
-    var format = new ol.format.GeoJSON(
-      /*{
-      defaultDataProjection: 'EPSG:3857'
-    }*/
-    );
+    
+    //var desimalDegrees = features[0].getGeometry().clone().transform('EPSG:4326','EPSG:3857').getCoordinates();
+//debugger;
+
+    var format = new ol.format.GeoJSON();
     // write features to GeoJSON format using projection EPSG:4326
 
     var result = format.writeFeatures(features, {
-      featureProjection: 'EPSG:4326'
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:3857'
     });
 
-    /*var desimalDegrees = format.readFeatures(result, {
-      dataProjection: 'EPSG:3857',
-      featureProjection: 'EPSG:4326'
-    });*/
-    //debugger;
-    // Save KML node as KML file using FileSaver.js script
     alert(result);
     clearMap();
     //var str = (new XMLSerializer).serializeToString(kml);
@@ -373,14 +286,6 @@ function initMap(center, zoomLevel, displayMarker) {
     geolocation.setTracking(this.checked);
   });
 
-  // update the HTML page when the position changes.
-  geolocation.on('change', function() {
-    /*el('accuracy').innerText = geolocation.getAccuracy() + ' [m]';
-  el('altitude').innerText = geolocation.getAltitude() + ' [m]';
-  el('altitudeAccuracy').innerText = geolocation.getAltitudeAccuracy() + ' [m]';
-  el('heading').innerText = geolocation.getHeading() + ' [rad]';
-  el('speed').innerText = geolocation.getSpeed() + ' [m/s]';*/
-  });
 
   // handle geolocation error.
   geolocation.on('error', function(error) {
