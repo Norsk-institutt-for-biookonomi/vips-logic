@@ -55,7 +55,8 @@
 			<#if observation.location?has_content>
 			initMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
 			<#else>
-			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false);
+			var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}</#if>;
+			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo);
 			</#if>
 		});
 	</script>
@@ -72,7 +73,8 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationForm">
-			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="return validateForm(this);">
+			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();return validateForm(this);">
+			  <input type="hidden" name="geoInfo" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <div class="form-group">
 			    <label for="organismId">${i18nBundle.organism}</label>
@@ -86,11 +88,11 @@
 			    </select>
 			    <span class="help-block" id="${formId}_organismId_validation"></span>
 			  </div>
-			  <div class="form-group">
+			  <!--div class="form-group">
 			    <label for="location">${i18nBundle.location}</label>
 			    <input type="text" class="form-control" readonly="readonly" id="location" name="location" placeholder="${i18nBundle.location}" value="${(observation.location.x?c)!""},${(observation.location.y?c)!""}" onblur="validateField(this);" />
 			    <span class="help-block" id="${formId}_location_validation"></span>
-			  </div>
+			  </div-->
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
 			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
