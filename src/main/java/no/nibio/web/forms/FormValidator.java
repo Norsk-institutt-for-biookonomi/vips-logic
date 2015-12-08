@@ -318,6 +318,15 @@ public class FormValidator {
                     }
                 }
             }
+            // GEOJSON
+            if(field.getDataType().equals(FormField.DATA_TYPE_GEOJSON))
+            {
+                if((field.getWebValue().equals("{}") || field.getWebValue().equals(field.getNullValue())) && field.isRequired())
+                {
+                    field.setValid(false);
+                    field.setValidationMessage(resourceBundle.getString("fieldIsRequired"));
+                }
+            }
             
             // SELECT FIELDS
             // SINGLE SELECT

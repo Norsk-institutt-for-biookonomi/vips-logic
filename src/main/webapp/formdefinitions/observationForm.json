@@ -38,9 +38,11 @@
             "required" : true
         },
         {
-            "name" : "location",
-            "dataType" : "POINT_WGS84",
-            "required" : true
+            "name": "geoInfo",
+            "dataType" : "GEOJSON",
+            "fieldType" : "HIDDEN",
+            "required" : true,
+            "nullValue" : "{\"type\":\"FeatureCollection\",\"features\":[]}"
         },
         {
             "name" : "observedValue",

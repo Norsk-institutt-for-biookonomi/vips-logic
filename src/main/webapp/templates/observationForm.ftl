@@ -21,12 +21,14 @@
 <#macro custom_css>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/ >
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/map.css"/ >
 </#macro>
 <#macro custom_js>
 	<script type="text/javascript" src="/js/3rdparty/jquery.datetimepicker.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+        <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/validateForm.js"></script>
@@ -52,7 +54,8 @@
 			<#if observation.location?has_content>
 			initMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
 			<#else>
-			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false);
+			var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}</#if>;
+			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo);
 			</#if>
 		});
 	</script>
@@ -69,7 +72,8 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationForm">
-			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="return validateForm(this);">
+			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();return validateForm(this);">
+			  <input type="hidden" name="geoInfo" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <div class="form-group">
 			    <label for="organismId">${i18nBundle.organism}</label>
@@ -83,11 +87,11 @@
 			    </select>
 			    <span class="help-block" id="${formId}_organismId_validation"></span>
 			  </div>
-			  <div class="form-group">
+			  <!--div class="form-group">
 			    <label for="location">${i18nBundle.location}</label>
 			    <input type="text" class="form-control" readonly="readonly" id="location" name="location" placeholder="${i18nBundle.location}" value="${(observation.location.x?c)!""},${(observation.location.y?c)!""}" onblur="validateField(this);" />
 			    <span class="help-block" id="${formId}_location_validation"></span>
-			  </div>
+			  </div-->
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
 			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
@@ -122,8 +126,21 @@
 			</form>
 		</div>
 		<div class="col-md-6">
+		<div>
+      <label>What do you want to draw</label>
+        <select id="type">
+          <option value="Point">Point</option>
+          <option value="LineString">Line</option>
+          <option value="Polygon">Polygon</option>
+        </select>
+        <button id="delete" type="button">Clear all</button>
+        <button id="save-button" type="button">Save</button>
+      </div>
 			<div id="observationFormMap" class="map">
 			</div>
+			<label class="checkbox" for="track">
+          <input id="track" type="checkbox"/>Show me where I am
+        </label> 
 		</div>
 	</div>
 	<div style="display: none;"><div id="marker" title="Marker"><img src="/images/bug_medium.png"/></div></div>
