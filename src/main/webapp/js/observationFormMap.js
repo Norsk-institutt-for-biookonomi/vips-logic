@@ -57,6 +57,20 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
     })
   });
 
+
+ var topo2graatone = new ol.layer.Tile({
+    title: "Gråtone",
+    type: 'base',
+    visible: false,
+    source: new ol.source.TileWMS({
+      url: "http://opencache.statkart.no/gatekeeper/gk/gk.open?",
+      params: {
+        LAYERS: 'topo2graatone',
+        VERSION: '1.1.1'
+      }
+    })
+  });
+  
   var fylke_layer = new ol.layer.Vector({
     title: 'Fylkesgrenser',
     type: 'overlay',
@@ -64,7 +78,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
     source: new ol.source.Vector({
       projection: 'EPSG:3857',
       format: new ol.format.GeoJSON(),
-      url: '/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&'
+      url: 'http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&'
     }),
     style: new ol.style.Style({
       stroke: new ol.style.Stroke({
@@ -80,7 +94,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
     source: new ol.source.Vector({
       projection: 'EPSG:3857',
       format: new ol.format.GeoJSON(),
-      url: '/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&'
+      url: 'http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&'
     }),
     style: new ol.style.Style({
       stroke: new ol.style.Stroke({
@@ -95,7 +109,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   var map = new ol.Map({
     target: 'observationFormMap',
     //layers: layers,
-    layers: [osm, bingArial, fylke_layer, kommune_layer],
+    layers: [osm, bingArial, topo2graatone, fylke_layer, kommune_layer],
     renderer: 'canvas'
   });
 

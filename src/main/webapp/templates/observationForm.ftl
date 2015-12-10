@@ -21,6 +21,7 @@
 <#macro custom_css>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/ >
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol3-layerswitcher.css"/ >
 	<link rel="stylesheet" type="text/css" href="/css/map.css"/ >
 </#macro>
 <#macro custom_js>
@@ -130,11 +131,9 @@
       <label>What do you want to draw</label>
         <select id="type">
           <option value="Point">Point</option>
-          <option value="LineString">Line</option>
           <option value="Polygon">Polygon</option>
         </select>
         <button id="delete" type="button">Clear all</button>
-        <button id="save-button" type="button">Save</button>
       </div>
 			<div id="observationFormMap" class="map">
 			</div>

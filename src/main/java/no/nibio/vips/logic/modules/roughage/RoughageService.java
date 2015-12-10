@@ -66,7 +66,8 @@ public class RoughageService {
             @QueryParam("firstHarvest") String firstHarvestStr,
             @QueryParam("secondHarvest") String secondHarvestStr,
             @QueryParam("soilType") Integer soilType,
-            @QueryParam("cloverShare") Integer cloverShare
+            @QueryParam("cloverShare") Integer cloverShare,
+            @QueryParam("userWeatherScenarios") String useWeatherScenarios
     )
     {
         ParseRESTParamUtil parseUtil = new ParseRESTParamUtil();
@@ -79,7 +80,10 @@ public class RoughageService {
         cal.setTime(firstHarvest);
         cal.set(Calendar.MONTH, Calendar.APRIL);
         cal.set(Calendar.DATE, 1);
-        Date aprilFirst = new WeatherUtil().normalizeToExactDate(cal.getTime(), timeZone);
+
+        WeatherUtil wUtil = new WeatherUtil();
+        Date aprilFirst = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
+
         // End date for weather data depends on season
         // We try September 30th. If that's in the future,
         // We add 10 days to today
@@ -120,6 +124,43 @@ public class RoughageService {
             );
         } catch (WeatherDataSourceException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+        }
+        
+        // Add weather scenarios??
+        if(useWeatherScenarios != null && useWeatherScenarios.equals("true"))
+        {
+            Date latestObsDate = wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured();
+            Date scenarioEndDate = secondHarvest != null ? secondHarvest : firstHarvest;
+            Double averageEvaporation = wUtil.getAverage(
+                    wUtil.getObservationValues(
+                            wUtil.getLastObservations(observations, "EPP", 5)
+                    )
+            );
+            
+            
+            
+            cal.setTime(latestObsDate);
+            cal.add(Calendar.DATE, 1);
+            Date currentDate = cal.getTime();
+            
+            WeatherObservation scenarioTpl = new WeatherObservation();
+            scenarioTpl.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1D);
+            scenarioTpl.setValue(averageEvaporation);
+            String[] parameters = {WeatherElements.POTENTIAL_EVAPORATION,WeatherElements.TEMPERATURE_MEAN,WeatherElements.PRECIPITATION,WeatherElements.GLOBAL_RADIATION};
+            while(currentDate.before(scenarioEndDate))
+            {
+                scenarioTpl.setTimeMeasured(currentDate);
+                for(String param:parameters)
+                {
+                    WeatherObservation scenarioObs = new WeatherObservation(scenarioTpl);
+                    scenarioObs.setElementMeasurementTypeId(param);
+                    observations.add(scenarioObs);
+                }
+                
+                cal.setTime(currentDate);
+                cal.add(Calendar.DATE, 1);
+                currentDate = cal.getTime();
+            }
         }
         
         ModelConfiguration config = new ModelConfiguration();
