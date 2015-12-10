@@ -131,11 +131,9 @@
       <label>What do you want to draw</label>
         <select id="type">
           <option value="Point">Point</option>
-          <option value="LineString">Line</option>
           <option value="Polygon">Polygon</option>
         </select>
         <button id="delete" type="button">Clear all</button>
-        <button id="save-button" type="button">Save</button>
       </div>
 			<div id="observationFormMap" class="map">
 			</div>
