@@ -19,9 +19,14 @@
 
 package no.nibio.vips.logic.modules.roughage;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -67,9 +72,15 @@ public class RoughageService {
             @QueryParam("secondHarvest") String secondHarvestStr,
             @QueryParam("soilType") Integer soilType,
             @QueryParam("cloverShare") Integer cloverShare,
-            @QueryParam("userWeatherScenarios") String useWeatherScenarios
+            @QueryParam("userWeatherScenarios") String useWeatherScenarios,
+            @QueryParam("scenarioMeanTemp") Double scenarioMeanTemp,
+            @QueryParam("scenarioPrecipitation") Double scenarioPrecipitation,
+            @QueryParam("scenarioRadiation") Double scenarioRadiation,
+            @QueryParam("optimizationInfo") List<String> optimizationInfo,
+            @QueryParam("watering") List<String> waterings
     )
     {
+        
         ParseRESTParamUtil parseUtil = new ParseRESTParamUtil();
         TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
         Date firstHarvest = parseUtil.parseISODate(firstHarvestStr, timeZone);
@@ -127,39 +138,80 @@ public class RoughageService {
         }
         
         // Add weather scenarios??
-        if(useWeatherScenarios != null && useWeatherScenarios.equals("true"))
+        if(
+                useWeatherScenarios != null && useWeatherScenarios.equals("true")
+                && scenarioMeanTemp != null && scenarioPrecipitation != null && scenarioRadiation != null
+                )
         {
-            Date latestObsDate = wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured();
+            Date latestObsDate = wUtil.getLastObservations(observations, "EPP", 1).get(0).getTimeMeasured();
             Date scenarioEndDate = secondHarvest != null ? secondHarvest : firstHarvest;
-            Double averageEvaporation = wUtil.getAverage(
+            Double scenarioEvaporation = wUtil.getAverage(
                     wUtil.getObservationValues(
                             wUtil.getLastObservations(observations, "EPP", 5)
                     )
             );
-            
-            
-            
+
             cal.setTime(latestObsDate);
             cal.add(Calendar.DATE, 1);
             Date currentDate = cal.getTime();
             
             WeatherObservation scenarioTpl = new WeatherObservation();
             scenarioTpl.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1D);
-            scenarioTpl.setValue(averageEvaporation);
-            String[] parameters = {WeatherElements.POTENTIAL_EVAPORATION,WeatherElements.TEMPERATURE_MEAN,WeatherElements.PRECIPITATION,WeatherElements.GLOBAL_RADIATION};
-            while(currentDate.before(scenarioEndDate))
+            Map<String, Double> scenarios = new HashMap<>();
+            scenarios.put(WeatherElements.POTENTIAL_EVAPORATION, scenarioEvaporation);
+            scenarios.put(WeatherElements.TEMPERATURE_MEAN, scenarioMeanTemp);
+            scenarios.put(WeatherElements.PRECIPITATION, scenarioPrecipitation);
+            scenarios.put(WeatherElements.GLOBAL_RADIATION, scenarioRadiation);
+            
+            while(currentDate.compareTo(scenarioEndDate) <= 0)
             {
                 scenarioTpl.setTimeMeasured(currentDate);
-                for(String param:parameters)
+                for(String param:scenarios.keySet())
                 {
                     WeatherObservation scenarioObs = new WeatherObservation(scenarioTpl);
                     scenarioObs.setElementMeasurementTypeId(param);
+                    scenarioObs.setValue(scenarios.get(param));
                     observations.add(scenarioObs);
                 }
                 
                 cal.setTime(currentDate);
                 cal.add(Calendar.DATE, 1);
                 currentDate = cal.getTime();
+            }
+        }
+        
+        // Add waterings??
+        if(waterings != null && ! waterings.isEmpty())
+        {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone);
+            Map<Date,Double> wateringMap = new HashMap<>();
+            for(String wateringStr:waterings)
+            {
+                String[] elems = wateringStr.split(",");
+                try
+                {
+                    Date wateringDate = format.parse(elems[0]);
+                    Double wateringAmount = Double.parseDouble(elems[1]);
+                    wateringMap.put(wateringDate, wateringAmount);
+                }
+                catch(ParseException ex)
+                {
+                    // Skip to next
+                }    
+            }
+            
+            // Add waterings to observations
+            for(WeatherObservation obs:observations)
+            {
+                if  (
+                        obs.getElementMeasurementTypeId().equals("RR")
+                        && wateringMap.containsKey(obs.getTimeMeasured())
+                    )
+                {
+                    //System.out.println("Old: " + obs.getValue() + ", new: " + (obs.getValue() + wateringMap.get(obs.getTimeMeasured())));
+                    obs.setValue(obs.getValue() + wateringMap.get(obs.getTimeMeasured()));
+                }
             }
         }
         
@@ -176,6 +228,19 @@ public class RoughageService {
         {
             config.setConfigParameter("secondHarvest", secondHarvest);
         }
+        
+        
+        
+        // Optimizations
+        // We just pass the csv lines as-is. Otherwise we'd need to create
+        // a common Class for Jackson (de)serialization
+        if(optimizationInfo != null && !optimizationInfo.isEmpty())
+        {
+           config.setConfigParameter("optimizationInfo", optimizationInfo);
+        }
+        
+        
+        
         // Must get the VIPSCore user id for this organization
         Organization org = em.find(Organization.class, organizationId);
         Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
