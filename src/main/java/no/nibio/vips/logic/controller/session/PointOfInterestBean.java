@@ -20,7 +20,9 @@
 package no.nibio.vips.logic.controller.session;
 
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
+import de.micromata.opengis.kml.v_2_2_0.Data;
 import de.micromata.opengis.kml.v_2_2_0.Document;
+import de.micromata.opengis.kml.v_2_2_0.ExtendedData;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
@@ -162,18 +164,32 @@ public class PointOfInterestBean {
             String styleUrl = "#weatherstation_icon"
                             +   (highlightWeatherStationId != null && highlightWeatherStationId.equals(weatherStation.getPointOfInterestId()) ? "_highlighted" :"");
             
+            String infoUriValue = "";
             if(weatherStation instanceof PointOfInterestWeatherStation)
             {
                 description = i18nBundle.getString("dataSourceName") + 
                                 ": <a href=\"" + weatherStation.getWeatherStationDataSourceId().getUri() + "\" target=\"new\">" 
                                 +  weatherStation.getWeatherStationDataSourceId().getName() 
                                 + "</a>";
+                String infoUriExpression = ((PointOfInterestWeatherStation) weatherStation).getWeatherStationDataSourceId().getInfoUriExpression();
+                if(!infoUriExpression.isEmpty())
+                {
+                    infoUriValue = String.format(infoUriExpression, ((PointOfInterestWeatherStation) weatherStation).getWeatherStationRemoteId());
+                }
             }
+            Data infoUri = new Data(infoUriValue);
+            infoUri.setName("infoUri");
+            List<Data> dataList = new ArrayList<>();
+            dataList.add(infoUri);
+            ExtendedData extendedData = document.createAndSetExtendedData()
+                    .withData(dataList);
+            
             final Placemark placemark = document.createAndAddPlacemark()
             .withName(weatherStation.getName())
             .withDescription(description)
             .withStyleUrl(styleUrl)
-             .withId(weatherStation.getPointOfInterestId().toString());
+            .withId(weatherStation.getPointOfInterestId().toString())
+            .withExtendedData(extendedData);
             
             
             final Point point = placemark.createAndSetPoint();
