@@ -21,7 +21,7 @@
  * Logic for registering location of an observation using an OpenLayers v3 map
  */
 
-var featureOverlay;
+var featureOverlay, map;
 
 /**
  *
@@ -31,7 +31,7 @@ var featureOverlay;
  * @param {string} drawnObjs - GeoJSON with geometries to display
  * @returns {void}
  */
-function initMap(center, zoomLevel, displayMarker, drawnObjs) {
+function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersJson) {
 
 
   var osm = new ol.layer.Tile({
@@ -58,7 +58,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   });
 
 
- var topo2graatone = new ol.layer.Tile({
+  var topo2graatone = new ol.layer.Tile({
     title: "Gråtone",
     type: 'base',
     visible: false,
@@ -70,50 +70,44 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
       }
     })
   });
-  
-  var fylke_layer = new ol.layer.Vector({
-    title: 'Fylkesgrenser',
-    type: 'overlay',
-    visible: false,
-    source: new ol.source.Vector({
-      projection: 'EPSG:3857',
-      format: new ol.format.GeoJSON(),
-      url: 'http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&'
-    }),
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: 'rgba(0, 0, 255, 1.0)',
-        width: 3
-      })
-    })
-  });
-  var kommune_layer = new ol.layer.Vector({
-    title: 'Kommunegrenser',
-    type: 'overlay',
-    visible: false,
-    source: new ol.source.Vector({
-      projection: 'EPSG:3857',
-      format: new ol.format.GeoJSON(),
-      url: 'http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&'
-    }),
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: 'rgba(255, 0, 0, 1.0)',
-        width: 1
-      })
-    })
-  });
+ 
+  //-----------------Get maplayers you can choose from-----------------------------
 
+  var layersObj = eval ("(" + chooseLayersJson + ")");
+  var allLayers = [osm, bingArial, topo2graatone] ;
+  var chooseLayers = [];
+  var choosenLayer;
+  var hoverAttribute = '';
+
+    if (layersObj.chooseFromMapLayers.length > 0){
+      for (i = 0; i < layersObj.chooseFromMapLayers.length; i++) { 
+        var layer = layersObj.chooseFromMapLayers[i];
+        chooseLayers.push(new ol.layer.Vector({
+          id: layer.id,
+          title: layer.title,
+          type: layer.type,
+          visible: layer.visible, 
+          hoverAttribute:layer.hoverAttribute,          
+          source: new ol.source.Vector({
+            projection: layer.projection,
+            format: new ol.format.GeoJSON(),
+            url: layer.url
+          })
+        }));
+      }
+    }
+
+    allLayers.push.apply(allLayers, chooseLayers);
+ 
 
   // Creating the map
-  var map = new ol.Map({
+  map = new ol.Map({
     target: 'observationFormMap',
-    //layers: layers,
-    layers: [osm, bingArial, topo2graatone, fylke_layer, kommune_layer],
+    layers: allLayers,
     renderer: 'canvas'
   });
 
-  var centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
+  var centerPosition = ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857');
 
   // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
   // center to correct map projection)
@@ -123,6 +117,9 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   });
 
   map.setView(view);
+
+
+
 
   // Marker overlay
   var marker = new ol.Overlay({
@@ -143,14 +140,10 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   map.addControl(mousePositionControl);
 
   var layerSwitcher = new ol.control.LayerSwitcher({
-    tipLabel: 'Légende' // Optional label for button
+    tipLabel: 'Layerswitcher' // Optional label for button
   });
   map.addControl(layerSwitcher);
 
-  // Listening for single clicks, position observation pin and updating form element
-  /*map.on(['singleclick'], function(evt) {
-    updateLocationPosition(evt.coordinate);
-  });*/
 
   //###################### DRAWING ########################################
   // make interactions global so they can later be removed
@@ -180,11 +173,47 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
     })
   });
 
-  if (drawnObjs){ // Get drawn objs param from initMap
+
+  function computeFeatureStyle(feature, resolution) {
+    return [new ol.style.Style({
+      fill: new ol.style.Fill({
+        color: 'rgba(0, 0, 255, 0.2)'
+      }),
+      stroke: new ol.style.Stroke({
+        color: 'rgba(0, 0, 255, 0.8)',
+        width: 1
+      }),
+      text: new ol.style.Text({
+        font: '12px helvetica,sans-serif',
+        text: feature.get(hoverAttribute),
+        //rotation: 360 * rnd * Math.PI / 180,
+        fill: new ol.style.Fill({
+          color: '#000'
+        }),
+        stroke: new ol.style.Stroke({
+          color: '#fff',
+          width: 2
+        })
+      })
+    })];
+  }
+
+
+  var mouseFeatures = new ol.Collection();
+  mouseOverlay = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      features: mouseFeatures
+    }),
+    style: computeFeatureStyle
+  });
+
+  mouseOverlay.setMap(map);
+
+  if (drawnObjs) { // Get drawn objs param from initMap
     var format = new ol.format.GeoJSON();
     var drawnfeatures = format.readFeatures(drawnObjs, {
       dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857'
+      featureProjection: map.getView().getProjection().getCode()
     });
     //featureOverlay.clear(true);
     featureOverlay.getSource().addFeatures(drawnfeatures);
@@ -202,16 +231,49 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
         ol.events.condition.singleClick(event);
     }
   });
-  map.addInteraction(modify);
+
 
   var draw; // global so we can remove it later
-  function addInteraction() {
+  function addDrawInteraction() {
     draw = new ol.interaction.Draw({
       features: features,
       type: /** @type {ol.geom.GeometryType} */ (typeSelect.value)
     });
     map.addInteraction(draw);
   }
+
+
+  function chooseFromLayer(chooseLayer) {
+      map.removeInteraction(draw);
+     chooseLayer.setVisible(true);
+      //map.addInteraction(selectInteraction);
+    var clickInfo = function(pixel) {
+      var features = [];
+      map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+        featureOverlay.getSource().addFeature(feature);
+      });
+    };
+
+    map.on('click', function(evt) {
+      var pixel = evt.pixel;
+      clickInfo(pixel);
+    });
+
+    var mouseInfo = function(pixel) {
+      var features = [];
+      map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+        mouseOverlay.getSource().clear(true);
+        mouseOverlay.getSource().addFeature(feature);
+      });
+    };
+
+    map.on('pointermove', function(evt) {
+      var pixel = evt.pixel;
+      mouseInfo(pixel);
+    });
+  }
+
+
 
   var typeSelect = document.getElementById('type');
 
@@ -222,34 +284,39 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
    */
   typeSelect.onchange = function(e) {
     map.removeInteraction(draw);
-    addInteraction();
+
+    for (i = 0; i < chooseLayers.length; i++) {
+      if (e.target.value === chooseLayers[i].getProperties().id) {
+        choosenLayer = chooseLayers[i];
+        hoverAttribute = choosenLayer.getProperties().hoverAttribute;
+        choosenLayer.setVisible(true);
+        chooseFromLayer(choosenLayer);
+      } else {
+        chooseLayers[i].setVisible(false);
+      }
+    }
+    if (e.target.value === 'Point' || e.target.value === 'Polygon'){
+      map.addInteraction(modify);
+        addDrawInteraction();
+    }
   };
 
-  addInteraction();
+  addDrawInteraction();
 
 
 
   $('#save-button').click(function() {
     // get the features drawn on the map
     var features = featureOverlay.getSource().getFeatures();
-    // create an object to write features on a output KML file 
-    
-    //var desimalDegrees = features[0].getGeometry().clone().transform('EPSG:4326','EPSG:3857').getCoordinates();
-//debugger;
-
     var format = new ol.format.GeoJSON();
     // write features to GeoJSON format using projection EPSG:4326
 
     var result = format.writeFeatures(features, {
       dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857'
+      featureProjection: map.getView().getProjection().getCode()
     });
 
     alert(result);
-    clearMap();
-    //var str = (new XMLSerializer).serializeToString(kml);
-    //var blob = new Blob([str], {type: "text/plain;charset=utf-8;"});
-    //saveAs(blob, "NovaCamada.kml");
   });
 
 
@@ -290,55 +357,47 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
 
   el('track').addEventListener('change', function() {
     geolocation.setTracking(this.checked);
+    $('#type').val('Point');
+    for (i = 0; i < chooseLayers.length; i++) {
+      chooseLayers[i].setVisible(false);
+    }
   });
 
 
   // handle geolocation error.
   geolocation.on('error', function(error) {
     alert(error.message);
-    /*var info = document.getElementById('info');
-  info.innerHTML = error.message;
-  info.style.display = '';*/
   });
 
-  var accuracyFeature = new ol.Feature();
-  geolocation.on('change:accuracyGeometry', function() {
-    accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
-  });
 
-  var positionFeature = new ol.Feature();
-  positionFeature.setStyle(new ol.style.Style({
-    image: new ol.style.Circle({
-      radius: 6,
-      fill: new ol.style.Fill({
-        color: '#3399CC'
-      }),
-      stroke: new ol.style.Stroke({
-        color: '#fff',
-        width: 2
-      })
-    })
-  }));
 
   geolocation.on('change:position', function() {
     var coordinates = geolocation.getPosition();
-    updateLocationPosition(coordinates);
-    positionFeature.setGeometry(coordinates ?
-      new ol.geom.Point(coordinates) : null);
+
+    var posFeature = new ol.Feature({
+      geometry: new ol.geom.Point(coordinates)
+    });
+
+    featureOverlay.getSource().addFeature(posFeature);
+
+    var numFeatures = featureOverlay.getSource().getFeatures().length;
+    if (numFeatures > 1) { //Zoom to all features
+      var extent = featureOverlay.getSource().getExtent();
+      map.getView().fit(extent, map.getSize());
+    } else { //Zoom to geolocation
+      map.getView().setCenter(coordinates);
+      map.getView().setZoom(15);
+    }
+
+    map.addInteraction(modify);
+    addDrawInteraction();
+
+
   });
 
-  var featuresOverlay = new ol.layer.Vector({
-    map: map,
-    source: new ol.source.Vector({
-      features: [accuracyFeature, positionFeature]
-    })
-  });
 
 
-
-
-
-  function updateLocationPosition(coordinate) {
+  /*function updateLocationPosition(coordinate) {
     var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'), 8);
     // Set/move location pin
     marker.setPosition(coordinate);
@@ -353,24 +412,18 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
         borderWidth: "1"
       }, 500, function() {});
     });
-  }
+  }*/
 }
 
-function getFeatures()
-{
-    var features = featureOverlay.getSource().getFeatures();
-    // create an object to write features on a output KML file 
-    
-    //var desimalDegrees = features[0].getGeometry().clone().transform('EPSG:4326','EPSG:3857').getCoordinates();
-//debugger;
+function getFeatures() {
+  var features = featureOverlay.getSource().getFeatures();
+  var format = new ol.format.GeoJSON();
+  // write features to GeoJSON format using projection EPSG:4326
 
-    var format = new ol.format.GeoJSON();
-    // write features to GeoJSON format using projection EPSG:4326
+  var result = format.writeFeatures(features, {
+    dataProjection: 'EPSG:4326',
+    featureProjection: map.getView().getProjection().getCode()
+  });
 
-    var result = format.writeFeatures(features, {
-      dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857'
-    });
-    
-    return result;
+  return result;
 }
