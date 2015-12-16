@@ -80,6 +80,7 @@ public class ObservationController extends HttpServlet {
                 {
                     Observation observation = new Observation();
                     request.setAttribute("observation", observation);
+                    request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
@@ -110,6 +111,7 @@ public class ObservationController extends HttpServlet {
                     Integer observationId = Integer.valueOf(request.getParameter("observationId"));
                     Observation observation = SessionControllerGetter.getObservationBean().getObservation(observationId);//em.find(Observation.class, observationId);
                     request.setAttribute("observation", observation);
+                    request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
                     //System.out.println(observation.getGeoinfo());
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());

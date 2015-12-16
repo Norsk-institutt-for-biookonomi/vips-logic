@@ -56,7 +56,8 @@
 			initMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
 			<#else>
 			var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}</#if>;
-			var chooseFromMapLayers = {"chooseFromMapLayers": [{"id": "Kommune","title": "Kommunegrenser","type": "overlay","visible": false,"hoverAttribute":"navn","url": "http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&"},{"id": "Fylke","title": "Fylkesgrenser","type": "overlay","visible": false,"hoverAttribute":"","url": "http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&"}]};
+			//var chooseFromMapLayers = {"chooseFromMapLayers": [{"id": "Kommune","title": "Kommunegrenser","type": "overlay","visible": false,"hoverAttribute":"navn","url": "http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&"},{"id": "Fylke","title": "Fylkesgrenser","type": "overlay","visible": false,"hoverAttribute":"","url": "http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&"}]};
+			var chooseFromMapLayers = {"chooseFromMapLayers":<#if mapLayers?has_content>${mapLayers}<#else>[]</#if>};
 			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo, chooseFromMapLayers);
 			</#if>
 		});
