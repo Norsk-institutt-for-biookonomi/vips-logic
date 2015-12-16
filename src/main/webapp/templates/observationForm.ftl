@@ -133,8 +133,6 @@
         <select id="type">
           <option value="Point">Point</option>
           <option value="Polygon">Polygon</option>
-          <option value="Kommune">Kommune</option>
-          <option value="Fylke">Fylke</option>
         </select>
         <button id="delete" type="button">Clear all</button>
       </div>
