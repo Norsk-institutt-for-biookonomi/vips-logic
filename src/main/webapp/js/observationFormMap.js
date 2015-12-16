@@ -85,14 +85,14 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
       for (i = 0; i < chooseLayersObj.chooseFromMapLayers.length; i++) { 
         var layer = chooseLayersObj.chooseFromMapLayers[i];
         var opt = document.createElement("option");
-        opt.value = layer.id;
-        opt.text=layer.title;
+        opt.value = layer.mapLayerId;
+        opt.text = layer.mapLayerTitle;
         typeSelect.appendChild(opt);
         chooseLayers.push(new ol.layer.Vector({
-          id: layer.id,
-          title: layer.title,
-          type: layer.type,
-          visible: layer.visible, 
+          id: layer.mapLayerId,
+          title: layer.mapLayerTitle,
+          type: layer.mapLayerType,
+          visible: layer.defaultVisible, 
           hoverAttribute:layer.hoverAttribute,          
           source: new ol.source.Vector({
             projection: layer.projection,
@@ -289,7 +289,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
     map.removeInteraction(draw);
 
     for (i = 0; i < chooseLayers.length; i++) {
-      if (e.target.value === chooseLayers[i].getProperties().id) {
+      if (parseInt(e.target.value) === chooseLayers[i].getProperties().id) {
         choosenLayer = chooseLayers[i];
         hoverAttribute = choosenLayer.getProperties().hoverAttribute;
         choosenLayer.setVisible(true);
