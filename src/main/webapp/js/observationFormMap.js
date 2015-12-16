@@ -31,7 +31,7 @@ var featureOverlay, map;
  * @param {string} drawnObjs - GeoJSON with geometries to display
  * @returns {void}
  */
-function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersJson) {
+function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
 
 
   var osm = new ol.layer.Tile({
@@ -73,15 +73,21 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersJson) 
  
   //-----------------Get maplayers you can choose from-----------------------------
 
-  var layersObj = eval ("(" + chooseLayersJson + ")");
+  //var layersObj = eval ("(" + chooseLayersObj + ")");
   var allLayers = [osm, bingArial, topo2graatone] ;
   var chooseLayers = [];
   var choosenLayer;
   var hoverAttribute = '';
 
-    if (layersObj.chooseFromMapLayers.length > 0){
-      for (i = 0; i < layersObj.chooseFromMapLayers.length; i++) { 
-        var layer = layersObj.chooseFromMapLayers[i];
+  var typeSelect = document.getElementById('type');
+
+    if (chooseLayersObj.chooseFromMapLayers.length > 0){
+      for (i = 0; i < chooseLayersObj.chooseFromMapLayers.length; i++) { 
+        var layer = chooseLayersObj.chooseFromMapLayers[i];
+        var opt = document.createElement("option");
+        opt.value = layer.id;
+        opt.text=layer.title;
+        typeSelect.appendChild(opt);
         chooseLayers.push(new ol.layer.Vector({
           id: layer.id,
           title: layer.title,
@@ -273,9 +279,6 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersJson) 
     });
   }
 
-
-
-  var typeSelect = document.getElementById('type');
 
 
   /**
