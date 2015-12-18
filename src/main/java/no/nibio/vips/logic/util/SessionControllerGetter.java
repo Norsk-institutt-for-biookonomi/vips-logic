@@ -28,6 +28,7 @@ import javax.naming.NamingException;
 import no.nibio.vips.logic.controller.session.MessageBean;
 import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.messaging.MessagingBean;
 
 /**
  * @copyright 2013-2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -120,6 +121,20 @@ public class SessionControllerGetter {
         }catch(NamingException ne)
         {
             System.out.println("Could not find " + MessageBean.class.getSimpleName());
+            return null;
+        }
+    }
+    
+    public static MessagingBean getMessagingBean(){
+        try
+        {
+            InitialContext ic = new InitialContext();
+            MessagingBean retVal = (MessagingBean) ic.lookup(SessionControllerGetter.getJndiPath(MessagingBean.class));
+            return retVal;
+        }
+        catch(NamingException ne)
+        {
+            System.out.println("Could not find " + MessagingBean.class.getSimpleName());
             return null;
         }
     }
