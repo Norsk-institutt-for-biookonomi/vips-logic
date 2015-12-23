@@ -35,7 +35,6 @@
     rgba(255, 255, 255, 0.4); 
     z-index:100; 
 }
-
 #layerswitcher { 
     margin:0; 
     padding:10px; 
@@ -43,4 +42,44 @@
     background:rgba(0, 60, 136, 0.5); 
     list-style-type:none; 
 } 
- 
+
+.geo-location {
+    position: absolute;
+    top: 4.5em;
+    left: 0.5em;
+    text-align: left;
+}
+
+.geo-location .panel {
+    padding-right: 50px;
+    border: 1px solid #cccccc;
+    background-color: white;
+    margin: 0;
+    display: none;
+}
+
+.geo-location.shown .panel {
+    display: block;
+}
+
+.geo-location button {
+    float: right;
+    width: 38px;
+    height: 38px;
+    background-image: url('../images/geoloc3.png');
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: 1px;
+    background-color: white;
+    border: none;
+}
+
+.geo-location button:focus, .geo-location button:hover {
+    background-color: white;
+}
+
+.clearOneActive {
+    background-color: #009933 !important;
+    color: white;
+}
+

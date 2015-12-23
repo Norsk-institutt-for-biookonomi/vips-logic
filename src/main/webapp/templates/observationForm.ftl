@@ -135,12 +135,11 @@
           <option value="Polygon">Polygon</option>
         </select>
         <button id="delete" type="button">Clear all</button>
+        <button  id="deleteOne" type="button">Clear one</button>
       </div>
 			<div id="observationFormMap" class="map">
 			</div>
-			<label class="checkbox" for="track">
-          <input id="track" type="checkbox"/>Show me where I am
-        </label> 
+			<div id="alert_placeholder"></div> 
 		</div>
 	</div>
 	<div style="display: none;"><div id="marker" title="Marker"><img src="/images/bug_medium.png"/></div></div>
