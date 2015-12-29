@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -61,6 +62,22 @@ public class RoughageService {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
     
+    /**
+     * Temporary hack to get correct normal data weather stations
+     * @return 
+     */
+    @GET
+    @Path("normaldataweatherstations")
+    @Produces("application/json;charset=UTF-8")
+    public Response getWeatherStations()
+    {
+        String[] stationNames = {"Apelsvoll","Fureneset","Holt","Kvithamar","Landvik","Løken","Særheim","Tjøtta", "Ås"};
+        Query q = em.createNamedQuery("PointOfInterestWeatherStation.findByNames");
+        q.setParameter("names", Arrays.asList(stationNames));
+        List<PointOfInterestWeatherStation> stations = q.getResultList();
+        return Response.ok().entity(stations).build();
+    }
+    
     @GET
     @Path("nutrition/runmodel/{organizationId}")
     @Produces("application/json;charset=UTF-8")
@@ -68,6 +85,8 @@ public class RoughageService {
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("timeZone") String timeZoneStr,
             @QueryParam("weatherStationId") Integer weatherStationId,
+            @QueryParam("normalDataWeatherStationId") Integer normalDataWeatherStationId,
+            @QueryParam("wateringAffectsNormalData") String wateringAffectsNormalData,
             @QueryParam("firstHarvest") String firstHarvestStr,
             @QueryParam("secondHarvest") String secondHarvestStr,
             @QueryParam("soilType") Integer soilType,
@@ -181,11 +200,12 @@ public class RoughageService {
         }
         
         // Add waterings??
+        Map<Date,Double> wateringMap = null;
         if(waterings != null && ! waterings.isEmpty())
         {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             format.setTimeZone(timeZone);
-            Map<Date,Double> wateringMap = new HashMap<>();
+            wateringMap = new HashMap<>();
             for(String wateringStr:waterings)
             {
                 String[] elems = wateringStr.split(",");
@@ -229,8 +249,6 @@ public class RoughageService {
             config.setConfigParameter("secondHarvest", secondHarvest);
         }
         
-        
-        
         // Optimizations
         // We just pass the csv lines as-is. Otherwise we'd need to create
         // a common Class for Jackson (de)serialization
@@ -238,8 +256,6 @@ public class RoughageService {
         {
            config.setConfigParameter("optimizationInfo", optimizationInfo);
         }
-        
-        
         
         // Must get the VIPSCore user id for this organization
         Organization org = em.find(Organization.class, organizationId);
@@ -254,6 +270,93 @@ public class RoughageService {
         {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
         }
+        // NORMALDATA
+        if(normalDataWeatherStationId != null && normalDataWeatherStationId > -1)
+        {
+            // Definere normalparametre
+            // Hente normaldata
+            try {
+                    weatherStation = em.find(PointOfInterestWeatherStation.class, normalDataWeatherStationId);
+                    observations = wsdUtil.getWeatherObservations(
+                        weatherStation,
+                        WeatherObservation.LOG_INTERVAL_ID_1D,
+                        new String[]{
+                            WeatherElements.getNormalDataParameter(WeatherElements.TEMPERATURE_MEAN),
+                            WeatherElements.getNormalDataParameter(WeatherElements.PRECIPITATION),
+                            WeatherElements.getNormalDataParameter(WeatherElements.GLOBAL_RADIATION),
+                            WeatherElements.getNormalDataParameter(WeatherElements.SOIL_TEMPERATURE_10CM_MEAN),
+                            WeatherElements.getNormalDataParameter(WeatherElements.POTENTIAL_EVAPORATION)
+                        },
+                        aprilFirst, 
+                        dateOfLastWeatherData
+                    );
+                    
+                    // Add waterings to normal data precipitation?
+                    if(
+                            wateringAffectsNormalData != null && wateringAffectsNormalData.equals("true")
+                            && wateringMap != null
+                    )
+                    {
+                        for(WeatherObservation obs:observations)
+                        {
+                            if(
+                                    obs.getElementMeasurementTypeId().equals("RR")
+                                    && wateringMap.containsKey(obs.getTimeMeasured())
+                            )
+                            {
+                                //System.out.println("Old: " + obs.getValue() + ", new: " + (obs.getValue() + wateringMap.get(obs.getTimeMeasured())));
+                                obs.setValue(obs.getValue() + wateringMap.get(obs.getTimeMeasured()));
+                            }
+                        }
+                    }
+                    /*System.out.println("Antall normaldata: " + observations.size());
+                    for(WeatherObservation obs:observations)
+                    {
+                        System.out.println(obs.toString());
+                    }*/
+            } catch (WeatherDataSourceException ex) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+            }
+            // Eventuelt korrigere for vanning
+            // Kjør modell en gang til med disse observasjonene
+            config.setConfigParameter("observations", observations);
+            List<Result> normalDataResults;
+            try
+            {
+                 normalDataResults = SessionControllerGetter.getForecastBean().runForecast(config, VIPSCoreUserId);
+            }
+            catch(RunModelException ex)
+            {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+            }
+            if(results == null)
+            {
+                results = normalDataResults;
+            }
+            else
+            {
+                // MERGE RESULTS
+                String modelNS = "ROUGHAGENU";
+                Map<Date, Result> resultBucket = new HashMap<>();
+                for(Result result:results)
+                {
+                    resultBucket.put(result.getResultValidTime(), result);
+                }
+                for(Result normalDataResult:normalDataResults)
+                {
+                    Result result = resultBucket.get(normalDataResult.getResultValidTime());
+                    if(result != null)
+                    {
+                        String[] resultKeys = {"Avling", "Beregnet MSC","NDF","INDF","R&aring;protein","FEm"};
+                        for(String resultKey : resultKeys) 
+                        {
+                            result.setValue(modelNS, resultKey + " (Normalverdi)", normalDataResult.getValue(modelNS, resultKey));
+                        }
+                    }
+                } 
+            }
+        }
+        // Legg til resultatparametre fra normalkjøring i Result Array
         return Response.ok().entity(results).build();
     }
 }
