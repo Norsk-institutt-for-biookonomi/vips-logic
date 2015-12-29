@@ -75,14 +75,14 @@ public class UniversalMessagingTest {
             UniversalMessage um = new UniversalMessage(
                     "Bladveps funnet på Kyrksæterøra",
                     "Se opp for svermende veps med brodder",
-                    "Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae",
+                    "Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae",
                     "http://www.nibio.no/"
             );
             
             
             String[][] recipients = {
                 {"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no"},
-                {"1","Tor-Einar Skog","Sms","+47 91303819"},
+                {"1","Tor-Einar Skog","Sms","91303819"},
                 {"2","Lars Aksel Opsahl", "Mail","lars.opsahl@nibio.no"}
             };
 
@@ -101,7 +101,9 @@ public class UniversalMessagingTest {
 
             ResteasyClient client = new ResteasyClientBuilder().build();
             client.register(new RESTAuthenticator("user", "userPass"));
-            ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");
+            //ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");
+            //ResteasyWebTarget target = client.target("http://localhost:8080");
+            ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
             UniversalMessagingServiceClient umClient = target.proxy(UniversalMessagingServiceClient.class);
             
         
@@ -110,7 +112,7 @@ public class UniversalMessagingTest {
             
             result = r.readEntity(String.class);
             System.out.println(result);
-//Response r = umClient.sendMessage(um);
+            //Response r = umClient.sendMessage(um);
         }
         catch(IOException | IllegalArgumentException | NullPointerException e)
         {
