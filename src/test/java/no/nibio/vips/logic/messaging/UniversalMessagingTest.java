@@ -100,7 +100,8 @@ public class UniversalMessagingTest {
             um.setDistributionList(rList);
 
             ResteasyClient client = new ResteasyClientBuilder().build();
-            client.register(new RESTAuthenticator("user", "userPass"));
+            //client.register(new RESTAuthenticator("user", "userPass"));
+            client.register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"));
             //ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");
             //ResteasyWebTarget target = client.target("http://localhost:8080");
             ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
