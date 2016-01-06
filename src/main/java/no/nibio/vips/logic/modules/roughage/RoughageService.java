@@ -81,7 +81,7 @@ public class RoughageService {
     @GET
     @Path("nutrition/runmodel/{organizationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response runModel(
+    public Response runRoughageNutritionModel(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("timeZone") String timeZoneStr,
             @QueryParam("weatherStationId") Integer weatherStationId,
@@ -356,7 +356,75 @@ public class RoughageService {
                 } 
             }
         }
-        // Legg til resultatparametre fra normalkjøring i Result Array
+        
+        return Response.ok().entity(results).build();
+    }
+    
+    @GET
+    @Path("grassdrying/runmodel/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response runGrassDryingModel(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("timeZone") String timeZoneStr,
+            @QueryParam("weatherStationId") Integer weatherStationId,
+            @QueryParam("timeOfHarvest") String timeOfHarvestStr,
+            @QueryParam("seasonHarvestNumber") Integer seasonHarvestNumber,
+            @QueryParam("stringWidth") Double stringWidth,
+            @QueryParam("harvestWidth") Double harvestWidth,
+            @QueryParam("conditioning") Integer conditioning,
+            @QueryParam("yield") Double yield,
+            @QueryParam("initialDryMatterFraction") Double initialDryMatterFraction,
+            @QueryParam("cloverFraction") Integer cloverFraction,
+            @QueryParam("precipitationLastDayBeforeHarvest") Double precipitationLastDayBeforeHarvest
+    )
+    {
+        Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(timeOfHarvestStr);
+        Date timeOfHarvest = cal.getTime();
+        cal.add(Calendar.HOUR_OF_DAY, 48);
+        Date endTimeGrassDryingModel = cal.getTime();
+        
+        ModelConfiguration modelConfig = new ModelConfiguration();
+        modelConfig.setModelId("GRASSDRYMO");
+        modelConfig.setConfigParameter("timeZone", timeZoneStr);
+        modelConfig.setConfigParameter("stringWidth", stringWidth);
+        modelConfig.setConfigParameter("harvestWidth", harvestWidth);
+        modelConfig.setConfigParameter("yield", yield);
+        modelConfig.setConfigParameter("conditioning", conditioning);
+        if(initialDryMatterFraction != null)
+        {
+            modelConfig.setConfigParameter("initialDryMatterFraction", initialDryMatterFraction);
+        }
+        modelConfig.setConfigParameter("seasonHarvestNumber", seasonHarvestNumber);
+        modelConfig.setConfigParameter("cloverFraction", cloverFraction);
+        modelConfig.setConfigParameter("precipitationLastDayBeforeHarvest", precipitationLastDayBeforeHarvest);
+        Map<String,String> loginInfo = new HashMap<>();
+        
+        PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, weatherStationId);
+        WeatherDataSourceUtil wsdUtil = new WeatherDataSourceUtil();
+        String[] parameters = {"TM","RR","UM","Q0","FM2"};
+        List<Result> results = null;
+        try
+        {
+            List<WeatherObservation> observations = wsdUtil.getWeatherObservations(
+                weatherStation, 
+                WeatherObservation.LOG_INTERVAL_ID_1H, 
+                parameters,
+                timeOfHarvest, 
+                endTimeGrassDryingModel
+            );
+            
+            modelConfig.setConfigParameter("observations", observations);
+            
+            // Must get the VIPSCore user id for this organization
+            Organization org = em.find(Organization.class, organizationId);
+            Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
+            
+            results = SessionControllerGetter.getForecastBean().runForecast(modelConfig, VIPSCoreUserId);
+            
+        } catch (WeatherDataSourceException | RunModelException ex) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+        }
+        
         return Response.ok().entity(results).build();
     }
 }
