@@ -21,7 +21,7 @@
  * Logic for registering location of an observation using an OpenLayers v3 map
  */
 
-var featureOverlay;
+var featureOverlay, map;
 
 /**
  *
@@ -31,7 +31,7 @@ var featureOverlay;
  * @param {string} drawnObjs - GeoJSON with geometries to display
  * @returns {void}
  */
-function initMap(center, zoomLevel, displayMarker, drawnObjs) {
+function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
 
 
   var osm = new ol.layer.Tile({
@@ -58,7 +58,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   });
 
 
- var topo2graatone = new ol.layer.Tile({
+  var topo2graatone = new ol.layer.Tile({
     title: "Gråtone",
     type: 'base',
     visible: false,
@@ -70,50 +70,115 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
       }
     })
   });
-  
-  var fylke_layer = new ol.layer.Vector({
-    title: 'Fylkesgrenser',
-    type: 'overlay',
-    visible: false,
-    source: new ol.source.Vector({
-      projection: 'EPSG:3857',
-      format: new ol.format.GeoJSON(),
-      url: 'http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&'
-    }),
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: 'rgba(0, 0, 255, 1.0)',
-        width: 3
-      })
-    })
-  });
-  var kommune_layer = new ol.layer.Vector({
-    title: 'Kommunegrenser',
-    type: 'overlay',
-    visible: false,
-    source: new ol.source.Vector({
-      projection: 'EPSG:3857',
-      format: new ol.format.GeoJSON(),
-      url: 'http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&'
-    }),
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: 'rgba(255, 0, 0, 1.0)',
-        width: 1
-      })
-    })
+
+
+
+  //########################Get maplayers you can choose from########################
+
+  //var layersObj = eval ("(" + chooseLayersObj + ")");
+  var allLayers = [osm, bingArial, topo2graatone] ;
+  var chooseLayers = [];
+  var choosenLayer;
+  var hoverAttribute = '';
+  var deleteObj = false;
+
+  var typeSelect = document.getElementById('type');
+
+    if (chooseLayersObj.chooseFromMapLayers.length > 0){
+      for (i = 0; i < chooseLayersObj.chooseFromMapLayers.length; i++) { 
+        var layer = chooseLayersObj.chooseFromMapLayers[i];
+        var opt = document.createElement("option");
+        opt.value = layer.mapLayerId;
+        opt.text = layer.mapLayerTitle;
+        typeSelect.appendChild(opt);
+        chooseLayers.push(new ol.layer.Vector({
+          id: layer.mapLayerId,
+          title: layer.mapLayerTitle,
+          type: layer.mapLayerType,
+          visible: layer.defaultVisible, 
+          hoverAttribute:layer.hoverAttribute,          
+          source: new ol.source.Vector({
+            projection: layer.projection,
+            format: new ol.format.GeoJSON(),
+            url: layer.url
+          })
+        }));
+      }
+    }
+
+    allLayers.push.apply(allLayers, chooseLayers);
+
+
+window.app = {};
+var app = window.app;
+
+
+//
+// Define rotate to north control.
+//
+
+
+
+/**
+ * @constructor
+ * @extends {ol.control.Control}
+ * @param {Object=} opt_options Control options.
+ */
+app.geoLocationControl = function(opt_options) {
+
+  var options = opt_options || {};
+
+  var button = document.createElement('button');
+  //button.innerHTML = 'O';
+  button.title = 'Show me where I am'
+
+  var this_ = this;
+
+  var handleGeoLocation = function(e) {
+    /*if (geolocation.getTracking()){
+      geolocation.setTracking(false);
+      geoOverlay.getSource().clear(true);
+    } else {*/
+      map.removeInteraction(draw);
+      removeMouseOver();
+      $('#deleteOne').removeClass('clearOneActive');
+      deleteObj = false;
+      geolocation.setTracking(true);
+    //}
+  };
+
+  button.addEventListener('click', handleGeoLocation, false);
+  button.addEventListener('touchstart', handleGeoLocation, false);
+
+  var element = document.createElement('div');
+  element.className = 'ol-unselectable ol-control geo-location';
+  element.appendChild(button);
+
+  ol.control.Control.call(this, {
+    element: element,
+    target: options.target
   });
 
+};
+ol.inherits(app.geoLocationControl, ol.control.Control);
+
+ 
 
   // Creating the map
-  var map = new ol.Map({
+  map = new ol.Map({
     target: 'observationFormMap',
-    //layers: layers,
-    layers: [osm, bingArial, topo2graatone, fylke_layer, kommune_layer],
+    controls: ol.control.defaults({
+      attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+        collapsible: true
+      })
+    }).extend([
+      new app.geoLocationControl()
+    ]),
+    layers: allLayers,
     renderer: 'canvas'
   });
 
-  var centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
+  var centerPosition = ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857');
 
   // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
   // center to correct map projection)
@@ -123,6 +188,9 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   });
 
   map.setView(view);
+
+
+
 
   // Marker overlay
   var marker = new ol.Overlay({
@@ -143,14 +211,10 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   map.addControl(mousePositionControl);
 
   var layerSwitcher = new ol.control.LayerSwitcher({
-    tipLabel: 'Légende' // Optional label for button
+    tipLabel: 'Layerswitcher' // Optional label for button
   });
   map.addControl(layerSwitcher);
 
-  // Listening for single clicks, position observation pin and updating form element
-  /*map.on(['singleclick'], function(evt) {
-    updateLocationPosition(evt.coordinate);
-  });*/
 
   //###################### DRAWING ########################################
   // make interactions global so they can later be removed
@@ -180,17 +244,61 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
     })
   });
 
-  if (drawnObjs){ // Get drawn objs param from initMap
+  
+
+  function computeFeatureStyle(feature, resolution) {
+    return [new ol.style.Style({
+      image: new ol.style.Circle({
+        radius: 10,
+        fill: new ol.style.Fill({
+          color: 'rgba(0, 0, 255, 0.5)'
+        })
+      }),
+      fill: new ol.style.Fill({
+        color: 'rgba(0, 0, 255, 0.2)'
+      }),
+      stroke: new ol.style.Stroke({
+        color: 'rgba(0, 0, 255, 0.8)',
+        width: 1
+      }),
+      text: new ol.style.Text({
+        font: '12px helvetica,sans-serif',
+        text: feature.get(hoverAttribute),
+        //rotation: 360 * rnd * Math.PI / 180,
+        fill: new ol.style.Fill({
+          color: '#000'
+        }),
+        stroke: new ol.style.Stroke({
+          color: '#fff',
+          width: 2
+        })
+      })
+    })];
+  }
+
+
+  var mouseFeatures = new ol.Collection();
+  mouseOverlay = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      features: mouseFeatures
+    }),
+    style: computeFeatureStyle
+  });
+
+  
+
+  if (drawnObjs) { // Get drawn objs param from initMap
     var format = new ol.format.GeoJSON();
     var drawnfeatures = format.readFeatures(drawnObjs, {
       dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857'
+      featureProjection: map.getView().getProjection().getCode()
     });
     //featureOverlay.clear(true);
     featureOverlay.getSource().addFeatures(drawnfeatures);
   }
 
   featureOverlay.setMap(map);
+  mouseOverlay.setMap(map);
 
   var modify = new ol.interaction.Modify({
     features: features,
@@ -202,10 +310,10 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
         ol.events.condition.singleClick(event);
     }
   });
-  map.addInteraction(modify);
+
 
   var draw; // global so we can remove it later
-  function addInteraction() {
+  function addDrawInteraction() {
     draw = new ol.interaction.Draw({
       features: features,
       type: /** @type {ol.geom.GeometryType} */ (typeSelect.value)
@@ -213,7 +321,58 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
     map.addInteraction(draw);
   }
 
-  var typeSelect = document.getElementById('type');
+  var pointerMoveId;
+  function removeMouseOver(){
+    map.unByKey(pointerMoveId);
+    mouseOverlay.getSource().clear(true);
+  }
+
+
+  function chooseFromLayer(chooseLayer) {
+    map.removeInteraction(draw);
+    map.removeInteraction(modify);
+    chooseLayer.setVisible(true);
+
+    var clickInfo = function(pixel) {
+      var features = [];
+      map.forEachFeatureAtPixel(pixel, function(feature) {
+
+        if (deleteObj){
+          if (feature){
+            //debugger;
+            featureOverlay.getSource().removeFeature(feature);
+            setTimeout(function() { //wait until feature is removed
+              mouseOverlay.getSource().clear(true);
+            }, 100);
+          }
+          
+        }else {
+          if (feature.getId()){
+            featureOverlay.getSource().addFeature(feature);
+          }
+        }
+      });
+    };
+
+    map.on('click', function(evt) {
+      var pixel = evt.pixel;
+      clickInfo(pixel);
+    });
+
+    var mouseInfo = function(pixel) {
+      var features = [];
+      mouseOverlay.getSource().clear(true);
+      map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+        mouseOverlay.getSource().addFeature(feature);
+      });
+    };
+
+    pointerMoveId =  map.on('pointermove', function(evt) {
+      var pixel = evt.pixel;
+      mouseInfo(pixel);
+    });
+  }
+
 
 
   /**
@@ -222,35 +381,45 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
    */
   typeSelect.onchange = function(e) {
     map.removeInteraction(draw);
-    addInteraction();
+    deleteObj = false;
+
+    for (i = 0; i < chooseLayers.length; i++) {
+      if (parseInt(e.target.value) === chooseLayers[i].getProperties().id) {
+        choosenLayer = chooseLayers[i];
+        hoverAttribute = choosenLayer.getProperties().hoverAttribute;
+        choosenLayer.setVisible(true);
+        chooseFromLayer(choosenLayer);
+      } else {
+        chooseLayers[i].setVisible(false);
+      }
+    }
+    if (e.target.value === 'Point' || e.target.value === 'Polygon'){
+      map.addInteraction(modify);
+      addDrawInteraction();
+      removeMouseOver();
+    }
   };
 
-  addInteraction();
+  addDrawInteraction();
 
 
 
-  $('#save-button').click(function() {
+ /* $('#save-button').click(function() {
     // get the features drawn on the map
-    var features = featureOverlay.getSource().getFeatures();
-    // create an object to write features on a output KML file 
-    
-    //var desimalDegrees = features[0].getGeometry().clone().transform('EPSG:4326','EPSG:3857').getCoordinates();
-//debugger;
-
+    var features = null;
+    features = featureOverlay.getSource().getFeatures();
     var format = new ol.format.GeoJSON();
     // write features to GeoJSON format using projection EPSG:4326
 
     var result = format.writeFeatures(features, {
       dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857'
+      featureProjection: map.getView().getProjection().getCode()
     });
 
     alert(result);
-    clearMap();
-    //var str = (new XMLSerializer).serializeToString(kml);
-    //var blob = new Blob([str], {type: "text/plain;charset=utf-8;"});
-    //saveAs(blob, "NovaCamada.kml");
-  });
+  });*/
+
+
 
 
 
@@ -264,7 +433,41 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   // clears the map and the output of the data
   function clearMap() {
     featureOverlay.getSource().clear(true);
+    geoOverlay.getSource().clear(true);
+    //geolocation.setTracking(false);
   }
+
+  $('#deleteOne').click(function() {
+    deleteObj = !deleteObj; // toggle
+    if (deleteObj){
+      $('#deleteOne').addClass('clearOneActive');
+      chooseFromLayer(featureOverlay);
+      map.removeInteraction(modify);
+      map.removeInteraction(draw);
+    } else {
+      $('#deleteOne').removeClass('clearOneActive');
+      removeMouseOver();
+      mouseOverlay.getSource().clear(true);
+      map.addInteraction(modify);
+      addDrawInteraction();
+    }
+      
+  });
+
+  function removeFeature(featureID) {
+
+   var features = featureOverlay.getSource().getFeatures();
+     if (features != null && features.length > 0) {
+         for (x in features) {
+            var id = features[x].getProperties().id;
+            if (id == featureID) {
+              featureOverlay.getSource().removeFeature(features[x]);
+              geoOverlay.getSource().clear(true);
+               break;
+            }
+          }
+        }
+      }
 
   // creates unique id's
   function uid() {
@@ -280,6 +483,45 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
   //######################## GEOLOCATION  #############
 
 
+  var geoPosStyle = new ol.style.Style({
+    fill: new ol.style.Fill({
+        color: 'rgba(0, 0, 255, 0.1)'
+      }),
+      stroke: new ol.style.Stroke({
+        color: 'rgba(0, 0, 255, 0.5)',
+        width: 2
+      }),
+      image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+        anchor: [13, 13],
+        anchorXUnits: 'pixels',
+        anchorYUnits: 'pixels',
+        opacity: 1,
+        src: 'images/geoloc2.png'
+      }))
+    });
+
+
+ var geoFeatures = new ol.Collection();
+  geoOverlay = new ol.layer.Vector({
+    source: new ol.source.Vector({
+      features: geoFeatures
+    }),
+    style: geoPosStyle
+  });
+
+  geoOverlay.setMap(map);
+
+
+
+
+/* var element = document.createElement('div');
+    element.className = 'ol-unselectable ol-control geo-location';
+
+    var button = document.createElement('button');
+    button.setAttribute('title', tipLabel);
+    element.appendChild(button);
+
+*/
   var geolocation = new ol.Geolocation({
     projection: view.getProjection()
   });
@@ -288,63 +530,83 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
     return document.getElementById(id);
   }
 
-  el('track').addEventListener('change', function() {
-    geolocation.setTracking(this.checked);
-  });
-
 
   // handle geolocation error.
   geolocation.on('error', function(error) {
     alert(error.message);
-    /*var info = document.getElementById('info');
-  info.innerHTML = error.message;
-  info.style.display = '';*/
   });
 
-  var accuracyFeature = new ol.Feature();
-  geolocation.on('change:accuracyGeometry', function() {
-    accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
-  });
+  function showalert(message,alerttype) {
 
-  var positionFeature = new ol.Feature();
-  positionFeature.setStyle(new ol.style.Style({
-    image: new ol.style.Circle({
-      radius: 6,
-      fill: new ol.style.Fill({
-        color: '#3399CC'
-      }),
-      stroke: new ol.style.Stroke({
-        color: '#fff',
-        width: 2
-      })
-    })
-  }));
+    $('#alert_placeholder').append('<div id="alertdiv" class="alert alert-danger fade in"><a class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>')
+    setTimeout(function() { // this will automatically close the alert and remove this if the users doesnt close it in 5 secs
+      $("#alertdiv").remove();
+    }, 5000);
+  }
+
+
 
   geolocation.on('change:position', function() {
+
+    removeFeature('geoLoc');
+
     var coordinates = geolocation.getPosition();
-    updateLocationPosition(coordinates);
-    positionFeature.setGeometry(coordinates ?
-      new ol.geom.Point(coordinates) : null);
-  });
 
-  var featuresOverlay = new ol.layer.Vector({
-    map: map,
-    source: new ol.source.Vector({
-      features: [accuracyFeature, positionFeature]
-    })
-  });
+    var accuracy = geolocation.getAccuracy();
+    if(accuracy > 500){
+      showalert('Geolocation accuracy (blue circle) is larger than 500, accuracy now: '+accuracy,'alert-error')
+    }
+    
+    var geoExtent = [
+      coordinates[0] - accuracy - 100,
+      coordinates[1] - accuracy - 100,
+      coordinates[0] + accuracy + 100,
+      coordinates[1] + accuracy + 100
+      ];
+    var posFeature = new ol.Feature({
+      geometry: new ol.geom.Point(coordinates),
+    });
+    posFeature.set('id', 'geoLoc');
+   
+    featureOverlay.getSource().addFeature(posFeature);
+    geoOverlay.getSource().addFeature(posFeature);
+
+    
+    var accuracyFeature = new ol.Feature();
+      geolocation.on('change:accuracyGeometry', function() {
+        accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+      });
+
+    geoOverlay.getSource().addFeature(accuracyFeature);
+
+    var numFeatures = featureOverlay.getSource().getFeatures().length;
+   
+    if (numFeatures > 1) { //Zoom to all features
+      var extent = featureOverlay.getSource().getExtent();
+      map.getView().fit(extent, map.getSize());
+    } else if (geoExtent) { //Zoom to accuracy circle
+      map.getView().fit(geoExtent, map.getSize());
+    } else { //Zoom to geolocation
+      map.getView().setCenter(coordinates);
+      map.getView().setZoom(15);
+    }
+
+    map.addInteraction(modify);
+    addDrawInteraction();
+
+    geolocation.setTracking(false);
+ 
+ });
 
 
 
-
-
-  function updateLocationPosition(coordinate) {
-    var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'), 8);
+  /*function updateLocationPosition(coordinate) {
+    //var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'), 8);
     // Set/move location pin
     marker.setPosition(coordinate);
     // Update form field "location"
-    var locationEl = document.getElementById("location");
-    locationEl.setAttribute("value", locationPosition);
+    //var locationEl = document.getElementById("location");
+    //locationEl.setAttribute("value", locationPosition);
     // Adding a little animation
     $("#location").animate({
       borderWidth: "4"
@@ -353,24 +615,18 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs) {
         borderWidth: "1"
       }, 500, function() {});
     });
-  }
+  }*/
 }
 
-function getFeatures()
-{
-    var features = featureOverlay.getSource().getFeatures();
-    // create an object to write features on a output KML file 
-    
-    //var desimalDegrees = features[0].getGeometry().clone().transform('EPSG:4326','EPSG:3857').getCoordinates();
-//debugger;
+function getFeatures() {
+  var features = featureOverlay.getSource().getFeatures();
+  var format = new ol.format.GeoJSON();
+  // write features to GeoJSON format using projection EPSG:4326
 
-    var format = new ol.format.GeoJSON();
-    // write features to GeoJSON format using projection EPSG:4326
+  var result = format.writeFeatures(features, {
+    dataProjection: 'EPSG:4326',
+    featureProjection: map.getView().getProjection().getCode()
+  });
 
-    var result = format.writeFeatures(features, {
-      dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857'
-    });
-    
-    return result;
+  return result;
 }

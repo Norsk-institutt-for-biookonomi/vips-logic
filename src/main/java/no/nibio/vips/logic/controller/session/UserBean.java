@@ -19,6 +19,8 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.TimeZone;
 import com.ibm.icu.util.ULocale;
@@ -46,6 +48,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -55,6 +59,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
+import no.nibio.vips.logic.entity.MapLayer;
 import no.nibio.vips.logic.entity.MessageLocale;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
@@ -620,5 +625,39 @@ public class UserBean {
     public void deleteAllExpiredUserUuids()
     {
         em.createNamedQuery("DELETE FROM public.user_uuid WHERE expires_at < now()").executeUpdate();
+    }
+    
+    public String getMapLayerJSONForUser(VipsLogicUser user)
+    {
+        try {
+            return new ObjectMapper().writeValueAsString(this.getMapLayersForUser(user));
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(UserBean.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        }
+    }
+    
+    public List<MapLayer> getMapLayersForUser(VipsLogicUser user)
+    {
+        List<MapLayer> retVal;
+        if(user.isSuperUser())
+        {
+            retVal = em.createNamedQuery("MapLayer.findAll", MapLayer.class).getResultList();
+        }
+        else
+        {
+            retVal = this.getMapLayersForOrganization(user.getOrganizationId());
+        }
+        return retVal;
+    }
+    
+    public List<MapLayer> getMapLayersForOrganization(Organization organization)
+    {
+        Query q = em.createNativeQuery("SELECT * FROM public.map_layer WHERE map_layer_id IN ("
+                + "     SELECT map_layer_id FROM organization_map_layer WHERE organization_id=:organizationId "
+                + ")"
+        );
+        q.setParameter("organization_id", organization.getOrganizationId());
+        return q.getResultList();
     }
 }

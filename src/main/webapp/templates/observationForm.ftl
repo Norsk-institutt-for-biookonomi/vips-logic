@@ -56,7 +56,8 @@
 			initMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
 			<#else>
 			var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}</#if>;
-			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo);
+			var chooseFromMapLayers = {"chooseFromMapLayers":<#if mapLayers?has_content>${mapLayers}<#else>[]</#if>};
+			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo, chooseFromMapLayers);
 			</#if>
 		});
 	</script>
@@ -134,12 +135,11 @@
           <option value="Polygon">Polygon</option>
         </select>
         <button id="delete" type="button">Clear all</button>
+        <button  id="deleteOne" type="button">Clear one</button>
       </div>
 			<div id="observationFormMap" class="map">
 			</div>
-			<label class="checkbox" for="track">
-          <input id="track" type="checkbox"/>Show me where I am
-        </label> 
+			<div id="alert_placeholder"></div> 
 		</div>
 	</div>
 	<div style="display: none;"><div id="marker" title="Marker"><img src="/images/bug_medium.png"/></div></div>
