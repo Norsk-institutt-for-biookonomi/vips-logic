@@ -139,7 +139,10 @@ app.geoLocationControl = function(opt_options) {
       geolocation.setTracking(false);
       geoOverlay.getSource().clear(true);
     } else {*/
+      map.removeInteraction(draw);
       removeMouseOver();
+      $('#deleteOne').removeClass('clearOneActive');
+      deleteObj = false;
       geolocation.setTracking(true);
     //}
   };
@@ -335,13 +338,18 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
       map.forEachFeatureAtPixel(pixel, function(feature) {
 
         if (deleteObj){
-          featureOverlay.getSource().removeFeature(feature);
-          setTimeout(function() { //wait until feature is removed
-            mouseOverlay.getSource().clear(true);
-          }, 100);
+          if (feature){
+            //debugger;
+            featureOverlay.getSource().removeFeature(feature);
+            setTimeout(function() { //wait until feature is removed
+              mouseOverlay.getSource().clear(true);
+            }, 100);
+          }
           
         }else {
-          featureOverlay.getSource().addFeature(feature);
+          if (feature.getId()){
+            featureOverlay.getSource().addFeature(feature);
+          }
         }
       });
     };
@@ -434,12 +442,13 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     if (deleteObj){
       $('#deleteOne').addClass('clearOneActive');
       chooseFromLayer(featureOverlay);
-      //map.removeInteraction(modify);
-      //map.removeInteraction(draw);
+      map.removeInteraction(modify);
+      map.removeInteraction(draw);
     } else {
       $('#deleteOne').removeClass('clearOneActive');
       removeMouseOver();
       mouseOverlay.getSource().clear(true);
+      map.addInteraction(modify);
       addDrawInteraction();
     }
       
