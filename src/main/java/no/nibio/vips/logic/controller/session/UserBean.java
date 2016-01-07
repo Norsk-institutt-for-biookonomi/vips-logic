@@ -657,7 +657,7 @@ public class UserBean {
                 + "     SELECT map_layer_id FROM organization_map_layer WHERE organization_id=:organizationId "
                 + ")"
         );
-        q.setParameter("organization_id", organization.getOrganizationId());
+        q.setParameter("organizationId", organization.getOrganizationId());
         return q.getResultList();
     }
 }
