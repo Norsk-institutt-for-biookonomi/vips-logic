@@ -278,6 +278,13 @@ public class MessageController extends HttpServlet {
                 {
                     // Store the message
                     Message message = SessionControllerGetter.getMessageBean().storeMessage(formValidation.getFormFields(), user);
+                    
+                    // New messages should be sent to subscribers
+                    if(formValidation.getFormField("messageId").getValueAsInteger() < 0)
+                    {
+                        SessionControllerGetter.getMessagingBean().sendUniversalMessage(message);
+                    }
+
                     // Delete the current illustration
                     String deleteIllustration = formValidation.getFormField("deleteIllustration").getWebValue();
                     if(deleteIllustration != null && deleteIllustration.equals("true"))

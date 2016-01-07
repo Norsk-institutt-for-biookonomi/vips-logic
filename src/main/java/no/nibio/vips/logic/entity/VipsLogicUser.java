@@ -76,6 +76,8 @@ public class VipsLogicUser implements Serializable {
     private String approvalApplication;
     @Size(max = 2147483647)
     private String remarks;
+    @Size(max = 10)
+    private String preferredLocale;
     private Set<UserAuthentication> userAuthenticationSet;
     private Organization organizationId;
     private Integer userStatusId;
@@ -369,5 +371,20 @@ public class VipsLogicUser implements Serializable {
      */
     public void setUserUuid(UUID userUuid) {
         this.userUuid = userUuid;
+    }
+
+    /**
+     * @return the preferredLocale
+     */
+    @Column(name = "preferred_locale")
+    public String getPreferredLocale() {
+        return preferredLocale;
+    }
+
+    /**
+     * @param preferredLocale the preferredLocale to set
+     */
+    public void setPreferredLocale(String preferredLocale) {
+        this.preferredLocale = preferredLocale;
     }
 }

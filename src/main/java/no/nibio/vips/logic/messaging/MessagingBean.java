@@ -68,4 +68,19 @@ public class MessagingBean {
             System.out.println(uMe.getMsgSubject());
         }
     }
+    
+    public void sendUniversalMessage(Message message)
+    {
+        // Create a universal message from the message
+        // TODO: When UniversalMessage has changed, pick
+        MessageLocale ml = message.getLocalMessageWithFallback("nb", "nb");
+        // Find the suscribers, create distribution list
+        
+        // Store it
+        
+        // Send it
+        
+        // Log it
+        
+    }
 }

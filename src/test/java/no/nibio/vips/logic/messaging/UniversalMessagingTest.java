@@ -81,9 +81,9 @@ public class UniversalMessagingTest {
             
             
             String[][] recipients = {
-                {"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no"},
-                {"1","Tor-Einar Skog","Sms","91303819"},
-                {"2","Lars Aksel Opsahl", "Mail","lars.opsahl@nibio.no"}
+                {"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no"}//,
+                //{"1","Tor-Einar Skog","Sms","91303819"},
+                //{"2","Lars Aksel Opsahl", "Mail","lars.opsahl@nibio.no"}
             };
 
             List<MessageRecipient> rList = new ArrayList<>();
@@ -110,6 +110,7 @@ public class UniversalMessagingTest {
         
             System.out.println(new ObjectMapper().writeValueAsString(um));
             Response r = umClient.sendMessage(new ObjectMapper().writeValueAsString(um));
+            assertEquals(200,r.getStatus());
             
             result = r.readEntity(String.class);
             System.out.println(result);
