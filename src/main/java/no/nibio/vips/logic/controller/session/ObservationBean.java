@@ -98,15 +98,21 @@ public class ObservationBean {
         return observations;
     }
 
+    /**
+     * 
+     * @param observation
+     * @return The merged object
+     */
     public Observation storeObservation(Observation observation) {
         Observation retVal = em.merge(observation);
         // Store geoinfo
         // First delete all old observations
+
         em.createNativeQuery("DELETE FROM public.gis where gis_id IN (SELECT gis_id FROM public.gis_observation WHERE observation_id=:observationId)")
-                .setParameter("observationId", observation.getObservationId())
+                .setParameter("observationId", retVal.getObservationId())
                 .executeUpdate();
         em.createNativeQuery("DELETE FROM public.gis_observation WHERE observation_id=:observationId")
-                .setParameter("observationId", observation.getObservationId())
+                .setParameter("observationId", retVal.getObservationId())
                 .executeUpdate();
         // Then persist the new ones
         if(observation.getGeoinfos() != null && ! observation.getGeoinfos().isEmpty())
@@ -117,7 +123,7 @@ public class ObservationBean {
             }
             
             Query q = em.createNativeQuery("INSERT INTO public.gis_observation(gis_id,observation_id) VALUES(:gisId,:observationId)")
-                .setParameter("observationId", observation.getObservationId());
+                .setParameter("observationId", retVal.getObservationId());
             for(Gis gis:observation.getGeoinfos())
             {
                 q.setParameter("gisId", gis.getGisId())
