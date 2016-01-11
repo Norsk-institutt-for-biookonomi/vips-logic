@@ -33,7 +33,7 @@
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/validateForm.js"></script>
-	<script type="text/javascript" src="/js/observationFormMap.js"></script>
+	<script type="text/javascript" src="/js/objectGISInfoMap.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
 			// Make sure that there is a datetime picker present for HTML5 
@@ -57,7 +57,7 @@
 			<#else>
 			var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}</#if>;
 			var chooseFromMapLayers = {"chooseFromMapLayers":<#if mapLayers?has_content>${mapLayers}<#else>[]</#if>};
-			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo, chooseFromMapLayers);
+			initMap("observationFormMap",[${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo, chooseFromMapLayers);
 			</#if>
 		});
 	</script>
@@ -128,20 +128,9 @@
 			</form>
 		</div>
 		<div class="col-md-6">
-		<div>
-      <label>What do you want to draw</label>
-        <select id="type">
-          <option value="Point">Point</option>
-          <option value="Polygon">Polygon</option>
-        </select>
-        <button id="delete" type="button">Clear all</button>
-        <button  id="deleteOne" type="button">Clear one</button>
-      </div>
-			<div id="observationFormMap" class="map">
-			</div>
-			<div id="alert_placeholder"></div> 
+			<div id="observationFormMap"></div> <!-- Contents is added dynamically by objectGISInfoMap -->
 		</div>
 	</div>
-	<div style="display: none;"><div id="marker" title="Marker"><img src="/images/bug_medium.png"/></div></div>
+	<!--div style="display: none;"><div id="marker" title="Marker"><img src="/images/bug_medium.png"/></div></div-->
 </#macro>
 <@page_html/>

@@ -58,7 +58,39 @@ public class ResourceBundleJSServlet extends HttpServlet {
                 else output.append(",");
                 output.append("\n\"").append(key).append("\":\"").append(StringEscapeUtils.escapeJavaScript(i18nTexts.getString(key))).append("\"");
             }
-            output.append("\n};");
+            output.append("\n};\n\n");
+            
+            // Adding the methods needed to utilize the i18Texts dictionary
+            output.append(
+                "/**\n" +
+                "* Gets a message by key. The message should be translated\n" +
+                "* Depends on /js/resourcebundle.js for the dictionary i18Texts\n" +
+                "* @param {String} msgKey\n" +
+                "* @param {Array} positionalArguments - for string substitution in message\n" +
+                "* @returns {String} the message\n" +
+                "*/\n" +
+                "function getI18nMsg(msgKey,positionalArguments)\n" +
+                "{\n" +
+                "   if(i18Texts[msgKey] === undefined)\n" +
+                "   {\n" +
+                "       return getI18nMsg(\"unknownTranslationKey\",[msgKey]);\n" +
+                "   }\n" +
+                "   return replaceParams(i18Texts[msgKey], positionalArguments);\n" +
+                "}\n" +
+                " \n" +
+                "/**\n" +
+                " * Mimic of the MessageFormat.format method in Java.\n" +
+                " * Very nicely explained here: http://stackoverflow.com/questions/1353408/messageformat-in-javascript-parameters-in-localized-ui-strings\n" +
+                " * @param {String} string\n" +
+                " * @param {Array} replacements\n" +
+                " * @returns {String}\n" +
+                " */\n" +
+                "function replaceParams(string, replacements) {\n" +
+                
+                "    return string.replace(/\\{(\\d+)\\}/g, function() {\n" +
+                "        return replacements[arguments[1]];\n" +
+                "    });\n" +
+                "}\n");
             
             out.print(output.toString());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -18,10 +18,9 @@
  */
 /*
     Document   : stylesheet
-    Created on : Aug 28, 2013, 10:55:15 AM
-    Author     : Viggo Lunde <viggo.lunde@nibio.no>
+    Author     : Viggo Lunde <viggo.lunde@nibio.no>, Tor-Einar Skog <tor-einar.skog@nibio.no>
     Description:
-        Main stylesheet of the VIPSLogic web app. Cusomizes the bootstrap.css
+        Stylesheet for the objectGISInfoMap. Cusomizes the bootstrap.css
 */
 
 #toolbox       { 
@@ -66,7 +65,7 @@
     float: right;
     width: 22px;
     height: 22px;
-    background-image: url('../images/geoloc3.png');
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDIxIDc5LjE1NTc3MiwgMjAxNC8wMS8xMy0xOTo0NDowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkY3RkRGRkNGQTU2MDExRTU5NzkwREJDNkE0NDk4ODlEIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkY3RkRGRkQwQTU2MDExRTU5NzkwREJDNkE0NDk4ODlEIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RjdGREZGQ0RBNTYwMTFFNTk3OTBEQkM2QTQ0OTg4OUQiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6RjdGREZGQ0VBNTYwMTFFNTk3OTBEQkM2QTQ0OTg4OUQiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7kZLS4AAAABlBMVEX9/fwAAABwf477AAAAAnRSTlP/AOW3MEoAAAHzSURBVHja7NvBcsJADANQ+f9/misHsmvZkhNgfWwhes10htheEOXCe9Wvosm/H4ADOIADOIBZAD7WEADLcgOQKB8A6bIAQJUcALqkAJRKB0C1NAA0SgFAr7oAtKsHANwC2PM3BAzkLwWYyF8JMJK/EGAm/1qAofxLAabySQAwJUAx/8NDaU1QAlw+FRcEoPPXj+W0AGT+vi/wAlKNCSUAk5/tjHqA7LsJ3EpAAKjeMC1AlN9J/boPoLvj7I2s5gf7gh6gNB/I/S+XO3/2FTkA9Tm2/6DxAjSTFDjzRYAIsWASsL8ivPn3A+KRADCAGAQ4bsD2r3o8IH4T8P5wzXRhnqGqY/p5AAdwAAdwAAdAXlO/jiTS//SB5KnPhPGTgHZj8u2tGdec3t6eDw0oWACcNyA1pBqcEYlvAVSA4qCyMid86qi2BKgNq/MC07heti8oLyzy7zStbDQ7o87SSrC2623NsntH3+Kyubold7f08noHUCyvc1v4zA+r6/ttY3EB0B1g8HR3Nx9ioc6Q3H+KRi8IFhAz+VNnyaICiIn8mfOEUQWICNEAhDt/f6zXPdcyH2xOHFu2jv0yF3dOHkMGCFc88QUH01A1HONPbqiq6Lc77Tzd+0vTo/ZFJ1l4FfBRUb6Oav5zAAdwAH8PiK8FvAQYAObrJPi2gfjAAAAAAElFTkSuQmCC);
     background-size: 20px 20px;
     background-repeat: no-repeat;
     background-position: 1px;

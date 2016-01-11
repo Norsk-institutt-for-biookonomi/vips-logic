@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>.
+ * Copyright (c) 2015-2016 NIBIO <http://www.nibio.no/>.
  *
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -18,22 +18,76 @@
  */
 
 /**
- * Logic for registering location of an observation using an OpenLayers v3 map
+ * Logic for GIS information about an object
+ * 
+ * To get the current registered GIS as GEOJson, call getFeatures();
+ * 
+ * @author Viggo Lunde <viggo.lunde@nibio.no>
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
 var featureOverlay, map;
+var olMapDivId = "objectGISInfoMap";
 
 /**
- *
+ * @param {string} containerId - DOM id of the div where we can intialize the map
  * @param {ol.Coordinate} center - coordinates for the map's center (WGS84)
  * @param {int} zoomLevel - the zoom level (1-15, 1 is world wide view, 15 is greatest zoom)
  * @param {boolean} displayMarker - show observation marker in center location
  * @param {string} drawnObjs - GeoJSON with geometries to display
+ * @param {string} chooseLayersObj Which polygon layers to choose from. Sample: 
+ * <pre>
+ *  {
+ *      "chooseFromMapLayers":[
+ *          {
+ *              "mapLayerId":1,
+ *              "mapLayerTitle":"Kommunegrenser",
+ *              "description":"Norske kommunegrenser",
+ *              "mapLayerType":"overlay",
+ *              "defaultVisible":false,
+ *              "hoverAttribute":"navn",
+ *              "url":"http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n2000_komm_flate&"
+ *          },
+ *          {
+ *              "mapLayerId":2,
+ *              "mapLayerTitle":"Fylkesgrenser",
+ *              "description":"Norske fylkesgrenser",
+ *              "mapLayerType":"overlay",
+ *              "defaultVisible":false,
+ *              "hoverAttribute":null,
+ *              "url":"http://kart13.skogoglandskap.no/geoserver/ows?srsname=EPSG:3857&format_options=decimals:0&service=WFS&version=1.0.0&outputFormat=json&request=GetFeature&typeName=sl:n5_forv_fylke_mv&"
+ *          }
+ *      ]
+ *  }
+ *  </pre>
+ *  
  * @returns {void}
  */
-function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
+function initMap(containerId, center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
 
+  // Create the DOM structure
+  var theContainer = el(containerId);
+  theContainer.innerHTML = [
+      "<div>",
+      "     <label>",getI18nMsg("mapDrawTypeLabel"),"</label>",
+      "     <select id='type'>",
+      "         <option value='Point'>",getI18nMsg("point"),"</option>",
+      "         <option value='Polygon'>",getI18nMsg("polygon"),"</option>",
+      "     </select>",
+      "     <button id='delete' type='button'>",getI18nMsg("clearAll"),"</button>",
+      "     <button id='deleteOne' type='button'>",getI18nMsg("clearOne"),"</button>",
+      "</div>",
+      "<div id='", olMapDivId ,"' class='map'></div>",
+      "<div id='alert_placeholder'></div>"
+  ].join("");
+  
+  
 
+  // Adding standard base layers
+  // 
+  // TODO: Make this configurable per organization (input base layers as function parameter)
+
+  // OpenStreetMap
   var osm = new ol.layer.Tile({
     'title': 'OSM',
     type: 'base',
@@ -47,6 +101,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
     })
   });
 
+  // Satellite photo map from Microsoft/Bing
   var bingArial = new ol.layer.Tile({
     title: 'Bing Arial',
     type: 'base',
@@ -57,7 +112,7 @@ function initMap(center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
     })
   });
 
-
+  // Detailed map of Norway in shades of grey
   var topo2graatone = new ol.layer.Tile({
     title: "Gråtone",
     type: 'base',
@@ -130,7 +185,7 @@ app.geoLocationControl = function(opt_options) {
 
   var button = document.createElement('button');
   //button.innerHTML = 'O';
-  button.title = 'Show me where I am'
+  button.title = getI18nMsg("showMeWhereIAm");
 
   var this_ = this;
 
@@ -166,7 +221,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
 
   // Creating the map
   map = new ol.Map({
-    target: 'observationFormMap',
+    target: olMapDivId, // Defined at the top of this file
     controls: ol.control.defaults({
       attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
         collapsible: true
@@ -545,7 +600,9 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
   }
 
 
-
+/**
+ * Listen for changes in the user's location
+ */
   geolocation.on('change:position', function() {
 
     removeFeature('geoLoc');
@@ -618,6 +675,9 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
   }*/
 }
 
+/**
+ * @return {GEOJson} returns all features currently on the map in GEOJson format
+ */
 function getFeatures() {
   var features = featureOverlay.getSource().getFeatures();
   var format = new ol.format.GeoJSON();

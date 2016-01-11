@@ -20,6 +20,7 @@
  * This validator has its Java counterpart in no.nibio.web.forms.FormValidator.java 
  * (for server side validation). They use the same JSON file for form validation. 
  * Changes in logic client side should be reflected server side
+ * Depends on /js/resourcebundle.js for the dictionary i18Texts
  */
 
 // Constant defs for field types. Also found in no.nibio.web.forms.FormField
@@ -558,29 +559,4 @@ function styleInvalid(inputEl)
 function styleValid(inputEl)
 {
     $(inputEl.parentNode).removeClass("has-error");
-}
-
-/**
- * Gets a message by key. The message should be translated
- * Depends on /js/resourcebundle.js for the dictionary i18Texts
- * @param {String} msgKey
- * @param {Array} positionalArguments - for string substitution in message
- * @returns {String} the message
- */
-function getI18nMsg(msgKey,positionalArguments)
-{
-    return replaceParams(i18Texts[msgKey], positionalArguments);
-}
-
-/**
- * Mimic of the MessageFormat.format method in Java.
- * Very nicely explained here: http://stackoverflow.com/questions/1353408/messageformat-in-javascript-parameters-in-localized-ui-strings
- * @param {String} string
- * @param {Array} replacements
- * @returns {String}
- */
-function replaceParams(string, replacements) {
-    return string.replace(/\{(\d+)\}/g, function() {
-        return replacements[arguments[1]];
-    });
 }
