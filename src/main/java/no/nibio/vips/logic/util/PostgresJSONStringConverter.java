@@ -35,7 +35,7 @@ public class PostgresJSONStringConverter implements AttributeConverter<String, P
 
     @Override
     public PGobject convertToDatabaseColumn(String x) {
-        System.out.println("I'm being used, actually!!!! JSON = " + x);
+        //System.out.println("I'm being used, actually!!!! JSON = " + x);
         
         try {
             PGobject po = new PGobject();
