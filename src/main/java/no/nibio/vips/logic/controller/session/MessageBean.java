@@ -177,7 +177,9 @@ public class MessageBean {
         messageLocale.setHeading(formFields.get("heading").getWebValue());
         messageLocale.setLeadParagraph(formFields.get("leadParagraph").getWebValue());
         messageLocale.setBody(formFields.get("body").getWebValue());
-        em.persist(messageLocale);
+        message.addMessageLocale(messageLocale);
+        //em.persist(messageLocale);
+        
         
         // Storing message tags
         Set<MessageTag> tags = new HashSet<>();
@@ -425,6 +427,10 @@ public class MessageBean {
                     File file = new File(this.getFilePath(message) + "/" + fileName);
                     file.delete();
                 }
+                // Then: Delete connections with organisms
+                em.createNativeQuery("DELETE FROM public.organism_message WHERE message_id = :messageId")
+                        .setParameter("messageId", messageId)
+                        .executeUpdate();
                 // Then: Delete the message
                 em.remove(message);
         }
