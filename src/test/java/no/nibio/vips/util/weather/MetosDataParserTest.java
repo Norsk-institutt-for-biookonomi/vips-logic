@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 
 /**
  *
@@ -58,6 +59,7 @@ public class MetosDataParserTest {
      * Test of getWeatherObservations method, of class MetosDataParser.
      * Could be time consuming, so we test only when needed
      */
+    @Ignore // It appears that the current metos stations do not deliver data (as of 2016-01-14)
     @Test
     public void testGetWeatherObservations() throws Exception {
         System.out.println("getWeatherObservations");
