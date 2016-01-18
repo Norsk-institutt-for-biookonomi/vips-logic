@@ -1,0 +1,88 @@
+<#-- 
+  Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+  
+  This file is part of VIPSLogic.
+  VIPSLogic is free software: you can redistribute it and/or modify
+  it under the terms of the NIBIO Open Source License as published by 
+  NIBIO, either version 1 of the License, or (at your option) any
+  later version.
+  
+  VIPSLogic is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  NIBIO Open Source License for more details.
+  
+  You should have received a copy of the NIBIO Open Source License
+  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+--><#include "master.ftl">
+<#macro page_head>
+        <title>${i18nBundle.user}</title>
+</#macro>
+<#macro custom_js>
+	<script src="/js/resourcebundle.js"></script>
+	<script src="/js/validateForm.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
+	<script type="text/javascript">
+		// Activating chosen plugin
+		$(".chosen-select").chosen();
+		// Load main form definition (for validation)
+		//loadFormDefinition("userForm");
+	</script>
+</#macro>
+<#macro custom_css>
+	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
+</#macro>
+<#macro page_contents>
+	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+        <h1><#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
+        <a href="/user?action=viewUser&userId=${viewUser.userId}" class="btn btn-default" role="button">${i18nBundle.userAccountInformation}</a>
+        <button type="button" class="btn btn-primary">${i18nBundle.notificationSubscriptions}</button>
+        <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
+		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
+	</div>
+	<#if messageKey?has_content>
+		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
+	</#if>
+	<p>${i18nBundle.notificationSubscriptionDescription}</p>
+        <#assign formId = "notificationSubscriptionForm">
+        <form id="${formId}" role="form" action="/user/notificationsubscription" method="POST" onsubmit="return validateForm(this);">
+        <input type="hidden" name="action" value="notificationSubscriptionFormSubmit"/>
+        <input type="hidden" name="userId" value="${viewUser.userId}"/>
+          <h2>${i18nBundle.messageNotifications}</h2>
+          <div class="form-group">
+		<label for="universalMessageFormatId">${i18nBundle.messageFormat}</label>
+		<select name="universalMessageFormatId" onblur="validateField(this);">
+			<#list universalMessageFormats as format>
+			<option value="${format.universalMessageFormatId}"
+			<#if messageNotificationSubscription.universalMessageFormatId == format.universalMessageFormatId> selected="selected"</#if>
+			>${i18nBundle(format.formatName)}</option>
+		</#list>
+		</select>
+	</div>
+          <div class="form-group">
+		<label for="cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
+		<select class="form-control chosen-select" name="cropOrganismIds" onblur="validateField(this);" multiple="multiple">
+			<#list allCrops?sort_by("latinName") as organism>
+			<option value="${organism.organismId}"
+			<#if userCropIds?seq_contains(organism.organismId)> selected="selected"</#if>
+			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
+		</#list>
+		</select>
+	</div>
+	<div class="form-group">
+	    <label for="messageTagIds">${i18nBundle.messageTags}</label>
+	    <select class="form-control chosen-select" name="messageTagIds" onblur="validateField(this);" multiple="multiple">
+		<#list messageTagSet as messageTag>
+			<option value="${messageTag.messageTagId}"
+				<#if userMessageTagIds?seq_contains(messageTag.messageTagId)> selected="selected"</#if>
+			>${(messageTag.getLocalName(currentLocale))!messageTag.defaultTagName}</option>
+		</#list>
+	     </select>
+	</div>
+          <h2>${i18nBundle.forecastNotifications}</h2>
+          <p>Under construction</p>
+          <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
+	</form>
+
+</#macro>
+<@page_html/>

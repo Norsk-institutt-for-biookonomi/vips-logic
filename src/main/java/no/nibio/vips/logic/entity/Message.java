@@ -22,6 +22,7 @@ package no.nibio.vips.logic.entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -128,6 +129,16 @@ public class Message implements Serializable {
     public Set<MessageTag> getMessageTagSet() {
         return messageTagSet;
     }
+    
+    @Transient
+    public List<Integer> getMessageTagIds(){
+        List<Integer> retVal = new ArrayList<>();
+        for(MessageTag tag: this.getMessageTagSet())
+        {
+            retVal.add(tag.getMessageTagId());
+        }
+        return retVal;
+    }
 
     public void setMessageTagSet(Set<MessageTag> messageTagSet) {
         this.messageTagSet = messageTagSet;
@@ -149,6 +160,15 @@ public class Message implements Serializable {
 
     public void setMessageLocaleSet(Set<MessageLocale> messageLocaleSet) {
         this.messageLocaleSet = messageLocaleSet;
+    }
+    
+    public void addMessageLocale(MessageLocale messageLocale)
+    {
+        if(this.messageLocaleSet == null)
+        {
+            this.messageLocaleSet = new HashSet<>();
+        }
+        this.messageLocaleSet.add(messageLocale);
     }
 
     @Override

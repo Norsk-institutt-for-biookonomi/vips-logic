@@ -29,6 +29,10 @@
 <#macro page_contents>
 	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1><#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
+        <#if viewUser.userId?has_content>
+		<button type="button" class="btn btn-primary">${i18nBundle.userAccountInformation}</button>
+		<a href="/user/notificationsubscription?userId=${viewUser.userId}" class="btn btn-default" role="button">${i18nBundle.notificationSubscriptions}</a>
+        </#if>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
 	</div>
@@ -43,6 +47,11 @@
 	    <label for="email">${i18nBundle.email}</label>
 	    <input type="email" class="form-control" name="email" placeholder="${i18nBundle.email}" value="${viewUser.email!""}" onblur="validateField(this);" />
 	    <span class="help-block" id="${formId}_email_validation"></span>
+	  </div>
+	  <div class="form-group">
+	    <label for="phone">${i18nBundle.phone}</label>
+	    <input type="tel" class="form-control" name="phone" placeholder="${i18nBundle.phone}" value="${viewUser.phone!""}" onblur="validateField(this);" />
+	    <span class="help-block" id="${formId}_phone_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="firstName">${i18nBundle.firstName}</label>

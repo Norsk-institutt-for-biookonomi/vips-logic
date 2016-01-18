@@ -19,27 +19,42 @@
 
 package no.nibio.vips.logic.messaging;
 
+import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class MessageRecipient {
+@Entity
+public class MessageRecipient implements Serializable {
+    @Column(name = "preferred_locale")
+    private String preferredLocale;
     private String type;
+    @Column(name = "msg_delivery_address")
     private String msgDeliveryAddress;
     private String name;
+    @Id
+    @Column(name = "recipient_id")
     private String recipientId;
+    
+    public MessageRecipient(){}
     
     public MessageRecipient(
             String recipientId,
             String name,
             String type,
-            String msgDeliveryAddress
+            String msgDeliveryAddress,
+            String preferredLocale
     )
     {
         this.recipientId = recipientId;
         this.name = name;
         this.type=type;
         this.msgDeliveryAddress = msgDeliveryAddress;
+        this.preferredLocale = preferredLocale;
     }
 
     /**
@@ -96,5 +111,19 @@ public class MessageRecipient {
      */
     public void setRecipientId(String recipientId) {
         this.recipientId = recipientId;
+    }
+
+    /**
+     * @return the preferredLocale
+     */
+    public String getPreferredLocale() {
+        return preferredLocale;
+    }
+
+    /**
+     * @param preferredLocale the preferredLocale to set
+     */
+    public void setPreferredLocale(String preferredLocale) {
+        this.preferredLocale = preferredLocale;
     }
 }

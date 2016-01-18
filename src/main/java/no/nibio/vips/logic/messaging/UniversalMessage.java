@@ -20,18 +20,19 @@
 package no.nibio.vips.logic.messaging;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -41,16 +42,15 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.Size;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
-import no.nibio.vips.logic.util.PostgresJSONStringConverter;
 import no.nibio.vips.logic.util.StringJsonUserType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -60,10 +60,6 @@ import org.hibernate.annotations.TypeDefs;
 @NamedQueries({
     @NamedQuery(name = "UniversalMessage.findAll", query = "SELECT u FROM UniversalMessage u"),
     @NamedQuery(name = "UniversalMessage.findByUniversalMessageId", query = "SELECT u FROM UniversalMessage u WHERE u.universalMessageId = :universalMessageId"),
-    @NamedQuery(name = "UniversalMessage.findByMsgSubject", query = "SELECT u FROM UniversalMessage u WHERE u.msgSubject = :msgSubject"),
-    @NamedQuery(name = "UniversalMessage.findByMsgLeadParagraph", query = "SELECT u FROM UniversalMessage u WHERE u.msgLeadParagraph = :msgLeadParagraph"),
-    @NamedQuery(name = "UniversalMessage.findByMsgBody", query = "SELECT u FROM UniversalMessage u WHERE u.msgBody = :msgBody"),
-    @NamedQuery(name = "UniversalMessage.findByMsgDownloadUrl", query = "SELECT u FROM UniversalMessage u WHERE u.msgDownloadUrl = :msgDownloadUrl"),
     @NamedQuery(name = "UniversalMessage.findByExpiresAt", query = "SELECT u FROM UniversalMessage u WHERE u.expiresAt = :expiresAt")})
 public class UniversalMessage implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -72,18 +68,6 @@ public class UniversalMessage implements Serializable {
     @Basic(optional = false)
     @Column(name = "universal_message_id")
     private Integer universalMessageId;
-    @Size(max = 2047)
-    @Column(name = "msg_subject")
-    private String msgSubject;
-    @Size(max = 2147483647)
-    @Column(name = "msg_lead_paragraph")
-    private String msgLeadParagraph;
-    @Size(max = 2147483647)
-    @Column(name = "msg_body")
-    private String msgBody;
-    @Size(max = 1023)
-    @Column(name = "msg_download_url")
-    private String msgDownloadUrl;
     @Column(name = "expires_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiresAt;
@@ -94,21 +78,41 @@ public class UniversalMessage implements Serializable {
     @Column(name = "distribution_list")
     private String distributionList;
     
+    @Type(type = "StringJsonObject")
+    @Column(name = "message_local_versions")
+    private String messageLocalVersions;
+    
+    @Transient
+    private ObjectMapper objectMapper;
+    
 
     public UniversalMessage() {
     }
     
     public UniversalMessage(
-            String msgSubject,
-            String msgLeadParagraph,
-            String msgBody,
-            String msgDownloadUrl
+        String locale,
+        String msgSubject,
+        String msgLeadParagraph,
+        String msgBody,
+        String msgDownloadUrl
     )
     {
-        this.msgSubject = msgSubject;
-        this.msgLeadParagraph = msgLeadParagraph;
-        this.msgBody = msgBody;
-        this.msgDownloadUrl = msgDownloadUrl;
+        this.addMessageLocalVersion(locale, msgSubject, msgLeadParagraph, msgBody, msgDownloadUrl);
+    }
+    
+    public final void addMessageLocalVersion(
+        String locale,
+        String msgSubject,
+        String msgLeadParagraph,
+        String msgBody,
+        String msgDownloadUrl
+    )
+    {
+        
+        MessageLocalVersion newLocalVersion = new MessageLocalVersion(locale, msgSubject, msgLeadParagraph, msgBody, msgDownloadUrl);
+        List<MessageLocalVersion> existingLocalVersions = this.getMessageLocalVersionObjects();
+        existingLocalVersions.add(newLocalVersion);
+        this.setMessageLocalVersions(existingLocalVersions);
     }
 
     public UniversalMessage(Integer universalMessageId) {
@@ -122,38 +126,6 @@ public class UniversalMessage implements Serializable {
 
     public void setUniversalMessageId(Integer universalMessageId) {
         this.universalMessageId = universalMessageId;
-    }
-
-    public String getMsgSubject() {
-        return msgSubject;
-    }
-
-    public void setMsgSubject(String msgSubject) {
-        this.msgSubject = msgSubject;
-    }
-
-    public String getMsgLeadParagraph() {
-        return msgLeadParagraph;
-    }
-
-    public void setMsgLeadParagraph(String msgLeadParagraph) {
-        this.msgLeadParagraph = msgLeadParagraph;
-    }
-
-    public String getMsgBody() {
-        return msgBody;
-    }
-
-    public void setMsgBody(String msgBody) {
-        this.msgBody = msgBody;
-    }
-
-    public String getMsgDownloadUrl() {
-        return msgDownloadUrl;
-    }
-
-    public void setMsgDownloadUrl(String msgDownloadUrl) {
-        this.msgDownloadUrl = msgDownloadUrl;
     }
 
     @JsonIgnore
@@ -176,10 +148,23 @@ public class UniversalMessage implements Serializable {
     
     public void setDistributionList(List<MessageRecipient> distributionList) {
         try {
-            this.distributionList = new ObjectMapper().writeValueAsString(distributionList);
+            this.distributionList = this.getObjectMapper().writeValueAsString(distributionList);
         } catch (JsonProcessingException ex) {
             Logger.getLogger(UniversalMessage.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    @JsonIgnore
+    @Transient
+    public List<MessageRecipient> getDistributionListObjects()
+    {
+        List<MessageRecipient> retVal = null;
+        try {
+            retVal = this.getObjectMapper().readValue(this.getDistributionList(), new TypeReference<List<MessageRecipient>>(){});
+        } catch (IOException | NullPointerException ex) {
+            Logger.getLogger(UniversalMessage.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return retVal != null ? retVal : new ArrayList<MessageRecipient>();
     }
 
     @Override
@@ -207,4 +192,51 @@ public class UniversalMessage implements Serializable {
         return "no.nibio.vips.logic.messaging.UniversalMessage[ universalMessageId=" + universalMessageId + " ]";
     }
 
+    /**
+     * @return the messageLocalVersions
+     */
+    @JsonRawValue
+    public String getMessageLocalVersions() {
+        return messageLocalVersions != null ? this.messageLocalVersions : "[]";
+    }
+    
+    @JsonIgnore
+    @Transient
+    public List<MessageLocalVersion> getMessageLocalVersionObjects()
+    {
+        
+        List<MessageLocalVersion> retVal = null;
+        try {
+            retVal = this.getObjectMapper().readValue(this.getMessageLocalVersions(), new TypeReference<List<MessageLocalVersion>>(){});
+        } catch (IOException | NullPointerException ex) {
+            Logger.getLogger(UniversalMessage.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return retVal != null ? retVal : new ArrayList<MessageLocalVersion>();
+    }
+
+    /**
+     * @param messageLocalVersions the messageLocalVersions to set
+     */
+    public void setMessageLocalVersions(String messageLocalVersions) {
+        this.messageLocalVersions = messageLocalVersions;
+    }
+    
+    public void setMessageLocalVersions(List<MessageLocalVersion> messageLocalVersions)
+    {
+        try {
+            this.messageLocalVersions = this.getObjectMapper().writeValueAsString(messageLocalVersions);
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(UniversalMessage.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    
+    private ObjectMapper getObjectMapper()
+    {
+        if(this.objectMapper == null)
+        {
+            this.objectMapper = new ObjectMapper();
+        }
+        return this.objectMapper;
+    }
 }

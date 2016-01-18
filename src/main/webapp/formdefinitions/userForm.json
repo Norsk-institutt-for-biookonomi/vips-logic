@@ -24,6 +24,11 @@
             "required" : true
         },
         {
+            "name" : "phone",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "firstName",
             "dataType" : "STRING",
             "maxLength" : 255

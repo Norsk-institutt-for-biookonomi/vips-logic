@@ -18,6 +18,7 @@
  */
 package no.nibio.vips.logic.messaging;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,6 +67,26 @@ public class UniversalMessagingTest {
     // public void hello() {}
     
     @Test
+    public void deserializeMessageLocalVersionTest()
+    {
+        System.out.println("deserializeMessageLocalVersionTest");
+        try
+        {
+            String jsonText = "[{\"locale\":\"no\",\"msgSubject\":\"Bladveps funnet på Kyrksæterøra\",\"msgLeadParagraph\":\"Se opp for svermende veps med brodder\",\"msgBody\":\"Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae\",\"msgDownloadUrl\":\"http://www.nibio.no/\"}]";
+
+            ObjectMapper mapper = new ObjectMapper();
+            //mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+            //mapper.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS,true);
+            List<MessageLocalVersion> result = mapper.readValue(jsonText, new TypeReference<List<MessageLocalVersion>>(){});
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+    
+    @Test
     public void serviceTest()
     {
         System.out.println("serviceTest");
@@ -73,15 +94,26 @@ public class UniversalMessagingTest {
         try
         {
             UniversalMessage um = new UniversalMessage(
+                    "nb",
                     "Bladveps funnet på Kyrksæterøra",
                     "Se opp for svermende veps med brodder",
                     "Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae Lorem ipsum Dolores Sanctum Nobliatarus Factorum des nomine in sanctus spiritu benedictus qui venit dies irae",
                     "http://www.nibio.no/"
             );
             
+            um.addMessageLocalVersion(
+                    "en", 
+                    "Leaf wasp found in Kyrksæterøra", 
+                    "Look out for swarming wasps and their dangerous sting", 
+                    "Yesterday, all my troubles seemed so far away. Now it looks as though they're here to stay.", 
+                    "http://www.nibio.no/"
+            );
+            
             
             String[][] recipients = {
-                {"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no"}//,
+                {"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no","nb"},
+                {"2","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","en"},
+                {"3","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","bs"}//,
                 //{"1","Tor-Einar Skog","Sms","91303819"},
                 //{"2","Lars Aksel Opsahl", "Mail","lars.opsahl@nibio.no"}
             };
@@ -93,7 +125,8 @@ public class UniversalMessagingTest {
                         recipient[0],
                         recipient[1],
                         recipient[2],
-                        recipient[3]
+                        recipient[3],
+                        recipient[4]
                     )
                 );
             }
@@ -103,22 +136,23 @@ public class UniversalMessagingTest {
             //client.register(new RESTAuthenticator("user", "userPass"));
             client.register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"));
             //ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");
-            //ResteasyWebTarget target = client.target("http://localhost:8080");
-            ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
+            ResteasyWebTarget target = client.target("http://localhost:8080");
+            //ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
             UniversalMessagingServiceClient umClient = target.proxy(UniversalMessagingServiceClient.class);
             
         
-            System.out.println(new ObjectMapper().writeValueAsString(um));
+            //System.out.println(new ObjectMapper().writeValueAsString(um));
             Response r = umClient.sendMessage(new ObjectMapper().writeValueAsString(um));
-            assertEquals(200,r.getStatus());
+            
             
             result = r.readEntity(String.class);
-            System.out.println(result);
+            //System.out.println(result);
+            assertEquals(200,r.getStatus());
             //Response r = umClient.sendMessage(um);
         }
         catch(IOException | IllegalArgumentException | NullPointerException e)
         {
-            e.printStackTrace();
+            //e.printStackTrace();
             fail(e.getMessage());
         }
         assertNotNull(result);
