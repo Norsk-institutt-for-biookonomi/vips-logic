@@ -19,8 +19,12 @@
 
 package no.nibio.vips.logic.util;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Provides a single entry point to system time. This is to be able to
@@ -43,12 +47,32 @@ public final class SystemTime {
         }
         cal.setTime(new Date());
         cal.add(Calendar.MONTH, SYSTEM_TIME_OFFSET_MONTHS);
-        return cal.getTime();
+                    
+        return getExactDate() != null ? getExactDate(): cal.getTime();
     }
     
     private static Integer getOffsetMonths()
     {
         return Integer.valueOf(System.getProperty("no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS"));
+    }
+    
+    private static Date getExactDate()
+    {
+        String dateStr = System.getProperty("no.nibio.vips.logic.SYSTEM_TIME_EXACT_DATE");
+        if(dateStr != null)
+        {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                return format.parse(dateStr);
+            } catch (ParseException ex) {
+                Logger.getLogger(SystemTime.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
+        }
+        else
+        {
+            return null;
+        }
     }
     
 }
