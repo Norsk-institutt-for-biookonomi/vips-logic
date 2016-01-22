@@ -102,6 +102,8 @@ public class Organization implements Serializable {
     private String defaultLocale;
     @OneToMany(mappedBy = "organizationId")
     private Set<VipsLogicUser> vipsLogicUserSet;
+    @Column(name = "vipsweb_url")
+    private String vipswebUrl;
 
     public Organization() {
     }
@@ -293,6 +295,20 @@ public class Organization implements Serializable {
      */
     public void setDefaultVipsCoreUserId(Integer defaultVipsCoreUserId) {
         this.defaultVipsCoreUserId = defaultVipsCoreUserId;
+    }
+
+    /**
+     * @return the vipswebUrl
+     */
+    public String getVipswebUrl() {
+        return vipswebUrl;
+    }
+
+    /**
+     * @param vipswebUrl the vipswebUrl to set
+     */
+    public void setVipswebUrl(String vipswebUrl) {
+        this.vipswebUrl = vipswebUrl;
     }
 
 }

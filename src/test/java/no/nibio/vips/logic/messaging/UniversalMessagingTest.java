@@ -146,7 +146,7 @@ public class UniversalMessagingTest {
             
             
             result = r.readEntity(String.class);
-            //System.out.println(result);
+            System.out.println(result);
             assertEquals(200,r.getStatus());
             //Response r = umClient.sendMessage(um);
         }

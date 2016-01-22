@@ -50,8 +50,8 @@
         <input type="hidden" name="userId" value="${viewUser.userId}"/>
           <h2>${i18nBundle.messageNotifications}</h2>
           <div class="form-group">
-		<label for="universalMessageFormatId">${i18nBundle.messageFormat}</label>
-		<select name="universalMessageFormatId" onblur="validateField(this);">
+		<label for="messageN_universalMessageFormatId">${i18nBundle.messageFormat}</label>
+		<select name="messageN_universalMessageFormatId" onblur="validateField(this);">
 			<#list universalMessageFormats as format>
 			<option value="${format.universalMessageFormatId}"
 			<#if messageNotificationSubscription.universalMessageFormatId == format.universalMessageFormatId> selected="selected"</#if>
@@ -60,26 +60,56 @@
 		</select>
 	</div>
           <div class="form-group">
-		<label for="cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
-		<select class="form-control chosen-select" name="cropOrganismIds" onblur="validateField(this);" multiple="multiple">
+		<label for="messageN_cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
+		<select class="form-control chosen-select" name="messageN_cropOrganismIds" onblur="validateField(this);" multiple="multiple">
 			<#list allCrops?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
-			<#if userCropIds?seq_contains(organism.organismId)> selected="selected"</#if>
+			<#if messageNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
 			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
 		</#list>
 		</select>
 	</div>
 	<div class="form-group">
-	    <label for="messageTagIds">${i18nBundle.messageTags}</label>
-	    <select class="form-control chosen-select" name="messageTagIds" onblur="validateField(this);" multiple="multiple">
+	    <label for="messageN_messageTagIds">${i18nBundle.messageTags}</label>
+	    <select class="form-control chosen-select" name="messageN_messageTagIds" onblur="validateField(this);" multiple="multiple">
 		<#list messageTagSet as messageTag>
 			<option value="${messageTag.messageTagId}"
-				<#if userMessageTagIds?seq_contains(messageTag.messageTagId)> selected="selected"</#if>
+				<#if messageNotificationSubscription.messageTagIds?seq_contains(messageTag.messageTagId)> selected="selected"</#if>
 			>${(messageTag.getLocalName(currentLocale))!messageTag.defaultTagName}</option>
 		</#list>
 	     </select>
 	</div>
           <h2>${i18nBundle.forecastNotifications}</h2>
+          <div class="form-group">
+		<label for="forecastN_universalMessageFormatId">${i18nBundle.messageFormat}</label>
+		<select name="forecastN_universalMessageFormatId" onblur="validateField(this);">
+			<#list universalMessageFormats as format>
+			<option value="${format.universalMessageFormatId}"
+			<#if messageNotificationSubscription.universalMessageFormatId == format.universalMessageFormatId> selected="selected"</#if>
+			>${i18nBundle(format.formatName)}</option>
+		</#list>
+		</select>
+	</div>
+          <div class="form-group">
+		<label for="forecastN_cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
+		<select class="form-control chosen-select" name="forecastN_cropOrganismIds" multiple="multiple">
+			<#list allCrops?sort_by("latinName") as organism>
+			<option value="${organism.organismId}"
+			<#if forecastEventNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
+			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
+		</#list>
+		</select>
+	</div>
+	<div class="form-group">
+	    <label for="forecastN_weatherStationIds">${i18nBundle.weatherStations}</label>
+	    <select class="form-control chosen-select" name="forecastN_weatherStationIds" multiple="multiple">
+	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.weatherStations?lower_case}</option>
+	    	<#list weatherStationIds?sort_by("name") as poi>
+	    	<option value="${poi.pointOfInterestId}"<#if forecastEventNotificationSubscription.weatherStationIds?seq_contains(poi.pointOfInterestId)> selected="selected"</#if>>${poi.name}</option>
+	    	</#list>
+	    </select>
+	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
+	  </div>
           <p>Under construction</p>
           <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 	</form>

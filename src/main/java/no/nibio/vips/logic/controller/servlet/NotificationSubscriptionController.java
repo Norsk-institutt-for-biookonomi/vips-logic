@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.messaging.ForecastEventNotificationSubscription;
 import no.nibio.vips.logic.messaging.MessageNotificationSubscription;
 import no.nibio.vips.logic.messaging.UniversalMessageFormat;
 import no.nibio.vips.logic.util.SessionControllerGetter;
@@ -79,13 +80,14 @@ public class NotificationSubscriptionController extends HttpServlet {
                 {
                     viewUser = user;
                 }
-                MessageNotificationSubscription subscription = SessionControllerGetter.getMessagingBean().getMessageNotificationSubscription(viewUser.getUserId());
-                request.setAttribute("messageNotificationSubscription",subscription);
-                request.setAttribute("userCropIds", subscription != null ? subscription.getCropIds() : new Integer[0]);
-                request.setAttribute("userMessageTagIds", subscription != null ? subscription.getMessageTagIds() : new Integer[0]);
+                MessageNotificationSubscription messageNotificationSubscription = SessionControllerGetter.getMessagingBean().getMessageNotificationSubscription(viewUser.getUserId());
+                request.setAttribute("messageNotificationSubscription",messageNotificationSubscription);
+                ForecastEventNotificationSubscription forecastEventNotificationSubscription = SessionControllerGetter.getMessagingBean().getForecastEventNotificationSubscription(viewUser.getUserId());
+                request.setAttribute("forecastEventNotificationSubscription",forecastEventNotificationSubscription);
                 request.setAttribute("viewUser", viewUser);
                 request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
                 request.setAttribute("messageTagSet", em.createNamedQuery("MessageTag.findAll").getResultList());
+                request.setAttribute("weatherStationIds", SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(viewUser));
                 request.setAttribute("universalMessageFormats", SessionControllerGetter.getMessagingBean().getAllUniversalMessageFormats());
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/notificationSubscriptionForm.ftl").forward(request, response);
@@ -103,12 +105,20 @@ public class NotificationSubscriptionController extends HttpServlet {
                 {
                     viewUser = user;
                 }
-                MessageNotificationSubscription subscription = new MessageNotificationSubscription();
-                subscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("universalMessageFormatId")));
-                subscription.setCropIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("cropOrganismIds")));
-                subscription.setMessageTagIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageTagIds")));
-                subscription.setUserId(viewUser.getUserId());
-                SessionControllerGetter.getMessagingBean().storeMessageNotificationSubscription(subscription);
+                MessageNotificationSubscription mSubscription = new MessageNotificationSubscription();
+                mSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("messageN_universalMessageFormatId")));
+                mSubscription.setCropIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageN_cropOrganismIds")));
+                mSubscription.setMessageTagIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageN_messageTagIds")));
+                mSubscription.setUserId(viewUser.getUserId());
+                SessionControllerGetter.getMessagingBean().storeMessageNotificationSubscription(mSubscription);
+                
+                ForecastEventNotificationSubscription fSubscription = new ForecastEventNotificationSubscription();
+                fSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("forecastN_universalMessageFormatId")));
+                fSubscription.setCropIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_cropOrganismIds")));
+                fSubscription.setWeatherStationIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_weatherStationIds")));
+                fSubscription.setUserId(viewUser.getUserId());
+                SessionControllerGetter.getMessagingBean().storeForecastEventNotificationSubscription(fSubscription);
+                
                 // Redirect to form with confirmation message
                 response.sendRedirect(new StringBuilder("http://")
                             .append(ServletUtil.getServerName(request))
