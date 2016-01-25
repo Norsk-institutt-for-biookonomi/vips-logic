@@ -64,6 +64,15 @@
 	    <span class="help-block" id="${formId}_lastName_validation"></span>
 	  </div>
 	  <div class="form-group">
+	    <label for="preferredLocale">${i18nBundle.preferredLocale}</label>
+	    <select class="form-control" name="preferredLocale" onblur="validateField(this);">
+		<#list availableLocales?sort_by("displayLanguage") as locale>
+			<option value="${locale.language}"<#if (viewUser.preferredLocale?has_content && locale.language == viewUser.preferredLocale) || (!viewUser.preferredLocale?has_content && defaultLocale?has_content && defaultLocale == locale.language)> selected="selected"</#if>>${locale.getDisplayLanguage(currentLocale)}</option>
+		</#list>
+	     </select>
+	     <span class="help-block" id="${formId}_preferredLocale_validation"></span>
+	  </div>
+	  <div class="form-group">
 	    <label for="organizationId">${i18nBundle.organizationId}</label>
 	    <select class="form-control" name="organizationId" onblur="validateField(this);">
 		<#list organizations?sort_by("organizationName") as organization>

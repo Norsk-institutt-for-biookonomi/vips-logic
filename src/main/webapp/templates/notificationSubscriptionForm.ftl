@@ -54,7 +54,7 @@
 		<select name="messageN_universalMessageFormatId" onblur="validateField(this);">
 			<#list universalMessageFormats as format>
 			<option value="${format.universalMessageFormatId}"
-			<#if messageNotificationSubscription.universalMessageFormatId == format.universalMessageFormatId> selected="selected"</#if>
+			<#if messageNotificationSubscription?has_content && messageNotificationSubscription.universalMessageFormatId == format.universalMessageFormatId> selected="selected"</#if>
 			>${i18nBundle(format.formatName)}</option>
 		</#list>
 		</select>
@@ -64,7 +64,7 @@
 		<select class="form-control chosen-select" name="messageN_cropOrganismIds" onblur="validateField(this);" multiple="multiple">
 			<#list allCrops?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
-			<#if messageNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
+			<#if messageNotificationSubscription?has_content && messageNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
 			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
 		</#list>
 		</select>
@@ -74,7 +74,7 @@
 	    <select class="form-control chosen-select" name="messageN_messageTagIds" onblur="validateField(this);" multiple="multiple">
 		<#list messageTagSet as messageTag>
 			<option value="${messageTag.messageTagId}"
-				<#if messageNotificationSubscription.messageTagIds?seq_contains(messageTag.messageTagId)> selected="selected"</#if>
+				<#if messageNotificationSubscription?has_content && messageNotificationSubscription.messageTagIds?seq_contains(messageTag.messageTagId)> selected="selected"</#if>
 			>${(messageTag.getLocalName(currentLocale))!messageTag.defaultTagName}</option>
 		</#list>
 	     </select>
@@ -85,7 +85,7 @@
 		<select name="forecastN_universalMessageFormatId" onblur="validateField(this);">
 			<#list universalMessageFormats as format>
 			<option value="${format.universalMessageFormatId}"
-			<#if messageNotificationSubscription.universalMessageFormatId == format.universalMessageFormatId> selected="selected"</#if>
+			<#if messageNotificationSubscription?has_content && messageNotificationSubscription.universalMessageFormatId == format.universalMessageFormatId> selected="selected"</#if>
 			>${i18nBundle(format.formatName)}</option>
 		</#list>
 		</select>
@@ -95,7 +95,7 @@
 		<select class="form-control chosen-select" name="forecastN_cropOrganismIds" multiple="multiple">
 			<#list allCrops?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
-			<#if forecastEventNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
+			<#if forecastEventNotificationSubscription?has_content && forecastEventNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
 			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
 		</#list>
 		</select>
@@ -105,12 +105,12 @@
 	    <select class="form-control chosen-select" name="forecastN_weatherStationIds" multiple="multiple">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.weatherStations?lower_case}</option>
 	    	<#list weatherStationIds?sort_by("name") as poi>
-	    	<option value="${poi.pointOfInterestId}"<#if forecastEventNotificationSubscription.weatherStationIds?seq_contains(poi.pointOfInterestId)> selected="selected"</#if>>${poi.name}</option>
+	    	<option value="${poi.pointOfInterestId}"<#if forecastEventNotificationSubscription?has_content && forecastEventNotificationSubscription.weatherStationIds?seq_contains(poi.pointOfInterestId)> selected="selected"</#if>>${poi.name}</option>
 	    	</#list>
 	    </select>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
-          <p>Under construction</p>
+          
           <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 	</form>
 

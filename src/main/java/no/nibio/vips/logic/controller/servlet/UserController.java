@@ -37,6 +37,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.nibio.vips.i18n.LanguageUtil;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.UserAuthentication;
@@ -124,6 +125,7 @@ public class UserController extends HttpServlet {
                     else
                     {
                         request.setAttribute("viewUser", viewUser);
+                        request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                         request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                         request.setAttribute("userStatusIds", userBean.getUserStatusIds());
                         request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
@@ -155,6 +157,8 @@ public class UserController extends HttpServlet {
                 viewUser.setOrganizationId(user.getOrganizationId());
 
                 request.setAttribute("viewUser", viewUser);
+                request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
+                request.setAttribute("defaultLocale", user.getOrganizationId().getDefaultLocale());
                 request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                 request.setAttribute("userStatusIds", userBean.getUserStatusIds());
                 List<VipsLogicRole> roles = em.createNamedQuery("VipsLogicRole.findAll").getResultList();
@@ -244,6 +248,8 @@ public class UserController extends HttpServlet {
                             viewUser.setEmail(formValidation.getFormField("email").getWebValue());
                             viewUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
                             viewUser.setLastName(formValidation.getFormField("lastName").getWebValue());
+                            viewUser.setPhone(formValidation.getFormField("phone").getWebValue());
+                            viewUser.setPreferredLocale(formValidation.getFormField("preferredLocale").getWebValue());
                             if(user.isSuperUser())
                             {
                                 Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());

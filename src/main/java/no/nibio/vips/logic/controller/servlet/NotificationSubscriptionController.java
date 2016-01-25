@@ -87,7 +87,7 @@ public class NotificationSubscriptionController extends HttpServlet {
                 request.setAttribute("viewUser", viewUser);
                 request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
                 request.setAttribute("messageTagSet", em.createNamedQuery("MessageTag.findAll").getResultList());
-                request.setAttribute("weatherStationIds", SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(viewUser));
+                request.setAttribute("weatherStationIds", SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUserOrganization(viewUser));
                 request.setAttribute("universalMessageFormats", SessionControllerGetter.getMessagingBean().getAllUniversalMessageFormats());
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/notificationSubscriptionForm.ftl").forward(request, response);

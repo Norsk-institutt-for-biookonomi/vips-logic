@@ -86,6 +86,20 @@ public class PointOfInterestBean {
         }
     }
     
+    public List<PointOfInterestWeatherStation> getWeatherstationsForUserOrganization(VipsLogicUser user)
+    {
+        Query q = em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId");
+        q.setParameter("organizationId", user.getOrganizationId());
+        try
+        {
+            return q.getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
+    
     public List<PointOfInterestWeatherStation> getAllWeatherStations()
     {
         Query q = em.createNamedQuery("PointOfInterestWeatherStation.findAll");

@@ -19,6 +19,9 @@
 
 package no.nibio.vips.logic.util;
 
+import com.ibm.icu.util.ULocale;
+import java.util.Locale;
+
 /**
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>

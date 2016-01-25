@@ -42,9 +42,7 @@ import org.hibernate.annotations.TypeDefs;
 @TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 public class MessageNotificationSubscription implements Serializable {
 
-    private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "user_id")
     private Integer userId;
