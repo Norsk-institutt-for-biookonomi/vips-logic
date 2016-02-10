@@ -19,6 +19,7 @@
         <title>${i18nBundle.observations}</title>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.observations}</h1>
         <p>TODO: Add map and filters for organism and time</p>
         <#if messageKey?has_content>
@@ -43,5 +44,6 @@
 		</tbody>
         </table>
         </div>
+</div>
 </#macro>
 <@page_html/>

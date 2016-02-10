@@ -33,6 +33,7 @@
 	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
 	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1><#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
         <a href="/user?action=viewUser&userId=${viewUser.userId}" class="btn btn-default" role="button">${i18nBundle.userAccountInformation}</a>
@@ -113,6 +114,6 @@
           
           <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 	</form>
-
+</div>
 </#macro>
 <@page_html/>

@@ -19,6 +19,7 @@
         <title>${i18nBundle.users}</title>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.users}</h1>
 		<p>
 		<a href="/user?action=newUser" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
@@ -42,5 +43,6 @@
 		</tbody>
         </table>
         </div>
+</div>
 </#macro>
 <@page_html/>

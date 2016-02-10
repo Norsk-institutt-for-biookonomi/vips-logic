@@ -27,6 +27,7 @@
 	<script type="text/javascript" src="/js/validateForm.js"></script>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
 	<p><a href="${returnURL}" class="btn btn-default cancel" role="button">${i18nBundle.cancel}</a></p>
         <h1>${i18nBundle.deleteWeatherStation} ${weatherStation.name}</h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
@@ -65,6 +66,6 @@
 		<a href="${returnURL}" class="btn btn-default cancel" role="button">${i18nBundle.cancel}</a>
 		<button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/weatherStation?action=deleteWeatherStation&pointOfInterestId=${weatherStation.pointOfInterestId}';}">${i18nBundle.deleteWeatherStation}</button>
 	</p>
-	
+</div>
 </#macro>
 <@page_html/>

@@ -24,9 +24,68 @@
         Main stylesheet of the VIPSLogic web app. Cusomizes the bootstrap.css
 */
 
+body {
+	 font-family: 'Source Sans Pro', sans-serif;
+}
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6
+{
+	font-family: 'Source Sans Pro', sans-serif;
+}
+
+h1 {
+	 font-size: 250%;
+	 line-height: 100%;
+	 /*font-family: "Bitter", Arial, Helvetica, sans-serif;*/
+	 font-weight: 400;
+	 font-style: normal;
+	 width: 100%;
+	 color: rgba(33, 37, 35, 1);
+	 /*padding: 15px 0px 10px 0px;*/
+}
+
+p {
+	 font-size: 16px;
+	 line-height: 130%;
+	 color: rgba(86, 91, 89, 1);
+	 /*font-family: "Roboto", Arial, Helvetica, sans-serif;*/
+	 font-weight: 300;
+	 font-style: normal;
+	 text-transform: none;
+	 width: 100%;
+}
+
+a, a:hover {
+	color: #008136;
+	text-decoration: underline;
+}
+
+
+.navbar{
+	background-color: #fff;
+	border: 0px none;
+	border-radius: 0px;
+	color: #222222 !important;
+	margin-bottom: 0px;
+	padding-top: 15px;
+	min-height: 80px;
+}
+
 .navbar-brand{
-    padding-top: 6px;
-    padding-bottom: 6px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	text-decoration: none;
+	color: #222222 !important;
+	font-weight: bold;
+	font-size: large; 
+}
+
+#siteTitle {
+	margin-left: 0px; 
+	padding-left: 0px; 
+	padding-top: 23px; 
+	font-size: 1.2em; 
+	font-weight: normal;
+	line-height: 130%;
 }
 
 fieldset {
@@ -37,8 +96,129 @@ fieldset {
     margin-bottom: 15px;
 }
 
+.navbar-nav li a {
+	color: #222222 !important; 
+	font-weight: normal !important;
+	font-size: large;
+	padding-top: 23px;
+}
+
+.navbar-default .navbar-nav>.active>a, 
+.navbar-default .navbar-nav>.active>a:hover, 
+.navbar-default .navbar-nav>.active>a:focus {
+	background-color: white;	
+}
+
+.dropdown-header {
+	font-size: 160%;
+	color: white;
+	background-color: #B6B8B5
+}
+
+.dropdown-menu {
+	border-radius: 0px;
+	padding: 0px;
+	border: 0px none;
+	background-color: #dddddd !important;
+	z-index: 101;
+}
+
+.dropdown-menu li a, li.divider { 
+	color: white; 
+	font-weight: normal !important;
+	font-size: medium !important;
+	/*border-top: 1px solid #B6B8B5;*/
+}
+
+.dropdown-menu li a:hover {
+	color: #295B40; 
+	font-weight: normal;
+	/**background-color: #31AB6E;*/
+		background-color: #aaaaaa;
+}
+
+
+.navbar-nav li a:hover {
+	color: #444444 !important; 
+	font-weight: bold !important;
+}
+
+.navbar-nav li a.currentLink {
+	/*color: #f7f6f2 !important;*/
+	font-weight: bold !important;
+	height: 65px;
+	border-bottom: 4px solid #008136;
+}
+
+.navbar-nav .dropdown a .caret{
+	border-top-color: #222222 !important;
+}
+
+
+
+.nav a
+{
+	text-decoration: none;
+}
+
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus{
+	background-color: transparent;
+	border-bottom: 0px none;
+}
+
+.navbar-toggle {
+	margin-top: 48px;
+}
+
+a.dropdown-toggle{
+	height: 65px;
+}
+
 fieldset#modelSpecificFields{
     display: none;
+}
+
+footer {
+	padding: 30px 35px 35px 35px;
+	/*border-top: 4px solid #9f9f9f;*/
+	
+	background-color: #fff;
+}
+
+footer p {
+	color: #222222 !important;	
+	 line-height: 14px;
+	 margin-bottom: 10px;
+}
+
+footer p, footer a,footer a:visited{
+	/*color: white;*/
+	font-size: 12px;
+}
+
+footer a:hover {
+	color: rgba(49, 171, 110, 1);
+}
+
+table.table {
+	border-collapse: collapse;
+}
+
+table.table > tbody > tr > td {
+	background-color: white;
+	border-bottom: 3px solid #d9e6e4;
+}
+
+.table thead>tr>th {
+	border-bottom: 3px solid #d9e6e4;
+
+}
+
+.singleBlockContainer {
+	margin-bottom: 15px;
+	margin-top: 15px;
+	padding: 15px;
+	background-color: white !important;
 }
 
 legend {

@@ -62,6 +62,7 @@ $(document).ready(function() {
 </#macro>
 
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.organisms}</h1>
         <div class="row">
 		<div class="col-md-6">
@@ -74,5 +75,6 @@ $(document).ready(function() {
 		Skjema for redigering av organisme
 		</div>
 	</div>
+</div>
 </#macro>
 <@page_html/>

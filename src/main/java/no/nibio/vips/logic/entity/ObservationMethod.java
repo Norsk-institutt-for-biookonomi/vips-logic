@@ -53,8 +53,7 @@ public class ObservationMethod implements Serializable {
     @Size(min = 1, max = 63)
     @Column(name = "observation_method_id")
     private String observationMethodId;
-    @OneToMany(mappedBy = "observationMethodId")
-    private Set<Observation> observationSet;
+    
 
     public ObservationMethod() {
     }
@@ -69,16 +68,6 @@ public class ObservationMethod implements Serializable {
 
     public void setObservationMethodId(String observationMethodId) {
         this.observationMethodId = observationMethodId;
-    }
-
-    @XmlTransient
-    @JsonIgnore
-    public Set<Observation> getObservationSet() {
-        return observationSet;
-    }
-
-    public void setObservationSet(Set<Observation> observationSet) {
-        this.observationSet = observationSet;
     }
 
     @Override

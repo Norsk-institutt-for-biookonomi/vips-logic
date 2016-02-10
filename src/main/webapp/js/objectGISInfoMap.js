@@ -102,7 +102,7 @@ function initMap(containerId, center, zoomLevel, displayMarker, drawnObjs, choos
   });
 
   // Satellite photo map from Microsoft/Bing
-  var bingArial = new ol.layer.Tile({
+  /*var bingArial = new ol.layer.Tile({
     title: 'Bing Arial',
     type: 'base',
     visible: false,
@@ -110,7 +110,7 @@ function initMap(containerId, center, zoomLevel, displayMarker, drawnObjs, choos
       imagerySet: 'Aerial',
       key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3'
     })
-  });
+  });*/
 
   // Detailed map of Norway in shades of grey
   var topo2graatone = new ol.layer.Tile({
@@ -131,7 +131,7 @@ function initMap(containerId, center, zoomLevel, displayMarker, drawnObjs, choos
   //########################Get maplayers you can choose from########################
 
   //var layersObj = eval ("(" + chooseLayersObj + ")");
-  var allLayers = [osm, bingArial, topo2graatone] ;
+  var allLayers = [osm, topo2graatone] ;
   var chooseLayers = [];
   var choosenLayer;
   var hoverAttribute = '';

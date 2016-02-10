@@ -19,6 +19,9 @@
         <title>${i18nBundle.greeting} VIPSLogic</title>
 </#macro>
 <#macro page_contents>
-        <h1>${i18nBundle.greeting} VIPSLogic</h1>      
+	<div class="singleBlockContainer">
+		<h1>${i18nBundle.greeting} VIPSLogic</h1>
+		<p>${i18nBundle.indexText}</p>
+        </div>
 </#macro>
 <@page_html/>

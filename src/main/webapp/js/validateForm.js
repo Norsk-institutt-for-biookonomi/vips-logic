@@ -92,7 +92,9 @@ function validateForm(theForm, formDefinitionKey)
     var formDefinition = formDefinitions[formDefinitionKey];
     // Iterate through fields in form definition
     for(var i in formDefinition.fields){
+        
         var fieldDefinition = formDefinition.fields[i];
+        //console.log(fieldDefinition);
         if(!validateFieldActual(theForm[fieldDefinition.name], theForm, formDefinitionKey)){
             //alert("Validation failed for " + fieldDefinition.name);
             isValid = false;

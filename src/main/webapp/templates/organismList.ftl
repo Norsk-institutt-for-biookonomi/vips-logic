@@ -20,6 +20,7 @@
         <title>${i18nBundle.organisms}<#if organism.organismId?has_content> - ${organism.localName!""}<#if organism.tradeName?has_content> / ${organism.tradeName}</#if> (${organism.latinName!""})</#if></title>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.organisms}</h1>
         <#if organism.organismId?has_content>
         <h2>${organism.getLocalName(currentLocale.language)!""}<#if organism.tradeName?has_content> / ${organism.tradeName}</#if> (<i>${organism.latinName!""}</i>)</h2>
@@ -67,5 +68,6 @@
 		</tbody>
         </table>
         </div>
+</div>
 </#macro>
 <@page_html/>

@@ -34,6 +34,7 @@ import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
@@ -88,6 +89,10 @@ public class ObservationController extends HttpServlet {
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
+                    {
+                        request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
+                    }
                     request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
                 }
                 catch(NullPointerException | NumberFormatException ex)
@@ -120,6 +125,10 @@ public class ObservationController extends HttpServlet {
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
+                    {
+                        request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
+                    }
                     if(request.getParameter("messageKey") != null)
                     {
                         request.setAttribute("messageKey",request.getParameter("messageKey"));
@@ -150,12 +159,37 @@ public class ObservationController extends HttpServlet {
                     if(formValidation.isValid())
                     {
                         // Storing observation
-                        observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
-                        observation.setDenominator(formValidation.getFormField("denominator").getValueAsInteger());
-                        observation.setObservationMethodId(em.find(ObservationMethod.class, formValidation.getFormField("observationMethodId").getWebValue()));
+                        
+                        // Only new observations can set the organism
+                        if(observationId <= 0)
+                        {
+                            
+                            observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
+                        }
+                        //observation.setDenominator(formValidation.getFormField("denominator").getValueAsInteger());
+                        //observation.setObservationMethodId(em.find(ObservationMethod.class, formValidation.getFormField("observationMethodId").getWebValue()));
                         observation.setTimeOfObservation(formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
-                        observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
+                        //observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
                         observation.setUserId(user.getUserId());
+                        observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
+                        observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
+                        observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
+                        
+                        // Storing approval status
+                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
+                        {
+                            Integer statusTypeId = formValidation.getFormField("statusTypeId").getValueAsInteger();
+                            if(
+                                    observation.getStatusTypeId() == null
+                                    || ! observation.getStatusTypeId().equals(statusTypeId)
+                                    )
+                            {
+                                observation.setStatusChangedByUserId(user.getUserId());
+                                observation.setStatusChangedTime(SystemTime.getSystemTime());
+                            }
+                            observation.setStatusTypeId(statusTypeId);
+                            observation.setStatusRemarks(formValidation.getFormField("statusRemarks").getWebValue());
+                        }
                         //observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
                         //System.out.println(formValidation.getFormField("geoInfo").getWebValue());
                         observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());

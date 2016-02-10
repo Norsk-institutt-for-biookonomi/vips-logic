@@ -222,8 +222,7 @@ public class BarleyNetBlotchModelService {
         {
             ObservationImpl observation = new ObservationImpl();
             observation.setName("Pyrenophora teres");
-            observation.setObservedValue(observationValue);
-            observation.setDenominator(100);
+            observation.setObservationData("{\"percentInfectedLeaves\": " + observationValue + "}");
             observation.setTimeOfObservation(observationDate);
             config.setConfigParameter("observation", observation);
         }

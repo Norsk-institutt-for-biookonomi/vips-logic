@@ -22,6 +22,7 @@
 	</script>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.schedulingOverview}</h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
@@ -116,6 +117,6 @@
 		</tbody>
         </table>
         </div>
-        
+</div>
 </#macro>
 <@page_html/>

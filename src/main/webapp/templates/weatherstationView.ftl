@@ -50,6 +50,7 @@
 </#macro>
 
 <#macro page_contents>
+<div class="singleBlockContainer">
 	<p><a href="${returnURL}" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1>${weatherStation.name}</h1>
         <div class="row">
@@ -171,6 +172,6 @@
 	</div>
         
 	
-	
+</div>
 </#macro>
 <@page_html/>

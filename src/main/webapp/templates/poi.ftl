@@ -19,11 +19,13 @@
         <title>POI</title>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>POI</h1>
 	<ul>
 	<#list weatherstations?sort_by("name") as weatherstation>
 	    <li>${weatherstation.name}<#if weatherstation.weatherStationDataSourceId??>, ${weatherstation.weatherStationDataSourceId.uri!}<#else></#if></li>
 	</#list>
         </ul>
+</div>
 </#macro>
 <@page_html/>

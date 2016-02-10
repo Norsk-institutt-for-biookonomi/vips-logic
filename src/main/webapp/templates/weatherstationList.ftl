@@ -38,6 +38,7 @@
 	</script>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
 <h1>${i18nBundle.weatherStations}</h1>
 <#if messageKey?has_content>
 	<div class="alert alert-success">${i18nBundle(messageKey)}</div>
@@ -126,6 +127,7 @@
 			</table>
 		</div>
 	</div>
+</div>
 </div>
 </#macro>
 <@page_html/>

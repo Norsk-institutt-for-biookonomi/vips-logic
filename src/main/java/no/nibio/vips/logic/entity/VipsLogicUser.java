@@ -275,6 +275,17 @@ public class VipsLogicUser implements Serializable {
         }
         return false;
     }
+    
+    @JsonIgnore
+    @Transient
+    public boolean isObservationAuthority(){
+        for (VipsLogicRole role : this.getVipsLogicRoles()) {
+            if (role.getVipsLogicRoleId().equals(VipsLogicRole.OBSERVATION_AUTHORITY)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @JsonIgnore
     public boolean hasRole(Integer... roles) {

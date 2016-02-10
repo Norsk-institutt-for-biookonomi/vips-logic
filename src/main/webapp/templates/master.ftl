@@ -26,7 +26,7 @@
 </#macro>
 <#macro page_contentwrap_start>
 <!-- start contentwrapper-->
-<div class="container">
+<div class="container" id="topContainer">
 	<nav class="navbar navbar-default" role="navigation">
 	  <!-- Brand and toggle get grouped for better mobile display -->
 	  <div class="navbar-header">
@@ -36,7 +36,7 @@
 	      <span class="icon-bar"></span>
 	      <span class="icon-bar"></span>
 	    </button>
-	    <a class="navbar-brand" href="/"><img src="/images/logo_vips.png" alt="VIPS logo"/> VIPSLogic</a>
+	    <a class="navbar-brand" href="/"><img src="/images/logo_vips.svg" alt="VIPS logo" style="height:48px;"/></a><span id="siteTitle" class="navbar-brand">${i18nBundle.VIPSLogicTitle}</span>
 	  </div>
 	<!-- Collect the nav links, forms, and other content for toggling -->
 	  <div class="collapse navbar-collapse navbar-ex1-collapse">
@@ -69,10 +69,12 @@
 	  </div><!-- /.navbar-collapse -->
 	  
 	</nav>
-
-	<div class="row">
-		<!-- Start contents container -->
-		<div class="col-md-12">
+</div>
+<div style="background-color: #d9e6e4;">
+	<div class="container" id="contentContainer" >
+		<div class="row">
+			<!-- Start contents container -->
+			<div class="col-md-12">
 	
 	
 </#macro>
@@ -80,9 +82,11 @@
         This is the default page contents.
 </#macro>
 <#macro page_contentwrap_end>
-		</div><!-- End contents container -->
-	</div><!-- End row with sidebar and contents container -->
-	<hr>
+			</div><!-- End contents container -->
+		</div><!-- End row with sidebar and contents container -->
+	</div><!-- End contentContainer -->
+</div><!-- End container with green bgcolor -->
+<div class="container" id="bottomContainer">
 	<footer>
 		<div class="row">
 			<div class="col-md-2">&copy; ${.now?string("yyyy")} <a href="http://www.nibio.no/" target="new">NIBIO</a></div>
@@ -99,9 +103,14 @@
 <html lang="no">
 <head>
 	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 	<link href="/css/3rdparty/bootstrap.min.css" rel="stylesheet" media="screen" />
+	<!-- Fonts from Google -->
+	<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400italic,200,200italic,300,300italic' rel='stylesheet' type='text/css'>
+	<!-- FontAwesome for icons -->
+	<link rel="stylesheet" href="/css/3rdparty/font-awesome.min.css">
 	<!-- Custom styles for VIPSLogic -->
 	<link href="/css/vipslogic.css" rel="stylesheet" media="screen" />
 	<@custom_css/>

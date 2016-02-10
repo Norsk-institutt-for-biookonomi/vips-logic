@@ -22,6 +22,7 @@
 	<script src="/js/resourcebundle.js"></script>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.deleteUser} <#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
         <#if errorMsg?has_content>
         <div id="errorMsgEl" class="alert alert-danger">
@@ -53,6 +54,6 @@
 	<button type="submit" class="btn btn-danger">${i18nBundle.transferAndDelete}</button>
 	</#if>
 
-
+</div>
 </#macro>
 <@page_html/>

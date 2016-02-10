@@ -19,6 +19,7 @@
         <title>${i18nBundle.forecasts}</title>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.forecasts}</h1>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
@@ -94,5 +95,6 @@
 		</tbody>
         </table>
         </div>
+</div>
 </#macro>
 <@page_html/>

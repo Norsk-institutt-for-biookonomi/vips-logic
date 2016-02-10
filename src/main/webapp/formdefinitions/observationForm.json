@@ -45,13 +45,9 @@
             "nullValue" : "{\"type\":\"FeatureCollection\",\"features\":[]}"
         },
         {
-            "name" : "observedValue",
-            "dataType" : "DOUBLE",
-            "required" : true
-        },
-        {
-            "name" : "denominator",
-            "dataType" : "INTEGER",
+            "name" : "observationData",
+            "dataType" : "STRING",
+            "fieldType" : "HIDDEN",
             "required" : false
         },
         {
@@ -59,6 +55,27 @@
             "dataType" : "STRING",
             "fieldType" : "SELECT_SINGLE",
             "required" : true
+        },
+        {
+            "name" : "observationHeading",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "observationText",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "statusTypeId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : false
+        },
+        {
+            "name" : "statusRemarks",
+            "dataType" : "STRING",
+            "required" : false
         }
         
     ]

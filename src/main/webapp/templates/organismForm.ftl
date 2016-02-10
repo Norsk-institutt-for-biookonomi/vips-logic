@@ -33,6 +33,7 @@
 
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
 	<#if organism.organismId?has_content>
         <h1>${i18nBundle.edit} - ${organism.latinName!organism.tradeName}</h1>
         <#else>
@@ -126,6 +127,6 @@
         <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
         <a href="/organism?action=listChildOrganisms&organismId=${organism.parentOrganismId!"null"}" class="btn btn-default" role="button">${i18nBundle.cancel}</a>
 	</form>
-	
+</div>	
 </#macro>
 <@page_html/>

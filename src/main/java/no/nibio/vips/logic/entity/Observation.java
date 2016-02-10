@@ -37,25 +37,29 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.vividsolutions.jts.geom.Geometry;
 import java.util.List;
+import javax.validation.constraints.Size;
 import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.logic.util.StringJsonUserType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 /**
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
 @Table(name = "observation")
 @XmlRootElement
+@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "Observation.findAll", query = "SELECT o FROM Observation o"),
     @NamedQuery(name = "Observation.findByObservationId", query = "SELECT o FROM Observation o WHERE o.observationId = :observationId"),
     @NamedQuery(name = "Observation.findByUserId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism"),
-    @NamedQuery(name = "Observation.findByTimeOfObservation", query = "SELECT o FROM Observation o WHERE o.timeOfObservation = :timeOfObservation"),
-    @NamedQuery(name = "Observation.findByObservedValue", query = "SELECT o FROM Observation o WHERE o.observedValue = :observedValue"),
-    @NamedQuery(name = "Observation.findByDenominator", query = "SELECT o FROM Observation o WHERE o.denominator = :denominator")})
+    @NamedQuery(name = "Observation.findByTimeOfObservation", query = "SELECT o FROM Observation o WHERE o.timeOfObservation = :timeOfObservation")
+})
 public class Observation implements Serializable, no.nibio.vips.observation.Observation {
 
     private static final long serialVersionUID = 1L;
@@ -63,11 +67,18 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Date timeOfObservation;
     private Organism organism;
     private Integer userId;
-    //private Point location;
     private List<Gis> geoinfo;
-    private Double observedValue;
-    private Integer denominator;
-    private ObservationMethod observationMethodId;
+    //private Double observedValue;
+    //private Integer denominator;
+    //private ObservationMethod observationMethodId;
+    private String observationHeading;
+    private String observationText;
+    private Integer statusTypeId;
+    private Integer statusChangedByUserId;
+    private Date statusChangedTime;
+    private String statusRemarks;
+    private String observationData;
+    private Boolean isQuantified;
     
     private GISUtil GISUtil;
 
@@ -79,11 +90,11 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.observationId = observationId;
     }
 
-    public Observation(Integer observationId, Date timeOfObservation, Double registeredValue) {
+    /*public Observation(Integer observationId, Date timeOfObservation, Double registeredValue) {
         this.observationId = observationId;
         this.timeOfObservation = timeOfObservation;
         this.observedValue = registeredValue;
-    }
+    }*/
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -154,7 +165,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         return this.location.getCoordinate();
     }*/
     
-    @NotNull
+    /*@NotNull
     @Basic(optional = false)
     @Column(name = "observed_value")
     @Override
@@ -174,8 +185,9 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 
     public void setDenominator(Integer denominator) {
         this.denominator = denominator;
-    }
+    }*/
 
+    /*
     @JoinColumn(name = "observation_method_id", referencedColumnName = "observation_method_id")
     @ManyToOne
     public ObservationMethod getObservationMethodId() {
@@ -185,7 +197,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setObservationMethodId(ObservationMethod observationMethodId) {
         this.observationMethodId = observationMethodId;
     }
-
+*/
     @Override
     public int hashCode() {
         int hash = 0;
@@ -266,6 +278,131 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     @Transient
     public String getName() {
         return this.getOrganism().getLatinName();
+    }
+
+    /**
+     * @return the observationHeading
+     */
+    @Column(name = "observation_heading")
+    @Size(max = 1023)
+    public String getObservationHeading() {
+        return observationHeading;
+    }
+
+    /**
+     * @param observationHeading the observationHeading to set
+     */
+    public void setObservationHeading(String observationHeading) {
+        this.observationHeading = observationHeading;
+    }
+
+    /**
+     * @return the observationText
+     */
+    @Column(name = "observation_text")
+    @Size(max = 2147483647)
+    public String getObservationText() {
+        return observationText;
+    }
+
+    /**
+     * @param observationText the observationText to set
+     */
+    public void setObservationText(String observationText) {
+        this.observationText = observationText;
+    }
+
+    /**
+     * @return the statusTypeId
+     */
+    @Column(name = "status_type_id")
+    public Integer getStatusTypeId() {
+        return statusTypeId;
+    }
+
+    /**
+     * @param statusTypeId the statusTypeId to set
+     */
+    public void setStatusTypeId(Integer statusTypeId) {
+        this.statusTypeId = statusTypeId;
+    }
+
+    /**
+     * @return the statusChangedByUserId
+     */
+    @Column(name = "status_changed_by_user_id")
+    public Integer getStatusChangedByUserId() {
+        return statusChangedByUserId;
+    }
+
+    /**
+     * @param statusChangedByUserId the statusChangedByUserId to set
+     */
+    public void setStatusChangedByUserId(Integer statusChangedByUserId) {
+        this.statusChangedByUserId = statusChangedByUserId;
+    }
+
+    /**
+     * @return the statusChangedTime
+     */
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "status_changed_time")
+    public Date getStatusChangedTime() {
+        return statusChangedTime;
+    }
+
+    /**
+     * @param statusChangedTime the statusChangedTime to set
+     */
+    public void setStatusChangedTime(Date statusChangedTime) {
+        this.statusChangedTime = statusChangedTime;
+    }
+
+    /**
+     * @return the statusRemarks
+     */
+    @Column(name = "status_remarks")
+    @Size(max = 2147483647)
+    public String getStatusRemarks() {
+        return statusRemarks;
+    }
+
+    /**
+     * @param statusRemarks the statusRemarks to set
+     */
+    public void setStatusRemarks(String statusRemarks) {
+        this.statusRemarks = statusRemarks;
+    }
+
+    /**
+     * @return the observationData
+     */
+    @Type(type = "StringJsonObject")
+    @Column(name = "observation_data")
+    public String getObservationData() {
+        return observationData;
+    }
+
+    /**
+     * @param observationData the observationData to set
+     */
+    public void setObservationData(String observationData) {
+        this.observationData = observationData;
+    }
+
+    /**
+     * @return the isQuantified
+     */
+    @Column(name = "is_quantified")
+    public Boolean getIsQuantified() {
+        return isQuantified;
+    }
+
+    /**
+     * @param isQuantified the isQuantified to set
+     */
+    public void setIsQuantified(Boolean isQuantified) {
+        this.isQuantified = isQuantified;
     }
 
 }

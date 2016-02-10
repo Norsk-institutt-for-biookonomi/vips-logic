@@ -20,6 +20,7 @@
 </#macro>
 
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${organism.getLocalName(currentLocale.language)!""}/${organism.tradeName!""}/${organism.latinName!""}</h1>
         <dl class="dl-horizontal">
         
@@ -53,6 +54,6 @@
 	<a href="/organism?action=editOrganismForm&organismId=${organism.organismId}" class="btn btn-default" role="button">${i18nBundle.edit}</a>
 	</#if>
 	<a href="/organism?action=listChildOrganisms&organismId=${organism.parentOrganismId!"null"}" class="btn btn-default" role="button">${i18nBundle.back}</a>
-        
+</div>
 </#macro>
 <@page_html/>

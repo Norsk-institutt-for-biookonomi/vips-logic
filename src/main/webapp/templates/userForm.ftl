@@ -27,6 +27,7 @@
 	</script>
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
 	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
         <h1><#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
         <#if viewUser.userId?has_content>
@@ -133,6 +134,6 @@
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/user?action=userDeleteForm&userId=${viewUser.userId}';}">${i18nBundle.delete}</button>
 	  </#if>
 	</form>
-
+</div>
 </#macro>
 <@page_html/>

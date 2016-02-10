@@ -87,6 +87,7 @@
 	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
 </#macro>
 <#macro page_contents>
+<div class="singleBlockContainer">
 	<p><a href="/message" class="btn btn-default back" role="button">${i18nBundle.back}</a><#if message.messageId?has_content><a href="/message?action=newMessageForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a></#if></p>
 	<#if message.messageId?has_content>
 	<h1>${i18nBundle.editMessage}</h1>
@@ -229,5 +230,6 @@
 	  </#if>
         <a href="/message" class="btn btn-default" role="button">${i18nBundle.cancel}</a>
 	</form>
+</div>
 </#macro>
 <@page_html/>

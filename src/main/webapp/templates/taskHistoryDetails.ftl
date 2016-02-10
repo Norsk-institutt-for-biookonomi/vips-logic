@@ -20,6 +20,7 @@
 </#macro>
 
 <#macro page_contents>
+<div class="singleBlockContainer">
         <h1>${i18nBundle.taskHistoryDetails}</h1>
         <dl class="dl-horizontal">
 	  <dt>${i18nBundle.startTime}</dt>
@@ -41,6 +42,6 @@
 	  <dd>${taskHistory.message!""}</dd>
 	</dl>
 	<button type="button" class="btn btn-default" onclick="window.location.href='/scheduling'">&lt;&lt; ${i18nBundle.back}</button>
-        
+</div>
 </#macro>
 <@page_html/>
