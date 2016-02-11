@@ -312,7 +312,17 @@ var metawidget = metawidget || {};
 				} else if ( attributes.maximum !== undefined ) {
 					number.setAttribute( 'max', attributes.maximum );
 				}
-
+                                
+                                if ( attributes.step !== undefined ) {
+                                    number.setAttribute( 'step', attributes.step );
+                                }
+                                else if (attributes.type === 'number'){
+                                    number.setAttribute( 'step', 'any' );
+                                }
+                                else {
+                                    number.setAttribute( 'step', '1' );
+                                }
+                                
 				return number;
 			}
 
