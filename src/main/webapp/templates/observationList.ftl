@@ -26,11 +26,19 @@
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
 	<a href="/observation?action=newObservationForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
+
+	<select class="form-control" name="statusTypeId" onchange="window.location.href='/observation?statusTypeId=' + this.options[this.options.selectedIndex].value;">
+		<#list [-1,1,2,3] as statusTypeId>
+		<option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case -1>${i18nBundle.allCategories}<#break><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
+		</#list>
+	</select>
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>
 			<th>${i18nBundle.timeOfObservation}</th>
 			<th>${i18nBundle.organism}</th>
+			<th>${i18nBundle.heading}</th>
+			<th>${i18nBundle.status}</th>
 			<th></th>
 		</thead>
 		<tbody>
@@ -38,6 +46,8 @@
 		    <tr>
 		    	<td>${observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ")}</td>
 		    	<td>${observation.organism.latinName!""}/${observation.organism.getLocalName(currentLocale.language)!""}</td>
+		    	<td>${observation.observationHeading}</td>
+		    	<td><#switch observation.statusTypeId><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></td>
 		    	<td><#if userHasObserverPrivilege><a href="/observation?action=editObservationForm&observationId=${observation.observationId}" class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
 		    </tr>
 		</#list>

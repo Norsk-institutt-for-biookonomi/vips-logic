@@ -64,7 +64,23 @@ public class ObservationController extends HttpServlet {
         // for everyone
         if(action == null)
         {
-            List<Observation> observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
+            List<Observation> observations = null;
+            Integer statusTypeId = -1; 
+            try 
+            {
+                statusTypeId = Integer.valueOf(request.getParameter("statusTypeId"));
+            }
+            catch(NumberFormatException nfe) {}
+            
+            if(statusTypeId < 0)
+            {
+                observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
+            }
+            else
+            {
+                observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId(), statusTypeId);
+            }
+            request.setAttribute("selectedStatusTypeId", statusTypeId);
             request.setAttribute("observations", observations);
             request.setAttribute("userHasObserverPrivilege", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
             // If this is a redirect from a controller, with a message to be passed on
@@ -84,8 +100,8 @@ public class ObservationController extends HttpServlet {
                     request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                    List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
-                    request.setAttribute("allOrganisms", allOrganisms);
+                    List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+                    request.setAttribute("allPests", allPests);
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
@@ -120,8 +136,8 @@ public class ObservationController extends HttpServlet {
                     //System.out.println(observation.getGeoinfo());
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                    List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
-                    request.setAttribute("allOrganisms", allOrganisms);
+                    List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+                    request.setAttribute("allPests", allPests);
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());

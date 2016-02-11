@@ -134,7 +134,7 @@
 			    
 			    <select class="form-control" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
-				<#list allOrganisms?sort_by("latinName") as organism>
+				<#list allPests?sort_by("latinName") as organism>
 					<option value="${organism.organismId}"
 						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
 					>${organism.latinName!""}/${organism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(organism.hierarchyCategoryId)})</option>
@@ -169,7 +169,7 @@
 			    <input type="number" class="form-control" name="denominator" placeholder="${i18nBundle.denominator}" value="${(observation.denominator?c)!"1"}" onblur="validateField(this);"/>
 			    <span class="help-block" id="${formId}_denominator_validation"></span>
 			  </div-->
-			  <div class="form-group">
+			  <!--div class="form-group">
 			    <label for="observationMethodId">${i18nBundle.observationMethodId}</label>
 			    <select class="form-control" name="observationMethodId" onblur="validateField(this);">
 				<#list observationMethods as observationMethod>
@@ -179,7 +179,7 @@
 				</#list>
 			     </select>
 			     <span class="help-block" id="${formId}_observationMethodId_validation"></span>
-			  </div>
+			  </div-->
 			  <div class="form-group">
 			    <label for="observationHeading">${i18nBundle.observationHeading}</label>
 			    <input type="text" class="form-control" name="observationHeading" placeholder="" value="${observation.observationHeading!""}" onblur="validateField(this);"/>

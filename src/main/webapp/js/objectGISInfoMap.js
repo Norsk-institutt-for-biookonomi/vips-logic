@@ -68,14 +68,14 @@ function initMap(containerId, center, zoomLevel, displayMarker, drawnObjs, choos
   // Create the DOM structure
   var theContainer = el(containerId);
   theContainer.innerHTML = [
-      "<div>",
+      "<div class='form-group'>",
       "     <label>",getI18nMsg("mapDrawTypeLabel"),"</label>",
-      "     <select id='type'>",
+      "     <select class='form-control' id='type' style='width: auto; display: inline;'>",
       "         <option value='Point'>",getI18nMsg("point"),"</option>",
       "         <option value='Polygon'>",getI18nMsg("polygon"),"</option>",
       "     </select>",
-      "     <button id='delete' type='button'>",getI18nMsg("clearAll"),"</button>",
-      "     <button id='deleteOne' type='button'>",getI18nMsg("clearOne"),"</button>",
+      "     <button type='button' id='delete' class='btn btn-danger' type='button'>",getI18nMsg("clearAll"),"</button>",
+      "     <button type='button' id='deleteOne' class='btn btn-warning' type='button'>",getI18nMsg("clearOne"),"</button>",
       "</div>",
       "<div id='", olMapDivId ,"' class='map'></div>",
       "<div id='alert_placeholder'></div>"

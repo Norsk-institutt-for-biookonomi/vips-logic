@@ -51,12 +51,6 @@
             "required" : false
         },
         {
-            "name" : "observationMethodId",
-            "dataType" : "STRING",
-            "fieldType" : "SELECT_SINGLE",
-            "required" : true
-        },
-        {
             "name" : "observationHeading",
             "dataType" : "STRING",
             "required" : false
