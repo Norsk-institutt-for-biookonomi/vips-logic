@@ -122,7 +122,7 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationForm">
-			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);}catch(e){console.log(e.message);console.log(e);return false;}">
+			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);}catch(e){console.log(e.message);console.log(e);return false;}">
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
 			  <input type="hidden" name="geoInfo" value=""/>
@@ -134,6 +134,7 @@
 			    
 			    <select class="form-control" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
+				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
 				<#list allPests?sort_by("latinName") as organism>
 					<option value="${organism.organismId}"
 						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
@@ -141,6 +142,21 @@
 				</#list>
 			    </select>
 			    <span class="help-block" id="${formId}_organismId_validation"></span>
+			    
+			  </div>
+			   <div class="form-group">
+			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
+			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly"<#else>onblur="validateField(this);"</#if>>
+				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
+				<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
+				<#list allCrops?sort_by("latinName") as cropOrganism>
+					<option value="${cropOrganism.organismId}"
+						<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
+					>${cropOrganism.latinName!""}/${cropOrganism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)})</option>
+				</#list>
+			    </select>
+			    <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
+			    
 			    
 			  </div>
 			  <!--div class="form-group">
@@ -152,6 +168,14 @@
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
 			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
 			    <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
+			  </div>
+			  <div class="form-group">
+			  	<div class="checkbox">
+					<label>
+						<input type="checkbox" name="isQuantified"<#if observation.isQuantified?has_content && observation.isQuantified == false><#else>checked="checked"</#if>/>
+					</label>
+					${i18nBundle.isQuantified}
+			  	</div>
 			  </div>
 			  <div class="form-group">
 			  <fieldset>
@@ -180,6 +204,14 @@
 			     </select>
 			     <span class="help-block" id="${formId}_observationMethodId_validation"></span>
 			  </div-->
+			  <div class="form-group">
+			  	<div class="checkbox">
+					<label>
+						<input type="checkbox" name="broadcastMessage"<#if observation.broadcastMessage?has_content && observation.broadcastMessage == false><#else>checked="checked"</#if>/>
+					</label>
+					${i18nBundle.broadcastMessage}
+			  	</div>
+			  </div>
 			  <div class="form-group">
 			    <label for="observationHeading">${i18nBundle.observationHeading}</label>
 			    <input type="text" class="form-control" name="observationHeading" placeholder="" value="${observation.observationHeading!""}" onblur="validateField(this);"/>

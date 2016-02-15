@@ -31,6 +31,13 @@
             "nullValue" : "-1"
         },
         {
+            "name" : "cropOrganismId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
+        },
+        {
             "name" : "timeOfObservation",
             "dataType" : "TIMESTAMP",
             "timestampFormat" : "yyyy-MM-dd HH:mmZ",
@@ -43,6 +50,16 @@
             "fieldType" : "HIDDEN",
             "required" : true,
             "nullValue" : "{\"type\":\"FeatureCollection\",\"features\":[]}"
+        },
+        {
+            "name" : "isQuantified",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "broadcastMessage",
+            "dataType" : "STRING",
+            "required" : false
         },
         {
             "name" : "observationData",

@@ -96,7 +96,7 @@ public class OrganismBean {
      */
     public List<Organism> getTopLevelOrganisms()
     {
-        List<Organism> retVal = em.createNativeQuery("SELECT * FROM Organism o WHERE o.parent_organism_id IS NULL", Organism.class).getResultList();
+        List<Organism> retVal = em.createNativeQuery("SELECT * FROM Organism o WHERE o.parent_organism_id IS NULL AND o.organism_id > 0", Organism.class).getResultList();
         for(Organism organism: retVal)
         {
             List<Organism> children = em.createNamedQuery("Organism.findByParentOrganismId").setParameter("parentOrganismId", organism.getOrganismId()).getResultList();

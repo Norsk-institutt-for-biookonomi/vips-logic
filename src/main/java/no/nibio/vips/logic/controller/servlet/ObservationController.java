@@ -102,6 +102,8 @@ public class ObservationController extends HttpServlet {
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
                     request.setAttribute("allPests", allPests);
+                    List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+                    request.setAttribute("allCrops", allCrops);
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
@@ -138,6 +140,8 @@ public class ObservationController extends HttpServlet {
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
                     request.setAttribute("allPests", allPests);
+                    List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+                    request.setAttribute("allCrops", allCrops);
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
@@ -181,6 +185,7 @@ public class ObservationController extends HttpServlet {
                         {
                             
                             observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
+                            observation.setCropOrganism(em.find(Organism.class, formValidation.getFormField("cropOrganismId").getValueAsInteger()));
                         }
                         //observation.setDenominator(formValidation.getFormField("denominator").getValueAsInteger());
                         //observation.setObservationMethodId(em.find(ObservationMethod.class, formValidation.getFormField("observationMethodId").getWebValue()));
@@ -190,6 +195,8 @@ public class ObservationController extends HttpServlet {
                         observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
                         observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
                         observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
+                        observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
+                        observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
                         
                         // Storing approval status
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))

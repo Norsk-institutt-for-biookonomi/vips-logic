@@ -58,6 +58,7 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "Observation.findByObservationId", query = "SELECT o FROM Observation o WHERE o.observationId = :observationId"),
     @NamedQuery(name = "Observation.findByUserId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
     @NamedQuery(name = "Observation.findByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism"),
     @NamedQuery(name = "Observation.findByTimeOfObservation", query = "SELECT o FROM Observation o WHERE o.timeOfObservation = :timeOfObservation")
 })
@@ -67,6 +68,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Integer observationId;
     private Date timeOfObservation;
     private Organism organism;
+    private Organism cropOrganism;
     private Integer userId;
     private List<Gis> geoinfo;
     //private Double observedValue;
@@ -80,6 +82,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private String statusRemarks;
     private String observationData;
     private Boolean isQuantified;
+    private Boolean broadcastMessage;
     
     private GISUtil GISUtil;
 
@@ -249,7 +252,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     @JoinColumn(name = "organism_id", referencedColumnName = "organism_id")
     @ManyToOne
-    @JsonIgnore
+    //@JsonIgnore
     public Organism getOrganism() {
         return organism;
     }
@@ -260,7 +263,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setOrganism(Organism organism) {
         this.organism = organism;
     }
-
+    
     /*
     @Override
     @Transient
@@ -380,6 +383,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     @Type(type = "StringJsonObject")
     @Column(name = "observation_data")
+    @Override
     public String getObservationData() {
         return observationData;
     }
@@ -404,6 +408,42 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setIsQuantified(Boolean isQuantified) {
         this.isQuantified = isQuantified;
+    }
+
+    /**
+     * @return the cropOrganism
+     */
+    @JoinColumn(name = "crop_organism_id", referencedColumnName = "organism_id")
+    @ManyToOne
+    public Organism getCropOrganism() {
+        return cropOrganism;
+    }
+
+    /**
+     * @param cropOrganism the cropOrganism to set
+     */
+    public void setCropOrganism(Organism cropOrganism) {
+        this.cropOrganism = cropOrganism;
+    }
+    
+    @Transient
+    public Integer getCropOrganismId() {
+        return this.getCropOrganism() != null ? this.getCropOrganism().getOrganismId() : null;
+    }
+
+    /**
+     * @return the broadcastMessage
+     */
+    @Column(name = "broadcast_message")
+    public Boolean getBroadcastMessage() {
+        return broadcastMessage;
+    }
+
+    /**
+     * @param broadcastMessage the broadcastMessage to set
+     */
+    public void setBroadcastMessage(Boolean broadcastMessage) {
+        this.broadcastMessage = broadcastMessage;
     }
 
 }

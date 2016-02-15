@@ -491,6 +491,37 @@ public class LogicService {
         return Response.ok().entity(observations).build();
     }
     
+    @GET
+    @Path("observation/{observationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservation(@PathParam("observationId") Integer observationId){
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservation(observationId)).build();
+    }
+    
+    /**
+     * Publicly available observations per organization
+     * @param organizationId
+     * @return APPROVED observations
+     */
+    @GET
+    @Path("observation/list/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservations(@PathParam("organizationId") Integer organizationId){
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
+    }
+    
+    /**
+     * Publicly available observations per organization
+     * @param organizationId
+     * @return APPROVED observations
+     */
+    @GET
+    @Path("observation/broadcast/list/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getBroadcastObservations(@PathParam("organizationId") Integer organizationId){
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId)).build();
+    }
+    
     /**
      * Service available locally for cron jobs. Most useful on test servers
      * @return 

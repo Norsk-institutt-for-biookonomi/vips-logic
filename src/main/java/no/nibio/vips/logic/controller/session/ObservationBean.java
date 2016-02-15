@@ -161,4 +161,18 @@ public class ObservationBean {
         Observation observation = em.find(Observation.class, observationId);
         em.remove(observation);
     }
+
+    public Object getBroadcastObservations(Integer organizationId) {
+        Organization organization= em.find(Organization.class, organizationId);
+        /*List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
+                                        .setParameter("organizationId", organization)
+                                        .getResultList();*/
+        
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage")
+                .setParameter("organizationId", organization)
+                .setParameter("statusTypeId", Observation.STATUS_TYPE_ID_APPROVED)
+                .getResultList());
+        
+        return retVal;
+    }
 }

@@ -545,7 +545,14 @@ function validizeField(inputEl, theForm)
         return;
     }
     styleValid(theForm[inputEl.name]);
-    getValidationOutputEl(inputEl, theForm).innerHTML = "";
+    try
+    {
+        getValidationOutputEl(inputEl, theForm).innerHTML = "";
+    }
+    catch(e)
+    {
+        console.log(e.message);
+    }
 }
 
 /**
