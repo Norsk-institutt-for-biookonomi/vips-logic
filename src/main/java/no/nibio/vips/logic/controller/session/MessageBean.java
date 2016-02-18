@@ -249,7 +249,7 @@ public class MessageBean {
         List <MessageIllustration> formerIllustrations = em.createNamedQuery("MessageIllustration.findByMessageId").setParameter("messageId", message.getMessageId()).getResultList();
         for(MessageIllustration formerIllustration:formerIllustrations)
         {
-            System.out.println("removing " + formerIllustration.toString());
+            //System.out.println("removing " + formerIllustration.toString());
             em.remove(formerIllustration);
         }
         // Also remove their relation to message.

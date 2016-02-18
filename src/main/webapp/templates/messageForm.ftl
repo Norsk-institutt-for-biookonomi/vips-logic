@@ -48,6 +48,7 @@
 				input.trigger('fileselect', [numFiles, label]);
 		});
 		$(document).ready( function() {
+			// Activating file selection
 			$('.btn-file :file').on('fileselect', function(event, numFiles, label) {
 				
 				var input = $(this).parents('.input-group').find(':text'),

@@ -19,10 +19,13 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -37,9 +40,14 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
+import no.nibio.web.forms.FormUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 /**
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -173,17 +181,39 @@ public class ObservationController extends HttpServlet {
             {
                 try
                 {
-                    Integer observationId = Integer.valueOf(request.getParameter("observationId"));
+                    Map<String,String[]> parameterMap;
+                    List<FileItem> items = null;
+                    if(ServletFileUpload.isMultipartContent(request))
+                    {
+                        // Create a factory for disk-based file items
+                        DiskFileItemFactory factory = new DiskFileItemFactory();
+
+                        // Configure a repository (to ensure a secure temp location is used)
+                        ServletContext servletContext = this.getServletConfig().getServletContext();
+                        File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
+                        factory.setRepository(repository);
+
+                        // Create a new file upload handler
+                        ServletFileUpload upload = new ServletFileUpload(factory);
+
+                        // Parse the request
+                        items = upload.parseRequest(request);
+                        parameterMap = FormUtil.getParameterMap(items,"UTF-8");
+                    }
+                    else
+                    {
+                        parameterMap = request.getParameterMap();
+                    }
+                    FormValidation formValidation = FormValidator.validateForm("observationForm", parameterMap, SessionLocaleUtil.getI18nBundle(request), getServletContext());
+                    Integer observationId = formValidation.getFormField("observationId").getValueAsInteger();
                     Observation observation = observationId > 0 ? em.find(Observation.class, observationId) : new Observation();
-                    FormValidation formValidation = FormValidator.validateForm("observationForm", request, getServletContext());
+                    
                     if(formValidation.isValid())
                     {
                         // Storing observation
-                        
                         // Only new observations can set the organism
                         if(observationId <= 0)
                         {
-                            
                             observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
                             observation.setCropOrganism(em.find(Organism.class, formValidation.getFormField("cropOrganismId").getValueAsInteger()));
                         }
@@ -197,7 +227,7 @@ public class ObservationController extends HttpServlet {
                         observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
                         observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
                         observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
-                        
+
                         // Storing approval status
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
                         {
@@ -217,7 +247,27 @@ public class ObservationController extends HttpServlet {
                         //System.out.println(formValidation.getFormField("geoInfo").getWebValue());
                         observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
                         observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
-                        
+
+                        // Image handling
+                        // Delete the current illustration
+                        String deleteIllustration = formValidation.getFormField("deleteIllustration").getWebValue();
+                        if(deleteIllustration != null && deleteIllustration.equals("true"))
+                        {
+                            observation = SessionControllerGetter.getObservationBean().deleteObservationIllustration(observation);
+                        }
+
+                        // Store the new illustration (replaces former illustration if not already deleted)
+                        if(items != null)
+                        {
+                            for(FileItem item:items)
+                            {
+                                if(!item.isFormField() && item.getSize() > 0)
+                                {
+                                    observation = SessionControllerGetter.getObservationBean().storeObservationIllustration(observation, item);
+                                }
+                            }
+                        }
+
                         // Redirect to form
                         response.sendRedirect(new StringBuilder("http://")
                                 .append(ServletUtil.getServerName(request))
@@ -238,9 +288,15 @@ public class ObservationController extends HttpServlet {
                         request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
                         request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
                     }
+                    
                 }
-                catch(NullPointerException | NumberFormatException | FormValidationException ex)
+                catch(NullPointerException | NumberFormatException | FormValidationException | FileUploadException ex)
                 {
+                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                }
+                catch(Exception ex)
+                {
+                    ex.printStackTrace();
                     response.sendError(500, ExceptionUtil.getStackTrace(ex));
                 }
             }

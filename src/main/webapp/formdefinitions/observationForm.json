@@ -78,6 +78,11 @@
             "required" : false
         },
         {
+            "name" : "deleteIllustration",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "statusTypeId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

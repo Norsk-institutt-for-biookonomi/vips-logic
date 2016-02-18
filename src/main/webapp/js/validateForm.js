@@ -95,6 +95,11 @@ function validateForm(theForm, formDefinitionKey)
         
         var fieldDefinition = formDefinition.fields[i];
         //console.log(fieldDefinition);
+        // Skip missing fields if they're unrequired 
+        if(theForm[fieldDefinition.name] === undefined && fieldDefinition.required === false)
+        {
+            continue;
+        }
         if(!validateFieldActual(theForm[fieldDefinition.name], theForm, formDefinitionKey)){
             //alert("Validation failed for " + fieldDefinition.name);
             isValid = false;
@@ -544,13 +549,16 @@ function validizeField(inputEl, theForm)
     {
         return;
     }
+    
     styleValid(theForm[inputEl.name]);
+    
     try
     {
         getValidationOutputEl(inputEl, theForm).innerHTML = "";
     }
     catch(e)
     {
+        console.log("validizeField failed for " + inputEl.name);
         console.log(e.message);
     }
 }

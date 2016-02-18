@@ -20,16 +20,26 @@
 package no.nibio.vips.logic.controller.session;
 
 import com.vividsolutions.jts.geom.Geometry;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.entity.Gis;
+import no.nibio.vips.logic.entity.Message;
+import no.nibio.vips.logic.entity.MessageIllustration;
+import no.nibio.vips.logic.entity.MessageIllustrationPK;
 import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.ObservationIllustration;
+import no.nibio.vips.logic.entity.ObservationIllustrationPK;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * @copyright 2014-2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -174,5 +184,79 @@ public class ObservationBean {
                 .getResultList());
         
         return retVal;
+    }
+    /**
+     * 
+     * @param message
+     * @return [OBSERVATION_ILLUSTRATION_PATH]/[ORGANIZATION_ID]/
+     */
+    private String getFilePath(Observation observation)
+    {
+        return System.getProperty("no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH") + "/" 
+                        + observation.getOrganismId();
+    }
+
+    public Observation storeObservationIllustration(Observation observation, FileItem item) throws Exception {
+        // Create a candidate filename
+        // [MESSAGE_ILLUSTRATION_PATH]/[ORGANIZATION_ID]/[MESSAGE_ID]_illustration.[fileExtension]
+        String filePath = this.getFilePath(observation);
+        String fileName = observation.getObservationId() + "_illustration." + FilenameUtils.getExtension(item.getName());
+        // Check availability, and adapt filename until available
+        Integer fileNameSuffix = 1;
+        File illustration = new File(filePath + "/" + fileName);
+        while(illustration.exists())
+        {
+            fileName = observation.getObservationId() + "_illustration_" + fileNameSuffix + "." + FilenameUtils.getExtension(item.getName());
+            illustration = new File(filePath + "/" + fileName);
+            fileNameSuffix++;
+        }
+        File testDirectoryfile = new File(filePath);
+        // If directory does not exist, create it
+        if(!testDirectoryfile.exists())
+        {
+            testDirectoryfile.mkdirs();
+        }
+
+        // Store file
+        item.write(illustration);
+        
+        // Update MessageIllustrations
+        observation = em.merge(observation);
+        // Remove the old illustration(s)
+        List <ObservationIllustration> formerIllustrations = em.createNamedQuery("ObservationIllustration.findByObservationId").setParameter("observationId", observation.getObservationId()).getResultList();
+        for(ObservationIllustration formerIllustration:formerIllustrations)
+        {
+            System.out.println("removing " + formerIllustration.toString());
+            em.remove(formerIllustration);
+        }
+        // Also remove their relation to message.
+        if(observation.getObservationIllustrationSet() != null)
+        {
+            observation.getObservationIllustrationSet().clear();
+        }
+        
+        ObservationIllustration newIllustration = new ObservationIllustration(new ObservationIllustrationPK(observation.getObservationId(), fileName));
+        em.persist(newIllustration);
+        
+        // Add the new illustration 
+        if(observation.getObservationIllustrationSet() == null)
+        {
+            observation.setObservationIllustrationSet(new HashSet<ObservationIllustration>());
+        }
+        observation.getObservationIllustrationSet().add(newIllustration);
+        //message.getMessageIllustrationSet().add(newIllustration);
+        return observation;
+    }
+
+    public Observation deleteObservationIllustration(Observation observation) {
+        observation = em.merge(observation);
+        
+        Set <ObservationIllustration> formerIllustrations = observation.getObservationIllustrationSet();
+        for(ObservationIllustration formerIllustration:formerIllustrations)
+        {
+            em.remove(formerIllustration);
+        }
+        observation.getObservationIllustrationSet().clear();
+        return observation;
     }
 }

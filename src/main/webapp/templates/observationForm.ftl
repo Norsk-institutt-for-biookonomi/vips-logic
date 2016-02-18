@@ -71,7 +71,31 @@
 			// Setting 
 				
 			</#if>
+			
+			// Activating file selection
+			$('.btn-file :file').on('fileselect', function(event, numFiles, label) {
+				
+				var input = $(this).parents('.input-group').find(':text'),
+					log = numFiles > 1 ? numFiles + ' files selected' : label;
+				
+				if( input.length ) {
+					input.val(log);
+				} else {
+					if( log ) alert(log);
+				}
+				
+			});
 		});
+		
+		// Adding selected file name to a box
+		$(document)
+			.on('change', '.btn-file :file', function() {
+				var input = $(this),
+				numFiles = input.get(0).files ? input.get(0).files.length : 1,
+				label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+				input.trigger('fileselect', [numFiles, label]);
+		});
+		
 		
 		// Global for observationData metawidgets
 		var mw = null;
@@ -122,13 +146,13 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationForm">
-			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);}catch(e){console.log(e.message);console.log(e);return false;}">
+			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);}catch(e){console.log(e.message);console.log(e);return false;}">
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
 			  <input type="hidden" name="geoInfo" value=""/>
 			  <input type="hidden" name="observationData" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
-			  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');console.log(theForm['geoInfo']);console.log(theForm['observationData']);theForm['geoInfo'].value=getFeatures();mw.save();console.log(theForm['observationData']);theForm['observationData'].value=JSON.stringify(mw.toInspect);validateForm(theForm);">Test</button-->
+			  <button type="button" onclick="var theForm=document.getElementById('${formId}');console.log(theForm['geoInfo']);console.log(theForm['observationData']);theForm['geoInfo'].value=getFeatures();mw.save();console.log(theForm['observationData']);theForm['observationData'].value=JSON.stringify(mw.toInspect);validateForm(theForm);">Test</button>
 			  <div class="form-group">
 			    <label for="organismId">${i18nBundle.organism}</label>
 			    
@@ -222,6 +246,24 @@
 			    <textarea class="form-control" name="observationText" placeholder="" >${observation.observationText!""}</textarea>
 			    <span class="help-block" id="${formId}_observationText_validation"></span>
 			  </div>
+			  <#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>
+				<#assign illustration = observation.observationIllustrationSet?first>
+				<img src="/static/images/observations/${observation.organismId}/${illustration.observationIllustrationPK.fileName}" alt="TODO: Add describing text" class="img-responsive"/>
+				<div class="checkbox">
+				  <label>
+				    <input type="checkbox" name="deleteIllustration" value="true">
+				    ${i18nBundle.deleteIllustration}
+				  </label>
+				</div>
+			</#if>
+			  <div class="form-group">
+				<div class="input-group">
+					<label for="illustration"><#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>${i18nBundle.replaceIllustration}<#else>${i18nBundle.newIllustration}</#if></label><br/>
+					<span class="btn btn-default btn-file">${i18nBundle.browse}<input type="file" name="illustration"></span>
+					<input type="text" class="form-control" readonly>
+				</div>
+			</div>
+	
 			  <#if user.isObservationAuthority() || user.isSuperUser()>
 				  <div class="form-group">
 				    <label for="statusTypeId">${i18nBundle.statusTypeId}</label>

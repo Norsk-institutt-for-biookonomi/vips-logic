@@ -38,6 +38,10 @@ import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
+import java.util.Set;
+import javax.persistence.CascadeType;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.Size;
 import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.StringJsonUserType;
@@ -83,6 +87,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private String observationData;
     private Boolean isQuantified;
     private Boolean broadcastMessage;
+    
+    private Set<ObservationIllustration> observationIllustrationSet;
     
     private GISUtil GISUtil;
 
@@ -444,6 +450,21 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setBroadcastMessage(Boolean broadcastMessage) {
         this.broadcastMessage = broadcastMessage;
+    }
+
+    /**
+     * @return the observationIllustrationSet
+     */
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "observationId", fetch = FetchType.EAGER)
+    public Set<ObservationIllustration> getObservationIllustrationSet() {
+        return observationIllustrationSet;
+    }
+
+    /**
+     * @param observationIllustrationSet the observationIllustrationSet to set
+     */
+    public void setObservationIllustrationSet(Set<ObservationIllustration> observationIllustrationSet) {
+        this.observationIllustrationSet = observationIllustrationSet;
     }
 
 }
