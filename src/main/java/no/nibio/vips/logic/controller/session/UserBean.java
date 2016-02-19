@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,7 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
+import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.MapLayer;
 import no.nibio.vips.logic.entity.MessageLocale;
@@ -659,5 +661,28 @@ public class UserBean {
         );
         q.setParameter("organizationId", organization.getOrganizationId());
         return q.getResultList();
+    }
+
+    public VipsLogicUser getUserByPhoneNumber(String sourceaddr) {
+        try
+        {
+            return em.createNamedQuery("VipsLogicUser.findByCompletePhoneNumber", VipsLogicUser.class)
+                .setParameter("completePhoneNumber", sourceaddr)
+                .getSingleResult();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
+    
+    // TODO: Put in config file?
+    private final static String[] USER_COUNTRY_CODES = {"NO","SE","BA"};
+    
+    public List<Country> getUserCountries()
+    {
+        return em.createNamedQuery("Country.findByCountryCodes")
+                .setParameter("countryCodes",Arrays.asList(UserBean.USER_COUNTRY_CODES))
+                .getResultList();
     }
 }

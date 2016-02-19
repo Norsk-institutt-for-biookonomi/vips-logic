@@ -49,10 +49,26 @@
 	    <input type="email" class="form-control" name="email" placeholder="${i18nBundle.email}" value="${viewUser.email!""}" onblur="validateField(this);" />
 	    <span class="help-block" id="${formId}_email_validation"></span>
 	  </div>
+	  
+	  
 	  <div class="form-group">
-	    <label for="phone">${i18nBundle.phone}</label>
-	    <input type="tel" class="form-control" name="phone" placeholder="${i18nBundle.phone}" value="${viewUser.phone!""}" onblur="validateField(this);" />
+	    <label for="phone" style="display:block;">${i18nBundle.phone}</label>
+	    <select name="phoneCountryCode" class="form-control" style="width: auto;display:inline;">
+	    <#list countries as country>
+	    	<option value="${country.phoneCode!"-1"}" <#if country.phoneCode?has_content && viewUser.phoneCountryCode?has_content && country.phoneCode == viewUser.phoneCountryCode> selected="selected"</#if>>${country.getCountryName(currentLocale)} +${country.phoneCode!"MISSING"}</option> 
+	    </#list>
+	    </select>
+	    <input type="tel" class="form-control" name="phone" placeholder="${i18nBundle.phone}" value="${viewUser.phone!""}" onblur="validateField(this);" style="width: auto;display:inline;"/>
 	    <span class="help-block" id="${formId}_phone_validation"></span>
+	  </div>
+	  <div class="form-group">
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" name="approvesSmsBilling"<#if viewUser.approvesSmsBilling?has_content && viewUser.approvesSmsBilling == false><#else>checked="checked"</#if>/>
+			</label>
+			${i18nBundle.approvesSmsBilling}
+			<p>${i18nBundle.approvesSmsBillingDescription}</p>
+		</div>
 	  </div>
 	  <div class="form-group">
 	    <label for="firstName">${i18nBundle.firstName}</label>

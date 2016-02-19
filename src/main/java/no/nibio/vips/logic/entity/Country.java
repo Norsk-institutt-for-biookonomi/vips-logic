@@ -40,7 +40,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -48,7 +48,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Country.findAll", query = "SELECT c FROM Country c"),
-    @NamedQuery(name = "Country.findByCountryCode", query = "SELECT c FROM Country c WHERE c.countryCode = :countryCode")})
+    @NamedQuery(name = "Country.findByCountryCode", query = "SELECT c FROM Country c WHERE c.countryCode = :countryCode"),
+    @NamedQuery(name = "Country.findByCountryCodes", query = "SELECT c FROM Country c WHERE c.countryCode IN(:countryCodes)")
+})
 public class Country implements Serializable {
     private static final long serialVersionUID = 1L;
     @NotNull
@@ -56,6 +58,8 @@ public class Country implements Serializable {
     private String countryCode;
         private Set<ExternalResource> externalResourceSet;
         private Set<PointOfInterest> pointOfInterestSet;
+    @Size(max=10)
+    private String phoneCode;
 
     public Country() {
     }
@@ -130,5 +134,20 @@ public class Country implements Serializable {
     {
         Locale locale = new Locale(language, this.countryCode);
         return locale.getDisplayCountry();
+    }
+
+    /**
+     * @return the phoneCode
+     */
+    @Column(name="phone_code")
+    public String getPhoneCode() {
+        return phoneCode;
+    }
+
+    /**
+     * @param phoneCode the phoneCode to set
+     */
+    public void setPhoneCode(String phoneCode) {
+        this.phoneCode = phoneCode;
     }
 }

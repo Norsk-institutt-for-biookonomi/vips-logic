@@ -125,6 +125,7 @@ public class UserController extends HttpServlet {
                     else
                     {
                         request.setAttribute("viewUser", viewUser);
+                        request.setAttribute("countries", userBean.getUserCountries());
                         request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                         request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                         request.setAttribute("userStatusIds", userBean.getUserStatusIds());
@@ -157,6 +158,7 @@ public class UserController extends HttpServlet {
                 viewUser.setOrganizationId(user.getOrganizationId());
 
                 request.setAttribute("viewUser", viewUser);
+                request.setAttribute("countries", userBean.getUserCountries());
                 request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                 request.setAttribute("defaultLocale", user.getOrganizationId().getDefaultLocale());
                 request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
@@ -248,7 +250,9 @@ public class UserController extends HttpServlet {
                             viewUser.setEmail(formValidation.getFormField("email").getWebValue());
                             viewUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
                             viewUser.setLastName(formValidation.getFormField("lastName").getWebValue());
-                            viewUser.setPhone(formValidation.getFormField("phone").getWebValue());
+                            viewUser.setPhoneCountryCode(formValidation.getFormField("phoneCountryCode").getWebValue());
+                            viewUser.setPhone(formValidation.getFormField("phone").getWebValue().replaceAll("[^0-9]", ""));
+                            viewUser.setApprovesSmsBilling(formValidation.getFormField("approvesSmsBilling").getWebValue() != null);
                             viewUser.setPreferredLocale(formValidation.getFormField("preferredLocale").getWebValue());
                             if(user.isSuperUser())
                             {
@@ -309,6 +313,8 @@ public class UserController extends HttpServlet {
                             viewUser.setOrganizationId(user.getOrganizationId());
                             request.setAttribute("formValidation", formValidation);
                             request.setAttribute("viewUser", viewUser);
+                            request.setAttribute("countries", userBean.getUserCountries());
+                            request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                             request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                             request.setAttribute("userStatusIds", userBean.getUserStatusIds());
                             request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
@@ -319,6 +325,7 @@ public class UserController extends HttpServlet {
                 }
                 catch(NullPointerException | NumberFormatException | FormValidationException ex)
                 {
+                    ex.printStackTrace();
                     response.sendError(500, ex.getMessage());
                 }
             }

@@ -134,8 +134,10 @@ public class MessagingBean {
                 "WHERE mns.user_id=u.user_id\n" +
                 "AND mns.universal_message_format_id = umf.universal_message_format_id\n" +
                 "AND u.user_id IN (\n" +
-                "	SELECT user_id FROM messaging.message_notification_subscription\n" +
-                "	WHERE  message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" + // && is the array_overlaps operator
+                "	SELECT mns.user_id FROM messaging.message_notification_subscription mns, public.vips_logic_user u \n" +
+                "	WHERE  mns.message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" + // && is the array_overlaps operator
+                "       AND mns.user_id = u.user_id \n" +
+                "       AND (mns.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (mns.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
                 ");\n",
                 MessageRecipient.class);
         
@@ -334,9 +336,11 @@ public class MessagingBean {
                 "WHERE fns.user_id=u.user_id\n" +
                 "AND fns.universal_message_format_id = umf.universal_message_format_id\n" +
                 "AND u.user_id IN (\n" +
-                "	SELECT user_id FROM messaging.forecast_event_notification_subscription\n" +
-                "	WHERE :weatherStationId = ANY(weather_station_ids) \n" +
-                "       AND :cropOrganismId = ANY(crop_ids)" + 
+                "	SELECT user_id FROM messaging.forecast_event_notification_subscription fens, public.vips_logic_user u \n" +
+                "	WHERE :weatherStationId = ANY(fens.weather_station_ids) \n" +
+                "       AND :cropOrganismId = ANY(fens.crop_ids)" + 
+                "       AND fens.user_id = u.user_id \n" +
+                "       AND (fens.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (fens.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
                 ");\n",
                 MessageRecipient.class);
         

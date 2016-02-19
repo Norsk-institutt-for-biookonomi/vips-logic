@@ -42,6 +42,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -59,9 +60,11 @@ import java.util.UUID;
     @NamedQuery(name = "VipsLogicUser.findByEmail", query = "SELECT v FROM VipsLogicUser v WHERE v.email = :email"),
     @NamedQuery(name = "VipsLogicUser.findByEmailVerificationCode", query = "SELECT v FROM VipsLogicUser v WHERE v.emailVerificationCode = :emailVerificationCode"),
     @NamedQuery(name = "VipsLogicUser.findByFirstName", query = "SELECT v FROM VipsLogicUser v WHERE v.firstName = :firstName"),
-    @NamedQuery(name = "VipsLogicUser.findByLastName", query = "SELECT v FROM VipsLogicUser v WHERE v.lastName = :lastName")})
+    @NamedQuery(name = "VipsLogicUser.findByLastName", query = "SELECT v FROM VipsLogicUser v WHERE v.lastName = :lastName"),
+    @NamedQuery(name = "VipsLogicUser.findByCompletePhoneNumber", query = "SELECT v FROM VipsLogicUser v WHERE v.phoneCountryCode || v.phone = :completePhoneNumber")
+})
 public class VipsLogicUser implements Serializable {
-
+    
     private static final long serialVersionUID = 1L;
     private Integer userId;
     //if the field contains email address consider using this annotation to enforce field validation
@@ -70,6 +73,9 @@ public class VipsLogicUser implements Serializable {
     private String email;
     @Size(max = 63)
     private String phone;
+    @Size(max = 10)
+    @Basic(optional = false)
+    private String phoneCountryCode;
     @Size(max = 255)
     private String firstName;
     @Size(max = 255)
@@ -86,6 +92,7 @@ public class VipsLogicUser implements Serializable {
     private String emailVerificationCode;
     private Set<VipsLogicRole> vipsLogicRoles;
     private Integer vipsCoreUserId;
+    private boolean approvesSmsBilling;
     
     private UUID userUuid;
 
@@ -413,5 +420,36 @@ public class VipsLogicUser implements Serializable {
      */
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    /**
+     * @return the approvesSmsBilling
+     */
+    @Column(name="approves_sms_billing")
+    @JsonIgnore
+    public boolean isApprovesSmsBilling() {
+        return approvesSmsBilling;
+    }
+
+    /**
+     * @param approvesSmsBilling the approvesSmsBilling to set
+     */
+    public void setApprovesSmsBilling(boolean approvesSmsBilling) {
+        this.approvesSmsBilling = approvesSmsBilling;
+    }
+
+    /**
+     * @return the phoneCountryCode
+     */
+    @Column( name = "phone_country_code" )
+    public String getPhoneCountryCode() {
+        return phoneCountryCode;
+    }
+
+    /**
+     * @param phoneCountryCode the phoneCountryCode to set
+     */
+    public void setPhoneCountryCode(String phoneCountryCode) {
+        this.phoneCountryCode = phoneCountryCode;
     }
 }
