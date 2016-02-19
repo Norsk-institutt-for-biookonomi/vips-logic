@@ -243,6 +243,10 @@ public class ObservationController extends HttpServlet {
                             observation.setStatusTypeId(statusTypeId);
                             observation.setStatusRemarks(formValidation.getFormField("statusRemarks").getWebValue());
                         }
+                        else if(observation.getStatusTypeId() == null)
+                        {
+                            observation.setStatusTypeId(Observation.STATUS_TYPE_ID_PENDING);
+                        }
                         //observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
                         //System.out.println(formValidation.getFormField("geoInfo").getWebValue());
                         observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
