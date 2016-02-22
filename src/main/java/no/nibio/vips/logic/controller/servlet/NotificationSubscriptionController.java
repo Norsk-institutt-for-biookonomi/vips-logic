@@ -20,7 +20,6 @@ package no.nibio.vips.logic.controller.servlet;
 
 import freemarker.core.ParseException;
 import java.io.IOException;
-import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -32,7 +31,7 @@ import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.messaging.ForecastEventNotificationSubscription;
 import no.nibio.vips.logic.messaging.MessageNotificationSubscription;
-import no.nibio.vips.logic.messaging.UniversalMessageFormat;
+import no.nibio.vips.logic.messaging.ObservationNotificationSubscription;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormUtil;
@@ -80,6 +79,8 @@ public class NotificationSubscriptionController extends HttpServlet {
                 {
                     viewUser = user;
                 }
+                ObservationNotificationSubscription observationNotificationSubscription = SessionControllerGetter.getMessagingBean().getObservationNotificationSubscription(viewUser.getUserId());
+                request.setAttribute("observationNotificationSubscription", observationNotificationSubscription);
                 MessageNotificationSubscription messageNotificationSubscription = SessionControllerGetter.getMessagingBean().getMessageNotificationSubscription(viewUser.getUserId());
                 request.setAttribute("messageNotificationSubscription",messageNotificationSubscription);
                 ForecastEventNotificationSubscription forecastEventNotificationSubscription = SessionControllerGetter.getMessagingBean().getForecastEventNotificationSubscription(viewUser.getUserId());
@@ -91,7 +92,6 @@ public class NotificationSubscriptionController extends HttpServlet {
                 request.setAttribute("universalMessageFormats", SessionControllerGetter.getMessagingBean().getAllUniversalMessageFormats());
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/notificationSubscriptionForm.ftl").forward(request, response);
-
             }
             else if(action.equals("notificationSubscriptionFormSubmit"))
             {
@@ -118,6 +118,12 @@ public class NotificationSubscriptionController extends HttpServlet {
                 fSubscription.setWeatherStationIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_weatherStationIds")));
                 fSubscription.setUserId(viewUser.getUserId());
                 SessionControllerGetter.getMessagingBean().storeForecastEventNotificationSubscription(fSubscription);
+                
+                ObservationNotificationSubscription oSubscription = new ObservationNotificationSubscription();
+                oSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("observationN_universalMessageFormatId")));
+                oSubscription.setCropIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("observationN_cropOrganismIds")));
+                oSubscription.setUserId(viewUser.getUserId());
+                SessionControllerGetter.getMessagingBean().storeObservationNotificationSubscription(oSubscription);
                 
                 // Redirect to form with confirmation message
                 response.sendRedirect(new StringBuilder("http://")

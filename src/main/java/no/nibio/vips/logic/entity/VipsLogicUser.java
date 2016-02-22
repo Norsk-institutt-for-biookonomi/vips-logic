@@ -107,7 +107,7 @@ public class VipsLogicUser implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "user_id")
-    @JsonIgnore
+    //@JsonIgnore
     public Integer getUserId() {
         return userId;
     }

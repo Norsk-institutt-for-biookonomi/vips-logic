@@ -208,6 +208,8 @@ public class ObservationController extends HttpServlet {
                     Integer observationId = formValidation.getFormField("observationId").getValueAsInteger();
                     Observation observation = observationId > 0 ? em.find(Observation.class, observationId) : new Observation();
                     
+                    
+                    
                     if(formValidation.isValid())
                     {
                         // Storing observation
@@ -228,6 +230,7 @@ public class ObservationController extends HttpServlet {
                         observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
                         observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
 
+                        boolean sendNotification = false;
                         // Storing approval status
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
                         {
@@ -239,6 +242,11 @@ public class ObservationController extends HttpServlet {
                             {
                                 observation.setStatusChangedByUserId(user.getUserId());
                                 observation.setStatusChangedTime(SystemTime.getSystemTime());
+                                // Status changed to approved, sending notifications
+                                if(statusTypeId.equals(Observation.STATUS_TYPE_ID_APPROVED))
+                                {
+                                    sendNotification = true;
+                                }
                             }
                             observation.setStatusTypeId(statusTypeId);
                             observation.setStatusRemarks(formValidation.getFormField("statusRemarks").getWebValue());
@@ -272,6 +280,13 @@ public class ObservationController extends HttpServlet {
                             }
                         }
 
+                        // All transactions finished, we can send notifications
+                        // if conditions are met
+                        if(sendNotification)
+                        {
+                            SessionControllerGetter.getMessagingBean().sendUniversalMessage(observation);
+                        }
+                        
                         // Redirect to form
                         response.sendRedirect(new StringBuilder("http://")
                                 .append(ServletUtil.getServerName(request))

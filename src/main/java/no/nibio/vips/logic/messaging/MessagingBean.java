@@ -40,10 +40,10 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageLocale;
+import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.RESTAuthenticator;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -370,5 +370,63 @@ public class MessagingBean {
     {
         em.merge(subscription);
     }
+
+    public ObservationNotificationSubscription getObservationNotificationSubscription(Integer userId) {
+        return em.find(ObservationNotificationSubscription.class, userId);
+    }
+
+    public void storeObservationNotificationSubscription(ObservationNotificationSubscription oSubscription) {
+        em.merge(oSubscription);
+    }
     
+    public void sendUniversalMessage(Observation observation)
+    {
+        String msgDownloadUrlTpl = "http://www.vips-landbruk.no/";
+        // Create a universal message from the message
+        // TODO: When UniversalMessage has changed, pick
+        UniversalMessage uMessage = new UniversalMessage();
+        // Expires by default 1 week after observation time
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(observation.getTimeOfObservation());
+        cal.add(Calendar.DATE, 7);
+        uMessage.setExpiresAt(cal.getTime());
+        // For locale, we assume observer's language
+        VipsLogicUser observer = em.find(VipsLogicUser.class, observation.getUserId());
+        uMessage.addMessageLocalVersion(observer.getPreferredLocale(), observation.getObservationHeading(), "", observation.getObservationText(), msgDownloadUrlTpl);
+        
+        // Find the suscribers, create distribution list
+        uMessage.setDistributionList(this.getObservationNotificationSubscribers(observation));
+        
+        // Send it
+        this.sendUniversalMessage(uMessage);
+        // Log it
+        
+    }
+
+    private List<MessageRecipient> getObservationNotificationSubscribers(Observation observation) {
+        Query q = em.createNativeQuery(
+                "SELECT \n" +
+                "	u.preferred_locale,\n" +
+                "	umf.format_name AS type,\n" +
+                "	CASE ons.universal_message_format_id " + 
+                "           WHEN " + UniversalMessageFormat.FORMAT_EMAIL + " THEN u.email " +
+                "           WHEN " + UniversalMessageFormat.FORMAT_SMS + " THEN u.phone " +
+                "           ELSE '' " +
+                "       END AS msg_delivery_address, \n" + // Needs update as more options are added
+                "	u.first_name || ' ' || u.last_name AS name,\n" +
+                "	u.user_id AS recipient_id\n" +
+                "FROM public.vips_logic_user u, messaging.observation_notification_subscription ons, messaging.universal_message_format umf\n" +
+                "WHERE ons.user_id=u.user_id\n" +
+                "AND ons.universal_message_format_id = umf.universal_message_format_id\n" +
+                "AND u.user_id IN (\n" +
+                "	SELECT ons.user_id FROM messaging.observation_notification_subscription ons, public.vips_logic_user u \n" +
+                "	WHERE  :cropOrganismId = ANY(ons.crop_ids) \n" + 
+                "       AND ons.user_id = u.user_id \n" +
+                "       AND (ons.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (ons.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
+                ");\n",
+                MessageRecipient.class)
+                .setParameter("cropOrganismId", observation.getCropOrganismId());
+        
+        return q.getResultList();
+    }
 }
