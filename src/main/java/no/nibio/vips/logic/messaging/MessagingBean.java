@@ -429,4 +429,26 @@ public class MessagingBean {
         
         return q.getResultList();
     }
+
+    /**
+     * Remove all traces of notification subscriptions from user
+     * @param user 
+     */
+    public void deleteAllNotificationSubscriptions(VipsLogicUser user) {
+        ObservationNotificationSubscription o = em.find(ObservationNotificationSubscription.class, user.getUserId());
+        if(o != null)
+        {
+            em.remove(o);
+        }
+        MessageNotificationSubscription m = em.find(MessageNotificationSubscription.class, user.getUserId());
+        if(m != null)
+        {
+            em.remove(m);
+        }
+        ForecastEventNotificationSubscription f = em.find(ForecastEventNotificationSubscription.class, user.getUserId());
+        if(f != null)
+        {
+            em.remove(f);
+        }
+    }
 }

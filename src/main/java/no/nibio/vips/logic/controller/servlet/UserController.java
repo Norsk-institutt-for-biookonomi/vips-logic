@@ -468,6 +468,7 @@ public class UserController extends HttpServlet {
             request.setAttribute("userAuthenticationTypeId", userAuthenticationTypeId);
             // Get available organizations, add for select list
             request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+            request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
             request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
         }
         
@@ -532,6 +533,8 @@ public class UserController extends HttpServlet {
                     newUser.setEmail(formValidation.getFormField("email").getWebValue());
                     newUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
                     newUser.setLastName(formValidation.getFormField("lastName").getWebValue());
+                    newUser.setPreferredLocale(formValidation.getFormField("preferredLocale").getWebValue());
+                    newUser.setPhoneCountryCode("47");// TODO: More intelligent selection here?
                     Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
                     newUser.setOrganizationId(organization);
                     newUser.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());

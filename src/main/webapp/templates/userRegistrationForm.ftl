@@ -55,6 +55,16 @@
 		<span class="help-block" id="${formId}_firstName_validation"></span>
 		<div><label for="lastName">${i18nBundle.lastName}</label><input type="text" class="form-control" placeholder="${i18nBundle.lastName}" name="lastName" size="15" value="<#if formValidation?has_content>${formValidation.getFormField("lastName").webValue}</#if>" onblur="validateField(this);"/></div>
 		<span class="help-block" id="${formId}_lastName_validation"></span>
+		<div class="form-group">
+		    <label for="preferredLocale">${i18nBundle.preferredLocale}</label>
+		    <select class="form-control" name="preferredLocale" onblur="validateField(this);">
+		    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.preferredLocale?lower_case}</option>
+			<#list availableLocales?sort_by("displayLanguage") as locale>
+				<option value="${locale.language}"<#if defaultLocale?has_content && defaultLocale == locale.language> selected="selected"</#if>>${locale.getDisplayLanguage(currentLocale)}</option>
+			</#list>
+		     </select>
+		     <span class="help-block" id="${formId}_preferredLocale_validation"></span>
+		  </div>
 		<div>
 			<label for="organizationId">${i18nBundle.organizationId}</label>
 			<select class="form-control" name="organizationId" onblur="validateField(this);">

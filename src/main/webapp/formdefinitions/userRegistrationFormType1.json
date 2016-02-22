@@ -53,6 +53,13 @@
             "maxLength" : 255
         },
         {
+            "name" : "preferredLocale",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : ""
+        },
+        {
             "name" : "organizationId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

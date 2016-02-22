@@ -77,7 +77,6 @@ import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
-import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.MD5Encrypter;
 
 /**
@@ -188,12 +187,14 @@ public class UserBean {
     }
     
     /**
-     * TODO: Make sure user's data (weather stations, forecasts etc.) are not lost
+     * 
      * @param user 
      */
     public void deleteUser(VipsLogicUser user)
     {
         user = em.find(VipsLogicUser.class, user.getUserId());
+        // Remove all notification subscriptions
+        SessionControllerGetter.getMessagingBean().deleteAllNotificationSubscriptions(user);
         em.remove(user);
     }
     
