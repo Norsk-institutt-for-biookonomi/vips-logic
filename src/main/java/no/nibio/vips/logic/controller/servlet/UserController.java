@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.util.Calendar;
@@ -102,7 +103,7 @@ public class UserController extends HttpServlet {
             }
             else
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                this.redirectToLogin(request, response);
             }
       
         }
@@ -117,6 +118,11 @@ public class UserController extends HttpServlet {
                 {
                     Integer userId = Integer.valueOf(request.getParameter("userId"));
                     VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                    if(viewUser == null)
+                    {
+                        response.sendError(500, "Invalid userId " + request.getParameter("userId"));
+                        return;
+                    }
                     // Only superusers may view users from different organizations
                     if(! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
                     {
@@ -142,7 +148,7 @@ public class UserController extends HttpServlet {
             }
             else
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                this.redirectToLogin(request, response);
             }
             
         }
@@ -184,7 +190,7 @@ public class UserController extends HttpServlet {
             }
             else
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                this.redirectToLogin(request, response);
             }
             
         }
@@ -744,6 +750,13 @@ public class UserController extends HttpServlet {
             }
         }
         
+    }
+    
+    private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException, IOException
+    {
+        String nextPage = ServletUtil.getFullRequestURI(request);
+        String nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
+        response.sendRedirect("http://" + ServletUtil.getServerName(request) + "/login" + nextPageDirective);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
