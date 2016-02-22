@@ -551,6 +551,7 @@ public class UserController extends HttpServlet {
                 {
                     request.setAttribute("formValidation", formValidation);
                     request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                    request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                     request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
                     request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
                 }
