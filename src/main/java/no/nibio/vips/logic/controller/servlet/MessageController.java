@@ -225,7 +225,13 @@ public class MessageController extends HttpServlet {
         {
             try
             {
+                // Initializing new message, setting default pub and expiry dates
                 Message message = new Message();
+                message.setDatePub(SystemTime.getSystemTime());
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(message.getDatePub());
+                cal.add(Calendar.MONTH, 3);
+                message.setDateValidTo(cal.getTime());
                 request.setAttribute("message", message);
                 request.setAttribute("messageLocale", 
                         request.getParameter("messageLocale") != null ? 
