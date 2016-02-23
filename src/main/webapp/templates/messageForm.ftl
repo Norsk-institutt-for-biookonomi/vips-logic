@@ -218,7 +218,7 @@
 			<label for="organizationId">${i18nBundle.organizationId}</label>
 			<select name="organizationId" size="5" class="form-control" >
 				<#list organizations?sort_by("organizationName") as organization>
-				<option value="${organization.organizationId}" <#if message.organizationId?has_content && message.organizationId == organization.organizationId> selected="selected"</#if>>
+				<option value="${organization.organizationId}" <#if (message.organizationId?has_content && message.organizationId == organization.organizationId) || (!message.organizationId?has_content && user.organizationId.organizationId == organization.organizationId)> selected="selected"</#if>>
 				${organization.organizationName}
 				</option>
 				</#list>

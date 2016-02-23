@@ -153,21 +153,7 @@
 			  <input type="hidden" name="observationData" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');console.log(theForm['geoInfo']);console.log(theForm['observationData']);theForm['geoInfo'].value=getFeatures();mw.save();console.log(theForm['observationData']);theForm['observationData'].value=JSON.stringify(mw.toInspect);validateForm(theForm);">Test</button-->
-			  <div class="form-group">
-			    <label for="organismId">${i18nBundle.organism}</label>
-			    
-			    <select class="form-control" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
-				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
-				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-				<#list allPests?sort_by("latinName") as organism>
-					<option value="${organism.organismId}"
-						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
-					>${organism.latinName!""}/${organism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(organism.hierarchyCategoryId)})</option>
-				</#list>
-			    </select>
-			    <span class="help-block" id="${formId}_organismId_validation"></span>
-			    
-			  </div>
+			  
 			   <div class="form-group">
 			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
 			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly"<#else>onblur="validateField(this);"</#if>>
@@ -183,11 +169,22 @@
 			    
 			    
 			  </div>
-			  <!--div class="form-group">
-			    <label for="location">${i18nBundle.location}</label>
-			    <input type="text" class="form-control" readonly="readonly" id="location" name="location" placeholder="${i18nBundle.location}" value="${(observation.location.x?c)!""},${(observation.location.y?c)!""}" onblur="validateField(this);" />
-			    <span class="help-block" id="${formId}_location_validation"></span>
-			  </div-->
+			  <div class="form-group">
+			    <label for="organismId">${i18nBundle.organism}</label>
+			    
+			    <select class="form-control" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
+				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
+				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
+				<#list allPests?sort_by("latinName") as organism>
+					<option value="${organism.organismId}"
+						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
+					>${organism.latinName!""}/${organism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(organism.hierarchyCategoryId)})</option>
+				</#list>
+			    </select>
+			    <span class="help-block" id="${formId}_organismId_validation"></span>
+			    
+			  </div>
+			  
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
 			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
