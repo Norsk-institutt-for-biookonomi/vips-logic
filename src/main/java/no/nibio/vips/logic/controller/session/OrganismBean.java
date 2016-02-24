@@ -29,6 +29,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.ExternalResource;
 import no.nibio.vips.logic.entity.ExternalResourceType;
 import no.nibio.vips.logic.entity.HierarchyCategory;
@@ -251,5 +252,23 @@ public class OrganismBean {
     public List<Organism> getAllCrops()
     {
         return em.createNamedQuery("Organism.findAllCrops").getResultList();
+    }
+
+    public CropPest getCropPest(Integer cropOrganismId) {
+        try
+        {
+            return em.createNamedQuery("CropPest.findByCropOrganismId", CropPest.class)
+                    .setParameter("cropOrganismId", cropOrganismId)
+                    .getSingleResult();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
+    
+    public CropPest storeCropPest(CropPest cropPest)
+    {
+        return em.merge(cropPest);
     }
 }

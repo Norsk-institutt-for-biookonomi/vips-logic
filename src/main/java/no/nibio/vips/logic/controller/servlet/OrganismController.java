@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.OrganismExternalResource;
 import no.nibio.vips.logic.entity.OrganismExternalResourcePK;
@@ -38,6 +40,7 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
+import no.nibio.web.forms.FormUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
@@ -62,8 +65,6 @@ public class OrganismController extends HttpServlet {
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
-        VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        UserBean userBean = SessionControllerGetter.getUserBean();
         
         // Default: View top organisms
         // for everyone
@@ -288,6 +289,62 @@ public class OrganismController extends HttpServlet {
                 {
                     response.sendError(500, ex.getMessage());
                 }
+            }
+        }
+        else if(action.equals("editCropPest"))
+        {
+            Integer cropOrganismId = null;
+            try
+            {
+                cropOrganismId = Integer.valueOf(request.getParameter("cropOrganismId"));
+            }
+            catch(NullPointerException | NumberFormatException ex){}
+            
+            List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+            request.setAttribute("allPests", allPests);
+            List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+            request.setAttribute("allCrops", allCrops);
+            if(cropOrganismId != null && cropOrganismId > 0)
+            {
+                request.setAttribute("cropOrganismId", cropOrganismId);
+                CropPest cropPest = SessionControllerGetter.getOrganismBean().getCropPest(cropOrganismId);
+                request.setAttribute("cropPest", cropPest);
+            }
+            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.getRequestDispatcher("/cropPestForm.ftl").forward(request, response);
+        }
+        else if(action.equals("submitCropPest"))
+        {
+            try
+            {
+                
+                FormValidation formValidation = FormValidator.validateForm("cropPestForm",request,getServletContext());
+                if(formValidation.isValid())
+                {
+                    Integer cropOrganismId = formValidation.getFormField("cropOrganismId").getValueAsInteger();
+                    boolean includeAllChildCrops = formValidation.getFormField("includeAllChildCrops").getWebValue() != null;
+                    List<Integer> poTemp = FormUtil.getIdsFromMultipleSelect(formValidation.getFormField("pestOrganismIds").getWebValues());
+                    Integer[] pestOrganismIds = poTemp.toArray(new Integer[poTemp.size()]);
+                    CropPest cropPest = em.find(CropPest.class, cropOrganismId);
+                    if(cropPest == null)
+                    {
+                        cropPest = new CropPest();
+                        cropPest.setCropOrganismId(cropOrganismId);
+                    }
+                    
+                    cropPest.setIncludeAllChildCrops(includeAllChildCrops);
+                    cropPest.setPestOrganismIds(pestOrganismIds);
+                    
+                    SessionControllerGetter.getOrganismBean().storeCropPest(cropPest);
+                    
+                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/organism?action=editCropPest&cropOrganismId=").append(cropOrganismId).append("&messageKey=cropPestUpdated").toString());
+                }
+                    
+                
+            }
+            catch(NullPointerException | NumberFormatException | FormValidationException ex)
+            {
+                ex.printStackTrace();
             }
         }
     } 

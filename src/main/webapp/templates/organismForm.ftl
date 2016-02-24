@@ -1,5 +1,5 @@
 <#--
-  Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+  Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
   VIPSLogic is free software: you can redistribute it and/or modify
@@ -48,6 +48,10 @@
         <#assign formId = "organismForm">
         <form id="${formId}" role="form" action="/organism?action=organismFormSubmit" method="POST" onsubmit="return true;" onsubmit2="try{ return validateForm(this);}catch(err){alert(err);return false;}">
         <input type="hidden" name="organismId" value="${organism.organismId!"-1"}"/>
+        <a href="/organism?action=listChildOrganisms&organismId=${organism.parentOrganismId!"null"}" class="btn btn-default" role="button">${i18nBundle.back}</a>
+        <#if (organism.isCrop?has_content && organism.isCrop == true)>
+        <a href="/organism?action=editCropPest&cropOrganismId=${organism.organismId!"null"}" class="btn btn-default" role="button">${i18nBundle.editCropPests}</a>
+        </#if>
         <div class="form-group">
 	    <label for="parentOrganismId">${i18nBundle.parentOrganismId}</label>
 	    <select class="form-control" name="parentOrganismId" onblur="validateField(this);">
