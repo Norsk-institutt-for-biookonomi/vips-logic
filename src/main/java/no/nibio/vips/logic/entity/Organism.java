@@ -131,7 +131,7 @@ public class Organism implements Serializable {
     }
 
     public String getLatinName() {
-        return latinName;
+        return latinName != null ? latinName : "";
     }
 
     public void setLatinName(String latinName) {

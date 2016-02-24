@@ -53,13 +53,15 @@
 	    <select class="form-control" name="parentOrganismId" onblur="validateField(this);">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.parentOrganismId?lower_case}</option>
 		<#list allOrganisms?sort_by("latinName") as parentOrganism>
-			<option value="${parentOrganism.organismId}"
-				<#if (organism.parentOrganismId?has_content && organism.parentOrganismId == parentOrganism.organismId)
-					|| (parentOrganismId?has_content && parentOrganismId == parentOrganism.organismId)
-				>
-					selected="selected"
-				</#if>
-			>${parentOrganism.latinName!""}/${parentOrganism.tradeName!""}/${parentOrganism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(parentOrganism.hierarchyCategoryId)})</option>
+			<#if parentOrganism.organismId gt 0>
+				<option value="${parentOrganism.organismId}"
+					<#if (organism.parentOrganismId?has_content && organism.parentOrganismId == parentOrganism.organismId)
+						|| (parentOrganismId?has_content && parentOrganismId == parentOrganism.organismId)
+					>
+						selected="selected"
+					</#if>
+				>${parentOrganism.latinName!""}/${parentOrganism.tradeName!""}/${parentOrganism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(parentOrganism.hierarchyCategoryId)})</option>
+			</#if>
 		</#list>
 	     </select>
 	</div>
