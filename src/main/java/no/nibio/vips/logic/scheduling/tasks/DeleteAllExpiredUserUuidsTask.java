@@ -52,4 +52,15 @@ public class DeleteAllExpiredUserUuidsTask extends VipsLogicTask{
         tec.setCompleteness(1d);
     }
 
+    @Override
+    public boolean supportsStatusTracking()
+    {
+        return true;
+    }
+    
+    @Override
+    public boolean supportsCompletenessTracking()
+    {
+        return true;
+    }
 }

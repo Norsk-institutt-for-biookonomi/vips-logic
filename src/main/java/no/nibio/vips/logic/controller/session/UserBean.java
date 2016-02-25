@@ -623,11 +623,11 @@ public class UserBean {
     }
     
     /**
-     * Cleanup method. Should be rund daily as a batch job
+     * Cleanup method. Should be run daily as a batch job
      */
     public void deleteAllExpiredUserUuids()
     {
-        em.createNamedQuery("DELETE FROM public.user_uuid WHERE expires_at < now()").executeUpdate();
+        em.createNativeQuery("DELETE FROM public.user_uuid WHERE expires_at < now()").executeUpdate();
     }
     
     public String getMapLayerJSONForUser(VipsLogicUser user)
