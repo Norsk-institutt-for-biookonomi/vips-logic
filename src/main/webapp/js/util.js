@@ -21,3 +21,16 @@ function setFieldValue(theForm, fieldName, value)
 {
     theForm[fieldName] = value;
 }
+
+var compareSelectListOptions = function(a,b)
+{
+	if(a.text < b.text)
+	{
+		return -1;
+	}
+	if(a.text > b.text)
+	{
+		return 1;
+	}
+	return 0;
+}

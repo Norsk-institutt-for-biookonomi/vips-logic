@@ -40,6 +40,9 @@
 <#macro page_contents>
 <div class="singleBlockContainer">
 	<h1>${i18nBundle.editCropPests}</h1>
+	<#if messageKey?has_content>
+	<div class="alert alert-success">${i18nBundle(messageKey)}</div>
+	</#if>
 	<#assign formId = "cropPestForm">
 	<form id="${formId}" action="/organism?action=submitCropPest" method="POST" role="form" onsubmit="return validateForm(this);">
 	<div class="form-group">

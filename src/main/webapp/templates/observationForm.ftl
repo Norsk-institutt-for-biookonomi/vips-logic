@@ -35,6 +35,7 @@
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/validateForm.js"></script>
+	<script type="text/javascript" src="/js/util.js"></script>
 	<script type="text/javascript" src="/js/objectGISInfoMap.js"></script>
 	<script type="text/javascript">
 		var organizationId = ${user.organizationId.organizationId};
@@ -131,6 +132,70 @@
 			mw.buildWidgets();
 		};
 		
+		var updateCropPests = function(){
+			var theForm = document.getElementById('observationForm');
+			var selectedCropId = theForm["cropOrganismId"].options[theForm["cropOrganismId"].options.selectedIndex].value;
+			// If this is not a new observation, or the selected crop is not in the database, we keep calm
+			if(theForm["observationId"].value !== "-1" ||  selectedCropId == "-10")
+			{
+				return;
+			}
+			$.getJSON( "/rest/organism/croppest/" + selectedCropId, function( json ) {
+				updateCropPestsCallback(json);
+			})
+			.fail(function() {
+			    alert( "Error getting pests for this crop. Please contact system administrator" );
+			  });
+		};
+		
+		var updateCropPestsCallback = function(cropPest) {
+			var pestList = document.getElementById('observationForm')["organismId"];
+			if(cropPest == null)
+			{
+				// Need to reorganize pests back to default
+				var allPests = [];
+				for(var i=2;i<pestList.options.length;i++)
+				{
+					allPests.push(pestList.options[i]);
+				}
+				allPests.sort(compareSelectListOptions);
+				pestList.options.length=2; // Keeping the top two
+				for(var i=0;i<allPests.length;i++)
+				{
+					pestList.options[pestList.options.length] = allPests[i];
+				}
+			}
+			else
+			{
+				var prioritatedPests = [];
+				var unprioritatedPests = []
+				for(var i=2;i<pestList.options.length;i++)
+				{
+					if(cropPest.pestOrganismIds.indexOf(parseInt(pestList.options[i].value)) >= 0)
+					{
+						//console.log(pestList.options[i].value + " is prioritated");
+						prioritatedPests.push(pestList.options[i]);
+					}
+					else if(pestList.options[i].value != "-1") // Avoiding the "---" option
+					{
+						//console.log(pestList.options[i].value + " is unprioritated");
+						unprioritatedPests.push(pestList.options[i]);
+					}
+					
+				}
+				pestList.options.length=2; // Keeping the top two
+				for(var i=0;i<prioritatedPests.length;i++)
+				{
+					pestList.options[pestList.options.length] = prioritatedPests[i];
+				}
+				pestList.options[pestList.options.length] = new Option("---","-1");
+				for(var i=0;i<unprioritatedPests.length;i++)
+				{
+					pestList.options[pestList.options.length] = unprioritatedPests[i];
+				}
+			}
+		};
+		
 	</script>
 </#macro>
 <#macro page_contents>
@@ -156,7 +221,7 @@
 			  
 			   <div class="form-group">
 			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly"<#else>onblur="validateField(this);"</#if>>
+			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly"<#else>onblur="validateField(this);"</#if> onchange="updateCropPests();">
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 				<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
 				<#list allCrops?sort_by("latinName") as cropOrganism>

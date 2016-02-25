@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
+import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.ForecastResult;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -589,6 +590,22 @@ public class LogicService {
         catch(IllegalArgumentException ex)
         {
             return Response.serverError().entity(ex.getMessage()).build();
+        }
+    }
+    
+    @GET
+    @Path("organism/croppest/{cropOrganismId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getCropPest(@PathParam("cropOrganismId") Integer cropOrganismId)
+    {
+        CropPest retVal = SessionControllerGetter.getOrganismBean().getCropPestRecursive(cropOrganismId,true);
+        if(retVal != null)
+        {
+            return Response.ok().entity(retVal).build();
+        }
+        else
+        {
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     }
     

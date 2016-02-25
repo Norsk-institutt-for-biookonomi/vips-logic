@@ -311,6 +311,7 @@ public class OrganismController extends HttpServlet {
                 request.setAttribute("cropPest", cropPest);
             }
             request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.setAttribute("messageKey", request.getParameter("messageKey"));
             request.getRequestDispatcher("/cropPestForm.ftl").forward(request, response);
         }
         else if(action.equals("submitCropPest"))

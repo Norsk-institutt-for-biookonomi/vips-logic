@@ -267,6 +267,38 @@ public class OrganismBean {
         }
     }
     
+    /**
+     * Searching recursively upwards in organism tree to find a cropPest.
+     * @param cropOrganismId id of the crop
+     * @param isPrimaryCrop false if this is the original crop, true if search upwards
+     * @return 
+     */
+    public CropPest getCropPestRecursive(Integer cropOrganismId, boolean isPrimaryCrop)
+    {
+        // Try to find a cropPest for this crop
+        CropPest cropPest = this.getCropPest(cropOrganismId);
+        // If found AND either it is the primary crop OR it's a parent set to include all child crops
+        // we return it
+        if(cropPest != null && (isPrimaryCrop || cropPest.getIncludeAllChildCrops()))
+        {
+            return cropPest;
+        }
+        // If not, check if parent crop exists and keep on searching
+        // (If no parent crop, we're done and return empty handed)
+        else
+        {
+            Organism o = em.find(Organism.class, cropOrganismId);
+            if(o.getParentOrganismId() != null)
+            {
+                return this.getCropPestRecursive(o.getParentOrganismId(), false);
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+    
     public CropPest storeCropPest(CropPest cropPest)
     {
         return em.merge(cropPest);
