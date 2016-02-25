@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.web.forms.FormField;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class DeleteAllExpiredUserUuidsTask extends VipsLogicTask{
@@ -39,7 +39,7 @@ public class DeleteAllExpiredUserUuidsTask extends VipsLogicTask{
                         + "           \"name\":\"factoryId\","
                         + "           \"dataType\":\"" + FormField.DATA_TYPE_INTEGER + "\","
                         + "           \"fieldType\":\"" + FormField.FIELD_TYPE_HIDDEN + "\","
-                        + "           \"webValue\":[\"" + VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK + "\"]"
+                        + "           \"webValue\":[\"" + VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK + "\"]"
                         + "       }"
                         + "    ]}";
          return retVal;
