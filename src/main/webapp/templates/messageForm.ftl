@@ -94,6 +94,7 @@
 	<h1>${i18nBundle.editMessage}</h1>
 	<#else>
 	<h1>${i18nBundle.newMessage}</h1>
+	<p>${i18nBundle.surveillanceMessageInformation}</p>
 	</#if>
         <#if messageKey?has_content>
 	<div class="alert alert-success">${i18nBundle(messageKey)}</div>
