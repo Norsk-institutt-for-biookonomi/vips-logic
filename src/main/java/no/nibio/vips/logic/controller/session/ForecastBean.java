@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
@@ -104,7 +105,26 @@ public class ForecastBean {
         Query q = em.createNamedQuery("ForecastResult.findByForecastConfigurationId");
         q.setParameter("forecastConfigurationId", forecastConfigurationId);
         return q.getResultList();
-        
+    }
+    
+    public boolean isUserAuthorizedForForecastConfiguration(Long forecastConfigurationId, String userUUID)
+    {
+        // Authentication
+        ForecastConfiguration fc = em.find(ForecastConfiguration.class, forecastConfigurationId);
+        if(fc.getIsPrivate())
+        {
+            if(userUUID == null)
+            {
+                return false;
+            }
+            UUID uUUID = UUID.fromString(userUUID);
+            VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            if(user == null || user.getUserId().equals( fc.getVipsLogicUserId()))
+            {
+                return false;
+            }
+        }
+        return true;
     }
     
     public List<ForecastResult> getForecastResults(Long forecastConfigurationId, Integer latestDays)
@@ -180,7 +200,7 @@ public class ForecastBean {
     
     
     /**
-     * Get all forecast configurations for one user. 
+     * Get all PUBLIC forecast configurations for one user. 
      * TODO: Should be season based, or possibly based on start/stop date
      * @param userId
      * @return 
@@ -192,6 +212,23 @@ public class ForecastBean {
         q.setParameter("vipsLogicUserId", user);
         return q.getResultList();
     }
+    
+    /**
+     * Get all PRIVATE forecast configurations for one user. 
+     * TODO: Should be season based, or possibly based on start/stop date
+     * @param userId
+     * @return 
+     */
+    public List<ForecastConfiguration> getPrivateForecastConfigurationsForUser(Integer userId)
+    {
+        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
+        Query q = em.createNamedQuery("ForecastConfiguration.findPrivateByVipsLogicUserId");
+        q.setParameter("vipsLogicUserId", user);
+        return q.getResultList();
+    }
+    
+    
+    
     
     public List<ForecastConfiguration> getForecastConfigurationsForUserAndDate(Integer userId, Date from, Date to)
     {
@@ -404,6 +441,7 @@ public class ForecastBean {
         forecastConfiguration.setModelId(formFields.get("modelId").getWebValue());
         forecastConfiguration.setCropOrganismId(em.find(Organism.class, formFields.get("cropOrganismId").getValueAsInteger()));
         forecastConfiguration.setPestOrganismId(em.find(Organism.class, formFields.get("pestOrganismId").getValueAsInteger()));
+        forecastConfiguration.setIsPrivate(formFields.get("isPrivate").getWebValue() != null);
         PointOfInterest locationPoi = em.find(PointOfInterest.class, formFields.get("locationPointOfInterestId").getValueAsInteger());
         forecastConfiguration.setLocationPointOfInterestId(locationPoi);
         PointOfInterest weatherStationPoi = em.find(PointOfInterestWeatherStation.class, formFields.get("weatherStationPointOfInterestId").getValueAsInteger());
@@ -878,7 +916,8 @@ public class ForecastBean {
                         "WHERE forecast_configuration_id IN( \n" +
                         "	SELECT forecast_configuration_id \n" +
                         "	FROM forecast_configuration \n" +
-                        "	WHERE location_point_of_interest_id=:locationPointOfInterestId \n" +
+                        "	WHERE is_private IS FALSE \n" +
+                        "       AND location_point_of_interest_id=:locationPointOfInterestId \n" +
                         (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                         ")\n" +
                         "AND to_char(result_valid_time, '" + dateFormat + "') = :dateStr";
@@ -912,6 +951,10 @@ public class ForecastBean {
         List<ForecastResult> results = new ArrayList<>();
         for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
         {
+            if(forecastConfiguration.getIsPrivate())
+            {
+                continue;
+            }
             mappedForecastConfigurations.put(forecastConfiguration.getForecastConfigurationId(), forecastConfiguration);
             Query q = em.createNativeQuery(
                     "SELECT * FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId "
@@ -967,6 +1010,26 @@ public class ForecastBean {
         }
         
         return forecastConfiguration;
+    }
+
+    public List<ForecastConfiguration> getPrivateForecastConfigurationSummaries(VipsLogicUser user) {
+         List<ForecastConfiguration> forecastConfigurations = this.getPrivateForecastConfigurationsForUser(user.getUserId());
+        // TODO: Filter forecastconfigurations based on criteria (activity, crops, geography etc)
+        List<ForecastConfiguration> filteredConfigs = new ArrayList<>();
+        Query q = em.createNamedQuery("ForecastSummary.findByForecastConfigurationId");
+        for(ForecastConfiguration config: forecastConfigurations)
+        {
+            config.setForecastSummaries(
+                    
+                    q.setParameter("forecastConfigurationId", config.getForecastConfigurationId())
+                    .getResultList()
+            );
+            if(config.getForecastSummaries() != null && !config.getForecastSummaries().isEmpty())
+            {
+                filteredConfigs.add(config);
+            }
+        }
+        return filteredConfigs;
     }
     
 }

@@ -87,14 +87,24 @@ public class LogicService {
     @GET
     @Path("forecastresults/{forecastConfigurationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getForecastResults(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
+    public Response getForecastResults(
+            @PathParam("forecastConfigurationId") Long forecastConfigurationId,
+            @QueryParam("userUUID") String userUUID
+    )
     {
-        List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId);
-        if(results == null)
+        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
-            results = new ArrayList<>();
+            List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId);
+            if(results == null)
+            {
+                results = new ArrayList<>();
+            }
+            return Response.ok().entity(results).build();
         }
-        return Response.ok().entity(results).build();
+        else
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
     }
     
     @GET
@@ -102,15 +112,23 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getForecastResults(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
-            @PathParam("latestDays") Integer latestDays
+            @PathParam("latestDays") Integer latestDays,
+            @QueryParam("userUUID") String userUUID
     )
     {
-        List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, latestDays);
-        if(results == null)
+        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
-            results = new ArrayList<>();
+            List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, latestDays);
+            if(results == null)
+            {
+                results = new ArrayList<>();
+            }
+            return Response.ok().entity(results).build();
         }
-        return Response.ok().entity(results).build();
+        else
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
     }
     
     @GET
@@ -125,6 +143,27 @@ public class LogicService {
         return Response.ok().entity(summaries).build();
     }
     
+    @GET
+    @Path("forecastconfigurationsummaries/private/{userUUID}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastSummaries(
+            @PathParam("userUUID") String userUUID
+    )
+    {
+        UUID uUUID = UUID.fromString(userUUID);
+        VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+        if(user != null)
+        {
+            List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getPrivateForecastConfigurationSummaries(user);
+            return Response.ok().entity(summaries).build();
+        }
+        else
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        
+    }
+    
     /**
      * Returns the requested forecast configuration
      * @param forecastConfigurationId
@@ -133,15 +172,51 @@ public class LogicService {
     @GET
     @Path("forecastconfigurations/{forecastConfigurationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getForecastConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
+    public Response getForecastConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId,@QueryParam("userUUID") String userUUID)
     {
-        ForecastConfiguration forecastConfiguration = SessionControllerGetter.getForecastBean().getForecastConfiguration(forecastConfigurationId);
-        return Response.ok().entity(forecastConfiguration).build();
+        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
+        {
+            ForecastConfiguration forecastConfiguration = SessionControllerGetter.getForecastBean().getForecastConfiguration(forecastConfigurationId);
+            return Response.ok().entity(forecastConfiguration).build();
+        }
+        else
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+    
+    @GET
+    @Path("forecastconfigurations/private/{userUUID}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getPrivateForecastConfigurations(@PathParam("userUUID") String userUUID)
+    {
+        try
+        {
+            UUID uUUID = UUID.fromString(userUUID);
+            VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            if(user != null)
+            {
+                List<ForecastConfiguration> retVal = SessionControllerGetter.getForecastBean().getPrivateForecastConfigurationsForUser(user.getUserId());
+                return Response.ok().entity(retVal).build();
+            }
+            else
+            {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
+        }
+        catch(NullPointerException npe)
+        {
+            return Response.noContent().build();
+        }
+        
     }
     
     /**
      * Returns a list of forecasts for given organization
      * @param organizationId
+     * @param cropOrganismIds
+     * @param from
+     * @param to
      * @return 
      */
     @GET

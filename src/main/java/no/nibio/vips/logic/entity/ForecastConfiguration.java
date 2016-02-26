@@ -47,31 +47,35 @@ import javax.persistence.Transient;
 import no.nibio.vips.util.WeatherUtil;
 
 /**
- * @copyright 2014-2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
 @Table(name = "forecast_configuration")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "ForecastConfiguration.findAll", query = "SELECT f FROM ForecastConfiguration f"),
+    @NamedQuery(name = "ForecastConfiguration.findAll", query = "SELECT f FROM ForecastConfiguration f WHERE f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationId", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId = :forecastConfigurationId"),
     @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId IN(:forecastConfigurationIds)"),
-    @NamedQuery(name = "ForecastConfiguration.findByModelId", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId = :modelId"),
-    @NamedQuery(name = "ForecastConfiguration.findByModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId IN (:modelIds)"),
-    @NamedQuery(name = "ForecastConfiguration.findByDateStart", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart = :dateStart"),
-    @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd"),
-    @NamedQuery(name = "ForecastConfiguration.findActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate"),
-    @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId"),
-    @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId"),
-    @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId AND f.dateStart <= :to AND f.dateEnd >= :from"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.dateStart <= :to AND f.dateEnd >= :from" ),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds)"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds) AND f.dateStart <= :to AND f.dateEnd >= :from"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds)"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds)"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds) AND f.dateStart <= :to AND f.dateEnd >= :from")})
+    @NamedQuery(name = "ForecastConfiguration.findByModelId", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId = :modelId AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId IN (:modelIds) AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByDateStart", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart = :dateStart AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE" ),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds) AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds) AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findPrivateByVipsLogicUserId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.isPrivate = TRUE"),
+    @NamedQuery(name = "ForecastConfiguration.findPrivateByVipsLogicUserIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = TRUE" ),
+    @NamedQuery(name = "ForecastConfiguration.findPrivateByVipsLogicUserIdAndCropOrganismId", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds) AND f.isPrivate = TRUE"),
+    @NamedQuery(name = "ForecastConfiguration.findPrivateByVipsLogicUserIdAndCropOrganismIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId = :vipsLogicUserId AND f.cropOrganismId.organismId IN (:cropOrganismIds) AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = TRUE"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds) AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds) AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE")})
 public class ForecastConfiguration implements Serializable, Comparable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration", fetch = FetchType.EAGER)
     private Set<ForecastModelConfiguration> forecastModelConfigurationSet;
@@ -109,6 +113,8 @@ public class ForecastConfiguration implements Serializable, Comparable {
     @JoinColumn(name = "pest_organism_id", referencedColumnName = "organism_id")
     @ManyToOne
     private Organism pestOrganismId;
+    @Column(name = "is_private")
+    private Boolean isPrivate;
     
     @Transient
     private WeatherUtil weatherUtil;
@@ -370,4 +376,18 @@ public class ForecastConfiguration implements Serializable, Comparable {
         format.setTimeZone(timeZone1);
         return format.format(this.getDateEnd());
     }*/
+
+    /**
+     * @return the isPrivate
+     */
+    public Boolean getIsPrivate() {
+        return isPrivate;
+    }
+
+    /**
+     * @param isPrivate the isPrivate to set
+     */
+    public void setIsPrivate(Boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
 }

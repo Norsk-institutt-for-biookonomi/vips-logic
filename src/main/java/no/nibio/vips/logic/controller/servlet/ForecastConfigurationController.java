@@ -140,13 +140,29 @@ public class ForecastConfigurationController extends HttpServlet {
                     
                     request.setAttribute("organizations", organizations);
                     request.setAttribute("selectedOrganizationIds", selectedOrganizationIds);
+                    
+                    request.setAttribute("allUsers", userBean.getAllUsers());
+                    // If super user requests private forecasts for a user
+                    try
+                    {
+                        Integer otherUserId = Integer.valueOf(request.getParameter("otherUserId"));
+                        List<ForecastConfiguration> privateForecastConfigurationsForOtherUser = forecastBean.getPrivateForecastConfigurationsForUser(otherUserId);
+                        request.setAttribute("privateForecastConfigurationsForOtherUser", privateForecastConfigurationsForOtherUser);
+                        request.setAttribute("otherUserId", otherUserId);
+                    }
+                    catch(NumberFormatException nfe) {}
                 }
                 else
                 {
                     forecasts = forecastBean.getForecastConfigurations(user.getOrganizationId(), selectedModelIds, from, to);
                 }
                 Collections.sort(forecasts);
+                
                 request.setAttribute("forecastConfigurations", forecasts);
+                
+                List<ForecastConfiguration> privateForecasts;
+                privateForecasts = forecastBean.getPrivateForecastConfigurationsForUser(user.getUserId());
+                request.setAttribute("privateForecastConfigurations", privateForecasts);
                 request.setAttribute("modelInformation", modelInformationMap);
                 request.setAttribute("selectedModelIds", selectedModelIds);
                 request.setAttribute("from", from);
@@ -182,6 +198,11 @@ public class ForecastConfigurationController extends HttpServlet {
                     }
                     // Only superusers can view and edit forecasts from other organizations
                     if(! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getOrganizationId().equals(user.getOrganizationId()))
+                    {
+                        response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                    }
+                    // Only superusers can view and edit private forecasts from other users
+                    else if(forecastConfiguration.getIsPrivate() && ! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getUserId().equals(user.getUserId()))
                     {
                         response.sendError(403,"Access not authorized"); // HTTP Forbidden
                     }

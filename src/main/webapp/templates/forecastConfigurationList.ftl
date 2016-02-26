@@ -95,6 +95,83 @@
 		</tbody>
         </table>
         </div>
+        <h2>${i18nBundle.privateForecasts}</h2>
+        <div class="table-responsive">
+	<table class="table table-striped">
+		<thead>
+			<th>${i18nBundle.modelId}</th>
+			<th>${i18nBundle.poi}</th>
+			<th>${i18nBundle.weatherStationPointOfInterestId}</th>
+			<th>${i18nBundle.dateStart}</th>
+			<th>${i18nBundle.dateEnd}</th>
+		</thead>
+		<tbody>
+		<#list privateForecastConfigurations as forecastConfiguration>
+		    <tr style="cursor: pointer;" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';">
+		    	<td>
+				<#if i18nBundle.containsKey(forecastConfiguration.modelId)>
+					${i18nBundle[forecastConfiguration.modelId]}
+				<#else>
+					${modelInformation[forecastConfiguration.modelId].defaultName}
+				</#if>
+		    	</td>
+		    	<td>${forecastConfiguration.locationPointOfInterestId.name}</td>
+		    	<td>${forecastConfiguration.weatherStationPointOfInterestId.name}</td>
+		    	<td>${forecastConfiguration.dateStart}</td>
+		    	<td>${forecastConfiguration.dateEnd}</td>
+		    </tr>
+		</#list>
+		</tbody>
+        </table>
+        </div>
+        <#if user.isSuperUser() >
+        <h2>${i18nBundle.privateForecastsForOtherUser}</h2>
+        <div class="form-group">
+	    <label for="otherUserId">${i18nBundle.user}</label>
+	    <select class="form-control" name="otherUserId" onchange="window.location.href='/forecastConfiguration?otherUserId=' + this.options[this.options.selectedIndex].value;">
+		<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.user?lower_case}</option>
+		<#list allUsers?sort_by("lastName") as otherUser>
+			<#if otherUser.userId != user.userId>
+				<option value="${otherUser.userId}"
+					<#if (otherUserId?has_content && otherUserId == otherUser.userId)>selected="selected"</#if>
+				>${otherUser.lastName}, ${otherUser.firstName}</option>
+			</#if>
+		</#list>
+	    </select>
+	 </div>
+		<#if privateForecastConfigurationsForOtherUser?has_content>
+		<div class="table-responsive">
+		<table class="table table-striped">
+			<thead>
+				<th>${i18nBundle.modelId}</th>
+				<th>${i18nBundle.poi}</th>
+				<th>${i18nBundle.weatherStationPointOfInterestId}</th>
+				<th>${i18nBundle.dateStart}</th>
+				<th>${i18nBundle.dateEnd}</th>
+			</thead>
+			<tbody>
+			<#list privateForecastConfigurations as forecastConfiguration>
+			    <tr style="cursor: pointer;" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';">
+				<td>
+					<#if i18nBundle.containsKey(forecastConfiguration.modelId)>
+						${i18nBundle[forecastConfiguration.modelId]}
+					<#else>
+						${modelInformation[forecastConfiguration.modelId].defaultName}
+					</#if>
+				</td>
+				<td>${forecastConfiguration.locationPointOfInterestId.name}</td>
+				<td>${forecastConfiguration.weatherStationPointOfInterestId.name}</td>
+				<td>${forecastConfiguration.dateStart}</td>
+				<td>${forecastConfiguration.dateEnd}</td>
+			    </tr>
+			</#list>
+			</tbody>
+		</table>
+		</div>
+		<#elseif otherUserId?has_content>
+		<div class="alert alert-warning">${i18nBundle.noPrivateForecastsFoundForUser}</div>
+		</#if>
+        </#if>
 </div>
 </#macro>
 <@page_html/>

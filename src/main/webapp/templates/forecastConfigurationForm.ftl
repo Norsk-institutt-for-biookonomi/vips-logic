@@ -1,5 +1,5 @@
 <#-- 
-    Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+    Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
   VIPSLogic is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
   along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
 --><#include "master.ftl">
 <#macro page_head>
-        <title></title>
+        <title>${i18nBundle.viewForecastConfiguration}</title>
 </#macro>
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
@@ -84,6 +84,14 @@
 		</#list>
 	    </select>
 	    <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
+	  </div>
+	  <div class="form-group">
+		  <div class="checkbox">
+			<label>
+				<input type="checkbox" name="isPrivate"<#if forecastConfiguration.isPrivate?has_content && forecastConfiguration.isPrivate == true> checked="checked"</#if>/>
+			</label>
+			${i18nBundle.isPrivate}
+		</div>
 	  </div>
 	  <div class="form-group">
 	    <label for="pestOrganismId">${i18nBundle.pestOrganismId}</label>
