@@ -31,6 +31,8 @@
 	<#if user.isSuperUser()>
 	<a href="/organism?action=newOrganismForm&parentOrganismId=${organism.organismId!""}" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
 	</#if>
+	<a href="/organism?action=listCrops" class="btn btn-default" role="button">${i18nBundle.listCrops}</a>
+	<a href="/organism?action=listPests" class="btn btn-default" role="button">${i18nBundle.listPests}</a>
 	<#if organism.organismId?has_content>
 	<a href="/organism?action=listChildOrganisms&organismId=${organism.parentOrganismId!""}" class="btn btn-default" role="button">${i18nBundle.up}</a>
 	<a href="/organism" class="btn btn-default" role="button">${i18nBundle.toTheTop}</a>

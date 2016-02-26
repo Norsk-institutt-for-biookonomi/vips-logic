@@ -20,7 +20,6 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -29,12 +28,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.OrganismExternalResource;
 import no.nibio.vips.logic.entity.OrganismExternalResourcePK;
-import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
@@ -112,6 +109,18 @@ public class OrganismController extends HttpServlet {
                     response.sendError(500, ex.getMessage());
                 }
             }
+        }
+        else if(action.equals("listCrops"))
+        {
+            request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
+            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.getRequestDispatcher("/cropList.ftl").forward(request, response);
+        }
+        else if(action.equals("listPests"))
+        {
+            request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
+            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.getRequestDispatcher("/pestList.ftl").forward(request, response);
         }
         else if(action.equals("viewOrganism"))
         {

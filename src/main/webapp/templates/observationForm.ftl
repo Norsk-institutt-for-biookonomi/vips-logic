@@ -227,7 +227,7 @@
 				<#list allCrops?sort_by("latinName") as cropOrganism>
 					<option value="${cropOrganism.organismId}"
 						<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
-					>${cropOrganism.latinName!""}/${cropOrganism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)})</option>
+					>${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
 				</#list>
 			    </select>
 			    <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
@@ -243,7 +243,7 @@
 				<#list allPests?sort_by("latinName") as organism>
 					<option value="${organism.organismId}"
 						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
-					>${organism.latinName!""}/${organism.getLocalName(currentLocale.language)!""} (${hierarchyCategories.getName(organism.hierarchyCategoryId)})</option>
+					>${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
 				</#list>
 			    </select>
 			    <span class="help-block" id="${formId}_organismId_validation"></span>
