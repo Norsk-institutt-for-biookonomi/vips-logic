@@ -62,6 +62,7 @@ import no.nibio.vips.util.WeatherUtil;
     @NamedQuery(name = "ForecastConfiguration.findByDateStart", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart = :dateStart AND f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByDateEnd", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateEnd = :dateEnd AND f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findAllActiveAtDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.dateStart <= :currentDate AND f.dateEnd >= :currentDate"),
     @NamedQuery(name = "ForecastConfiguration.findByLocationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.locationPointOfInterestId = :locationPointOfInterestId AND f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestId", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId AND f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByWeatherStationPointOfInterestIdAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.weatherStationPointOfInterestId = :weatherStationPointOfInterestId AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE"),

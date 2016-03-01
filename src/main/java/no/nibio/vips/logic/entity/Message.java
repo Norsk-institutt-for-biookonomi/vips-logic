@@ -44,6 +44,10 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
+import no.nibio.vips.logic.util.IntegerArrayUserType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -52,6 +56,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @Table(name = "message")
 @XmlRootElement
+@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m"),
     @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId"),
@@ -71,7 +76,7 @@ public class Message implements Serializable {
     private Set<MessageIllustration> messageIllustrationSet;
     private Set<MessageLocale> messageLocaleSet;
     private Integer organizationId;
-    private List<Integer> messageCropOrganismIds;
+    private Integer[] cropCategoryIds;
 
     public Message() {
     }
@@ -270,18 +275,20 @@ public class Message implements Serializable {
     }
 
     /**
-     * @return the messageCropOrganismIds
+     * @return the cropCategoryIds
      */
-    @Transient
-    public List<Integer> getMessageCropOrganismIds() {
-        return this.messageCropOrganismIds != null ? this.messageCropOrganismIds : new ArrayList<Integer>();
+    @Type(type = "IntegerArray")
+    @Column(name="crop_category_ids")
+    public Integer[] getCropCategoryIds() {
+        return cropCategoryIds;
     }
 
     /**
-     * @param messageCropOrganismIds the messageCropOrganismIds to set
+     * @param cropCategoryIds the cropCategoryIds to set
      */
-    public void setMessageCropOrganismIds(List<Integer> messageCropOrganismIds) {
-        this.messageCropOrganismIds = messageCropOrganismIds;
+    public void setCropCategoryIds(Integer[] cropCategoryIds) {
+        this.cropCategoryIds = cropCategoryIds;
     }
+
 
 }

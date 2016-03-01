@@ -21,6 +21,7 @@ package no.nibio.vips.logic.controller.session;
 
 import com.ibm.icu.util.ULocale;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.ExternalResource;
 import no.nibio.vips.logic.entity.ExternalResourceType;
@@ -37,6 +39,7 @@ import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.OrganismExternalResource;
 import no.nibio.vips.logic.entity.OrganismLocale;
 import no.nibio.vips.logic.entity.OrganismLocalePK;
+import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.util.HierarchyCategoryLocaleNames;
 
 /**
@@ -302,5 +305,35 @@ public class OrganismBean {
     public CropPest storeCropPest(CropPest cropPest)
     {
         return em.merge(cropPest);
+    }
+
+    public List<Integer> getCropCategoryOrganismIds(List<Integer> cropCategoryIds) {
+        List<CropCategory> cropCategories = em.createNamedQuery("CropCategory.findByCropCategoryIds")
+                .setParameter("cropCategoryIds", cropCategoryIds)
+                .getResultList();
+        List<Integer> retVal = new ArrayList<>();
+        for(CropCategory cc:cropCategories)
+        {
+            if(cc.getCropOrganismIds() != null)
+            {
+                retVal.addAll(Arrays.asList(cc.getCropOrganismIds()));
+            }
+        }
+        
+        return retVal;
+    }
+    
+    public List<CropCategory> getCropCategories(Integer organizationId)
+    {
+        try
+        {
+            return em.createNamedQuery("CropCategory.findByOrganizationId")
+                    .setParameter("organizationId", organizationId)
+                    .getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return new ArrayList<>();
+        }
     }
 }

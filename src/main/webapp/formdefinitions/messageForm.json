@@ -37,7 +37,7 @@
             "required" : false
         },
         {
-            "name" : "cropOrganismIds",
+            "name" : "cropCategoryIds",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_MULTIPLE",
             "required" : false

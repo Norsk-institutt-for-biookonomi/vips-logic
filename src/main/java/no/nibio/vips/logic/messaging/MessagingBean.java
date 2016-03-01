@@ -321,8 +321,7 @@ public class MessagingBean {
     
     public List<MessageRecipient> getForecastEventNotificationSubscribers(ForecastConfiguration config)
     {
-        Query q = em.createNativeQuery(
-                "SELECT \n" +
+        String sql = "SELECT \n" +
                 "	u.preferred_locale,\n" +
                 "	umf.format_name AS type,\n" +
                 "	CASE fns.universal_message_format_id " + 
@@ -336,13 +335,13 @@ public class MessagingBean {
                 "WHERE fns.user_id=u.user_id\n" +
                 "AND fns.universal_message_format_id = umf.universal_message_format_id\n" +
                 "AND u.user_id IN (\n" +
-                "	SELECT user_id FROM messaging.forecast_event_notification_subscription fens, public.vips_logic_user u \n" +
+                "	SELECT u.user_id FROM messaging.forecast_event_notification_subscription fens, public.vips_logic_user u \n" +
                 "	WHERE :weatherStationId = ANY(fens.weather_station_ids) \n" +
-                "       AND :cropOrganismId = ANY(fens.crop_ids)" + 
+                "       AND fens.crop_category_ids && ARRAY(SELECT crop_category_id FROM public.crop_category WHERE :cropOrganismId = ANY(crop_organism_ids))" + 
                 "       AND fens.user_id = u.user_id \n" +
                 "       AND (fens.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (fens.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
-                ");\n",
-                MessageRecipient.class);
+                ");\n";
+        Query q = em.createNativeQuery(sql, MessageRecipient.class);
         
         q.setParameter("weatherStationId", config.getWeatherStationPointOfInterestId().getPointOfInterestId());
         q.setParameter("cropOrganismId", config.getCropOrganismId().getOrganismId());
@@ -420,7 +419,7 @@ public class MessagingBean {
                 "AND ons.universal_message_format_id = umf.universal_message_format_id\n" +
                 "AND u.user_id IN (\n" +
                 "	SELECT ons.user_id FROM messaging.observation_notification_subscription ons, public.vips_logic_user u \n" +
-                "	WHERE  :cropOrganismId = ANY(ons.crop_ids) \n" + 
+                "	WHERE  ons.crop_category_ids && ARRAY(SELECT crop_category_id FROM public.crop_category WHERE :cropOrganismId = ANY(crop_organism_ids)) \n" + 
                 "       AND ons.user_id = u.user_id \n" +
                 "       AND (ons.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (ons.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
                 ");\n",

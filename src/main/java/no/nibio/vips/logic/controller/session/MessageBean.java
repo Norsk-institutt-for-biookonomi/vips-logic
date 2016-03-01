@@ -95,21 +95,7 @@ public class MessageBean {
         
     }
     
-    /**
-     * Crops are not part of persistence scheme for performance reasons.
-     * Must be added manually
-     * @param messages
-     * @return 
-     */
-    public List<Message> addMessageOrganismIds(List<Message> messages)
-    {
-        // Need to add all crops
-        for(Message message:messages)
-        {
-            message.setMessageCropOrganismIds(this.getMessageCropOrganismIds(message));
-        }
-        return messages;
-    }
+    
     
     public List<Message> getMessageList(Integer organizationId) {
         Organization mainOrg = em.find(Organization.class, organizationId);
@@ -193,18 +179,16 @@ public class MessageBean {
         message.setMessageTagSet(tags);
         
         // Store message organisms
-        List<Integer> cropOrganismIds = new ArrayList<>();
-        if(formFields.get("cropOrganismIds").getWebValues() != null)
+        List<Integer> cropCategoryIds = new ArrayList<>();
+        if(formFields.get("cropCategoryIds").getWebValues() != null)
         {
-            for(String cropOrganismId:formFields.get("cropOrganismIds").getWebValues())
+            for(String cropCategoryId:formFields.get("cropCategoryIds").getWebValues())
             {
-                cropOrganismIds.add(Integer.valueOf(cropOrganismId));
+                cropCategoryIds.add(Integer.valueOf(cropCategoryId));
             }
         }
-        message.setMessageCropOrganismIds(cropOrganismIds);
-        // This property is not part of the automatic persistence scheme, need
-        // to store manually
-        this.storeMessageOrganismIds(message);
+        message.setCropCategoryIds(cropCategoryIds.toArray(new Integer[cropCategoryIds.size()]));
+       
         return message;
     }
 
@@ -455,24 +439,5 @@ public class MessageBean {
         }
     }
     
-    /**
-     * 
-     * @param message 
-     */
-    public void storeMessageOrganismIds(Message message)
-    {
-        if(message.getMessageCropOrganismIds() != null)
-        {
-            Query q = em.createNativeQuery("DELETE FROM public.organism_message WHERE message_id = :messageId");
-            q.setParameter("messageId", message.getMessageId());
-            q.executeUpdate();
-            q = em.createNativeQuery("INSERT INTO public.organism_message(organism_id, message_id) VALUES(:organismId,:messageId);");
-            q.setParameter("messageId", message.getMessageId());
-            for(Integer organismId : message.getMessageCropOrganismIds())
-            {
-                q.setParameter("organismId", organismId);
-                q.executeUpdate();
-            }
-        }
-    }
+    
 }

@@ -158,7 +158,6 @@ public class MessageController extends HttpServlet {
             {
                 Integer messageId = Integer.valueOf(request.getParameter("messageId"));
                 Message message = em.find(Message.class, messageId);
-                message.setMessageCropOrganismIds(SessionControllerGetter.getMessageBean().getMessageCropOrganismIds(message));
                 request.setAttribute("message", message);
                 String messageLocale = request.getParameter("messageLocale") != null ? 
                                 request.getParameter("messageLocale") 
@@ -213,7 +212,7 @@ public class MessageController extends HttpServlet {
                 request.setAttribute("unusedTags", tags);
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
-                request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
+                request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
             catch(NullPointerException | NumberFormatException ex)
@@ -241,12 +240,17 @@ public class MessageController extends HttpServlet {
                 request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                 request.setAttribute("unusedTags", em.createNamedQuery("MessageTag.findAll").getResultList());
                 request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
-                request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
+                request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
             catch(NullPointerException | NumberFormatException ex)
             {
+                ex.printStackTrace();
                 response.sendError(500, ExceptionUtil.getStackTrace(ex));
+            }
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
             }
         }
         else if(action.equals("messageFormSubmit"))

@@ -140,17 +140,15 @@
 	     </select>
 	</div>
 	<div class="form-group">
-		<label for="cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
-		<select class="form-control chosen-select" name="cropOrganismIds" onblur="validateField(this);" multiple="multiple">
-			<#list allCrops?sort_by("latinName") as organism>
-			<option value="${organism.organismId}"
-			<#list message.messageCropOrganismIds as organismId>
-				<#if organismId == organism.organismId>
-				selected="selected"
+		<label for="cropCategoryIds">${i18nBundle.cropCategoryIds}</label>
+		<select class="form-control chosen-select" name="cropCategoryIds" onblur="validateField(this);" multiple="multiple">
+			<#list allCropCategoryIds as cropCategory>
+				<option value="${cropCategory.cropCategoryId}"
+				<#if message.cropCategoryIds?has_content && message.cropCategoryIds?seq_index_of(cropCategory.cropCategoryId) gte 0>
+						selected="selected"
 				</#if>
+				>${cropCategory.getLocalName(currentLocale.language)!cropCategory.defaultName}</option>
 			</#list>
-			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
-		</#list>
 		</select>
 	</div>
 	

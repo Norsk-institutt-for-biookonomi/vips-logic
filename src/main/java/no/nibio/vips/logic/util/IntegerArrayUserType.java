@@ -109,8 +109,15 @@ public class IntegerArrayUserType implements UserType {
         return null;
     }
 
-    Integer[] array = (Integer[]) rs.getArray(names[0]).getArray();
-    return array;
+       try
+       {
+        Integer[] array = (Integer[]) rs.getArray(names[0]).getArray();
+        return array;
+       }
+       catch(NullPointerException ex)
+       {
+           return new Integer[0];
+       }
     }
 
     /**

@@ -54,8 +54,8 @@ public class ForecastEventNotificationSubscription {
     private Integer[] weatherStationIds;
     
     @Type(type = "IntegerArray")
-    @Column(name = "crop_ids")
-    private Integer[] cropIds;
+    @Column(name = "crop_category_ids")
+    private Integer[] cropCategoryIds;
 
     /**
      * @return the userId
@@ -109,21 +109,21 @@ public class ForecastEventNotificationSubscription {
     }
 
     /**
-     * @return the cropIds
+     * @return the cropCategoryIds
      */
-    public Integer[] getCropIds() {
-        return cropIds;
+    public Integer[] getCropCategoryIds() {
+        return cropCategoryIds;
     }
 
     /**
-     * @param cropIds the cropIds to set
+     * @param cropCategoryIds the cropCategoryIds to set
      */
-    public void setCropIds(Integer[] cropIds) {
-        this.cropIds = cropIds;
+    public void setCropCategoryIds(Integer[] cropCategoryIds) {
+        this.cropCategoryIds = cropCategoryIds;
     }
     
     public void setCropIds(List<Integer> cropIds)
     {
-        this.cropIds = cropIds.toArray(new Integer[cropIds.size()]);
+        this.cropCategoryIds = cropIds.toArray(new Integer[cropIds.size()]);
     }
 }

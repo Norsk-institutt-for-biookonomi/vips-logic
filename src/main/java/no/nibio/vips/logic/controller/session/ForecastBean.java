@@ -744,12 +744,18 @@ public class ForecastBean {
                 .append("   TRUNCATE forecast_result_cache;")
                 .append("   INSERT INTO forecast_result_cache ")
                 .append("       SELECT * FROM forecast_result ")
-                .append("       WHERE to_char(result_valid_time, '").append(dateFormat).append("') = :dateStr ;")
+                .append("       WHERE to_char(result_valid_time, '").append(dateFormat).append("') = :dateStr ")
+                .append("       AND forecast_configuration_id IN (")
+                .append("           SELECT forecast_configuration_id ")
+                .append("           FROM public.forecast_configuration ")
+                .append("           WHERE date_start <= :currentDate AND date_end >= :currentDate")
+                .append("       );")
                 .append("END;")
                 .toString();
         
         Query query = em.createNativeQuery(transactionSQL);
         query.setParameter("dateStr", format.format(SystemTime.getSystemTime()));
+        query.setParameter("currentDate", SystemTime.getSystemTime());
         query.executeUpdate();
     }
     
@@ -761,8 +767,10 @@ public class ForecastBean {
     {
         // 
         // Collect all forecasts that are active TODAY
-        List<ForecastConfiguration> activeForecasts = em.createNamedQuery("ForecastConfiguration.findActiveAtDate")
+        // This 
+        List<ForecastConfiguration> activeForecasts = em.createNamedQuery("ForecastConfiguration.findAllActiveAtDate")
                 .setParameter("currentDate", currentDate).getResultList();
+        
         // Loop through them
         List<Long> activeForecastIds = new ArrayList<>();
         Query deleteQ = em.createNativeQuery(
@@ -921,7 +929,7 @@ public class ForecastBean {
                         (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                         ")\n" +
                         "AND to_char(result_valid_time, '" + dateFormat + "') = :dateStr";
-            
+            //System.out.println(poi.getName() + " SQL=" + sql);
             Query q = em.createNativeQuery(sql);
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
             q.setParameter("dateStr", format.format(theDate));

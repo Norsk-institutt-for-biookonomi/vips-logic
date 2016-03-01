@@ -293,10 +293,18 @@ public class LogicService {
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getForecastResultsAggregate(
             @PathParam("organizationId") Integer organizationId,
-            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds)
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryIds)
     {
+        if(cropCategoryIds == null || cropCategoryIds.isEmpty())
+        {
+            return Response.noContent().build();
+        }
+        else
+        {
+            List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
             Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationId, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
             return Response.ok().entity(retVal).build();
+        }
     }
     
     @GET
@@ -352,7 +360,7 @@ public class LogicService {
     public Response getMessage(@PathParam("messageId") Integer messageId)
     {
         Message message = SessionControllerGetter.getMessageBean().getMessage(messageId);
-        message.setMessageCropOrganismIds(SessionControllerGetter.getMessageBean().getMessageCropOrganismIds(message));
+        
         return Response.ok().entity(message).build();
     }
     
@@ -382,9 +390,6 @@ public class LogicService {
             }
             
             List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId, datePublishedFrom, datePublishedTo);
-            // Adding the crop connections manually
-            messageList = SessionControllerGetter.getMessageBean().addMessageOrganismIds(messageList);
-            
             return Response.ok().entity(messageList).build();
         }
         catch(ParseException ex){
@@ -398,7 +403,6 @@ public class LogicService {
     public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
     {
         List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
-        messageListWithTags = SessionControllerGetter.getMessageBean().addMessageOrganismIds(messageListWithTags);
         return Response.ok().entity(messageListWithTags).build();
     }
     
@@ -681,6 +685,21 @@ public class LogicService {
         else
         {
             return Response.status(Response.Status.NO_CONTENT).build();
+        }
+    }
+    
+    @GET
+    @Path("organism/cropcategory/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getCropCategories(@PathParam("organizationId") Integer organizationId)
+    {
+        if(organizationId != null)
+        {
+            return Response.ok().entity(SessionControllerGetter.getOrganismBean().getCropCategories(organizationId)).build();
+        }
+        else
+        {
+            return Response.noContent().build();
         }
     }
     
