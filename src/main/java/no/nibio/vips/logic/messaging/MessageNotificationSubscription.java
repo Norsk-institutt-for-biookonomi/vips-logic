@@ -140,9 +140,9 @@ public class MessageNotificationSubscription implements Serializable {
         this.cropCategoryIds = cropCategoryIds;
     }
     
-    public void setCropIds(List<Integer> cropIds)
+    public void setCropCategoryIds(List<Integer> cropCategoryIds)
     {
-        this.cropCategoryIds = cropIds.toArray(new Integer[cropIds.size()]);
+        this.cropCategoryIds = cropCategoryIds.toArray(new Integer[cropCategoryIds.size()]);
     }
 
 }

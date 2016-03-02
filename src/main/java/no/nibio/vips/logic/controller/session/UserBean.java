@@ -462,6 +462,13 @@ public class UserBean {
         em.merge(userAuth);
     }
 
+    /**
+     * Informing all organization admins about the new registered user and the
+     * application that needs approval
+     * @param confirmUser
+     * @param i18nBundle
+     * @param serverName 
+     */
     public void informAdminOfConfirmedEmail(VipsLogicUser confirmUser, ResourceBundle i18nBundle, String serverName ) {
         List<VipsLogicUser> organizationAdmins = this.findOrganizationUsersByRole(confirmUser.getOrganizationId(), Globals.ROLE_ORGANIZATION_ADMINISTRATOR);
         for(VipsLogicUser organizationAdmin: organizationAdmins)

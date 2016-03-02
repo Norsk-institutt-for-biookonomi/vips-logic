@@ -221,23 +221,29 @@
 			  
 			   <div class="form-group">
 			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly"<#else>onblur="validateField(this);"</#if> onchange="updateCropPests();">
-				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
-				<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-				<#list allCrops?sort_by("latinName") as cropOrganism>
-					<option value="${cropOrganism.organismId}"
-						<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
-					>${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
-				</#list>
+			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
+				<#if ! observation.organism?has_content>
+					<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
+					<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
+					<#list allCrops?sort_by("latinName") as cropOrganism>
+						<option value="${cropOrganism.organismId}"
+							<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
+						>${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
+					</#list>
+				<#else>
+					<#list allCrops?sort_by("latinName") as cropOrganism>
+						<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>
+							<option value="${cropOrganism.organismId}" selected="selected">${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
+						</#if>
+					</#list>
+				</#if>
 			    </select>
 			    <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
-			    
-			    
 			  </div>
 			  <div class="form-group">
 			    <label for="organismId">${i18nBundle.organism}</label>
-			    
 			    <select class="form-control" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
+			    	<#if ! observation.organism?has_content>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
 				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
 				<#list allPests?sort_by("latinName") as organism>
@@ -245,6 +251,13 @@
 						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
 					>${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
 				</#list>
+				<#else>
+					<#list allPests?sort_by("latinName") as organism>
+						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>
+							<option value="${organism.organismId}" selected="selected">${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
+						</#if>
+					</#list>
+				</#if>
 			    </select>
 			    <span class="help-block" id="${formId}_organismId_validation"></span>
 			    

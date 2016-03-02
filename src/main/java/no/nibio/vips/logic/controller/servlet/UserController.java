@@ -112,45 +112,47 @@ public class UserController extends HttpServlet {
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("viewUser"))
         {
-            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            try
             {
-                try
-                {
-                    Integer userId = Integer.valueOf(request.getParameter("userId"));
-                    VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
-                    if(viewUser == null)
-                    {
-                        response.sendError(500, "Invalid userId " + request.getParameter("userId"));
-                        return;
-                    }
-                    // Only superusers may view users from different organizations
-                    if(! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
-                    {
-                        response.sendError(403,"Only super users can view users outside their own organization"); // HTTP Forbidden
-                    }
-                    else
-                    {
-                        request.setAttribute("viewUser", viewUser);
-                        request.setAttribute("countries", userBean.getUserCountries());
-                        request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
-                        request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                        request.setAttribute("userStatusIds", userBean.getUserStatusIds());
-                        request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
-                        // In case this is a redirect from another action, and a message should be forwarded
-                        request.setAttribute("messageKey", request.getParameter("messageKey")); 
-                        request.getRequestDispatcher("/userForm.ftl").forward(request, response);
-                    }
-                }
-                catch(NullPointerException | NumberFormatException ex)
+                Integer userId = Integer.valueOf(request.getParameter("userId"));
+                VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
+                if(viewUser == null)
                 {
                     response.sendError(500, "Invalid userId " + request.getParameter("userId"));
+                    return;
+                }
+                // Only superusers may view users from different organizations
+                if(! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
+                {
+                    response.sendError(403,"Only super users can view users outside their own organization"); // HTTP Forbidden
+                }
+                // Regular users can only view and edit themselves
+                else if(! user.isSuperUser() && ! user.isOrganizationAdmin() && !viewUser.getUserId().equals(user.getUserId()))
+                {
+                    response.sendError(403,"Access not authorized");
+                }
+                else
+                {
+                    request.setAttribute("viewUser", viewUser);
+                    request.setAttribute("countries", userBean.getUserCountries());
+                    request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
+                    request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                    request.setAttribute("userStatusIds", userBean.getUserStatusIds());
+                    request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
+                    // In case this is a redirect from another action, and a message should be forwarded
+                    request.setAttribute("messageKey", request.getParameter("messageKey")); 
+                    request.getRequestDispatcher("/userForm.ftl").forward(request, response);
                 }
             }
-            else
+            catch(NullPointerException | NumberFormatException ex)
             {
-                this.redirectToLogin(request, response);
+                ex.printStackTrace();
+                response.sendError(500, "Invalid userId " + request.getParameter("userId"));
             }
-            
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+            }
         }
         
         // Create a new user
@@ -196,84 +198,89 @@ public class UserController extends HttpServlet {
         }
         
         // Store information about user
-        // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("userFormSubmit"))
         {
-            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            try
             {
-                try
+                Integer userId = Integer.valueOf(request.getParameter("userId"));
+                VipsLogicUser viewUser = userId > 0 ? em.find(VipsLogicUser.class, userId) : new VipsLogicUser();
+                // Only superusers may view users from different organizations
+                if(userId > 0 && ! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
                 {
-                    Integer userId = Integer.valueOf(request.getParameter("userId"));
-                    VipsLogicUser viewUser = userId > 0 ? em.find(VipsLogicUser.class, userId) : new VipsLogicUser();
-                    // Only superusers may view users from different organizations
-                    if(userId > 0 && ! user.isSuperUser() && ! viewUser.getOrganizationId().equals(user.getOrganizationId()))
+                    response.sendError(403); // HTTP Forbidden
+                }
+                // Regular user can't create new users, and only edit themselves
+                else if(! user.isSuperUser() && ! user.isOrganizationAdmin()
+                        && ! userId.equals(user.getUserId()))
+                {
+                    response.sendError(403); // HTTP Forbidden
+                }
+                else
+                {
+
+                    // Standard form validation
+                    FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
+                    // If new user: check if username or email already exists
+                    if(userId <= 0)
                     {
-                        response.sendError(403); // HTTP Forbidden
-                    }
-                    else
-                    {
-                        
-                        // Standard form validation
-                        FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
-                        // If new user: check if username or email already exists
-                        if(userId <= 0)
+                        try
                         {
-                            try
+                            FormField username = formValidation.getFormField("username");
+                            UserAuthentication authTest = em.createNamedQuery("UserAuthentication.findByUsername",UserAuthentication.class).setParameter("username", username.getWebValue()).getSingleResult();
+                            if(authTest != null)
                             {
-                                FormField username = formValidation.getFormField("username");
-                                UserAuthentication authTest = em.createNamedQuery("UserAuthentication.findByUsername",UserAuthentication.class).setParameter("username", username.getWebValue()).getSingleResult();
-                                if(authTest != null)
-                                {
-                                    username.setValid(false);
-                                    username.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "usernameExists"), formValidation.getFormField("username").getWebValue()));
-                                }
-                            }
-                            catch(NoResultException ex)
-                            {
-                                // All is well, proceed...
-                            }
-                            
-                            // Extra check: That user's email is not already in use
-                            FormField emailField = formValidation.getFormField("email");
-                            Boolean emailAlreadyInUse = false;
-                            try
-                            {
-                                VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue());
-                                emailAlreadyInUse = (foundUser != null);
-                            }
-                            catch(NonUniqueResultException ex)
-                            {
-                                emailAlreadyInUse = true;
-                            }
-                            if(emailAlreadyInUse)
-                            {
-                                emailField.setValid(false);
-                                emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
+                                username.setValid(false);
+                                username.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "usernameExists"), formValidation.getFormField("username").getWebValue()));
                             }
                         }
-                        if(formValidation.isValid())
+                        catch(NoResultException ex)
                         {
-                            viewUser.setEmail(formValidation.getFormField("email").getWebValue());
-                            viewUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
-                            viewUser.setLastName(formValidation.getFormField("lastName").getWebValue());
-                            viewUser.setPhoneCountryCode(formValidation.getFormField("phoneCountryCode").getWebValue());
-                            viewUser.setPhone(formValidation.getFormField("phone").getWebValue().replaceAll("[^0-9]", ""));
-                            viewUser.setApprovesSmsBilling(formValidation.getFormField("approvesSmsBilling").getWebValue() != null);
-                            viewUser.setPreferredLocale(formValidation.getFormField("preferredLocale").getWebValue());
-                            if(user.isSuperUser())
-                            {
-                                Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
-                                viewUser.setOrganizationId(organization);
-                            }
-                            else
-                            {
-                                viewUser.setOrganizationId(user.getOrganizationId());
-                            }
-                            Integer oldUserStatusId = viewUser.getUserStatusId();
+                            // All is well, proceed...
+                        }
+
+                        // Extra check: That user's email is not already in use
+                        FormField emailField = formValidation.getFormField("email");
+                        Boolean emailAlreadyInUse = false;
+                        try
+                        {
+                            VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue());
+                            emailAlreadyInUse = (foundUser != null);
+                        }
+                        catch(NonUniqueResultException ex)
+                        {
+                            emailAlreadyInUse = true;
+                        }
+                        if(emailAlreadyInUse)
+                        {
+                            emailField.setValid(false);
+                            emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
+                        }
+                    }
+                    if(formValidation.isValid())
+                    {
+                        viewUser.setEmail(formValidation.getFormField("email").getWebValue());
+                        viewUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
+                        viewUser.setLastName(formValidation.getFormField("lastName").getWebValue());
+                        viewUser.setPhoneCountryCode(formValidation.getFormField("phoneCountryCode").getWebValue());
+                        viewUser.setPhone(formValidation.getFormField("phone").getWebValue().replaceAll("[^0-9]", ""));
+                        viewUser.setApprovesSmsBilling(formValidation.getFormField("approvesSmsBilling").getWebValue() != null);
+                        viewUser.setPreferredLocale(formValidation.getFormField("preferredLocale").getWebValue());
+                        if(user.isSuperUser())
+                        {
+                            Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
+                            viewUser.setOrganizationId(organization);
+                        }
+                        else
+                        {
+                            viewUser.setOrganizationId(user.getOrganizationId());
+                        }
+                        Integer oldUserStatusId = viewUser.getUserStatusId();
+                        if(user.isSuperUser() || user.isOrganizationAdmin())
+                        {
                             viewUser.setUserStatusId(formValidation.getFormField("userStatusId").getValueAsInteger());
                             viewUser.setRemarks(formValidation.getFormField("remarks").getWebValue());
                             FormField roles = formValidation.getFormField("vipsLogicRoles");
-                            
+
                             if(roles.getWebValues() != null)
                             {
                                 Set<VipsLogicRole> vipsLogicRoles = new HashSet();
@@ -283,62 +290,63 @@ public class UserController extends HttpServlet {
                                 }
                                 viewUser.setVipsLogicRoles(vipsLogicRoles);
                             }
-                            String messageKey;
-                            if(userId > 0)
-                            {
-                                userBean.storeUser(viewUser);
-                                SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
-                                // Add confirmation message
-                                messageKey = "userUpdated";
-                            }
-                            else
-                            {
-                                // Create authentication for user
-                                UserAuthentication authentication = new UserAuthentication();
-                                authentication.setUserAuthenticationType(em.find(UserAuthenticationType.class, UserAuthenticationType.TYPE_PASSWORD));
-                                authentication.setUsername(formValidation.getFormField("username").getWebValue());
-                                String password = userBean.generateValidPassword();
-                                authentication.setPassword(userBean.getMD5EncryptedString(password));
-                                // Store the user for the first time
-                                viewUser = userBean.storeUserFirstTime(viewUser, authentication);
-                                // Send password to user's email address
-                                userBean.sendUsernameAndPasswordToUser(viewUser, 
-                                                                authentication.getUsername(),
-                                                                password,
-                                                                SessionLocaleUtil.getI18nBundle(request),
-                                                                ServletUtil.getServerName(request)
-                                                              );
-                                // Add confirmation message
-                                messageKey = "userCreatedAndInformed";
-                            }
-                            
-                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append(messageKey).toString());
+                        }
+                        String messageKey = "";
+                        if(userId > 0)
+                        {
+                            userBean.storeUser(viewUser);
+                            SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                            // Add confirmation message
+                            messageKey = "userUpdated";
+                        }
+                        else if(user.isSuperUser() || user.isOrganizationAdmin())
+                        {
+                            // Create authentication for user
+                            UserAuthentication authentication = new UserAuthentication();
+                            authentication.setUserAuthenticationType(em.find(UserAuthenticationType.class, UserAuthenticationType.TYPE_PASSWORD));
+                            authentication.setUsername(formValidation.getFormField("username").getWebValue());
+                            String password = userBean.generateValidPassword();
+                            authentication.setPassword(userBean.getMD5EncryptedString(password));
+                            // Store the user for the first time
+                            viewUser = userBean.storeUserFirstTime(viewUser, authentication);
+                            // Send password to user's email address
+                            userBean.sendUsernameAndPasswordToUser(viewUser, 
+                                                            authentication.getUsername(),
+                                                            password,
+                                                            SessionLocaleUtil.getI18nBundle(request),
+                                                            ServletUtil.getServerName(request)
+                                                          );
+                            // Add confirmation message
+                            messageKey = "userCreatedAndInformed";
                         }
                         else
                         {
-                            viewUser.setOrganizationId(user.getOrganizationId());
-                            request.setAttribute("formValidation", formValidation);
-                            request.setAttribute("viewUser", viewUser);
-                            request.setAttribute("countries", userBean.getUserCountries());
-                            request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
-                            request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                            request.setAttribute("userStatusIds", userBean.getUserStatusIds());
-                            request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
-                            request.getRequestDispatcher("/userForm.ftl").forward(request, response);
+                            response.sendError(403,"Access not authorized"); // HTTP Forbidden
                         }
-                        
+
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append(messageKey).toString());
                     }
-                }
-                catch(NullPointerException | NumberFormatException | FormValidationException ex)
-                {
-                    ex.printStackTrace();
-                    response.sendError(500, ex.getMessage());
+                    else
+                    {
+                        viewUser.setOrganizationId(user.getOrganizationId());
+                        request.setAttribute("formValidation", formValidation);
+                        request.setAttribute("viewUser", viewUser);
+                        request.setAttribute("countries", userBean.getUserCountries());
+                        request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
+                        request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
+                        request.setAttribute("userStatusIds", userBean.getUserStatusIds());
+                        request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
+                        request.getRequestDispatcher("/userForm.ftl").forward(request, response);
+                    }
+
                 }
             }
-            else
+            catch(NullPointerException | NumberFormatException | FormValidationException ex)
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                ex.printStackTrace();
+                response.sendError(500, ex.getMessage());
             }
+           
         }
         
         // DELETE user

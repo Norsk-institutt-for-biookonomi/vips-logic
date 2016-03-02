@@ -293,6 +293,17 @@ public class VipsLogicUser implements Serializable {
         }
         return false;
     }
+    
+    @JsonIgnore
+    @Transient
+    public boolean isMessageAuthor(){
+        for (VipsLogicRole role : this.getVipsLogicRoles()) {
+            if (role.getVipsLogicRoleId().equals(VipsLogicRole.MESSAGE_AUTHOR)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @JsonIgnore
     public boolean hasRole(Integer... roles) {

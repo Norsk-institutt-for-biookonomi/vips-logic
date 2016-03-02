@@ -43,26 +43,31 @@
 	    <ul class="nav navbar-nav">
 	      <!--li class="active"><a href="#">Link</a></li-->
 	      <!--li><a href="#">Link</a></li-->
-	      <#if user.isOrganizationAdmin() || user.isSuperUser() >
+	      
 	      <li class="active dropdown">
 		<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 		<ul class="dropdown-menu">
-		  <li><a href="/user">${i18nBundle.users}</a></li>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser() >
+			  <li><a href="/user">${i18nBundle.users}</a></li>
+			  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
+			  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
+			  <li><a href="/organism">${i18nBundle.organisms}</a></li>
+		  </#if>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isMessageAuthor()>
+		  	<li><a href="/message">${i18nBundle.messages}</a></li>
+		  </#if>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isObservationAuthority()>
+		  	<li><a href="/observation">${i18nBundle.observations}</a></li>
+		  </#if>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
-		  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
-		  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
-		  <li><a href="/organism">${i18nBundle.organisms}</a></li>
-		  <li><a href="/message">${i18nBundle.messages}</a></li>
-		  <li><a href="/observation">${i18nBundle.observations}</a></li>
 		</ul>
 	      </li>
-	      </#if>
 	      <li><a href="/userguide/VIPSLogic_user_guide.html">${i18nBundle.help}</a></li>
 	    </ul>
 	    <form class="navbar-form navbar-right"  action="/logout" method="POST" role="logout">
 	      <div class="form-group">
 	      	<!--input type="hidden" name="logout" value="true"/-->
-		${i18nBundle.loggedinas} ${user.firstName} ${user.lastName} (${user.organizationId.organizationName})
+		${i18nBundle.loggedinas} <a href="/user?action=viewUser&userId=${user.userId}">${user.firstName} ${user.lastName}</a> (${user.organizationId.organizationName})
 	      </div>
 	      <button type="submit" class="btn btn-default">${i18nBundle.logout}</button>
 	    </form>

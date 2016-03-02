@@ -62,12 +62,12 @@
 		</select>
 	</div>
           <div class="form-group">
-		<label for="forecastN_cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
-		<select class="form-control chosen-select" name="forecastN_cropOrganismIds" multiple="multiple">
-			<#list allCrops?sort_by("latinName") as organism>
-			<option value="${organism.organismId}"
-			<#if forecastEventNotificationSubscription?has_content && forecastEventNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
-			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
+		<label for="forecastN_cropCategoryIds">${i18nBundle.cropCategoryIds}</label>
+		<select class="form-control chosen-select" name="forecastN_cropCategoryIds" multiple="multiple">
+			<#list allCropCategories as cropCategory>
+			<option value="${cropCategory.cropCategoryId}"
+			<#if forecastEventNotificationSubscription?has_content && forecastEventNotificationSubscription.cropCategoryIds?seq_contains(cropCategory.cropCategoryId)> selected="selected"</#if>
+			>${cropCategory.getLocalName(currentLocale.language)!cropCategory.defaultName}</option>
 		</#list>
 		</select>
 	</div>
@@ -93,12 +93,12 @@
 		</select>
 	</div>
           <div class="form-group">
-		<label for="observationN_cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
-		<select class="form-control chosen-select" name="observationN_cropOrganismIds" onblur="validateField(this);" multiple="multiple">
-			<#list allCrops?sort_by("latinName") as organism>
-			<option value="${organism.organismId}"
-			<#if observationNotificationSubscription?has_content && observationNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
-			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
+		<label for="observationN_cropCategoryIds">${i18nBundle.cropCategoryIds}</label>
+		<select class="form-control chosen-select" name="observationN_cropCategoryIds" onblur="validateField(this);" multiple="multiple">
+			<#list allCropCategories as cropCategory>
+			<option value="${cropCategory.cropCategoryId}"
+			<#if observationNotificationSubscription?has_content && observationNotificationSubscription.cropCategoryIds?seq_contains(cropCategory.cropCategoryId)> selected="selected"</#if>
+			>${cropCategory.getLocalName(currentLocale.language)!cropCategory.defaultName}</option>
 		</#list>
 		</select>
 	</div>
@@ -114,12 +114,12 @@
 		</select>
 	</div>
           <div class="form-group">
-		<label for="messageN_cropOrganismIds">${i18nBundle.cropOrganismIds}</label>
-		<select class="form-control chosen-select" name="messageN_cropOrganismIds" onblur="validateField(this);" multiple="multiple">
-			<#list allCrops?sort_by("latinName") as organism>
-			<option value="${organism.organismId}"
-			<#if messageNotificationSubscription?has_content && messageNotificationSubscription.cropIds?seq_contains(organism.organismId)> selected="selected"</#if>
-			>${organism.latinName!""} / ${organism.tradeName!""} / ${organism.getLocalName(currentLocale.language)!""}</option>
+		<label for="messageN_cropCategoryIds">${i18nBundle.cropCategoryIds}</label>
+		<select class="form-control chosen-select" name="messageN_cropCategoryIds" onblur="validateField(this);" multiple="multiple">
+			<#list allCropCategories as cropCategory>
+			<option value="${cropCategory.cropCategoryId}"
+			<#if messageNotificationSubscription?has_content && messageNotificationSubscription.cropCategoryIds?seq_contains(cropCategory.cropCategoryId)> selected="selected"</#if>
+			>${cropCategory.getLocalName(currentLocale.language)!cropCategory.defaultName}</option>
 		</#list>
 		</select>
 	</div>

@@ -69,15 +69,25 @@ public class NotificationSubscriptionController extends HttpServlet {
             // TODO: Only superusers and organization admins should see other users' subscriptions
             if(action == null)
             {
-                Integer userId = Integer.valueOf(request.getParameter("userId"));
+                
                 VipsLogicUser viewUser;
                 if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
-                    viewUser = em.find(VipsLogicUser.class, userId);
+                    Integer userId;
+                    try
+                    {
+                        userId = Integer.valueOf(request.getParameter("userId"));
+                        viewUser = em.find(VipsLogicUser.class, userId);
+                    }
+                    catch(NullPointerException | NumberFormatException e)
+                    {
+                        response.sendError(500, "Invalid user id");
+                        return;
+                    }
                 }
                 else
                 {
-                    viewUser = user;
+                    viewUser = em.find(VipsLogicUser.class, user.getUserId());
                 }
                 ObservationNotificationSubscription observationNotificationSubscription = SessionControllerGetter.getMessagingBean().getObservationNotificationSubscription(viewUser.getUserId());
                 request.setAttribute("observationNotificationSubscription", observationNotificationSubscription);
@@ -86,7 +96,7 @@ public class NotificationSubscriptionController extends HttpServlet {
                 ForecastEventNotificationSubscription forecastEventNotificationSubscription = SessionControllerGetter.getMessagingBean().getForecastEventNotificationSubscription(viewUser.getUserId());
                 request.setAttribute("forecastEventNotificationSubscription",forecastEventNotificationSubscription);
                 request.setAttribute("viewUser", viewUser);
-                request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
+                request.setAttribute("allCropCategories", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId", viewUser.getOrganizationId().getOrganizationId()).getResultList());
                 request.setAttribute("messageTagSet", em.createNamedQuery("MessageTag.findAll").getResultList());
                 request.setAttribute("weatherStationIds", SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUserOrganization(viewUser));
                 request.setAttribute("universalMessageFormats", SessionControllerGetter.getMessagingBean().getAllUniversalMessageFormats());
@@ -95,33 +105,33 @@ public class NotificationSubscriptionController extends HttpServlet {
             }
             else if(action.equals("notificationSubscriptionFormSubmit"))
             {
-                Integer userId = Integer.valueOf(request.getParameter("userId"));
                 VipsLogicUser viewUser;
                 if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
+                    Integer userId = Integer.valueOf(request.getParameter("userId"));
                     viewUser = em.find(VipsLogicUser.class, userId);
                 }
                 else
                 {
-                    viewUser = user;
+                    viewUser = em.find(VipsLogicUser.class, user.getUserId());
                 }
                 MessageNotificationSubscription mSubscription = new MessageNotificationSubscription();
                 mSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("messageN_universalMessageFormatId")));
-                mSubscription.setCropIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageN_cropOrganismIds")));
+                mSubscription.setCropCategoryIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageN_cropCategoryIds")));
                 mSubscription.setMessageTagIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageN_messageTagIds")));
                 mSubscription.setUserId(viewUser.getUserId());
                 SessionControllerGetter.getMessagingBean().storeMessageNotificationSubscription(mSubscription);
                 
                 ForecastEventNotificationSubscription fSubscription = new ForecastEventNotificationSubscription();
                 fSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("forecastN_universalMessageFormatId")));
-                fSubscription.setCropIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_cropOrganismIds")));
+                fSubscription.setCropCategoryIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_cropCategoryIds")));
                 fSubscription.setWeatherStationIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_weatherStationIds")));
                 fSubscription.setUserId(viewUser.getUserId());
                 SessionControllerGetter.getMessagingBean().storeForecastEventNotificationSubscription(fSubscription);
                 
                 ObservationNotificationSubscription oSubscription = new ObservationNotificationSubscription();
                 oSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("observationN_universalMessageFormatId")));
-                oSubscription.setCropIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("observationN_cropOrganismIds")));
+                oSubscription.setCropCategoryIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("observationN_cropCategoryIds")));
                 oSubscription.setUserId(viewUser.getUserId());
                 SessionControllerGetter.getMessagingBean().storeObservationNotificationSubscription(oSubscription);
                 

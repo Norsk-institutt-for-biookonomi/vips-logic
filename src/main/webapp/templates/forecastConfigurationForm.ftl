@@ -88,7 +88,8 @@
 	  <div class="form-group">
 		  <div class="checkbox">
 			<label>
-				<input type="checkbox" name="isPrivate"<#if forecastConfiguration.isPrivate?has_content && forecastConfiguration.isPrivate == true> checked="checked"</#if>/>
+				<input type="checkbox" name="isPrivate"<#if forecastConfiguration.isPrivate?has_content && forecastConfiguration.isPrivate == true> checked="checked"</#if>
+				<#if ! user.isSuperUser() && ! user.isOrganizationAdmin()> readonly="readonly" disabled="disabled"</#if>/>
 			</label>
 			${i18nBundle.isPrivate}
 		</div>
@@ -107,7 +108,7 @@
 	    </select>
 	    <span class="help-block" id="${formId}_pestOrganismId_validation"></span>
 	  </div>
-	  <#if !multipleNew>
+	  <#if !multipleNew?has_content || !multipleNew>
 	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
 	    <select class="form-control" name="locationPointOfInterestId" onblur="validateField(this);">
@@ -165,10 +166,16 @@
 	  <div class="form-group">
 	    <label for="vipsLogicUserId">${i18nBundle.vipsLogicUserId}</label>
 	    <select class="form-control" name="vipsLogicUserId" onblur="validateField(this);">
-	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.vipsLogicUserId?lower_case}</option>
-	    	<#list vipsLogicUsers?sort_by("lastName") as user>
-	    	<option value="${user.userId}"<#if forecastConfiguration.vipsLogicUserId?has_content && user.userId == forecastConfiguration.vipsLogicUserId.userId> selected="selected"</#if>>${user.lastName}, ${user.firstName}</option>
-	    	</#list>
+	    	<#if user.isSuperUser() || user.isOrganizationAdmin()>
+			<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.vipsLogicUserId?lower_case}</option>
+			<#list vipsLogicUsers?sort_by("lastName") as user>
+			<option value="${user.userId}"<#if forecastConfiguration.vipsLogicUserId?has_content && user.userId == forecastConfiguration.vipsLogicUserId.userId> selected="selected"</#if>>${user.lastName}, ${user.firstName}</option>
+			</#list>
+	    	<#else>
+			
+					<option value="${user.userId}" selected="selected">${user.lastName}, ${user.firstName}</option>
+			
+	    	</#if>
 	    </select>
 	    <span class="help-block" id="${formId}_vipsLogicUserId_validation"></span>
 	  </div>

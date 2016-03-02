@@ -74,12 +74,15 @@
 					<#if formValidation?has_content && formValidation.getFormField("organizationId").valueAsInteger == organization.organizationId>
 						selected="selected"
 					</#if>
+					<#if ! formValidation_has_content && organization.organizationId == 1>
+						selected="selected"
+					</#if>
 				>${organization.organizationName}</option>
 			</#list>
 			</select>
 		</div>
 		<span class="help-block" id="${formId}_organizationId_validation"></span>
-		<div><label for="approvalApplication">${i18nBundle.approvalApplication}</label><textarea class="form-control" placeholder="${i18nBundle.approvalApplication}" name="approvalApplication" cols="15" rows="5" onblur="validateField(this);"><#if formValidation?has_content>${formValidation.getFormField("approvalApplication").webValue}</#if></textarea></div>
+		<div><label for="approvalApplication">${i18nBundle.approvalApplication}</label><p>${i18nBundle.approvalApplicationHelp}</p><textarea class="form-control" placeholder="${i18nBundle.approvalApplication}" name="approvalApplication" cols="15" rows="5" onblur="validateField(this);"><#if formValidation?has_content>${formValidation.getFormField("approvalApplication").webValue}</#if></textarea></div>
 		<span class="help-block" id="${formId}_approvalApplication_validation"></span>
 		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.submit}</button>
 	</form>

@@ -24,6 +24,8 @@
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
+	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1'">${i18nBundle.addNew}</button>
+	<#if user.isSuperUser() || user.isOrganizationAdmin()>
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<form class="form-inline" role="form" action="/forecastConfiguration" method="GET">
@@ -65,7 +67,8 @@
 			</form>
 		</div>
 	</div>
-	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1'">${i18nBundle.addNew}</button>
+	
+	
 	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1&multipleNew=true'">${i18nBundle.addMultipleNew}</button>
         <div class="table-responsive">
 	<table class="table table-striped">
@@ -95,6 +98,7 @@
 		</tbody>
         </table>
         </div>
+        </#if>
         <h2>${i18nBundle.privateForecasts}</h2>
         <div class="table-responsive">
 	<table class="table table-striped">

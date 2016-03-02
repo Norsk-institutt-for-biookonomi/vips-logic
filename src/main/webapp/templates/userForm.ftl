@@ -28,7 +28,9 @@
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
-	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+	<#if user.isSuperUser() || user.isOrganizationAdmin()>
+		<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+	</#if>
         <h1><#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
         <#if viewUser.userId?has_content>
 		<button type="button" class="btn btn-primary">${i18nBundle.userAccountInformation}</button>
@@ -91,59 +93,85 @@
 	  </div>
 	  <div class="form-group">
 	    <label for="organizationId">${i18nBundle.organizationId}</label>
-	    <select class="form-control" name="organizationId" onblur="validateField(this);">
-		<#list organizations?sort_by("organizationName") as organization>
-			<option value="${organization.organizationId}"
+	    <select class="form-control" name="organizationId" <#if ! user.isSuperUser() && ! user.isOrganizationAdmin()> readonly="readonly" <#else>onblur="validateField(this);"</#if>>
+	    	<#if user.isSuperUser() || user.isOrganizationAdmin()>
+			<#list organizations?sort_by("organizationName") as organization>
+				<option value="${organization.organizationId}"
+					<#if viewUser.organizationId.organizationId == organization.organizationId>
+						selected="selected"
+					</#if>
+				>${organization.organizationName}</option>
+			</#list>
+		<#else>
+			<#list organizations?sort_by("organizationName") as organization>
 				<#if viewUser.organizationId.organizationId == organization.organizationId>
-					selected="selected"
+					<option value="${organization.organizationId}" selected="selected">${organization.organizationName}</option>
 				</#if>
-			>${organization.organizationName}</option>
-		</#list>
+			</#list>
+		</#if>
 	     </select>
 	     <span class="help-block" id="${formId}_organizationId_validation"></span>
 	  </div>
 	  <div class="form-group">
 	  	<label for="vipsLogicRoles">${i18nBundle.vipsLogicRoles}</label>
-	  	<select class="form-control" name="vipsLogicRoles" multiple="multiple" size="3" onblur="validateField(this);">
-	  	<#list vipsLogicRoles as vipsLogicRole>
-	  	<option value="${vipsLogicRole.vipsLogicRoleId}"
-	  		<#if viewUser.hasRole(vipsLogicRole)>
-				selected="selected"
-			</#if>
-	  	>${i18nBundle["vipsLogicRole_" + vipsLogicRole.vipsLogicRoleId]}</option>
-	  	</#list>
+	  	<select class="form-control" name="vipsLogicRoles" multiple="multiple" size="5" <#if ! user.isSuperUser() && ! user.isOrganizationAdmin()> readonly="readonly" <#else>onblur="validateField(this);"</#if>>
+	  	<#if user.isSuperUser() || user.isOrganizationAdmin()>
+	  		<#list vipsLogicRoles as vipsLogicRole>
+			<option value="${vipsLogicRole.vipsLogicRoleId}"
+				<#if viewUser.hasRole(vipsLogicRole)>
+					selected="selected"
+				</#if>
+			>${i18nBundle["vipsLogicRole_" + vipsLogicRole.vipsLogicRoleId]}</option>
+			</#list>
+	  	<#else>
+	  		<#list vipsLogicRoles as vipsLogicRole>
+	  			<#if viewUser.hasRole(vipsLogicRole)>
+	  				<option value="${vipsLogicRole.vipsLogicRoleId}" selected="selected">${i18nBundle["vipsLogicRole_" + vipsLogicRole.vipsLogicRoleId]}</option>
+	  			</#if>
+	  		</#list>
+	  	</#if>
 	  	</select>
 	  	<span class="help-block" id="${formId}_vipsLogicRoles_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="userStatusId">${i18nBundle.userStatusId}</label>
-	    <select class="form-control" name="userStatusId" onblur="validateField(this);">
-	    <#list userStatusIds as userStatusId>
-	    	<option value="${userStatusId}"
+	    <select class="form-control" name="userStatusId" <#if ! user.isSuperUser() && ! user.isOrganizationAdmin()> readonly="readonly" <#else>onblur="validateField(this);"</#if>>
+	    <#if user.isSuperUser() || user.isOrganizationAdmin()>
+		    <#list userStatusIds as userStatusId>
+			<option value="${userStatusId}"
+				<#if viewUser.userStatusId?has_content && viewUser.userStatusId == userStatusId>
+					selected="selected"
+				</#if>
+			>${i18nBundle["userStatus_" + userStatusId]}</option>
+		    </#list>
+	    <#else>
+	    	<#list userStatusIds as userStatusId>
 	    		<#if viewUser.userStatusId?has_content && viewUser.userStatusId == userStatusId>
-				selected="selected"
-			</#if>
-		>${i18nBundle["userStatus_" + userStatusId]}</option>
-	    </#list>
+	    		<option value="${userStatusId}" selected="selected">${i18nBundle["userStatus_" + userStatusId]}</option>
+	    		</#if>
+	    	</#list>
+	    </#if>
 	    </select>
 	    <span class="help-block" id="${formId}_userStatusId_validation"></span>
 	  </div>
-	  <div class="form-group">
-	    <label>${i18nBundle.approvalApplication}</label>
-	    <p>${viewUser.approvalApplication!""}</p>
-	  </div>
-	  <div class="form-group">
-	  	<label for="remarks">${i18nBundle.remarks}</label>
-	  	<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if viewUser.remarks?has_content>${viewUser.remarks}</#if></textarea>
-	  	<span class="help-block" id="${formId}_remarks_validation"></span>
-	  </div>
-	  <#if ! viewUser.userId?has_content>
-	  <div>${i18nBundle.newUserCredentialsHelpText}</div>
-	  <div class="form-group">
-	    <label for="username">${i18nBundle.username}</label>
-	    <input type="text" class="form-control" name="username" placeholder="${i18nBundle.username}" value="${viewUser.firstName!""}" onblur="validateField(this);"/>
-	    <span class="help-block" id="${formId}_username_validation"></span>
-	  </div>
+	  <#if user.isSuperUser() || user.isOrganizationAdmin()>
+		  <div class="form-group">
+		    <label>${i18nBundle.approvalApplication}</label>
+		    <p>${viewUser.approvalApplication!""}</p>
+		  </div>
+		  <div class="form-group">
+			<label for="remarks">${i18nBundle.remarks}</label>
+			<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if viewUser.remarks?has_content>${viewUser.remarks}</#if></textarea>
+			<span class="help-block" id="${formId}_remarks_validation"></span>
+		  </div>
+		  <#if ! viewUser.userId?has_content>
+		  <div>${i18nBundle.newUserCredentialsHelpText}</div>
+		  <div class="form-group">
+		    <label for="username">${i18nBundle.username}</label>
+		    <input type="text" class="form-control" name="username" placeholder="${i18nBundle.username}" value="${viewUser.firstName!""}" onblur="validateField(this);"/>
+		    <span class="help-block" id="${formId}_username_validation"></span>
+		  </div>
+		  </#if>
 	  </#if>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 	  <#if viewUser.userId?has_content>

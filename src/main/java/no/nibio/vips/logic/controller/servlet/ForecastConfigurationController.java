@@ -85,10 +85,9 @@ public class ForecastConfigurationController extends HttpServlet {
         // for SUPERUSERS and ORGANIZATION ADMINS
         if(action == null)
         {
+            Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedModelInformation();
             if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
             {
-                Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedModelInformation();
-                
                 // Check filtering conditions
                 List<String> selectedModelIds;
                 try
@@ -173,7 +172,12 @@ public class ForecastConfigurationController extends HttpServlet {
             }
             else
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                List<ForecastConfiguration> privateForecasts;
+                privateForecasts = forecastBean.getPrivateForecastConfigurationsForUser(user.getUserId());
+                request.setAttribute("privateForecastConfigurations", privateForecasts);
+                request.setAttribute("modelInformation", modelInformationMap);
+                request.setAttribute("messageKey", request.getParameter("messageKey"));
+                request.getRequestDispatcher("/forecastConfigurationList.ftl").forward(request, response);
             }
       
         }
@@ -245,7 +249,35 @@ public class ForecastConfigurationController extends HttpServlet {
             }
             else
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
+                ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
+                if(forecastConfiguration == null || forecastConfiguration.getVipsLogicUserId().getUserId().equals(user.getUserId()))
+                {
+                    if(forecastConfiguration == null)
+                    {
+                        forecastConfiguration = new ForecastConfiguration();
+                        forecastConfiguration.setIsPrivate(Boolean.TRUE);
+                    }
+                    request.setAttribute("forecastConfiguration", forecastConfiguration);
+                    request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
+                    request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
+                    request.setAttribute("forecastConfiguration", forecastConfiguration);
+                    request.setAttribute("formId","forecastConfigurationForm");
+                    request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                    request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                    
+                    request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
+                    request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
+                    // Hierarchy categories
+                    request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                    request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
+                }
+                else 
+                {
+                    response.sendError(403,"Access not authorized");
+                }
             }
         }
         
@@ -253,94 +285,97 @@ public class ForecastConfigurationController extends HttpServlet {
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("forecastConfigurationFormSubmit"))
         {
-            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            try
             {
-                try
+                Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
+                ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
+                // No forecastconfiguration found, assuming user want to register new
+                if(forecastConfiguration == null)
                 {
-                    Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
-                    ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
-                    // No forecastconfiguration found, assuming user want to register new
-                    if(forecastConfiguration == null)
+                    forecastConfiguration = new ForecastConfiguration();
+                }
+                // Only superusers can view and edit forecasts from other organizations
+                // Regular users can only edit own forecasts
+                if(
+                        (! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getOrganizationId().equals(user.getOrganizationId()))
+                        || (! user.isSuperUser() && ! user.isOrganizationAdmin() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getUserId().equals(user.getUserId()))
+                )
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+                else
+                {
+                    String formId = request.getParameter("multipleNew") != null && request.getParameter("multipleNew").equals("true") ? 
+                            "forecastConfigurationMultipleNewForm" 
+                            :"forecastConfigurationForm";
+                    FormValidation formValidation = FormValidator.validateForm(formId,request,getServletContext());
+                    // Also validation the model specific fields
+                    String modelId = formValidation.getFormField("modelId").getWebValue();
+                    FormValidation modelFieldFormValidation = FormValidator.validateForm("models/" + modelId, request, getServletContext());
+
+                    if(formValidation.isValid() && modelFieldFormValidation.isValid())
                     {
-                        forecastConfiguration = new ForecastConfiguration();
-                    }
-                    // Only superusers can view and edit forecasts from other organizations
-                    if(! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getOrganizationId().equals(user.getOrganizationId()))
-                    {
-                        response.sendError(403,"Access not authorized"); // HTTP Forbidden
-                    }
-                    else
-                    {
-                        String formId = request.getParameter("multipleNew") != null && request.getParameter("multipleNew").equals("true") ? 
-                                "forecastConfigurationMultipleNewForm" 
-                                :"forecastConfigurationForm";
-                        FormValidation formValidation = FormValidator.validateForm(formId,request,getServletContext());
-                        // Also validation the model specific fields
-                        String modelId = formValidation.getFormField("modelId").getWebValue();
-                        FormValidation modelFieldFormValidation = FormValidator.validateForm("models/" + modelId, request, getServletContext());
-                        
-                        if(formValidation.isValid() && modelFieldFormValidation.isValid())
+                        if(formId.equals("forecastConfigurationForm"))
                         {
-                            if(formId.equals("forecastConfigurationForm"))
+                            // Ensure regular users always enter private forecasts
+                            if(! userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                             {
-                                forecastConfiguration = forecastBean.storeForecastConfiguration(forecastConfiguration, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
-                                // Store form config
-
-
-                                //forecastBean.storeForecastModelConfigurations(forecastConfiguration, modelFieldFormValidation.getFormFields());
-                                // TODO: Store model specific fields
-                                // First: Delete all o
-
-
-                                request.setAttribute("messageKey", request.getParameter("formConfigurationUpdated"));
-                                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=").append(forecastConfiguration.getForecastConfigurationId()).append("&messageKey=").append("forecastConfigurationUpdated").toString());
+                                formValidation.getFormField("isPrivate").setWebValue("true");
                             }
-                            else
-                            {
-                                for(String optionVal:formValidation.getFormField("weatherStationPointOfInterestIds").getWebValues())
-                                {
-                                    Integer weatherStationPointOfInterestId = Integer.valueOf(optionVal);
-                                    forecastBean.storeNewMultipleForecastConfiguration(weatherStationPointOfInterestId, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());    
-                                }
-                                request.setAttribute("messageKey", request.getParameter("multipleForecastConfigurationsCreated"));
-                                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?messageKey=").append("multipleForecastConfigurationsCreated").toString());
-                            }
+                            forecastConfiguration = forecastBean.storeForecastConfiguration(forecastConfiguration, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
+                            // Store form config
+
+
+                            //forecastBean.storeForecastModelConfigurations(forecastConfiguration, modelFieldFormValidation.getFormFields());
+                            // TODO: Store model specific fields
+                            // First: Delete all o
+
+
+                            request.setAttribute("messageKey", request.getParameter("formConfigurationUpdated"));
+                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=").append(forecastConfiguration.getForecastConfigurationId()).append("&messageKey=").append("forecastConfigurationUpdated").toString());
                         }
                         else
                         {
-                            // Return to form with error messages
-                            request.setAttribute("formValidation", formValidation);
-                            // We must get date formats!
-                            Map<String, FormField> formFields = FormValidator.getFormFields("forecastConfigurationForm",getServletContext());
-                            // TODO: More intelligent selection of locations, weather stations and users
-                            request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
-                            request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList());
-                            request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
-                            request.setAttribute("dateStart_dateFormat", formFields.get("dateStart").getDateFormat());
-                            request.setAttribute("dateEnd_dateFormat", formFields.get("dateEnd").getDateFormat());
-                            request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
-                            request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
-                            request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
-                            request.setAttribute("forecastConfiguration", forecastConfiguration);
-                            request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
+                            for(String optionVal:formValidation.getFormField("weatherStationPointOfInterestIds").getWebValues())
+                            {
+                                Integer weatherStationPointOfInterestId = Integer.valueOf(optionVal);
+                                forecastBean.storeNewMultipleForecastConfiguration(weatherStationPointOfInterestId, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());    
+                            }
+                            request.setAttribute("messageKey", request.getParameter("multipleForecastConfigurationsCreated"));
+                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?messageKey=").append("multipleForecastConfigurationsCreated").toString());
                         }
-                    }
-                }
-                catch(NullPointerException | NumberFormatException | FormValidationException ex)
-                {
-                    if(ex instanceof NumberFormatException)
-                    {
-                        response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
                     }
                     else
                     {
-                        response.sendError(500, ex.getMessage());
+                        // Return to form with error messages
+                        request.setAttribute("formValidation", formValidation);
+                        // We must get date formats!
+                        Map<String, FormField> formFields = FormValidator.getFormFields("forecastConfigurationForm",getServletContext());
+                        // TODO: More intelligent selection of locations, weather stations and users
+                        request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
+                        request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList());
+                        request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
+                        request.setAttribute("dateStart_dateFormat", formFields.get("dateStart").getDateFormat());
+                        request.setAttribute("dateEnd_dateFormat", formFields.get("dateEnd").getDateFormat());
+                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                        request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
+                        request.setAttribute("forecastConfiguration", forecastConfiguration);
+                        request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
                     }
                 }
             }
-            else
+            catch(NullPointerException | NumberFormatException | FormValidationException ex)
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                ex.printStackTrace();
+                if(ex instanceof NumberFormatException)
+                {
+                    response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
+                }
+                else
+                {
+                    response.sendError(500, ex.getMessage());
+                }
             }
         }
         // Delete forecast configuration
