@@ -238,7 +238,10 @@ public class LoginController extends HttpServlet {
         // No login attempt. Show form
         else
         {
-            request.setAttribute("checkRemember", request.getParameter("nextPage").indexOf("http") == 0);
+            if(request.getParameter("nextPage") != null)
+            {
+                request.setAttribute("checkRemember", request.getParameter("nextPage").indexOf("http") == 0);
+            }
             request.setAttribute("messageKey", request.getParameter("messageKey"));
             request.setAttribute("errorMessageKey", request.getParameter("errorMessageKey"));
             request.getRequestDispatcher("/login.ftl").forward(request, response);
