@@ -112,6 +112,11 @@ public class UserController extends HttpServlet {
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("viewUser"))
         {
+            if(user == null)
+            {
+                this.redirectToLogin(request, response);
+            }
+            
             try
             {
                 Integer userId = Integer.valueOf(request.getParameter("userId"));
