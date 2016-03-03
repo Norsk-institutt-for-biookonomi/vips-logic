@@ -74,7 +74,7 @@
 					<#if formValidation?has_content && formValidation.getFormField("organizationId").valueAsInteger == organization.organizationId>
 						selected="selected"
 					</#if>
-					<#if ! formValidation_has_content && organization.organizationId == 1>
+					<#if ! formValidation?has_content && organization.organizationId == 1>
 						selected="selected"
 					</#if>
 				>${organization.organizationName}</option>
