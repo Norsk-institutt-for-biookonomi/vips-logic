@@ -67,9 +67,16 @@
             "nullValue" : "-1"
         },
         {
+            "name" : "suggestedUserRole",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : ""
+        },
+        {
             "name" : "approvalApplication",
             "dataType" : "STRING",
-            "required" : true,
+            "required" : false,
             "maxLength" : 2147483647
         }
         

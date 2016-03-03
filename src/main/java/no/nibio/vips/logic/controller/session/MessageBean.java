@@ -411,10 +411,6 @@ public class MessageBean {
                     File file = new File(this.getFilePath(message) + "/" + fileName);
                     file.delete();
                 }
-                // Then: Delete connections with organisms
-                em.createNativeQuery("DELETE FROM public.organism_message WHERE message_id = :messageId")
-                        .setParameter("messageId", messageId)
-                        .executeUpdate();
                 // Then: Delete the message
                 em.remove(message);
         }

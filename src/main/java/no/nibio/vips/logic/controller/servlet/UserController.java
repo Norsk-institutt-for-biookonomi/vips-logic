@@ -556,7 +556,7 @@ public class UserController extends HttpServlet {
                     newUser.setPhoneCountryCode("47");// TODO: More intelligent selection here?
                     Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
                     newUser.setOrganizationId(organization);
-                    newUser.setApprovalApplication(formValidation.getFormField("approvalApplication").getWebValue());
+                    newUser.setApprovalApplication(formValidation.getFormField("suggestedUserRole").getWebValue() + "\n" + formValidation.getFormField("approvalApplication").getWebValue());
                     newUser.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
                     userBean.storeUserFirstTime(newUser, auth);
                     // Send email about user verification
