@@ -52,6 +52,8 @@
 			  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
 			  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
 			  <li><a href="/organism">${i18nBundle.organisms}</a></li>
+		  <#else>
+		  	<li><a href="/user?action=viewUser&userId=${user.userId}">${i18nBundle.myAccount}</a></li>
 		  </#if>
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isMessageAuthor()>
 		  	<li><a href="/message">${i18nBundle.messages}</a></li>

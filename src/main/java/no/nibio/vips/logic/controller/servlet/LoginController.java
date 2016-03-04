@@ -175,7 +175,7 @@ public class LoginController extends HttpServlet {
 
                     VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
 
-                    if(user != null)
+                    if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
                     {
                         request.getSession().setAttribute("user", user);
                         this.handleRememberUser(request, response, user);
@@ -187,6 +187,16 @@ public class LoginController extends HttpServlet {
                         {
                             response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                         }
+                    }
+                    else if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
+                    {
+                        request.setAttribute("errorMessageKey", "emailNotVerified");
+                        request.getRequestDispatcher("/login.ftl").forward(request, response);
+                    }
+                    else if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL))
+                    {
+                        request.setAttribute("errorMessageKey", "pleaseAwaitApproval");
+                        request.getRequestDispatcher("/login.ftl").forward(request, response);
                     }
                     else
                     {
