@@ -665,7 +665,8 @@ public class UserBean {
     {
         Query q = em.createNativeQuery("SELECT * FROM public.map_layer WHERE map_layer_id IN ("
                 + "     SELECT map_layer_id FROM organization_map_layer WHERE organization_id=:organizationId "
-                + ")"
+                + ")",
+                MapLayer.class
         );
         q.setParameter("organizationId", organization.getOrganizationId());
         return q.getResultList();
