@@ -135,8 +135,8 @@ public class MessagingBean {
                 "AND mns.universal_message_format_id = umf.universal_message_format_id\n" +
                 "AND u.user_id IN (\n" +
                 "	SELECT mns.user_id FROM messaging.message_notification_subscription mns, public.vips_logic_user u \n" +
-                "	WHERE  mns.message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" + // && is the array_overlaps operator
-                "       AND mns.user_id = u.user_id \n" +
+                "	WHERE  mns.user_id = u.user_id " +
+                (message.getMessageTagIds() != null && !message.getMessageTagIds().isEmpty() ? "       AND mns.message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" : "" )+ // && is the array_overlaps operator
                 "       AND (mns.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (mns.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
                 ");\n",
                 MessageRecipient.class);
