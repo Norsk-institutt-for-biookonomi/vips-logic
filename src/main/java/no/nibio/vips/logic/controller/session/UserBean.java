@@ -167,6 +167,7 @@ public class UserBean {
         String subject = i18nBundle.getString("userRegistrationEmailVerificationMessageSubject");
         String body = getUserEmailVerificationBody(i18nBundle, serverName, user.getEmailVerificationCode() );
         
+       
         // Send email
         String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
         SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
@@ -441,7 +442,7 @@ public class UserBean {
     /**
      * Searches user list by given verification code. If found, verification code
      * is deleted and user status set to waiting for approval
-     * @param verificationCode
+     * @param emailVerificationCode
      * @return The found user, or null if not found
      */
     public VipsLogicUser verifyUserEmail(String emailVerificationCode) {
@@ -476,9 +477,12 @@ public class UserBean {
             String subject = i18nBundle.getString("informAdminOfConfirmedEmailSubject");
             String body = MessageFormat.format(i18nBundle.getString("informAdminOfConfirmedEmailBody"), 
                                 confirmUser.getLastName(),
-                                "http://" + serverName + "/user?action=viewUser&userId=" + confirmUser.getUserId());
+                                confirmUser.getApprovalApplication(),
+                                "http://" + serverName + "/user?action=viewUser&userId=" + confirmUser.getUserId(),
+                                "http://" + serverName + "/user?action=approveUser&userId=" + confirmUser.getUserId()
+                            );
             
-
+            System.out.println(body);
             // Send email
             String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
             SimpleMailSender mailSender = new SimpleMailSender(smtpServer);

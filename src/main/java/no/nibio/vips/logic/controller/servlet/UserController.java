@@ -604,6 +604,39 @@ public class UserController extends HttpServlet {
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
             }
         }
+        // Only orgAdmins and super users can do this
+        else if(action.equals("approveUser"))
+        {
+            if(user == null)
+            {
+                this.redirectToLogin(request, response);
+            }
+            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            {
+                try
+                {
+                    VipsLogicUser userToApprove = em.find(VipsLogicUser.class, Integer.valueOf(request.getParameter("userId")));
+                    if(userToApprove != null)
+                    {
+                        Integer oldUserStatusId = userToApprove.getUserStatusId();
+                        userToApprove.setUserStatusId(Globals.USER_STATUS_APPROVED);
+                        SessionControllerGetter.getUserBean().storeUser(userToApprove);
+                        // Handle user status change
+                        SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, userToApprove, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userApproved").toString());
+                    }
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, ex.getMessage());
+                }
+            }
+            else
+            {
+                request.setAttribute("errorMessageKey", "invalidcredentials");
+                request.getRequestDispatcher("/login.ftl").forward(request, response);
+            }
+        }
         // An OpenId or GoogleId is requested to be attached to a user, identified by username/password
         else if(action.equals("attachIdToExistingUser"))
         {
