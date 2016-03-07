@@ -31,7 +31,7 @@
 	<script src="/js/3rdparty/metawidget/core/metawidget-core.min.js" type="text/javascript"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
         <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
-        <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
+        
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/validateForm.js"></script>
@@ -86,9 +86,6 @@
 				}
 				
 			});
-			
-			// Activating chosen plugin
-			$(".chosen-select").chosen();
 		});
 		
 		// Adding selected file name to a box
@@ -201,9 +198,6 @@
 		
 	</script>
 </#macro>
-<#macro custom_css>
-	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
-</#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
 	<p><a href="/observation" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
@@ -227,7 +221,7 @@
 			  
 			   <div class="form-group">
 			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-			    <select class="form-control chosen-select" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
+			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
 				<#if ! observation.organism?has_content>
 					<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 					<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
@@ -248,7 +242,7 @@
 			  </div>
 			  <div class="form-group">
 			    <label for="organismId">${i18nBundle.organism}</label>
-			    <select class="form-control chosen-select" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
+			    <select class="form-control" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
 			    	<#if ! observation.organism?has_content>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
 				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
