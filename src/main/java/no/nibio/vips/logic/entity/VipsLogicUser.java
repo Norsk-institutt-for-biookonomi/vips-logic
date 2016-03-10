@@ -93,6 +93,7 @@ public class VipsLogicUser implements Serializable {
     private Set<VipsLogicRole> vipsLogicRoles;
     private Integer vipsCoreUserId;
     private boolean approvesSmsBilling;
+    private boolean freeSms;
     
     private UUID userUuid;
 
@@ -462,5 +463,21 @@ public class VipsLogicUser implements Serializable {
      */
     public void setPhoneCountryCode(String phoneCountryCode) {
         this.phoneCountryCode = phoneCountryCode;
+    }
+
+    /**
+     * @return the freeSms
+     */
+    @Column(name="free_sms")
+    @JsonIgnore
+    public boolean isFreeSms() {
+        return freeSms;
+    }
+
+    /**
+     * @param freeSms the freeSms to set
+     */
+    public void setFreeSms(boolean freeSms) {
+        this.freeSms = freeSms;
     }
 }

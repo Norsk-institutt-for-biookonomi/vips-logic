@@ -122,6 +122,7 @@ public class MessagingBean {
         Query q = em.createNativeQuery(
                 "SELECT \n" +
                 "	u.preferred_locale,\n" +
+                "       u.free_sms, \n" + 
                 "	umf.format_name AS type,\n" +
                 "	CASE mns.universal_message_format_id " + 
                 "           WHEN " + UniversalMessageFormat.FORMAT_EMAIL + " THEN u.email " +
@@ -323,6 +324,7 @@ public class MessagingBean {
     {
         String sql = "SELECT \n" +
                 "	u.preferred_locale,\n" +
+                "       u.free_sms, \n" + 
                 "	umf.format_name AS type,\n" +
                 "	CASE fns.universal_message_format_id " + 
                 "           WHEN " + UniversalMessageFormat.FORMAT_EMAIL + " THEN u.email " +
@@ -406,6 +408,7 @@ public class MessagingBean {
         Query q = em.createNativeQuery(
                 "SELECT \n" +
                 "	u.preferred_locale,\n" +
+                "       u.free_sms, \n" + 
                 "	umf.format_name AS type,\n" +
                 "	CASE ons.universal_message_format_id " + 
                 "           WHEN " + UniversalMessageFormat.FORMAT_EMAIL + " THEN u.email " +

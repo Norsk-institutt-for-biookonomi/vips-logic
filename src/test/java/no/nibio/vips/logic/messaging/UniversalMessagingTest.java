@@ -111,10 +111,10 @@ public class UniversalMessagingTest {
             
             
             String[][] recipients = {
-                {"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no","nb"},
-                {"2","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","en"},
-                {"3","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","bs"}//,
-                //{"1","Tor-Einar Skog","Sms","91303819"},
+                {"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no","nb","true"},
+                {"2","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","en","false"},
+                {"3","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","bs","false"},
+                {"1","Tor-Einar Skog","Sms","91303819","nb","false"}
                 //{"2","Lars Aksel Opsahl", "Mail","lars.opsahl@nibio.no"}
             };
 
@@ -126,7 +126,8 @@ public class UniversalMessagingTest {
                         recipient[1],
                         recipient[2],
                         recipient[3],
-                        recipient[4]
+                        recipient[4],
+                        recipient[5].equals("true")
                     )
                 );
             }

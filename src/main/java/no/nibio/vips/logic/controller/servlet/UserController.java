@@ -269,6 +269,7 @@ public class UserController extends HttpServlet {
                         viewUser.setPhoneCountryCode(formValidation.getFormField("phoneCountryCode").getWebValue());
                         viewUser.setPhone(formValidation.getFormField("phone").getWebValue().replaceAll("[^0-9]", ""));
                         viewUser.setApprovesSmsBilling(formValidation.getFormField("approvesSmsBilling").getWebValue() != null);
+                        viewUser.setFreeSms(formValidation.getFormField("freeSms").getWebValue() != null && formValidation.getFormField("freeSms").getWebValue().equals("true") );
                         viewUser.setPreferredLocale(formValidation.getFormField("preferredLocale").getWebValue());
                         if(user.isSuperUser())
                         {

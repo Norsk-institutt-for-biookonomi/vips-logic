@@ -32,6 +32,8 @@ import javax.persistence.Id;
 public class MessageRecipient implements Serializable {
     @Column(name = "preferred_locale")
     private String preferredLocale;
+    @Column(name = "free_sms")
+    private Boolean freeSms;
     private String type;
     @Column(name = "msg_delivery_address")
     private String msgDeliveryAddress;
@@ -47,7 +49,8 @@ public class MessageRecipient implements Serializable {
             String name,
             String type,
             String msgDeliveryAddress,
-            String preferredLocale
+            String preferredLocale,
+            boolean freeSms
     )
     {
         this.recipientId = recipientId;
@@ -55,6 +58,7 @@ public class MessageRecipient implements Serializable {
         this.type=type;
         this.msgDeliveryAddress = msgDeliveryAddress;
         this.preferredLocale = preferredLocale;
+        this.freeSms = freeSms;
     }
 
     /**
@@ -125,5 +129,19 @@ public class MessageRecipient implements Serializable {
      */
     public void setPreferredLocale(String preferredLocale) {
         this.preferredLocale = preferredLocale;
+    }
+
+    /**
+     * @return the freeSms
+     */
+    public Boolean getFreeSms() {
+        return freeSms;
+    }
+
+    /**
+     * @param freeSms the freeSms to set
+     */
+    public void setFreeSms(Boolean freeSms) {
+        this.freeSms = freeSms;
     }
 }

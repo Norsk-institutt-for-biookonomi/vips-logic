@@ -200,7 +200,7 @@
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
-	<p><a href="/observation" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+	<p><a href="/observation" class="btn btn-default back" role="button">${i18nBundle.back}</a><#if observation.observationId?has_content><a href="/observation?action=newObservationForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a></#if></p>
         <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>

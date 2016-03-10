@@ -72,6 +72,18 @@
 			<p>${i18nBundle.approvesSmsBillingDescription}</p>
 		</div>
 	  </div>
+	  <#if user.isSuperUser() || user.isOrganizationAdmin()>
+	  <div class="form-group">
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" value="true" name="freeSms"<#if viewUser.freeSms?has_content && viewUser.freeSms == false><#else>checked="checked"</#if>/>
+			</label>
+			${i18nBundle.freeSms}
+		</div>
+	  </div>
+	  <#else>
+	  <input type="hidden" name="freeSms" value="<#if viewUser.freeSms?has_content && viewUser.freeSms == true>true<#else>false</#if>"/>
+	  </#if>
 	  <div class="form-group">
 	    <label for="firstName">${i18nBundle.firstName}</label>
 	    <input type="text" class="form-control" name="firstName" placeholder="${i18nBundle.firstName}" value="${viewUser.firstName!""}" onblur="validateField(this);"/>
