@@ -178,7 +178,7 @@ public class MessageBean {
         }
         message.setMessageTagSet(tags);
         
-        // Store message organisms
+        // Store crop categories
         List<Integer> cropCategoryIds = new ArrayList<>();
         if(formFields.get("cropCategoryIds").getWebValues() != null)
         {

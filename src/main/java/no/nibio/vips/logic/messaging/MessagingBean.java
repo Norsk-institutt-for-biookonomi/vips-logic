@@ -93,6 +93,7 @@ public class MessagingBean {
         //client.register(new RESTAuthenticator("user", "userPass"));
         client.register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"));
         //ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");
+        // TODO Make this configurable in app server
         ResteasyWebTarget target = client.target("http://localhost:8080");
         //ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
         UniversalMessagingServiceClient umClient = target.proxy(UniversalMessagingServiceClient.class);
@@ -119,7 +120,8 @@ public class MessagingBean {
     private List<MessageRecipient> getMessageNotificationSubscribers(Message message) {
         
         // TODO??? also filter by crops??
-        Query q = em.createNativeQuery(
+        String sql = 
+        
                 "SELECT \n" +
                 "	u.preferred_locale,\n" +
                 "       u.free_sms, \n" + 
@@ -139,7 +141,9 @@ public class MessagingBean {
                 "	WHERE  mns.user_id = u.user_id " +
                 (message.getMessageTagIds() != null && !message.getMessageTagIds().isEmpty() ? "       AND mns.message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" : "" )+ // && is the array_overlaps operator
                 "       AND (mns.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (mns.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
-                ");\n",
+                ");\n";
+
+        Query q = em.createNativeQuery(sql,
                 MessageRecipient.class);
         
         //q.setParameter("messageTagIds", message.getMessageTagIds());

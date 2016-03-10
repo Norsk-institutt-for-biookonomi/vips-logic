@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -157,7 +158,7 @@ public class MessageController extends HttpServlet {
             try
             {
                 Integer messageId = Integer.valueOf(request.getParameter("messageId"));
-                Message message = em.find(Message.class, messageId);
+                Message message = em.createNamedQuery("Message.findByMessageId", Message.class).setParameter("messageId", messageId).getSingleResult();
                 request.setAttribute("message", message);
                 String messageLocale = request.getParameter("messageLocale") != null ? 
                                 request.getParameter("messageLocale") 
@@ -215,7 +216,7 @@ public class MessageController extends HttpServlet {
                 request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
-            catch(NullPointerException | NumberFormatException ex)
+            catch(NullPointerException | NumberFormatException | NoResultException ex)
             {
                 response.sendError(500, ExceptionUtil.getStackTrace(ex));
             }
