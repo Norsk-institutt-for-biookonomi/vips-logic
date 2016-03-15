@@ -183,7 +183,6 @@ public class ForecastConfigurationController extends HttpServlet {
         }
         
         // View and edit a forecast configuration
-        // for SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("viewForecastConfiguration"))
         {
             if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))

@@ -382,7 +382,7 @@ public class ForecastConfiguration implements Serializable, Comparable {
      * @return the isPrivate
      */
     public Boolean getIsPrivate() {
-        return isPrivate;
+        return isPrivate != null ? isPrivate : false;
     }
 
     /**
