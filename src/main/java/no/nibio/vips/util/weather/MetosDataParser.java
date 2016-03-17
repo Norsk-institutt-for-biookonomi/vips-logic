@@ -58,6 +58,7 @@ public class MetosDataParser {
     /**
      * Makes sure only data after the requested date is returned
      * @param stationID
+     * @param timeZone
      * @param startDate
      * @return
      * @throws ParseWeatherDataException 
@@ -79,6 +80,7 @@ public class MetosDataParser {
     /**
      * Using output designed for RIMPro, parsing into WeatherObservations
      * @param stationID the METOS station ID
+     * @param timeZone
      * @return 
      */
     public List<WeatherObservation> getWeatherObservations(String stationID, TimeZone timeZone) throws ParseWeatherDataException 
