@@ -259,7 +259,11 @@ public class PointOfInterestController extends HttpServlet {
                             // Set values
                             weatherStation.setName(formValidation.getFormField("name").getWebValue());
                             weatherStation.setActive(formValidation.getFormField("active").getWebValue() != null);
-                            weatherStation.setAltitude(formValidation.getFormField("altitude").getValueAsDouble());
+                            try
+                            {
+                                weatherStation.setAltitude(formValidation.getFormField("altitude").getValueAsDouble());
+                            }
+                            catch(NullPointerException | NumberFormatException ex) {}
                             weatherStation.setLongitude(formValidation.getFormField("location").getValueAsPointWGS84().getX());
                             weatherStation.setLatitude(formValidation.getFormField("location").getValueAsPointWGS84().getY());
                             weatherStation.setWeatherStationDataSourceId(em.find(WeatherStationDataSource.class, formValidation.getFormField("weatherStationDataSourceId").getValueAsInteger()));
