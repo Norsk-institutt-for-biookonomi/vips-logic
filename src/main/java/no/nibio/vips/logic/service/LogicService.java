@@ -22,6 +22,8 @@ package no.nibio.vips.logic.service;
 import com.ibm.icu.util.ULocale;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -66,6 +68,7 @@ import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
 import no.nibio.vips.util.weather.ALabDataParser;
+import no.nibio.vips.util.weather.FruitWebDavisDataParser;
 import no.nibio.vips.util.weather.MetosDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -536,6 +539,35 @@ public class LogicService {
         }
         return Response.ok().entity(observations).build();
     }
+    
+    @GET
+    @POST
+    @Path("weather/proxy/fruitwebdavis/{stationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getFruitWebDavisWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET
+            )
+    {
+        List<WeatherObservation> observations;
+        try 
+        {
+            String timeZoneParam = timeZonePOST != null ? timeZonePOST : timeZoneGET != null ? timeZoneGET : "UTC";
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneParam);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone);
+            String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
+            Date startDate1 = format.parse(startDateParam);
+            observations = new FruitWebDavisDataParser().getWeatherObservations(URLDecoder.decode(stationId, "UTF-8"), timeZone, startDate1);
+        } catch (ParseException | ParseWeatherDataException | NullPointerException | UnsupportedEncodingException ex) {
+            return Response.serverError().entity(ex).build();
+        }
+        return Response.ok().entity(observations).build();
+    }
+    
     
     @GET
     @POST

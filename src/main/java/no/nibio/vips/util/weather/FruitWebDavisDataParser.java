@@ -22,6 +22,7 @@ package no.nibio.vips.util.weather;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -71,9 +72,9 @@ public class FruitWebDavisDataParser {
         String[] headers;
         Map<Integer, Integer> elementOrdering = new HashMap<>();
         try {
-            URL metosURL = new URL(MessageFormat.format(FruitWebDavisDataParser.FRUITWEB_URL_TEMPLATE, stationID,urlDFormat.format(startDate)));
+            URL fruitwebDavisURL = new URL(MessageFormat.format(FruitWebDavisDataParser.FRUITWEB_URL_TEMPLATE, stationID,urlDFormat.format(startDate)));
             BufferedReader in = new BufferedReader(
-            new InputStreamReader(metosURL.openStream()));
+            new InputStreamReader(fruitwebDavisURL.openStream()));
 
             String inputLine;
             Date testTimestamp;
@@ -82,6 +83,7 @@ public class FruitWebDavisDataParser {
             // If the resolution is 30 minutes or 1 hour
             while ((inputLine = in.readLine()) != null)
             {
+                //System.out.println(inputLine);
                 String[] lineData = inputLine.split(";");
                 // Skip empty lines
                 if(lineData.length <= 1)
@@ -124,11 +126,12 @@ public class FruitWebDavisDataParser {
         
 
         // Data comes in half-hour chunks (resolution = 30 minutes)
+        // Unlike Metos, the hour starts at :30
         if(logIntervalId.equals(WeatherObservation.LOG_INTERVAL_ID_30M))
         {
-            Boolean shouldBe00Now = true;
-            String[] data00 = null;
+            Boolean shouldBe30Now = true;
             String[] data30 = null; 
+            String[] data00 = null;
             Date timestamp = null;
             for(String[] lineData: data)
             {
@@ -140,7 +143,14 @@ public class FruitWebDavisDataParser {
                 {
                     continue;
                 }
-                else if(lineData[1].split(":")[1].equals("00") && shouldBe00Now)
+                else if(lineData[1].split(":")[1].equals("30") && shouldBe30Now)
+                {
+                    data30 = lineData;
+                    
+                    shouldBe30Now = false;
+                    continue; // So that we summarize only after :00 data has been set too
+                }
+                else if(lineData[1].split(":")[1].equals("00") && !shouldBe30Now)
                 {
                     data00 = lineData;
                     try
@@ -151,20 +161,14 @@ public class FruitWebDavisDataParser {
                     {
                         throw new ParseWeatherDataException("Error with time stamp in weather data from Davis/FruitWeb station: " + ex.getMessage());
                     }
-                    shouldBe00Now = false;
-                    continue; // So that we summarize only after :30 data has been set too
-                }
-                else if(lineData[1].split(":")[1].equals("30") && !shouldBe00Now)
-                {
-                    data30 = lineData;
-                    shouldBe00Now = true;
+                    shouldBe30Now = true;
                 }
                 else
                 {
-                    throw new ParseWeatherDataException("Doesn't make sense!");
+                    throw new ParseWeatherDataException("Doesn't make sense at " + lineData[0] + " " + lineData[1] + "!");
                 }
 
-                for(Integer i=2;i<data00.length;i++)
+                for(Integer i=2;i<data30.length;i++)
                 {
                     Double aggregateValue = null;
                     Double value00 = Double.valueOf(data00[i].replaceAll(",","."));

@@ -69,10 +69,10 @@ public class FruitWebDavisDataParserTest {
         FruitWebDavisDataParser instance = new FruitWebDavisDataParser();
         
         List<WeatherObservation> result = instance.getWeatherObservations(stationID, timeZone, startDate);
-        for(WeatherObservation obs:result)
+        /*for(WeatherObservation obs:result)
         {
             System.out.println(obs);
-        }
+        }*/
         assertNotNull( result);
         
     }

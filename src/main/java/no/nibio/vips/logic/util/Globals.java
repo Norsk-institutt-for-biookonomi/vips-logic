@@ -76,7 +76,9 @@ public class Globals {
         "Europe/Sarajevo",
         "Europe/Stockholm",
         "Europe/Helsinki",
+        "Europe/Riga",
         "Europe/Sofia"
+        
     };
     
     public static int DEFAULT_UUID_VALIDITY_DURATION_DAYS = 30;
