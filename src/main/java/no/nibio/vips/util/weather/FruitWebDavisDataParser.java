@@ -58,6 +58,7 @@ public class FruitWebDavisDataParser {
      * Using output designed for RIMPro, parsing into WeatherObservations
      * @param stationID the METOS station ID
      * @param timeZone
+     * @param startDate
      * @return 
      */
     public List<WeatherObservation> getWeatherObservations(String stationID, TimeZone timeZone, Date startDate) throws ParseWeatherDataException 
@@ -65,6 +66,7 @@ public class FruitWebDavisDataParser {
         List<WeatherObservation> retVal = new ArrayList<>();
         SimpleDateFormat urlDFormat = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat dFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        urlDFormat.setTimeZone(timeZone);
         dFormat.setTimeZone(timeZone);
         // Assuming 1 hour resolution until we find a timestamp that says :30
         Integer logIntervalId = WeatherObservation.LOG_INTERVAL_ID_1H;

@@ -126,6 +126,7 @@ public class CydiaPomonellaModelPreprocessor extends ModelRunPreprocessor{
         } catch (WeatherDataSourceException ex) {
             throw new PreprocessorException(ex.getMessage());
         }
+        
         // Create the complete model configuration object
         ModelConfiguration retVal = new ModelConfiguration();
         retVal.setModelId(this.getModelId());

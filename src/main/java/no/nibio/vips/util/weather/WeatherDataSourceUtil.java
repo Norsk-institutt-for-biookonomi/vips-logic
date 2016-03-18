@@ -136,7 +136,6 @@ public class WeatherDataSourceUtil {
         for (String type : elementMeasurementTypes) {
             URL.append("&elementMeasurementTypes[]=").append(type);
         }
-        //System.out.println("URL: " + URL.toString());
         URLConnection URLConn = null;
         InputStream URLStream = null;
         InputStream error = null;

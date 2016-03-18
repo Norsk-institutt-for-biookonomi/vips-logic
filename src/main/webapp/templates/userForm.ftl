@@ -129,11 +129,13 @@
 	  	<select class="form-control" name="vipsLogicRoles" multiple="multiple" size="5" <#if ! user.isSuperUser() && ! user.isOrganizationAdmin()> readonly="readonly" <#else>onblur="validateField(this);"</#if>>
 	  	<#if user.isSuperUser() || user.isOrganizationAdmin()>
 	  		<#list vipsLogicRoles as vipsLogicRole>
+	  		<#if vipsLogicRole.vipsLogicRoleId != 1 || user.isSuperUser()>
 			<option value="${vipsLogicRole.vipsLogicRoleId}"
 				<#if viewUser.hasRole(vipsLogicRole)>
 					selected="selected"
 				</#if>
 			>${i18nBundle["vipsLogicRole_" + vipsLogicRole.vipsLogicRoleId]}</option>
+			</#if>
 			</#list>
 	  	<#else>
 	  		<#list vipsLogicRoles as vipsLogicRole>
