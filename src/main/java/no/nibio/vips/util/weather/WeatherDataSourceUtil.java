@@ -142,6 +142,7 @@ public class WeatherDataSourceUtil {
         String URLOutput;
         try {
             URL weatherURL = new URL(URL.toString());
+            //System.out.println("URL=" + weatherURL);
             URLConn = weatherURL.openConnection();
             URLStream = URLConn.getInputStream();
             URLOutput = IOUtils.toString(URLStream);
