@@ -52,6 +52,11 @@
             "required" : true
         },
         {
+            "name" : "isPrivate",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "weatherStationPointOfInterestIds",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_MULTIPLE",

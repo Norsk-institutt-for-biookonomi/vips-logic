@@ -994,6 +994,7 @@ public class ForecastBean {
         forecastConfiguration.setModelId(formFields.get("modelId").getWebValue());
         forecastConfiguration.setCropOrganismId(em.find(Organism.class, formFields.get("cropOrganismId").getValueAsInteger()));
         forecastConfiguration.setPestOrganismId(em.find(Organism.class, formFields.get("pestOrganismId").getValueAsInteger()));
+        forecastConfiguration.setIsPrivate(formFields.get("isPrivate").getWebValue() != null);
         // In the multiple form, location and weatherstation is the same
         PointOfInterest locationPoi = em.find(PointOfInterest.class, weatherStationPointOfInterestId);
         forecastConfiguration.setLocationPointOfInterestId(locationPoi);
