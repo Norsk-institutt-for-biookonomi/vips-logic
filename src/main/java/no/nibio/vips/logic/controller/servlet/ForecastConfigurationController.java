@@ -215,14 +215,14 @@ public class ForecastConfigurationController extends HttpServlet {
                         if(user.isSuperUser())
                         {
                             request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
-                            request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList());
+                            request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAllByActivity").setParameter("active", Boolean.TRUE).getResultList());
                             request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
                         }
                         else
                         {
                             request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
                             request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
-                            request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
+                            request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList());
                         }
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
                         request.setAttribute("formId", multipleNew ? "forecastConfigurationMultipleNewForm" : "forecastConfigurationForm");
@@ -244,7 +244,6 @@ public class ForecastConfigurationController extends HttpServlet {
                 {
                     response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
                 }
-                
             }
             else
             {
@@ -259,7 +258,7 @@ public class ForecastConfigurationController extends HttpServlet {
                     }
                     request.setAttribute("forecastConfiguration", forecastConfiguration);
                     request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
-                    request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
+                    request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList());
                     request.setAttribute("forecastConfiguration", forecastConfiguration);
                     request.setAttribute("formId","forecastConfigurationForm");
                     request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
