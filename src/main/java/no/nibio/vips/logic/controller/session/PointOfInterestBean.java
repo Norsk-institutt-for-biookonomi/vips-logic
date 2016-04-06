@@ -41,6 +41,7 @@ import no.nibio.vips.logic.entity.ExternalResourceType;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResource;
+import no.nibio.vips.logic.entity.PointOfInterestExternalResourcePK;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
@@ -277,5 +278,13 @@ public class PointOfInterestBean {
         PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
         SessionControllerGetter.getForecastBean().deleteForecastConfigurations(weatherStation);
         em.remove(weatherStation);
+    }
+
+    public void deletePointOfInterestExternalResource(Integer pointOfInterestId, Integer externalResourceId) {
+        PointOfInterestExternalResource resource = em.find(PointOfInterestExternalResource.class, new PointOfInterestExternalResourcePK(pointOfInterestId,externalResourceId));
+        if(resource != null)
+        {
+            em.remove(resource);
+        }
     }
 }

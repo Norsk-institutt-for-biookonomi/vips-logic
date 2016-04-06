@@ -296,17 +296,22 @@ public class PointOfInterestController extends HttpServlet {
                             Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
                             for(String key:externalResourceIdentifiers.keySet())
                             {
+                                Integer externalResourceId = Integer.valueOf(key);
                                 FormField identifierField = externalResourceIdentifiers.get(key);
                                 if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
                                 {
-                                    continue;
+                                    // We delete existing if unset
+                                    SessionControllerGetter.getPointOfInterestBean().deletePointOfInterestExternalResource(weatherStation.getPointOfInterestId(), externalResourceId);
                                 }
-                                Integer externalResourceId = Integer.valueOf(key);
-                                PointOfInterestExternalResource poiExternalResource = new PointOfInterestExternalResource();
-                                PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(weatherStation.getPointOfInterestId(), externalResourceId);
-                                poiExternalResource.setPointOfInterestExternalResourcePK(pk);
-                                poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
-                                SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                                else
+                                {
+                                    
+                                    PointOfInterestExternalResource poiExternalResource = new PointOfInterestExternalResource();
+                                    PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(weatherStation.getPointOfInterestId(), externalResourceId);
+                                    poiExternalResource.setPointOfInterestExternalResourcePK(pk);
+                                    poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
+                                    SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                                }
                             }
                             
                             // Redirect to form

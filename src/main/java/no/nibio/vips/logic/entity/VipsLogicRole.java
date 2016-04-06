@@ -51,6 +51,7 @@ public class VipsLogicRole implements Serializable {
     public static Integer OBSERVER = 3;
     public static Integer OBSERVATION_AUTHORITY = 4;
     public static Integer MESSAGE_AUTHOR = 5;
+    public static Integer APPLE_FRUIT_MOTH_ADMINISTRATOR = 6;
 
     private static final long serialVersionUID = 1L;
     @Id
