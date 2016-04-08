@@ -1,0 +1,110 @@
+<#--
+  Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+  
+  This file is part of VIPSLogic.
+  VIPSLogic is free software: you can redistribute it and/or modify
+  it under the terms of the NIBIO Open Source License as published by 
+  NIBIO, either version 1 of the License, or (at your option) any
+  later version.
+  
+  VIPSLogic is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  NIBIO Open Source License for more details.
+  
+  You should have received a copy of the NIBIO Open Source License
+  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+	
+--><#include "master.ftl">
+<#macro page_head>
+	<title>${observationSite.observationSiteName!i18nBundle.newObservationSite}</title>
+</#macro>
+<#macro custom_js>
+	<script src="/js/resourcebundle.js"></script>
+</#macro>
+<#macro page_contents>
+<h1>${observationSite.observationSiteName!i18nBundle.newObservationSite} ${currentSeason}</h1>
+<p><a href="/applefruitmoth" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+<div class="singleBlockContainer">
+	
+	<div class="row">
+		<div class="col-md-6">
+			<#assign formId = "observationSiteForm">
+			<form id="${formId}" role="form" action="/applefruitmoth?action=observationSiteSubmit" method="POST">
+				<div class="form-group">
+				    <label for="observationSiteName">${i18nBundle.observationSiteName}</label>
+				    <input type="text" class="form-control" name="observationSiteName" placeholder="${i18nBundle.observationSiteName}" value="${observationSite.observationSiteName!""}" onblur="validateField(this);" />
+				    <span class="help-block" id="${formId}_observationSiteName_validation"></span>
+				  </div>
+				  <div class="form-group">
+				    <label for="currentSeason">${i18nBundle.season}</label>
+				    <select class="form-control" name="currentSeason" onchange="if(confirm('Really?')){window.location.href='/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}&currentSeason=' + this.options[this.options.selectedIndex].value;}">
+					<#list 2010..lastSeason as season>
+						<option value="${season}"<#if season == currentSeason> selected="selected"</#if>>${season}</option>
+					</#list>
+				     </select>
+				     <span class="help-block" id="${formId}_currentSeason_validation"></span>
+				  </div>
+				  <div class="form-group">
+					<label for="warningStatus">${i18nBundle.warningStatus}</label>
+					<select class="form-control" name="warningStatus">
+						<#list 0..4 as warningStatus>
+							<option value="${warningStatus}">${i18nBundle["warningStatus_" + warningStatus]}</option>
+						</#list>
+					</select>
+					<span class="help-block" id="${formId}_warningStatus_validation"></span>
+				  </div>
+				  <div class="form-group">
+					<label for="comments">${i18nBundle.remarks}</label>
+					<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.remarks}</#if></textarea>
+					<span class="help-block" id="${formId}_remarks_validation"></span>
+				  </div>
+				<div class="form-group">
+				    <label for="degreeOfParasitation">${i18nBundle.degreeOfParasitation}</label>
+				    <input type="number" class="form-control" name="degreeOfParasitation" placeholder="${i18nBundle.degreeOfParasitation}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.degreeOfParasitation!""}</#if>" onblur="validateField(this);" />
+				    <span class="help-block" id="${formId}_degreeOfParasitation_validation"></span>
+				</div>
+				<div class="form-group">
+				    <label for="thousandBerrySample">${i18nBundle.thousandBerrySample}</label>
+				    <input type="number" class="form-control" name="thousandBerrySample" placeholder="${i18nBundle.thousandBerrySample}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.thousandBerrySample!""}</#if>" onblur="validateField(this);" />
+				    <span class="help-block" id="${formId}_thousandBerrySample_validation"></span>
+				</div>
+				<h2>${i18nBundle.observationSitePoints}</h2>
+				<#if observationSitePoints??>
+					<#list observationSitePoints as observationSitePoint>
+					<fieldset>
+						<legend>${observationSitePoint.pointName}</legend>
+						<div class="form-group">
+						    <label for="observationSitePointName_${observationSitePoint.observationSitePointId}">${i18nBundle.observationSitePointName}</label>
+						    <input type="text" class="form-control" name="observationSitePointName_${observationSitePoint.observationSitePointId}" placeholder="${i18nBundle.observationSitePointName}" value="${observationSitePoint.pointName!""}" />
+						  </div>
+						<div class="form-group">
+							<label for="observationSitePoint_description_${observationSitePoint.observationSitePointId}">${i18nBundle.description}</label>
+							<textarea class="form-control" placeholder="${i18nBundle.description}" name="observationSitePoint_description_${observationSitePoint.observationSitePointId}" rows="3"></textarea>
+						</div>
+					
+					</fieldset>
+					</#list>
+					
+				</#if>
+				<fieldset>
+					<legend>${i18nBundle.newObservationSitePoint}</legend>
+					<div class="form-group">
+						    <label for="observationSitePointName_new">${i18nBundle.observationSitePointName}</label>
+						    <input type="text" class="form-control" name="observationSitePointName_new" placeholder="${i18nBundle.observationSitePointName}" value="" />
+						  </div>
+					 <div class="form-group">
+						<label for="observationSitePoint_description_new">${i18nBundle.description}</label>
+						<textarea class="form-control" placeholder="${i18nBundle.description}" name="observationSitePoint_description_new" rows="3"></textarea>
+					</div>
+				
+				</fieldset>
+			</form>
+		</div>
+		<div class="col-md-6">
+		Kart
+		</div>
+	</div>
+</div>	
+</#macro>
+<@page_html/>

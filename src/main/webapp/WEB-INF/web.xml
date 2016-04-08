@@ -67,6 +67,10 @@
         <servlet-name>NotificationSubscriptionController</servlet-name>
         <servlet-class>no.nibio.vips.logic.controller.servlet.NotificationSubscriptionController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AppleFruitMothController</servlet-name>
+        <servlet-class>no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -118,6 +122,10 @@
     <servlet-mapping>
         <servlet-name>NotificationSubscriptionController</servlet-name>
         <url-pattern>/user/notificationsubscription</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AppleFruitMothController</servlet-name>
+        <url-pattern>/applefruitmoth</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

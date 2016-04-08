@@ -29,6 +29,7 @@ import no.nibio.vips.logic.controller.session.MessageBean;
 import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.messaging.MessagingBean;
+import no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothBean;
 
 /**
  * @copyright 2013-2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -150,6 +151,21 @@ public class SessionControllerGetter {
         }catch(NamingException ne)
         {
             System.out.println("Could not find " + ObservationBean.class.getSimpleName());
+            return null;
+        }
+    }
+    
+    public static AppleFruitMothBean getAppleFruitMothBean()
+    {
+        try
+        {
+            InitialContext ic = new InitialContext();
+            AppleFruitMothBean retVal = (AppleFruitMothBean) ic.lookup(SessionControllerGetter.getJndiPath(AppleFruitMothBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + AppleFruitMothBean.class.getSimpleName());
             return null;
         }
     }
