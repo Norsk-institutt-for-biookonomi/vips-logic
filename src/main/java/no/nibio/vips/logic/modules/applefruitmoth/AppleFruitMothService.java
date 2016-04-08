@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.modules.applefruitmoth;
 
 import de.micromata.opengis.kml.v_2_2_0.Kml;
+import java.util.Calendar;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -28,6 +29,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ServletUtil;
 
 /**
@@ -41,10 +43,22 @@ public class AppleFruitMothService {
     private HttpServletRequest httpServletRequest;
     
     @GET
+    @Path("observationsites/kml/")
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    public Response getObservationSitesKML()
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(SystemTime.getSystemTime());
+        Integer season = cal.get(Calendar.YEAR);
+        return this.getObservationSitesKML(season);
+    }
+    
+    @GET
     @Path("observationsites/kml/{season}")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getObservationSitesKML(@PathParam("season") Integer season)
     {
+        
         Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesKml(season, ServletUtil.getServerName(httpServletRequest));
         return Response.ok().entity(retVal).build();
     }

@@ -57,10 +57,9 @@ public class AppleFruitMothBean {
                     + "     FROM applefruitmoth.observation_site_point "
                     + "     WHERE observation_site_id = :observationSiteId"
                     + ")", GeometryEntity.class);
-            System.out.println(observationSite.getObservationSiteName() + " has id=" + observationSite.getObservationSiteId());
             GeometryEntity o = (GeometryEntity) q.setParameter("observationSiteId", observationSite.getObservationSiteId())
                     .getSingleResult();
-            System.out.println(o.getGeometryValue().toString());
+
             return o.getGeometryValue();
         }
         catch(NoResultException ex)
@@ -160,7 +159,7 @@ public class AppleFruitMothBean {
                     .withId(site.getObservationSiteId().toString());
             
             Geometry siteCenter = this.getObservationSiteCenter(site);
-            System.out.println("siteCenter for " + site.getObservationSiteName() + "=" + siteCenter.toString());
+            
             final Point point = placemark.createAndSetPoint();
             List<Coordinate> coord = point.createAndSetCoordinates();
             coord.add(new Coordinate(
