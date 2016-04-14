@@ -23,8 +23,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -45,8 +47,10 @@ import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.util.InvalidAggregationTypeException;
 import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherElements;
+import no.nibio.vips.util.WeatherObservationListException;
 import no.nibio.vips.util.WeatherUtil;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
@@ -155,6 +159,91 @@ public class RoughageService {
         } catch (WeatherDataSourceException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
         }
+        
+        // We must do some special adjustmens to get weather forecasts from 3-9 days in 
+        // the future
+        // For EPP and Q0 we simply add the last value
+        WeatherObservation lastEPP = wUtil.getLastObservations(observations, "EPP", 1).get(0);
+        Date lastEPPDate = lastEPP.getTimeMeasured();
+        while(lastEPPDate.before(dateOfLastWeatherData))
+        {
+            cal.setTime(lastEPPDate);
+            cal.add(Calendar.DATE, 1);
+            WeatherObservation newEPP = new WeatherObservation(lastEPP);
+            newEPP.setTimeMeasured(cal.getTime());
+            observations.add(newEPP);
+            lastEPPDate = newEPP.getTimeMeasured();
+        }
+        WeatherObservation lastQ0 = wUtil.getLastObservations(observations, "Q0", 1).get(0);
+        Date lastQ0Date = lastQ0.getTimeMeasured();
+        while(lastQ0Date.before(dateOfLastWeatherData))
+        {
+            cal.setTime(lastQ0Date);
+            cal.add(Calendar.DATE, 1);
+            WeatherObservation newQ0 = new WeatherObservation(lastQ0);
+            newQ0.setTimeMeasured(cal.getTime());
+            observations.add(newQ0);
+            lastQ0Date = newQ0.getTimeMeasured();
+        }
+        
+        // For TM and RR we get long time forecasts from LMT (Norwegian service only)
+        try {
+            cal.setTime(wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured());
+            cal.add(Calendar.DATE, 1);
+            Date firstLongTermForecastTime = cal.getTime();
+            String[] TMel = {"TM"};
+            List<WeatherObservation> TMLongTime = wsdUtil.getWeatherObservations(
+                    "http://lmt.nibio.no/agrometbase/export/getLongTermForecastVIPSJSONWeatherData.php?weatherStationId=" + weatherStation.getWeatherStationRemoteId(), 
+                    1, 
+                    TMel, 
+                    firstLongTermForecastTime, 
+                    dateOfLastWeatherData, 
+                    timeZone
+            );
+            Collections.sort(TMLongTime);
+            TMLongTime = wUtil.fillHourlyHolesBruteForce(TMLongTime, WeatherUtil.AGGREGATION_TYPE_AVERAGE, firstLongTermForecastTime, dateOfLastWeatherData);
+            
+            /*for(WeatherObservation obs:TMLongTime)
+            {
+                if(obs.getElementMeasurementTypeId().equals("TM"))
+                {
+                    System.out.println(obs);
+                }
+            }*/
+            
+            List<WeatherObservation> TMDLongTime = wUtil.getAggregatedDailyValues(TMLongTime, timeZone, 15, WeatherUtil.AGGREGATION_TYPE_AVERAGE);
+            observations.addAll(TMDLongTime);
+            
+            
+            
+            String[] RRel = {"RR"};
+            List<WeatherObservation> RRLongTime = wsdUtil.getWeatherObservations(
+                    "http://lmt.nibio.no/agrometbase/export/getLongTermForecastVIPSJSONWeatherData.php?weatherStationId=" + weatherStation.getWeatherStationRemoteId(), 
+                    1, 
+                    RRel, 
+                    firstLongTermForecastTime, 
+                    dateOfLastWeatherData, 
+                    timeZone
+            );
+            
+            RRLongTime = wUtil.fillHourlyHolesBruteForce(RRLongTime, WeatherUtil.AGGREGATION_TYPE_SUM, firstLongTermForecastTime, dateOfLastWeatherData);
+            
+            List<WeatherObservation> RRDLongTime = wUtil.getAggregatedDailyValues(RRLongTime, timeZone, 15, WeatherUtil.AGGREGATION_TYPE_SUM);
+            observations.addAll(RRDLongTime);
+        }
+        catch(WeatherDataSourceException | InvalidAggregationTypeException | WeatherObservationListException ex)
+        {
+            ex.printStackTrace();
+            // ? DO WHAT ?
+        }
+        Collections.sort(observations);
+         for(WeatherObservation obs:observations)
+            {
+                if(obs.getElementMeasurementTypeId().equals("TM"))
+                {
+                    System.out.println(obs);
+                }
+            }
         
         // Add weather scenarios??
         if(
