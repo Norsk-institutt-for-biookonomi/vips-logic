@@ -57,6 +57,8 @@ import no.nibio.vips.util.ServletUtil;
 public class LoginController extends HttpServlet {
     //private static final String CLOSE_AND_RELOAD_PARENT = "close_and_reload_parent";
     
+    private static final String RETURN_UUID_PARAMETER_NAME = "returnUUID";
+    
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -74,6 +76,11 @@ public class LoginController extends HttpServlet {
         request.setAttribute("nextPage", nextPage);
         // We remove the session attribute, so it doesn't stick
         request.getSession().removeAttribute("nextPage");
+        
+        Boolean returnUUID = getReturnUUID(request);
+        request.setAttribute(LoginController.RETURN_UUID_PARAMETER_NAME, returnUUID);
+        // We remove the session attribute, so it doesn't stick
+        request.getSession().removeAttribute(LoginController.RETURN_UUID_PARAMETER_NAME);
         
         // This means that an OpenId authentication has returned the user to this URL
         // See code below
@@ -110,9 +117,14 @@ public class LoginController extends HttpServlet {
                 if(user != null)
                 {
                     request.getSession().setAttribute("user", user);
-                    this.handleRememberUser(request, response, user);
+                    UUID uUUID = this.handleRememberUser(request, response, user);
+                    if(returnUUID)
+                    {
+                        nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
+                    }
                     if(nextPage.indexOf("http") == 0)
                     {
+                        System.out.println("nextPage=" + nextPage);
                         response.sendRedirect(nextPage);
                     }
                     else
@@ -178,9 +190,14 @@ public class LoginController extends HttpServlet {
                     if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
                     {
                         request.getSession().setAttribute("user", user);
-                        this.handleRememberUser(request, response, user);
+                        UUID uUUID = this.handleRememberUser(request, response, user);
+                        if(returnUUID)
+                        {
+                            nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
+                        }
                         if(nextPage.indexOf("http") == 0)
                         {
+                            System.out.println("nextPage=" + nextPage);
                             response.sendRedirect(nextPage);
                         }
                         else
@@ -223,6 +240,7 @@ public class LoginController extends HttpServlet {
                     // We store the information about the next page in a session
                     // as Google does not accept to forward it
                     request.getSession().setAttribute("nextPage", URLEncoder.encode(nextPage, "UTF-8"));
+                    request.getSession().setAttribute(LoginController.RETURN_UUID_PARAMETER_NAME, returnUUID);
                     request.getSession().setAttribute("rememberUser", request.getParameter("rememberUser"));
                     // Token to check for security (avoid man-in-the-middle)
                     String state = new BigInteger(130, new SecureRandom()).toString(32);
@@ -280,12 +298,26 @@ public class LoginController extends HttpServlet {
     }
     
     /**
+     * Should the generated UUID be returned to login client?
+     * @param request
+     * @return 
+     */
+    private Boolean getReturnUUID(HttpServletRequest request)
+    {
+        return request.getParameter(LoginController.RETURN_UUID_PARAMETER_NAME) != null ?
+                request.getParameter(LoginController.RETURN_UUID_PARAMETER_NAME).equals("true")
+                : request.getSession().getAttribute(LoginController.RETURN_UUID_PARAMETER_NAME) != null ?
+                    (Boolean) request.getSession().getAttribute(LoginController.RETURN_UUID_PARAMETER_NAME)
+                : false;
+    }
+    
+    /**
      * 
      * @param request
      * @param response
      * @param user 
      */
-    private void handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user)
+    private UUID handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user)
     {
         
         String rememberUser = request.getParameter("rememberUser") != null ? 
@@ -299,6 +331,7 @@ public class LoginController extends HttpServlet {
             rememberedUser.setPath("/");
             rememberedUser.setMaxAge(Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS * 24 * 60 * 60);
             response.addCookie(rememberedUser);
+            return uUUID.getUserUuidPK().getUserUuid();
         }
         else
         {
@@ -309,6 +342,7 @@ public class LoginController extends HttpServlet {
                 response.addCookie(rememberedUser);
                 SessionControllerGetter.getUserBean().deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
             }
+            return null;
         }
     }
     
