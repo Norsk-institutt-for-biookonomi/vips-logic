@@ -30,6 +30,10 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
+import no.nibio.vips.util.ServletUtil;
+import no.nibio.web.forms.FormValidation;
+import no.nibio.web.forms.FormValidationException;
+import no.nibio.web.forms.FormValidator;
 
 /**
  *
@@ -70,6 +74,7 @@ public class AppleFruitMothController extends HttpServlet {
                     Integer lastSeason = cal.get(Calendar.YEAR);
                     Integer currentSeason = request.getParameter("currentSeason") != null ? Integer.valueOf(request.getParameter("currentSeason")) : lastSeason;
                     ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
+                    observationSite.setSiteCenterPoint(SessionControllerGetter.getAppleFruitMothBean().getObservationSiteCenter(observationSite));
                     request.setAttribute("observationSite", observationSite);
                     if(observationSite != null)
                     {
@@ -81,6 +86,57 @@ public class AppleFruitMothController extends HttpServlet {
                     request.getRequestDispatcher("/appleFruitMothStationForm.ftl").forward(request, response);
                 }
                 catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                }
+            }
+            else if(action.equals("observationSiteSubmit"))
+            {
+                try
+                {
+                    
+                    Integer observationSiteId = Integer.valueOf(request.getParameter("observationSiteId"));
+                    ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
+                    if(observationSite != null)
+                    {
+                        FormValidation formValidation = FormValidator.validateForm("appleFruitMothStationForm", request, getServletContext());
+                        if(formValidation.isValid())
+                        {
+                            Integer currentSeason = formValidation.getFormField("currentSeason").getValueAsInteger();
+                            observationSite.setObservationSiteName(formValidation.getFormField("observationSiteName").getWebValue());
+                            ObservationSiteSeasonCommonData ossc = observationSite.getCommonDataForSeason(currentSeason);
+                            if(ossc == null)
+                            {
+                                ossc = new ObservationSiteSeasonCommonData(observationSite.getObservationSiteId(), currentSeason);
+                            }
+                            System.out.println("Warningstatus=" + formValidation.getFormField("warningStatus").getValueAsInteger());
+                            
+                            ossc.setLastUpdated(SystemTime.getSystemTime());
+                            ossc.setWarningStatus(formValidation.getFormField("warningStatus").getValueAsInteger());
+                            ossc.setRemarks(formValidation.getFormField("remarks") != null ? formValidation.getFormField("remarks").getWebValue() : "");
+                            observationSite.getObservationSiteSeasonCommonDataSet().add(ossc);
+                            SessionControllerGetter.getAppleFruitMothBean().storeObservationSite(observationSite);
+                            
+                            // Redirect to form
+                            response.sendRedirect(new StringBuilder("http://")
+                                .append(ServletUtil.getServerName(request))
+                                .append("/applefruitmoth?action=viewObservationSite&observationSiteId=").append(observationSite.getObservationSiteId())
+                                .append("&currentSeason=").append(currentSeason)
+                                .append("&messageKey=").append("observationSiteStored").toString()
+                            );
+                        }
+                        else // Sensible form validation error handling
+                        {
+                            
+                        }
+                    }
+                    else // Something wrong, return warning message. Later on: means new site. 
+                    {
+                        
+                    }
+                    
+                }
+                catch(NullPointerException | NumberFormatException | FormValidationException ex)
                 {
                     response.sendError(500, ExceptionUtil.getStackTrace(ex));
                 }

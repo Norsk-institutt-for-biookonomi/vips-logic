@@ -62,4 +62,13 @@ public class AppleFruitMothService {
         Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesKml(season, ServletUtil.getServerName(httpServletRequest));
         return Response.ok().entity(retVal).build();
     }
+    
+    @GET
+    @Path("observationsite/{observationSiteId}/sitepoints/kml/")
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    public Response getObservationSitePointsKML(@PathParam("observationSiteId") Integer observationSiteId)
+    {
+        Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitePointsKml(observationSiteId, ServletUtil.getServerName(httpServletRequest));
+        return Response.ok().entity(retVal).build();
+    }
 }

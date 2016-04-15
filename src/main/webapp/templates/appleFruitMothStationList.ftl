@@ -19,16 +19,37 @@
 <#macro page_head>
 	
 </#macro>
+<#macro custom_css>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+</#macro>
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/constants.js"></script>
+	<script type="text/javascript" src="/js/appleFruitMothObservationSitesMap.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			initMap("appleFruitMothForecastMap","");
+		});
+	</script>
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
-	<ul>
-	<#list observationSites as observationSite>
-	<li><a href="/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}">${observationSite.observationSiteName}</a></li>
-	</#list>
-	</ul>
+	<div class="row">
+		<div class="col-md-6">
+			<ul>
+			<#list observationSites as observationSite>
+			<li><a href="/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}">${observationSite.observationSiteName}</a></li>
+			</#list>
+			</ul>
+		</div>
+		<div class="col-md-6">
+			<div id="appleFruitMothForecastMap" class="map" style="height: 600px;">
+				<div id="popover"></div>
+			    </div>
+			</div>
+		</div>
+	</div>
 </div>	
 </#macro>
 <@page_html/>

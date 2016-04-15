@@ -21,6 +21,7 @@ package no.nibio.vips.logic.modules.applefruitmoth;
 
 import com.vividsolutions.jts.geom.Geometry;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -47,10 +48,10 @@ import javax.xml.bind.annotation.XmlTransient;
 @Table(name = "observation_site", schema="applefruitmoth")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "ObservationSite.findAll", query = "SELECT o FROM ObservationSite o"),
+    @NamedQuery(name = "ObservationSite.findAll", query = "SELECT o FROM ObservationSite o ORDER BY o.observationSiteName ASC"),
     @NamedQuery(name = "ObservationSite.findByObservationSiteId", query = "SELECT o FROM ObservationSite o WHERE o.observationSiteId = :observationSiteId"),
     @NamedQuery(name = "ObservationSite.findByObservationSiteName", query = "SELECT o FROM ObservationSite o WHERE o.observationSiteName = :observationSiteName")})
-public class ObservationSite implements Serializable {
+public class ObservationSite implements Serializable, Comparable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -93,6 +94,10 @@ public class ObservationSite implements Serializable {
 
     @XmlTransient
     public Set<ObservationSiteSeasonCommonData> getObservationSiteSeasonCommonDataSet() {
+        if(this.observationSiteSeasonCommonDataSet == null)
+        {
+            this.observationSiteSeasonCommonDataSet = new HashSet<>();
+        }
         return observationSiteSeasonCommonDataSet;
     }
 
@@ -159,6 +164,11 @@ public class ObservationSite implements Serializable {
             }
         }
         return null;
+    }
+
+    @Override
+    public int compareTo(Object t) {
+        return this.getObservationSiteName().compareTo(((ObservationSite)t).observationSiteName);
     }
 
 }

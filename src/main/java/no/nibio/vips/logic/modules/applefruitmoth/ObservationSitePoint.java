@@ -34,10 +34,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import no.nibio.vips.logic.entity.Gis;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -66,8 +68,9 @@ public class ObservationSitePoint implements Serializable {
     @Size(max = 2147483647)
     @Column(name = "description")
     private String description;
-    @Column(name = "gis_id")
-    private Integer gisId;
+    @JoinColumn(name = "gis_id", referencedColumnName="gis_id")
+    @OneToOne
+    private Gis gisId;
     @JoinColumn(name = "observation_site_id", referencedColumnName = "observation_site_id")
     @ManyToOne
     private ObservationSite observationSiteId;
@@ -105,11 +108,11 @@ public class ObservationSitePoint implements Serializable {
         this.description = description;
     }
 
-    public Integer getGisId() {
+    public Gis getGisId() {
         return gisId;
     }
 
-    public void setGisId(Integer gisId) {
+    public void setGisId(Gis gisId) {
         this.gisId = gisId;
     }
 

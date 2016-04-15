@@ -22,7 +22,9 @@ package no.nibio.vips.logic.modules.applefruitmoth;
 import no.nibio.vips.logic.gis.GeometryEntity;
 import com.vividsolutions.jts.geom.Geometry;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
+import de.micromata.opengis.kml.v_2_2_0.Data;
 import de.micromata.opengis.kml.v_2_2_0.Document;
+import de.micromata.opengis.kml.v_2_2_0.ExtendedData;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
@@ -30,7 +32,9 @@ import de.micromata.opengis.kml.v_2_2_0.Point;
 import de.micromata.opengis.kml.v_2_2_0.Units;
 import de.micromata.opengis.kml.v_2_2_0.Vec2;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -152,11 +156,21 @@ public class AppleFruitMothBean {
                 }
                 remarks = lastUpdatedStr + (commonData.getRemarks() != null ? commonData.getRemarks() : "");
             }
+            
+            Data infoUri = new Data(String.valueOf(warningStatus));
+            infoUri.setName("warningStatus");
+            List<Data> dataList = new ArrayList<>();
+            dataList.add(infoUri);
+            
+            ExtendedData extendedData = document.createAndSetExtendedData()
+                    .withData(dataList);
+            
             final Placemark placemark = document.createAndAddPlacemark()
                     .withName(site.getObservationSiteName())
                     .withDescription(remarks)
                     .withStyleUrl("#warning_type_" + warningStatus)
-                    .withId(site.getObservationSiteId().toString());
+                    .withId(site.getObservationSiteId().toString())
+                    .withExtendedData(extendedData);
             
             Geometry siteCenter = this.getObservationSiteCenter(site);
             
@@ -171,4 +185,57 @@ public class AppleFruitMothBean {
         }
         return kml;
     }
+    
+    public Kml getObservationSitePointsKml(Integer observationSiteId, String serverName) {
+        
+        ObservationSite observationSite = em.find(ObservationSite.class, observationSiteId);
+        
+        String iconPath = "http://" + serverName + "/public/images/";
+        // Initialization
+        final Vec2 hotspot = new Vec2()
+                .withX(0.5)
+                .withXunits(Units.FRACTION)
+                .withY(0)
+                .withYunits(Units.FRACTION);
+        final Kml kml = KmlFactory.createKml();
+        final Document document = kml.createAndSetDocument()
+                .withName("Rognebærmøllstasjon-punkter").withDescription("Oversikt over punkter for rognebærmøllstasjonen " + observationSite.getObservationSiteName());
+        
+        // Adding icons for warning statuses
+        document.createAndAddStyle()
+            .withId("observation_site_point_icon")
+        .createAndSetIconStyle()
+                .withScale(1)
+                .withHotSpot(hotspot)
+                .createAndSetIcon()
+                    .withHref(iconPath + "dot_blue.png");
+        
+        Set<ObservationSitePoint> sitePoints = observationSite.getObservationSitePointSet();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        for(ObservationSitePoint sitePoint:sitePoints)
+        {
+            
+            final Placemark placemark = document.createAndAddPlacemark()
+                    .withName(sitePoint.getPointName())
+                    .withDescription(sitePoint.getDescription())
+                    .withStyleUrl("#observation_site_point_icon")
+                    .withId(sitePoint.getObservationSitePointId().toString());
+            
+            final Point point = placemark.createAndSetPoint();
+            List<Coordinate> coord = point.createAndSetCoordinates();
+            coord.add(new Coordinate(
+                    sitePoint.getGisId().getGisGeom().getCoordinate().x,
+                    sitePoint.getGisId().getGisGeom().getCoordinate().y,
+                    0
+            ));
+            
+        }
+        return kml;
+    }
+
+    public ObservationSite storeObservationSite(ObservationSite observationSite) {
+        return em.merge(observationSite);
+    }
+
+    
 }

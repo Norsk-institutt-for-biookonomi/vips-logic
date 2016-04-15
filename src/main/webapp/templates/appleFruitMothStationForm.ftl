@@ -19,8 +19,19 @@
 <#macro page_head>
 	<title>${observationSite.observationSiteName!i18nBundle.newObservationSite}</title>
 </#macro>
+<#macro custom_css>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+</#macro>
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/constants.js"></script>
+	<script type="text/javascript" src="/js/appleFruitMothObservationSiteMap.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			initMap([${(observationSite.siteCenterPoint.x?c)!"0"},${(observationSite.siteCenterPoint.y?c)!"0"}],${observationSite.observationSiteId});
+		});
+	</script>
 </#macro>
 <#macro page_contents>
 <h1>${observationSite.observationSiteName!i18nBundle.newObservationSite} ${currentSeason}</h1>
@@ -31,6 +42,7 @@
 		<div class="col-md-6">
 			<#assign formId = "observationSiteForm">
 			<form id="${formId}" role="form" action="/applefruitmoth?action=observationSiteSubmit" method="POST">
+				<input type="hidden" name="observationSiteId" value="${observationSite.observationSiteId}"/>
 				<div class="form-group">
 				    <label for="observationSiteName">${i18nBundle.observationSiteName}</label>
 				    <input type="text" class="form-control" name="observationSiteName" placeholder="${i18nBundle.observationSiteName}" value="${observationSite.observationSiteName!""}" onblur="validateField(this);" />
@@ -38,7 +50,7 @@
 				  </div>
 				  <div class="form-group">
 				    <label for="currentSeason">${i18nBundle.season}</label>
-				    <select class="form-control" name="currentSeason" onchange="if(confirm('Really?')){window.location.href='/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}&currentSeason=' + this.options[this.options.selectedIndex].value;}">
+				    <select class="form-control" name="currentSeason" onchange="if(confirm('${i18nBundle.appleFruitMothChangeSeasonConfirm}')){window.location.href='/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}&currentSeason=' + this.options[this.options.selectedIndex].value;}">
 					<#list 2010..lastSeason as season>
 						<option value="${season}"<#if season == currentSeason> selected="selected"</#if>>${season}</option>
 					</#list>
@@ -49,16 +61,19 @@
 					<label for="warningStatus">${i18nBundle.warningStatus}</label>
 					<select class="form-control" name="warningStatus">
 						<#list 0..4 as warningStatus>
-							<option value="${warningStatus}">${i18nBundle["warningStatus_" + warningStatus]}</option>
+							<#if warningStatus != 1>
+							<option value="${warningStatus}"<#if observationSiteSeasonCommonData?has_content && observationSiteSeasonCommonData.warningStatus == warningStatus> selected="selected"</#if>>${i18nBundle["warningStatus_" + warningStatus]}</option>
+							</#if>
 						</#list>
 					</select>
 					<span class="help-block" id="${formId}_warningStatus_validation"></span>
 				  </div>
 				  <div class="form-group">
-					<label for="comments">${i18nBundle.remarks}</label>
-					<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.remarks}</#if></textarea>
+					<label for="remarks">${i18nBundle.remarks}</label>
+					<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.remarks!""}</#if></textarea>
 					<span class="help-block" id="${formId}_remarks_validation"></span>
 				  </div>
+				  <!--
 				<div class="form-group">
 				    <label for="degreeOfParasitation">${i18nBundle.degreeOfParasitation}</label>
 				    <input type="number" class="form-control" name="degreeOfParasitation" placeholder="${i18nBundle.degreeOfParasitation}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.degreeOfParasitation!""}</#if>" onblur="validateField(this);" />
@@ -99,10 +114,14 @@
 					</div>
 				
 				</fieldset>
+				-->
+				<button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			</form>
 		</div>
 		<div class="col-md-6">
-		Kart
+			<div id="appleFruitMothObservationSiteMap" class="map" style="height: 400px;">
+				<div id="popover"></div>
+			</div>
 		</div>
 	</div>
 </div>	

@@ -97,13 +97,6 @@ function initMap(center, zoomLevel, organizationId, currentWeatherStationId)
     map.on(['singleclick'], function(evt) {
         updateLocationPosition(evt.coordinate);
     });
-    
-    
-    
-    
-    
-    
-   
    
 }
 
