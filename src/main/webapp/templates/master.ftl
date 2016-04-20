@@ -62,6 +62,9 @@
 		  	<li><a href="/observation">${i18nBundle.observations}</a></li>
 		  </#if>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator()>
+		  	<li><a href="/applefruitmoth">${i18nBundle.appleFruitMoth}</a></li>
+		  </#if>
 		</ul>
 	      </li>
 	      <li><a href="/userguide/VIPSLogic_user_guide.html">${i18nBundle.help}</a></li>

@@ -160,10 +160,11 @@ public class SchedulingBean {
         // at creation time.
         
         // Running all forecasts every hour:30
-        VIPSLogicTaskCollector testCollector = new VIPSLogicTaskCollector(-1);
+        VIPSLogicTaskCollector modelRunCollector = new VIPSLogicTaskCollector(-1);
         SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
-        testCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK));
-        testCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
+        modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK));
+        modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
+        modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
         
         // Update forecast cache
         VIPSLogicTaskCollector cacheHandlerCollector = new VIPSLogicTaskCollector(-1);
@@ -180,8 +181,10 @@ public class SchedulingBean {
         SchedulingPattern everyNightPattern = new SchedulingPattern("0 6 * * *");
         deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK));
         
+        
+        
         List<TaskCollector> definedTasks = new ArrayList<>();
-        definedTasks.add(testCollector);
+        definedTasks.add(modelRunCollector);
         definedTasks.add(cacheHandlerCollector);
         definedTasks.add(summariesCollector);
         definedTasks.add(deleteAllExpiredUserUuidsCollector);

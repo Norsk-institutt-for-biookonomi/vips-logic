@@ -41,6 +41,9 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationSiteForm">
+			<#if messageKey?has_content>
+				<div class="alert alert-success">${i18nBundle(messageKey)}</div>
+			</#if>
 			<form id="${formId}" role="form" action="/applefruitmoth?action=observationSiteSubmit" method="POST">
 				<input type="hidden" name="observationSiteId" value="${observationSite.observationSiteId}"/>
 				<div class="form-group">

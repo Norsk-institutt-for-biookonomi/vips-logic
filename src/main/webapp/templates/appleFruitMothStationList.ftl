@@ -34,6 +34,7 @@
 	</script>
 </#macro>
 <#macro page_contents>
+<h1>${i18nBundle.appleFruitMoth}</h1>
 <div class="singleBlockContainer">
 	<div class="row">
 		<div class="col-md-6">

@@ -83,6 +83,7 @@ public class AppleFruitMothController extends HttpServlet {
                     }
                     request.setAttribute("currentSeason", currentSeason);
                     request.setAttribute("lastSeason", lastSeason);
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.getRequestDispatcher("/appleFruitMothStationForm.ftl").forward(request, response);
                 }
                 catch(NullPointerException | NumberFormatException ex)
