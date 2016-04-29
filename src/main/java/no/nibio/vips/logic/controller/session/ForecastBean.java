@@ -338,11 +338,19 @@ public class ForecastBean {
         }
     }
     
-    public List<ForecastConfiguration> getForecastConfigurations(PointOfInterestWeatherStation weatherStation)
+    public List<ForecastConfiguration> getForecastConfigurationsByWeatherStation(PointOfInterestWeatherStation weatherStation)
     {
         return em
                 .createNamedQuery("ForecastConfiguration.findByWeatherStationPointOfInterestId", ForecastConfiguration.class)
                 .setParameter("weatherStationPointOfInterestId", weatherStation)
+                .getResultList();
+    }
+    
+    public List<ForecastConfiguration> getForecastConfigurationsByLocation(PointOfInterest poi)
+    {
+        return em
+                .createNamedQuery("ForecastConfiguration.findByLocationStationPointOfInterestId", ForecastConfiguration.class)
+                .setParameter("locationPointOfInterestId", poi)
                 .getResultList();
     }
     
@@ -362,7 +370,7 @@ public class ForecastBean {
      */
     public void deleteForecastConfigurations(PointOfInterestWeatherStation weatherStation)
     {
-        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurations(weatherStation);
+        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurationsByWeatherStation(weatherStation);
         for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
         {
             em.createNativeQuery("DELETE FROM forecast_result WHERE forecast_configuration_id=:forecastConfigurationId")

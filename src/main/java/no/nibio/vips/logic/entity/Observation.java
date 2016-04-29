@@ -75,6 +75,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Organism cropOrganism;
     private Integer userId;
     private List<Gis> geoinfo;
+    private Integer locationPointOfInterestId;
     //private Double observedValue;
     //private Integer denominator;
     //private ObservationMethod observationMethodId;
@@ -465,6 +466,21 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setObservationIllustrationSet(Set<ObservationIllustration> observationIllustrationSet) {
         this.observationIllustrationSet = observationIllustrationSet;
+    }
+
+    /**
+     * @return the locationPointOfInterestId
+     */
+    @Column(name = "location_point_of_interest_id")
+    public Integer getLocationPointOfInterestId() {
+        return locationPointOfInterestId;
+    }
+
+    /**
+     * @param locationPointOfInterestId the locationPointOfInterestId to set
+     */
+    public void setLocationPointOfInterestId(Integer locationPointOfInterestId) {
+        this.locationPointOfInterestId = locationPointOfInterestId;
     }
 
 }

@@ -37,6 +37,7 @@
 	<script type="text/javascript" src="/js/validateForm.js"></script>
 	<script type="text/javascript" src="/js/util.js"></script>
 	<script type="text/javascript" src="/js/objectGISInfoMap.js"></script>
+	<script type="text/javascript" src="/js/poiFormMap.js"></script>
 	<script type="text/javascript">
 		var organizationId = ${user.organizationId.organizationId};
 		
@@ -58,11 +59,11 @@
 			// If observation already registered center on location
 			// Otherwise, center and zoom to organizations's default
 			<#if observation.location?has_content>
-			initMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
+			initGisInfoMap([${(observation.location.x?c)!""},${(observation.location.y?c)!""}],10,true);
 			<#else>
 			var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}</#if>;
 			var chooseFromMapLayers = {"chooseFromMapLayers":<#if mapLayers?has_content>${mapLayers}<#else>[]</#if>};
-			initMap("observationFormMap",[${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo, chooseFromMapLayers);
+			initGisInfoMap("observationFormMap",[${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo, chooseFromMapLayers);
 			</#if>
 			
 			<#if observation.observationData?has_content>
@@ -86,6 +87,8 @@
 				}
 				
 			});
+			
+			refreshLocationPointOfInterests(<#if observation.locationPointOfInterestId?has_content>${observation.locationPointOfInterestId}<#else>null</#if>);
 		});
 		
 		// Adding selected file name to a box
@@ -196,6 +199,93 @@
 			}
 		};
 		
+		var thePopup;
+		function addNewLocationPopup()
+		{
+			thePopup = window.open("/poi?action=newPoiForm&organizationId=1&returnIdCallback=refreshLocationPointOfInterests");
+		}
+		
+		var allPois = [];
+		
+		function refreshLocationPointOfInterests(pointOfInterestId)
+		{
+			$.getJSON("/rest/poi/user", function( json ) {
+					allPois = json;
+					var theList = document.getElementById("locationPointOfInterestId");
+					theList.options.length = 1;
+					for(var i=0;i< allPois.length;i++)
+					{
+						var poi = allPois[i];
+						var option = new Option(poi.name, poi.pointOfInterestId);
+						if(poi.pointOfInterestId == pointOfInterestId)
+						{
+							option.selected=true;
+						}
+						theList.options[theList.options.length] = option;
+					}
+					showCorrectMap();
+				}
+			);
+		}
+		
+		
+		// If locationPointOfInterestId is selected, show map for locations
+		// If not, show the observation drawing map
+		function showCorrectMap(){
+			var locationList = document.getElementById("locationPointOfInterestId");
+			if(locationList.options[locationList.options.selectedIndex].value != "-1")
+			{
+				document.getElementById("observationFormMap").style.display="none";
+				document.getElementById("poiFormMap").style.display="block";
+				initLocationMap(locationList.options[locationList.options.selectedIndex].value);
+				
+			}
+			else
+			{
+				document.getElementById("observationFormMap").style.display="block";
+				document.getElementById("poiFormMap").style.display="none";
+			}
+		}
+		
+		function initLocationMap(locationPointOfInterestId)
+		{
+			if(locationPointOfInterestId != null)
+			{
+				$.getJSON("/rest/poi/" + locationPointOfInterestId, function( json ) {
+						var poi = json;
+						if(map === undefined || map === null)
+						{
+							initMap([poi.longitude,poi.latitude],10,${user.organizationId.organizationId},locationPointOfInterestId, true);
+						}
+						else
+						{
+							map.getView().setCenter(ol.proj.transform([poi.longitude,poi.latitude], 'EPSG:4326', map.getView().getProjection().getCode()));
+							map.getView().setZoom(10);
+							stationMarker.setPosition(ol.proj.transform([poi.longitude,poi.latitude], 'EPSG:4326', map.getView().getProjection().getCode()));
+						}
+					}
+				);
+			}
+			else
+			{
+				initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},${user.organizationId.organizationId},locationPointOfInterestId, true);
+			}
+		}
+		
+		function validateGIS(theForm)
+		{
+			var locationList = document.getElementById("locationPointOfInterestId");
+			var geoInfo = document.getElementById("observationForm")["geoInfo"];
+			if(locationList.options[locationList.options.selectedIndex].value == "-1" && (geoInfo.value == "" || geoInfo.value == "{\"type\":\"FeatureCollection\",\"features\":[]}"))
+			{
+				alert("${i18nBundle.noMapDataEntered}");
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
 	</script>
 </#macro>
 <#macro page_contents>
@@ -211,7 +301,7 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationForm">
-			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);}catch(e){console.log(e.message);console.log(e);return false;}">
+			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this) && validateGIS(this);}catch(e){console.log(e.message);console.log(e);return false;}">
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
 			  <input type="hidden" name="geoInfo" value=""/>
@@ -262,12 +352,19 @@
 			    <span class="help-block" id="${formId}_organismId_validation"></span>
 			    
 			  </div>
-			  
+			   <div class="form-group">
+			    <label for="locationPointOfInterestId">${i18nBundle.location}&nbsp;&nbsp;<i class="fa fa-plus-square" aria-hidden="true" style="cursor:pointer;" title="${i18nBundle.addNew}" onclick="addNewLocationPopup();"></i></label>
+			    <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId" onchange="showCorrectMap();">
+				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
+			     </select>
+			     <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
+			  </div>
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
 			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
 			    <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
 			  </div>
+			  
 			  <div class="form-group">
 			  	<div class="checkbox">
 					<label>
@@ -366,9 +463,12 @@
 		</div>
 		<div class="col-md-6">
 			<div id="observationFormMap"></div> <!-- Contents is added dynamically by objectGISInfoMap -->
+			<div id="poiFormMap" class="map" style="height: 400px;">
+				<div id="popover"></div>
+			</div>
 		</div>
 	</div>
-	<!--div style="display: none;"><div id="marker" title="Marker"><img src="/images/bug_medium.png"/></div></div-->
+	<div style="display: none;"><div id="poiMarker" title="Marker"><img src="/public/images/anemometer_mono.png"/></div></div>
 </div>
 </#macro>
 <@page_html/>

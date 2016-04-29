@@ -56,6 +56,11 @@ public class GISUtil {
     
     public List<Gis> getGisFromGeoJSON(String json)
     {
+        if(json == null)
+        {
+            return null;
+        }
+        
         GeoJSONReader reader = new GeoJSONReader();
         List<Gis> retVal = new ArrayList<>();
         try

@@ -1,0 +1,145 @@
+/*
+ * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
+ * later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * NIBIO Open Source License for more details.
+ * 
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * 
+ */
+
+/*
+ * KML layer map with poi information
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
+ */
+
+// Keeping the map and station marker globally available
+var map;
+var stationMarker;
+
+/**
+ * 
+ * @param {ol.Coordinate} center - coordinates for the map's center (WGS84)
+ * @param {int} zoomLevel - the zoom level (1-15, 1 is world wide view, 15 is greatest zoom)
+ * @param {int} organizationId
+ * @param {int} currentWeatherStationId - the current weather station id
+ * @returns {void}
+ */
+function initMap(center, zoomLevel, organizationId, currentPoiId, readOnly)
+{
+    readOnly = readOnly === undefined ? false : readOnly;
+    // Background layer is OpenStreetMap
+    var backgroundLayer = new ol.layer.Tile({
+                    source: new ol.source.OSM({
+                        attributions: [
+                            new ol.Attribution({
+                              html: mapConstants.MAP_ATTRIBUTION
+                            })
+                          ]
+                    })
+    });
+    
+    // The weather station layer
+    var poiLayer = new ol.layer.Vector({
+    source: new ol.source.Vector({
+        url: "/rest/pois/kml/" + organizationId + (currentPoiId > 0 ? "?excludePoiId=" + currentPoiId : ""),
+            projection: "EPSG:3857",
+            format: new ol.format.KML()
+      })
+    });
+    
+   
+    // Layer for popup
+    var popOverlay = new ol.Overlay({
+      element: document.getElementById("popover")
+    });
+    
+    // Creating the map
+    map = new ol.Map({
+                    target: 'poiFormMap',
+                    layers: [backgroundLayer,poiLayer],
+                    overlays: [popOverlay],
+                    renderer: 'canvas'
+    });
+
+    var centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
+    
+    
+
+    // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
+    // center to correct map projection)
+    var view = new ol.View({
+            center: centerPosition,
+            zoom:zoomLevel
+    });
+    map.setView(view);
+    
+    // Marker overlay
+    stationMarker = new ol.Overlay({
+      position: currentPoiId !== null ? centerPosition : undefined,
+      positioning: 'bottom-center',
+      element: document.getElementById('poiMarker'),
+      stopEvent: false
+    });
+    
+    map.addOverlay(stationMarker);
+    
+    if(!readOnly)
+    {
+        // Listening for single clicks, position observation pin and updating form element
+        map.on(['singleclick'], function(evt) {
+            updateLocationPosition(evt.coordinate);
+        });
+    }
+}
+
+function updateLocationPosition(coordinate)
+{
+    var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, map.getView().getProjection().getCode(), 'EPSG:4326'),4);
+    // Set/move location pin
+    stationMarker.setPosition(coordinate);
+    // Update form field "location"
+    var locationEl = document.getElementById("location");
+    //console.log(locationEl);
+    locationEl.value=locationPosition;
+
+    // Adding a little animation
+    $("#location").animate({borderWidth: "4"},500, function(){
+        $("#location").animate({borderWidth: "1"},500, function(){});
+    });
+}
+
+/**
+ * Places the station marker on the coordinates given in Location input field,
+ * and centers the map around these coordinates
+ */
+function updateMarkerPosition()
+{
+    var locationEl = document.getElementById("location");
+   
+   var coordinate = locationEl.value.split(",");
+   coordinate[0] = parseFloat(coordinate[0]);
+   coordinate[1] = parseFloat(coordinate[1]);
+   //console.log(coordinate);
+   var centerPosition = ol.proj.transform(coordinate, 'EPSG:4326', map.getView().getProjection().getCode());
+   
+   stationMarker.setPosition(centerPosition);
+
+   // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
+   // center to correct map projection)
+   var view = new ol.View2D({
+           center: centerPosition,
+           zoom:10
+   });
+   map.setView(view);
+}
+

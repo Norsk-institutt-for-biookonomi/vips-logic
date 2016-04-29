@@ -58,6 +58,9 @@ public class PointOfInterestType implements Serializable {
     @Size(max = 255)
     @Column(name = "default_name")
     private String defaultName;
+    
+    // Hard coded stuff
+    public final static Integer POINT_OF_INTEREST_TYPE_WEATHER_STATION = 1;
 
     public PointOfInterestType() {
     }

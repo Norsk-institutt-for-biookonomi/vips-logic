@@ -42,6 +42,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorType;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 
@@ -53,17 +54,18 @@ import javax.persistence.OneToMany;
 @Table(name = "point_of_interest")
 @Inheritance(strategy=InheritanceType.JOINED)
 @DiscriminatorColumn(name="point_of_interest_type_id", discriminatorType=DiscriminatorType.INTEGER)
+@DiscriminatorValue("0")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "PointOfInterest.findAll", query = "SELECT p FROM PointOfInterest p"),
+    @NamedQuery(name = "PointOfInterest.findAll", query = "SELECT p FROM PointOfInterest p ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId = :pointOfInterestId"),
     //@NamedQuery(name = "PointOfInterest.findByPointOfInterestTypeId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType = :pointOfInterestType"),
-    @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
+    @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     @NamedQuery(name = "PointOfInterest.findByLongitude", query = "SELECT p FROM PointOfInterest p WHERE p.longitude = :longitude"),
     @NamedQuery(name = "PointOfInterest.findByLatitude", query = "SELECT p FROM PointOfInterest p WHERE p.latitude = :latitude"),
     @NamedQuery(name = "PointOfInterest.findByAltitude", query = "SELECT p FROM PointOfInterest p WHERE p.altitude = :altitude"),
-    @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.userId = :userId")
+    @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.userId = :userId ORDER BY p.name ASC")
 })
 public class PointOfInterest implements Serializable, Comparable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "pointOfInterest", fetch = FetchType.EAGER)
@@ -97,6 +99,9 @@ public class PointOfInterest implements Serializable, Comparable {
     @JoinColumn(name = "weather_forecast_provider_id", referencedColumnName = "weather_forecast_provider_id")
     @ManyToOne
     private WeatherForecastProvider weatherForecastProviderId;
+    
+    @Column(name = "point_of_interest_type_id", insertable = false, updatable = false)
+    private Integer pointOfInterestTypeId;
    
     
     // For attaching ad-hoc properties
@@ -284,6 +289,20 @@ public class PointOfInterest implements Serializable, Comparable {
 
     public void setPointOfInterestExternalResourceSet(Set<PointOfInterestExternalResource> pointOfInterestExternalResourceSet) {
         this.pointOfInterestExternalResourceSet = pointOfInterestExternalResourceSet;
+    }
+
+    /**
+     * @return the pointOfInterestTypeId
+     */
+    public Integer getPointOfInterestTypeId() {
+        return pointOfInterestTypeId;
+    }
+
+    /**
+     * @param pointOfInterestTypeId the pointOfInterestTypeId to set
+     */
+    public void setPointOfInterestTypeId(Integer pointOfInterestTypeId) {
+        this.pointOfInterestTypeId = pointOfInterestTypeId;
     }
 
     

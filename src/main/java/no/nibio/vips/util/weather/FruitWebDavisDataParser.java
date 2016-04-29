@@ -75,6 +75,7 @@ public class FruitWebDavisDataParser {
         Map<Integer, Integer> elementOrdering = new HashMap<>();
         try {
             URL fruitwebDavisURL = new URL(MessageFormat.format(FruitWebDavisDataParser.FRUITWEB_URL_TEMPLATE, stationID,urlDFormat.format(startDate)));
+            //System.out.println(fruitwebDavisURL.toString());
             BufferedReader in = new BufferedReader(
             new InputStreamReader(fruitwebDavisURL.openStream()));
 

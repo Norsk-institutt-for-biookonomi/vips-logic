@@ -108,6 +108,7 @@ public class ObservationController extends HttpServlet {
                     request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                    request.setAttribute("locationPointOfInterests", SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user));
                     List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
                     request.setAttribute("allPests", allPests);
                     List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
@@ -115,7 +116,7 @@ public class ObservationController extends HttpServlet {
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
-                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
+                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                     {
                         request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
                     }
@@ -153,7 +154,7 @@ public class ObservationController extends HttpServlet {
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
-                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
+                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                     {
                         request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
                     }
@@ -224,6 +225,7 @@ public class ObservationController extends HttpServlet {
                         observation.setTimeOfObservation(formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
                         //observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
                         observation.setUserId(user.getUserId());
+                        
                         observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
                         observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
                         observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
@@ -232,7 +234,7 @@ public class ObservationController extends HttpServlet {
 
                         boolean sendNotification = false;
                         // Storing approval status
-                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.SUPERUSER))
+                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                         {
                             Integer statusTypeId = formValidation.getFormField("statusTypeId").getValueAsInteger();
                             if(
@@ -257,7 +259,18 @@ public class ObservationController extends HttpServlet {
                         }
                         //observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
                         //System.out.println(formValidation.getFormField("geoInfo").getWebValue());
-                        observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
+                        observation.setLocationPointOfInterestId(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() > 0 ? 
+                                formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() : null);
+                        if(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() > 0)
+                        {
+                            observation.setLocationPointOfInterestId(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger());
+                            observation.setGeoinfo(null);
+                        }
+                        else
+                        {
+                            observation.setLocationPointOfInterestId(null);
+                            observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
+                        }
                         observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
 
                         // Image handling

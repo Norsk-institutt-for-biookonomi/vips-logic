@@ -26,7 +26,7 @@
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
-var featureOverlay, map;
+var featureOverlay, GISInfoMap;
 var olMapDivId = "objectGISInfoMap";
 
 /**
@@ -63,7 +63,7 @@ var olMapDivId = "objectGISInfoMap";
  *  
  * @returns {void}
  */
-function initMap(containerId, center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
+function initGisInfoMap(containerId, center, zoomLevel, displayMarker, drawnObjs, chooseLayersObj) {
 
   // Create the DOM structure
   var theContainer = el(containerId);
@@ -194,7 +194,7 @@ app.geoLocationControl = function(opt_options) {
       geolocation.setTracking(false);
       geoOverlay.getSource().clear(true);
     } else {*/
-      map.removeInteraction(draw);
+      GISInfoMap.removeInteraction(draw);
       removeMouseOver();
       $('#deleteOne').removeClass('clearOneActive');
       deleteObj = false;
@@ -220,7 +220,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
  
 
   // Creating the map
-  map = new ol.Map({
+  GISInfoMap = new ol.Map({
     target: olMapDivId, // Defined at the top of this file
     controls: ol.control.defaults({
       attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
@@ -242,7 +242,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     zoom: zoomLevel
   });
 
-  map.setView(view);
+  GISInfoMap.setView(view);
 
 
 
@@ -255,7 +255,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     stopEvent: false
   });
 
-  map.addOverlay(marker);
+  GISInfoMap.addOverlay(marker);
 
   // Adding the mouse position control
   var mousePositionControl = new ol.control.MousePosition({
@@ -263,12 +263,12 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     projection: 'EPSG:4326',
     undefinedHTML: '&nbsp;'
   });
-  map.addControl(mousePositionControl);
+  GISInfoMap.addControl(mousePositionControl);
 
   var layerSwitcher = new ol.control.LayerSwitcher({
     tipLabel: 'Layerswitcher' // Optional label for button
   });
-  map.addControl(layerSwitcher);
+  GISInfoMap.addControl(layerSwitcher);
 
 
   //###################### DRAWING ########################################
@@ -346,14 +346,14 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     var format = new ol.format.GeoJSON();
     var drawnfeatures = format.readFeatures(drawnObjs, {
       dataProjection: 'EPSG:4326',
-      featureProjection: map.getView().getProjection().getCode()
+      featureProjection: GISInfoMap.getView().getProjection().getCode()
     });
     //featureOverlay.clear(true);
     featureOverlay.getSource().addFeatures(drawnfeatures);
   }
 
-  featureOverlay.setMap(map);
-  mouseOverlay.setMap(map);
+  featureOverlay.setMap(GISInfoMap);
+  mouseOverlay.setMap(GISInfoMap);
 
   var modify = new ol.interaction.Modify({
     features: features,
@@ -373,24 +373,24 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
       features: features,
       type: /** @type {ol.geom.GeometryType} */ (typeSelect.value)
     });
-    map.addInteraction(draw);
+    GISInfoMap.addInteraction(draw);
   }
 
   var pointerMoveId;
   function removeMouseOver(){
-    map.unByKey(pointerMoveId);
+    GISInfoMap.unByKey(pointerMoveId);
     mouseOverlay.getSource().clear(true);
   }
 
 
   function chooseFromLayer(chooseLayer) {
-    map.removeInteraction(draw);
-    map.removeInteraction(modify);
+    GISInfoMap.removeInteraction(draw);
+    GISInfoMap.removeInteraction(modify);
     chooseLayer.setVisible(true);
 
     var clickInfo = function(pixel) {
       var features = [];
-      map.forEachFeatureAtPixel(pixel, function(feature) {
+      GISInfoMap.forEachFeatureAtPixel(pixel, function(feature) {
 
         if (deleteObj){
           if (feature){
@@ -409,7 +409,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
       });
     };
 
-    map.on('click', function(evt) {
+    GISInfoMap.on('click', function(evt) {
       var pixel = evt.pixel;
       clickInfo(pixel);
     });
@@ -417,12 +417,12 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     var mouseInfo = function(pixel) {
       var features = [];
       mouseOverlay.getSource().clear(true);
-      map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+      GISInfoMap.forEachFeatureAtPixel(pixel, function(feature, layer) {
         mouseOverlay.getSource().addFeature(feature);
       });
     };
 
-    pointerMoveId =  map.on('pointermove', function(evt) {
+    pointerMoveId =  GISInfoMap.on('pointermove', function(evt) {
       var pixel = evt.pixel;
       mouseInfo(pixel);
     });
@@ -435,7 +435,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
    * @param {Event} e Change event.
    */
   typeSelect.onchange = function(e) {
-    map.removeInteraction(draw);
+    GISInfoMap.removeInteraction(draw);
     deleteObj = false;
 
     for (i = 0; i < chooseLayers.length; i++) {
@@ -449,7 +449,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
       }
     }
     if (e.target.value === 'Point' || e.target.value === 'Polygon'){
-      map.addInteraction(modify);
+      GISInfoMap.addInteraction(modify);
       addDrawInteraction();
       removeMouseOver();
     }
@@ -497,13 +497,13 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     if (deleteObj){
       $('#deleteOne').addClass('clearOneActive');
       chooseFromLayer(featureOverlay);
-      map.removeInteraction(modify);
-      map.removeInteraction(draw);
+      GISInfoMap.removeInteraction(modify);
+      GISInfoMap.removeInteraction(draw);
     } else {
       $('#deleteOne').removeClass('clearOneActive');
       removeMouseOver();
       mouseOverlay.getSource().clear(true);
-      map.addInteraction(modify);
+      GISInfoMap.addInteraction(modify);
       addDrawInteraction();
     }
       
@@ -564,7 +564,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
     style: geoPosStyle
   });
 
-  geoOverlay.setMap(map);
+  geoOverlay.setMap(GISInfoMap);
 
 
 
@@ -640,15 +640,15 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
    
     if (numFeatures > 1) { //Zoom to all features
       var extent = featureOverlay.getSource().getExtent();
-      map.getView().fit(extent, map.getSize());
+      GISInfoMap.getView().fit(extent, GISInfoMap.getSize());
     } else if (geoExtent) { //Zoom to accuracy circle
-      map.getView().fit(geoExtent, map.getSize());
+      GISInfoMap.getView().fit(geoExtent, GISInfoMap.getSize());
     } else { //Zoom to geolocation
-      map.getView().setCenter(coordinates);
-      map.getView().setZoom(15);
+      GISInfoMap.getView().setCenter(coordinates);
+      GISInfoMap.getView().setZoom(15);
     }
 
-    map.addInteraction(modify);
+    GISInfoMap.addInteraction(modify);
     addDrawInteraction();
 
     geolocation.setTracking(false);
@@ -685,7 +685,7 @@ function getFeatures() {
 
   var result = format.writeFeatures(features, {
     dataProjection: 'EPSG:4326',
-    featureProjection: map.getView().getProjection().getCode()
+    featureProjection: GISInfoMap.getView().getProjection().getCode()
   });
 
   return result;

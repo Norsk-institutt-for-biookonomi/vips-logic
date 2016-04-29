@@ -48,8 +48,14 @@
             "name": "geoInfo",
             "dataType" : "GEOJSON",
             "fieldType" : "HIDDEN",
-            "required" : true,
+            "required" : false,
             "nullValue" : "{\"type\":\"FeatureCollection\",\"features\":[]}"
+        },
+        {
+            "name" : "locationPointOfInterestId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : false
         },
         {
             "name" : "isQuantified",

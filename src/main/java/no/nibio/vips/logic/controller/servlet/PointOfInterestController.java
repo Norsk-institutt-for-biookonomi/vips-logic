@@ -25,6 +25,7 @@ import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -354,7 +355,7 @@ public class PointOfInterestController extends HttpServlet {
                     {
                         Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                         PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
-                        List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurations(weatherStation);
+                        List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsByWeatherStation(weatherStation);
                         // If no strings attached, delete immediately
                         if(forecastConfigurations.isEmpty())
                         {
@@ -397,6 +398,337 @@ public class PointOfInterestController extends HttpServlet {
                                 .append(ServletUtil.getServerName(request))
                                 .append("/weatherStation")
                                 .append("?messageKey=").append("weatherStationDeleted").toString()
+
+                            );
+                    }
+                    catch(NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+        }
+        else if(request.getServletPath().equals("/poi"))
+        {
+            if(action == null)
+            {
+                // Decide if requested view is list view or single view
+                String pointOfInterestId = request.getParameter("pointOfInterestId");
+                // List view
+                if(pointOfInterestId == null)
+                {
+                    Organization organization = null;
+                    List<PointOfInterest> pois;
+                    if(user.isSuperUser()){
+                        Integer organizationId = request.getParameter("organizationId") != null ?
+                                Integer.parseInt(request.getParameter("organizationId"))
+                                :user.getOrganizationId().getOrganizationId();
+                        if(organizationId.equals(-1))
+                        {
+                            pois = SessionControllerGetter.getPointOfInterestBean().getAllPois();
+                        }
+                        else
+                        {
+                            organization = em.find(Organization.class, organizationId);
+                            pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organization);
+                        }
+                        request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
+                        request.setAttribute("organizationId", organizationId);
+                        
+                    }
+                    else
+                    {
+                        organization = user.getOrganizationId();
+                        pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organization);
+                        request.setAttribute("organizationId", organization.getOrganizationId());
+                    }
+                    
+                    if(organization != null)
+                    {
+                        request.setAttribute("defaultMapCenter",organization.getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", organization.getDefaultMapZoom());
+                    }
+                    else
+                    {
+                        // Set map to cover Europe
+                        GeometryFactory gFact = new GeometryFactory();
+                        Coordinate coord = new Coordinate(16.51699219, 55.39404223);
+                        Point mapCenter = gFact.createPoint(coord);
+                        request.setAttribute("defaultMapCenter",mapCenter);
+                        request.setAttribute("defaultMapZoom", 3);
+                    }
+                    request.getSession().setAttribute("pois", pois);
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    request.getRequestDispatcher("/poiList.ftl").forward(request, response);
+                }
+                // Single view
+                else
+                {
+                    PointOfInterest poi = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
+                    request.getSession().setAttribute("poi", poi);
+                    request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                    request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    request.setAttribute("returnURL","poi?organizationId=" + poi.getUserId().getOrganizationId().getOrganizationId());
+                    request.getRequestDispatcher("/poiView.ftl").forward(request, response);
+
+                }
+            }
+            else if(action.equals("newPoiForm"))
+            {
+
+                    try
+                    {
+                        PointOfInterest poi = new PointOfInterestWeatherStation();  
+                        request.getSession().setAttribute("poi", poi);
+                        request.setAttribute("returnIdCallback", request.getParameter("returnIdCallback") != null ? request.getParameter("returnIdCallback") :"");
+                        request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                        request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
+                        request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
+                        request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        // Finding all external resources where entry is missing
+                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
+                
+                        if(user.isSuperUser())
+                        {
+                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                        }
+                        Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
+                        request.setAttribute("returnURL","poi?organizationId=" + organizationId);
+                        request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
+                    }
+                    catch(NullPointerException | NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                
+            }
+            // Authorization: ORGANIZATION ADMIN or SUPERUSER
+            else if(action.equals("editPoiForm"))
+            {
+                try
+                {
+                    Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                    PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
+                    // Does the current user have the rights to edit this poi?
+                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                            || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
+                    )
+                    {
+                        request.getSession().setAttribute("poi", poi);
+                        request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                        request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
+                        request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
+                        request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        // Finding all external resources where entry is missing
+                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
+                        request.setAttribute("messageKey", request.getParameter("messageKey"));
+                        if(user.isSuperUser())
+                        {
+                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                        }
+                        request.setAttribute("returnURL","poi?organizationId=" + poi.getUserId().getOrganizationId().getOrganizationId());
+                        request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
+                    }
+                    else
+                    {
+                        response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                    }
+                }
+                catch(NullPointerException | NumberFormatException ex)
+                {
+                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                }
+                
+            }
+            // Authorization: ORGANIZATION ADMIN or SUPERUSER
+            else if(action.equals("poiFormSubmit"))
+            {
+                
+                    try
+                    {
+                       
+                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                        PointOfInterest poi = pointOfInterestId > 0 ? 
+                                                                        em.find(PointOfInterest.class, pointOfInterestId) 
+                                                                        : new PointOfInterest();
+                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                            || poi.getPointOfInterestId() == null
+                            || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
+                            )
+                        {
+                            
+                            FormValidation formValidation = FormValidator.validateForm("poiForm", request, getServletContext());
+                            if(formValidation.isValid())
+                            {
+                                // Set values
+                                poi.setName(formValidation.getFormField("name").getWebValue());
+                                try
+                                {
+                                    poi.setAltitude(formValidation.getFormField("altitude").getValueAsDouble());
+                                }
+                                catch(NullPointerException | NumberFormatException ex) {}
+                                poi.setLongitude(formValidation.getFormField("location").getValueAsPointWGS84().getX());
+                                poi.setLatitude(formValidation.getFormField("location").getValueAsPointWGS84().getY());
+                                poi.setWeatherForecastProviderId(formValidation.getFormField("weatherForecastProviderId").getWebValue() != null ?
+                                        em.find(WeatherForecastProvider.class, formValidation.getFormField("weatherForecastProviderId").getValueAsInteger())
+                                        : null
+                                );
+                                poi.setTimeZone(formValidation.getFormField("timeZone").getWebValue());
+                                poi.setCountryCode(em.find(Country.class, formValidation.getFormField("countryCode").getWebValue()));
+                                /*if(weatherStation.getPointOfInterestType() == null)
+                                {
+                                    //weatherStation.setPointOfInterestType(em.find(PointOfInterestType.class, Globals.POI_TYPE_WEATHERSTATION));
+                                }*/
+                                // If userId is set from form, always update
+
+
+                                if(user.isSuperUser() && !formValidation.getFormField("userId").isEmpty())
+                                {
+                                    poi.setUserId(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
+                                }
+                                // If user is not set, use current user
+                                else if(poi.getUserId() == null)
+                                {
+                                    poi.setUserId(user);
+                                }
+                                // Store
+                                poi = SessionControllerGetter.getPointOfInterestBean().storePoi(poi);
+
+                                Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
+                                for(String key:externalResourceIdentifiers.keySet())
+                                {
+                                    Integer externalResourceId = Integer.valueOf(key);
+                                    FormField identifierField = externalResourceIdentifiers.get(key);
+                                    if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
+                                    {
+                                        // We delete existing if unset
+                                        SessionControllerGetter.getPointOfInterestBean().deletePointOfInterestExternalResource(poi.getPointOfInterestId(), externalResourceId);
+                                    }
+                                    else
+                                    {
+
+                                        PointOfInterestExternalResource poiExternalResource = new PointOfInterestExternalResource();
+                                        PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(poi.getPointOfInterestId(), externalResourceId);
+                                        poiExternalResource.setPointOfInterestExternalResourcePK(pk);
+                                        poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
+                                        SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                                    }
+                                }
+
+                                String returnIdCallback = request.getParameter("returnIdCallback");
+
+                                if(returnIdCallback != null && !returnIdCallback.isEmpty())
+                                {
+                                    request.setAttribute("returnIdCallback",returnIdCallback);
+                                    request.setAttribute("locationPointOfInterestId", poi.getPointOfInterestId());
+                                    request.getRequestDispatcher("/poiFormCloseReturnIdCallback.ftl").forward(request, response);
+                                }
+                                else
+                                {
+                                    // Redirect to form
+                                    response.sendRedirect(new StringBuilder("http://")
+                                        .append(ServletUtil.getServerName(request))
+                                        .append("/poi?action=editPoiForm&pointOfInterestId=").append(poi.getPointOfInterestId())
+                                        .append("&messageKey=").append("poiStored").toString()
+
+                                    );
+                                }
+                            }
+                            else
+                            {
+                                request.setAttribute("formValidation", formValidation);
+                                request.setAttribute("poi", poi);
+                                request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                                request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                                request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                                request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
+                                request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
+                                request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                                request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
+                            }
+                        }
+                        else
+                        {
+                            response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                        }
+                    }
+                    catch(NullPointerException | NumberFormatException | FormValidationException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                
+                
+            }
+            else if(action.equals("deletePoiPreview"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                        PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
+                        // Are there forecasts attached to this location
+                        List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsByLocation(poi);
+                        
+                        // TODO: Are there observations attached to this location?
+                        
+                        // 
+                        // If no strings attached, delete immediately
+                        if(forecastConfigurations.isEmpty())
+                        {
+                            response.sendRedirect(new StringBuilder("http://")
+                                .append(ServletUtil.getServerName(request))
+                                .append("/poi?action=deletePoi&pointOfInterestId=").append(poi.getPointOfInterestId())
+                                .toString()
+                            );
+                        }
+                        else
+                        {
+                            Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedModelInformation();
+                            request.setAttribute("returnURL","poi?action=editPoiForm&pointOfInterestId=" + pointOfInterestId);
+                            request.setAttribute("poi", poi);
+                            request.setAttribute("forecastConfigurations", forecastConfigurations);
+                            // TODO Set observations
+                            request.setAttribute("modelInformation", modelInformationMap);
+                            request.getRequestDispatcher("/poiDeletePreview.ftl").forward(request, response);
+                        }
+                    }
+                    catch(NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+            else if(action.equals("deletePoi"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                        //PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
+                        SessionControllerGetter.getPointOfInterestBean().deletePoi(pointOfInterestId);
+                        response.sendRedirect(new StringBuilder("http://")
+                                .append(ServletUtil.getServerName(request))
+                                .append("/poi")
+                                .append("?messageKey=").append("poiDeleted").toString()
 
                             );
                     }

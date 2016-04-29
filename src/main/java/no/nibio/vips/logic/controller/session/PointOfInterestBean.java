@@ -28,6 +28,7 @@ import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import javax.ejb.LocalBean;
@@ -42,6 +43,7 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResource;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResourcePK;
+import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
@@ -129,21 +131,35 @@ public class PointOfInterestBean {
         
     }
 
-    public Kml getWeatherstationsForOrganization(Integer organizationId, Integer excludeWeatherStationId, Integer highlightWeatherStationId, String serverName, ResourceBundle i18nBundle) {
+    public Kml getPoisForOrganization(Integer organizationId, Integer excludePoiId, Integer highlightPoiId, String serverName, ResourceBundle i18nBundle, Integer pointOfInterestTypeId) {
         String iconPath = "http://" + serverName + "/public/images/";
         
-        List<PointOfInterestWeatherStation> weatherStations = new ArrayList<>();
+        List<PointOfInterest> pois = new ArrayList<>();
         if(organizationId.equals(-1))
         {
             List<Organization> organizations = em.createNamedQuery("Organization.findAllTopLevelOrganizations").getResultList();
             for(Organization organization:organizations)
             {
-                weatherStations.addAll(this.getWeatherstationsForOrganization(organization,null));
+                if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
+                {
+                    pois.addAll(this.getWeatherstationsForOrganization(organization,true));
+                }
+                else
+                {
+                    pois.addAll(this.getPoisForOrganization(organization));
+                }
             }
         }
         else
         {
-            weatherStations.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),null));
+            if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
+            {
+                pois.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),true));
+            }
+            else
+            {
+                pois.addAll(this.getPoisForOrganization(em.find(Organization.class, organizationId)));
+            }
         }
  
         
@@ -169,27 +185,27 @@ public class PointOfInterestBean {
         
         
         String description = "";
-        for(PointOfInterestWeatherStation weatherStation:weatherStations)
+        for(PointOfInterest poi:pois)
         {
-            if(excludeWeatherStationId != null && excludeWeatherStationId.equals(weatherStation.getPointOfInterestId()))
+            if(excludePoiId != null && excludePoiId.equals(poi.getPointOfInterestId()))
             {
                 continue;
             }
             
             String styleUrl = "#weatherstation_icon"
-                            +   (highlightWeatherStationId != null && highlightWeatherStationId.equals(weatherStation.getPointOfInterestId()) ? "_highlighted" :"");
+                            +   (highlightPoiId != null && highlightPoiId.equals(poi.getPointOfInterestId()) ? "_highlighted" :"");
             
             String infoUriValue = "";
-            if(weatherStation instanceof PointOfInterestWeatherStation)
+            if(poi instanceof PointOfInterestWeatherStation)
             {
                 description = i18nBundle.getString("dataSourceName") + 
-                                ": <a href=\"" + weatherStation.getWeatherStationDataSourceId().getUri() + "\" target=\"new\">" 
-                                +  weatherStation.getWeatherStationDataSourceId().getName() 
+                                ": <a href=\"" + ((PointOfInterestWeatherStation) poi).getWeatherStationDataSourceId().getUri() + "\" target=\"new\">" 
+                                +  ((PointOfInterestWeatherStation) poi).getWeatherStationDataSourceId().getName() 
                                 + "</a>";
-                String infoUriExpression = ((PointOfInterestWeatherStation) weatherStation).getWeatherStationDataSourceId().getInfoUriExpression();
+                String infoUriExpression = ((PointOfInterestWeatherStation) poi).getWeatherStationDataSourceId().getInfoUriExpression();
                 if(!infoUriExpression.isEmpty())
                 {
-                    infoUriValue = String.format(infoUriExpression, ((PointOfInterestWeatherStation) weatherStation).getWeatherStationRemoteId());
+                    infoUriValue = String.format(infoUriExpression, ((PointOfInterestWeatherStation) poi).getWeatherStationRemoteId());
                 }
             }
             Data infoUri = new Data(infoUriValue);
@@ -200,19 +216,19 @@ public class PointOfInterestBean {
                     .withData(dataList);
             
             final Placemark placemark = document.createAndAddPlacemark()
-            .withName(weatherStation.getName())
+            .withName(poi.getName())
             .withDescription(description)
             .withStyleUrl(styleUrl)
-            .withId(weatherStation.getPointOfInterestId().toString())
+            .withId(poi.getPointOfInterestId().toString())
             .withExtendedData(extendedData);
             
             
             final Point point = placemark.createAndSetPoint();
             List<Coordinate> coord = point.createAndSetCoordinates();
             coord.add(new Coordinate(
-                    weatherStation.getLongitude(),
-                    weatherStation.getLatitude(),
-                    weatherStation.getAltitude() != null ? weatherStation.getAltitude() : 0
+                    poi.getLongitude(),
+                    poi.getLatitude(),
+                    poi.getAltitude() != null ? poi.getAltitude() : 0
             ));
         }
         return kml;
@@ -227,6 +243,12 @@ public class PointOfInterestBean {
         return weatherStation;
     }  
 
+    /**
+     * 
+     * @param organization
+     * @param active
+     * @return 
+     */
     public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization, Boolean active) {
         // Avoid nulls
         active = active == null ? true : active;
@@ -287,4 +309,57 @@ public class PointOfInterestBean {
             em.remove(resource);
         }
     }
+
+    public List<PointOfInterest> getAllPois() {
+        return em.createNamedQuery("PointOfInterest.findAll", PointOfInterest.class).getResultList();
+    }
+
+    public List<PointOfInterest> getPoisForOrganization(Organization organization) {
+        return em.createNamedQuery("PointOfInterest.findByOrganizationId", PointOfInterest.class)
+                .setParameter("organizationId", organization)
+                .getResultList();
+    }
+
+    public PointOfInterest storePoi(PointOfInterest poi) {
+        if(poi.getPointOfInterestId() == null)
+        {
+            em.persist(poi);
+            return poi;
+        }
+        else
+        {
+            return em.merge(poi);
+        }
+    }
+
+    public void deletePoi(Integer pointOfInterestId) {
+        em.remove(em.find(PointOfInterest.class, pointOfInterestId));
+    }
+
+    public List<PointOfInterest> getRelevantPointOfInterestsForUser(VipsLogicUser user) {
+        List<PointOfInterest> retVal;
+        // Super users get all locations
+        if(user.isSuperUser())
+        {
+            retVal = em.createNamedQuery("PointOfInterest.findAll", PointOfInterest.class).getResultList();
+        }
+        // Organization admins get all locations for organization
+        else if(user.isOrganizationAdmin())
+        {
+            retVal = em.createNamedQuery("PointOfInterest.findByOrganizationId", PointOfInterest.class)
+                    .setParameter("organizationId", user.getOrganizationId())
+                    .getResultList();
+        }
+        // Regular users get all locations that they have created
+        else
+        {
+            retVal = em.createNamedQuery("PointOfInterest.findByUserId", PointOfInterest.class)
+                    .setParameter("userId", user)
+                    .getResultList();
+        }
+        Collections.sort(retVal);
+        return retVal;
+    }
+
+    
 }

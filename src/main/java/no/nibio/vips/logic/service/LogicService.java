@@ -60,6 +60,8 @@ import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.PointOfInterest;
+import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
@@ -324,9 +326,20 @@ public class LogicService {
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getWeatherStations(@QueryParam("excludeWeatherStationId") Integer excludeWeatherStationId, @QueryParam("highlightWeatherStationId") Integer highlightWeatherStationId, @PathParam("organizationId") Integer organizationId)
     {
-        Kml retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest));
+        Kml retVal = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
         return Response.ok().entity(retVal).build();
     }
+    
+    @GET
+    @Path("pois/kml/{organizationId}")
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    public Response getPois(@QueryParam("excludePoiId") Integer excludePoiId, @QueryParam("highlightPoiId") Integer highlightPoiId, @PathParam("organizationId") Integer organizationId)
+    {
+        Kml retVal = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organizationId, excludePoiId, highlightPoiId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), null);
+        return Response.ok().entity(retVal).build();
+    }
+    
+    
     
     @GET
     @Path("poi/organization/{organizationId}")
@@ -335,6 +348,25 @@ public class LogicService {
     {
         Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
         List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE);
+        return Response.ok().entity(retVal).build();
+    }
+    
+    @GET
+    @Path("poi/{pointOfInterestId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId)
+    {
+        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(pointOfInterestId);
+        return Response.ok().entity(retVal).build();
+    }
+    
+    @GET
+    @Path("poi/user/")
+    @Produces("application/json;charset=UTF-8")
+    public Response getPoisForCurrentUser()
+    {
+        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        List<PointOfInterest> retVal = SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user);
         return Response.ok().entity(retVal).build();
     }
     
