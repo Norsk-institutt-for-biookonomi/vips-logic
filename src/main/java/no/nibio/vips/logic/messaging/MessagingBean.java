@@ -67,7 +67,17 @@ public class MessagingBean {
         uMessage.setExpiresAt(message.getDateValidTo());
         for(MessageLocale ml : message.getMessageLocaleSet())
         {
+            if(ml.getHeading() == null || ml.getHeading().isEmpty())
+            {
+                continue;
+            }
             uMessage.addMessageLocalVersion(ml.getMessageLocalePK().getLocale(), ml.getHeading(), ml.getLeadParagraph(), ml.getBody(), msgDownloadUrlTpl);
+        }
+        
+        // If no headings in any locale, skip this
+        if(uMessage.getMessageLocalVersionObjects() == null || uMessage.getMessageLocalVersionObjects().isEmpty())
+        {
+            return;
         }
         
         // Find the suscribers, create distribution list
@@ -386,6 +396,11 @@ public class MessagingBean {
     
     public void sendUniversalMessage(Observation observation)
     {
+        // Don't send empty messages
+        if(observation.getObservationHeading() == null || observation.getObservationHeading().isEmpty())
+        {
+            return;
+        }
         String msgDownloadUrlTpl = "http://www.vips-landbruk.no/";
         // Create a universal message from the message
         // TODO: When UniversalMessage has changed, pick
