@@ -483,4 +483,9 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.locationPointOfInterestId = locationPointOfInterestId;
     }
 
+    @Override
+    public int compareTo(Object t) {
+        return this.getTimeOfObservation().compareTo(((no.nibio.vips.observation.Observation)t).getTimeOfObservation());
+    }
+
 }
