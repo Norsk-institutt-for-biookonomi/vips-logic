@@ -30,6 +30,7 @@ import de.micromata.opengis.kml.v_2_2_0.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -152,7 +153,7 @@ public class PointOfInterestBean {
         }
         else
         {
-            if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
+            if(Objects.equals(pointOfInterestTypeId, PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION))
             {
                 pois.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),true));
             }
