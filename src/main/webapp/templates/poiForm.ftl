@@ -122,6 +122,7 @@
 			     <span class="help-block" id="${formId}_countryCode_validation"></span>
 			  </div>
 			  <fieldset>
+			  <#if user.isSuperUser() || user.isOrganizationAdmin()>
 			<h3>${i18nBundle.externalResources}</h3>
 			<#if poi.pointOfInterestExternalResourceSet?has_content>
 				<#list poi.pointOfInterestExternalResourceSet as poiExternalResource>
@@ -139,6 +140,7 @@
 			 </#list>
 			 
 			</fieldset>
+			</#if>
 			  <#if user.isSuperUser()>
 			  <div class="form-group">
 			    <label for="userId">${i18nBundle.vipsLogicUserId}</label>

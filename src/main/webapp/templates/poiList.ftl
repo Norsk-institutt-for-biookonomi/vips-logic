@@ -35,6 +35,10 @@
 			var organizationId = selectList.options[selectList.selectedIndex].value;
 			window.location="/poi?organizationId=" + organizationId;
 		}
+		
+		var userPoiIds = [
+			<#list pois?sort_by("name") as poi>${poi.pointOfInterestId}<#sep>,</#list>
+			]; 
 	</script>
 </#macro>
 <#macro page_contents>

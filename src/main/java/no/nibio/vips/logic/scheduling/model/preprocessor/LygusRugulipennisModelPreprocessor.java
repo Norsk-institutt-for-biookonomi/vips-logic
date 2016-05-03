@@ -41,7 +41,7 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class LygusRuguliPennisModelPreprocessor extends ModelRunPreprocessor {
+public class LygusRugulipennisModelPreprocessor extends ModelRunPreprocessor {
 
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
