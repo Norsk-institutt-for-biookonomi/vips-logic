@@ -22,6 +22,7 @@ package no.nibio.vips.logic.controller.session;
 import com.vividsolutions.jts.geom.Geometry;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -258,5 +259,28 @@ public class ObservationBean {
         }
         observation.getObservationIllustrationSet().clear();
         return observation;
+    }
+
+    /**
+     * Fetch observations of a particular organism at a particular place and period
+     * @param organismId
+     * @param pointOfInterestId
+     * @param startDateGrowth
+     * @param endDateCalculation
+     * @return 
+     */
+    public List<no.nibio.vips.observation.Observation> getObservations(Integer organismId, Integer pointOfInterestId, Date startDateGrowth, Date endDateCalculation) {
+        return em.createNativeQuery(
+                "SELECT * FROM public.observation "
+                + "WHERE organism_id = :organismId "
+                + "AND location_point_of_interest_id = :locationPointOfInterestId "
+                + "AND time_of_observation BETWEEN :startDateGrowth AND :endDateCalculation"
+                ,Observation.class
+        )
+                .setParameter("organismId", organismId)
+                .setParameter("locationPointOfInterestId",pointOfInterestId)
+                .setParameter("startDateGrowth", startDateGrowth)
+                .setParameter("endDateCalculation", endDateCalculation)
+                .getResultList();
     }
 }
