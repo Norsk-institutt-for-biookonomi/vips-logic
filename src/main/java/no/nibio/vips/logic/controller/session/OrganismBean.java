@@ -39,7 +39,6 @@ import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.OrganismExternalResource;
 import no.nibio.vips.logic.entity.OrganismLocale;
 import no.nibio.vips.logic.entity.OrganismLocalePK;
-import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.util.HierarchyCategoryLocaleNames;
 
 /**
@@ -335,5 +334,12 @@ public class OrganismBean {
         {
             return new ArrayList<>();
         }
+    }
+
+    public Organism getOrganismByLatinName(String latinName) {
+        Organism organism = em.createNamedQuery("Organism.findByLatinName", Organism.class)
+                .setParameter("latinName", latinName)
+                .getSingleResult();
+        return organism;
     }
 }
