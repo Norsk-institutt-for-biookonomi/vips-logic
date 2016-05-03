@@ -98,7 +98,7 @@ function initMap(center, zoomLevel, organizationId)
                     trigger: 'manual',
                     html: true,
                     placement: "auto top",
-                    title: "<a href='/poi?pointOfInterestId=" + feature.getId() + "'>" + feature.get("name") + "</a>",
+                    title: userPoiIds.indexOf(feature.getId()) >= 0 ? "<a href='/poi?pointOfInterestId=" + feature.getId() + "'>" + feature.get("name") + "</a>" : feature.get("name"),
                     content: feature.get("description")
             });
 
