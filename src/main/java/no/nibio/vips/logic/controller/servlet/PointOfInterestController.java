@@ -440,11 +440,16 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("organizationId", organizationId);
                         
                     }
-                    else
+                    else if(user.isOrganizationAdmin())
                     {
                         organization = user.getOrganizationId();
                         pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organization);
                         request.setAttribute("organizationId", organization.getOrganizationId());
+                    }
+                    else
+                    {
+                        pois = SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user);
+                        request.setAttribute("organizationId", user.getOrganizationId().getOrganizationId());
                     }
                     
                     if(organization != null)
