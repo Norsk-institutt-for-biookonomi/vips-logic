@@ -238,12 +238,34 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                 || RR.size() != TM.size()
             )
         {
-            UM = wUtil.checkForAndFixHourlyTimeSeriesHoles(UM);
+            UM = wUtil.fixHourlyValuesForParameters(
+                    UM, 
+                    new HashSet(Arrays.asList("UM")), 
+                    firstTimeStamp, 
+                    null
+            );
             // Fallback if missing leaf wetness: If we have relative humidity. leaf wetness may be calculated
             if(BT.size() != TM.size() && UM.size() == TM.size())
             {
-                Q0 = wUtil.checkForAndFixHourlyTimeSeriesHoles(Q0);
-                FM2 = wUtil.checkForAndFixHourlyTimeSeriesHoles(FM2);
+                Q0 = wUtil.fixHourlyValuesForParameters(
+                        Q0, 
+                        new HashSet(Arrays.asList("Q0")), 
+                        firstTimeStamp, 
+                        null
+                );
+                FM2 = wUtil.fixHourlyValuesForParameters(
+                        FM2, 
+                        new HashSet(Arrays.asList("FM2")), 
+                        firstTimeStamp, 
+                        null
+                );
+                
+                BT = wUtil.fixHourlyValuesForParameters(
+                        BT, 
+                        new HashSet(Arrays.asList("BT")), 
+                        firstTimeStamp, 
+                        null
+                );
                 BT = wUtil.calculateLeafWetnessHourSeriesBestEffort(BT,TM, RR, Q0, FM2, UM);
                 
                 if(BT.size() != TM.size())
@@ -253,7 +275,9 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             }
             else
             {
-                throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() );
+                System.out.println("TM starts " + TM.get(0).getTimeMeasured() + ", ends " + TM.get(TM.size()-1).getTimeMeasured());
+                System.out.println("UM starts " + UM.get(0).getTimeMeasured() + ", ends " + UM.get(UM.size()-1).getTimeMeasured());
+                throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() + ", UM.size()=" + UM.size() );
             }
         }
         List<WeatherObservation> retVal = new ArrayList<>();
