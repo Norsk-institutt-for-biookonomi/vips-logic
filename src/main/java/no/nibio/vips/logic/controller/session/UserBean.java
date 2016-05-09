@@ -482,7 +482,7 @@ public class UserBean {
                                 "http://" + serverName + "/user?action=approveUser&userId=" + confirmUser.getUserId()
                             );
             
-            System.out.println(body);
+            //System.out.println(body);
             // Send email
             String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
             SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
