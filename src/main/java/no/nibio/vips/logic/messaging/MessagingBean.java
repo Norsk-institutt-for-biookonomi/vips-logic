@@ -305,8 +305,8 @@ public class MessagingBean {
                 //read details, please visit: {5}
                 String detailsUrl = fConf.getVipsLogicUserId().getOrganizationId().getVipswebUrl() + "forecasts/" + fConf.getForecastConfigurationId();
                 Object[] templateParts = {
-                    fConf.getPestOrganismId().getLocalName(locale),
-                    fConf.getCropOrganismId().getLocalName(locale),
+                    (fConf.getPestOrganismId().getLocalName(locale).isEmpty() ? fConf.getPestOrganismId().getLatinName() : fConf.getPestOrganismId().getLocalName(locale)),
+                    (fConf.getCropOrganismId().getLocalName(locale).isEmpty() ? fConf.getCropOrganismId().getLatinName() : fConf.getCropOrganismId().getLocalName(locale)),
                     fConf.getLocationPointOfInterestId().getName(),
                     format.format(newNotification.getForecastNotificationLogPK().getEventDate()),
                     detailsUrl
