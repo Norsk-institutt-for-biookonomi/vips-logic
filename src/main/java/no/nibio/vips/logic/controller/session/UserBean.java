@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
@@ -540,6 +541,18 @@ public class UserBean {
         SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, viewUser.getEmail(), subject, body);
     }
+    
+    public String getUserName(VipsLogicUser user, Integer userAuthenticationTypeId)
+    {
+        for(UserAuthentication auth: user.getUserAuthenticationSet())
+        {
+            if(Objects.equals(auth.getUserAuthenticationType().getUserAuthenticationTypeId(), userAuthenticationTypeId))
+            {
+                return auth.getUsername();
+            }
+        }
+        return null;
+    }
 
     /**
      * 
@@ -562,6 +575,7 @@ public class UserBean {
         
         String subject = i18nBundle.getString("createPasswordResetCodeAndSendToUserSubject");
         String body = MessageFormat.format(i18nBundle.getString("createPasswordResetCodeAndSendToUserBody"), 
+                this.getUserName(resetPasswordUser, UserAuthenticationType.TYPE_PASSWORD),
                 "http://" + serverName + "/user?action=resetPassword&passwordResetCode=" + resetCode);
         
         // Send email
