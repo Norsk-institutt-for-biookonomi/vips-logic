@@ -436,7 +436,7 @@
 				</div>
 			</div>
 	
-			  <#if user.isObservationAuthority() || user.isSuperUser()>
+			  <#if user.isObservationAuthority() || user.isOrganizationAdmin() || user.isSuperUser()>
 				  <div class="form-group">
 				    <label for="statusTypeId">${i18nBundle.statusTypeId}</label>
 				    <select class="form-control" name="statusTypeId" onblur="validateField(this);">
