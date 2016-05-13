@@ -349,7 +349,7 @@ public class ForecastBean {
     public List<ForecastConfiguration> getForecastConfigurationsByLocation(PointOfInterest poi)
     {
         return em
-                .createNamedQuery("ForecastConfiguration.findByLocationStationPointOfInterestId", ForecastConfiguration.class)
+                .createNamedQuery("ForecastConfiguration.findByLocationPointOfInterestId", ForecastConfiguration.class)
                 .setParameter("locationPointOfInterestId", poi)
                 .getResultList();
     }
