@@ -111,6 +111,7 @@ function updateLocationPosition(coordinate)
     var locationEl = document.getElementById("location");
     //console.log(locationEl);
     locationEl.value=locationPosition;
+    validateField(locationEl);
 
     // Adding a little animation
     $("#location").animate({borderWidth: "4"},500, function(){
