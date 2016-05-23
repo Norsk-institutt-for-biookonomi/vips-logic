@@ -164,7 +164,6 @@ public class SchedulingBean {
         SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
         modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK));
         modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
-        modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
         
         // Update forecast cache
         VIPSLogicTaskCollector cacheHandlerCollector = new VIPSLogicTaskCollector(-1);
@@ -181,7 +180,10 @@ public class SchedulingBean {
         SchedulingPattern everyNightPattern = new SchedulingPattern("0 6 * * *");
         deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK));
         
-        
+        // Sendt forecast notifications
+        VIPSLogicTaskCollector sendForecastNotificationsCollector = new VIPSLogicTaskCollector(-1);
+        SchedulingPattern morningAndAfternoonPattern = new SchedulingPattern("45 6,12 * * *");
+        sendForecastNotificationsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
         
         List<TaskCollector> definedTasks = new ArrayList<>();
         definedTasks.add(modelRunCollector);

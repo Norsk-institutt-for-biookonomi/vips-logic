@@ -75,9 +75,7 @@
 				<thead>
 					<th>${i18nBundle.name}</th>
 					<th>${i18nBundle.type}</th>
-					<#if user.isOrganizationAdmin() || user.isSuperUser() >
 					<th></th>
-					</#if>
 				</thead>
 				<tbody>
 				<#list pois?sort_by("name") as poi>
@@ -88,11 +86,9 @@
 					<td>
 						${i18nBundle["pointOfInterestType_" + poi.pointOfInterestTypeId]}
 					</td>
-					<#if user.isOrganizationAdmin() || user.isSuperUser() >
 					<td>
 						<a href="/poi?action=editPoiForm&pointOfInterestId=${poi.pointOfInterestId}" class="btn btn-default" role="button">${i18nBundle.edit}</a>
 					</td>
-					</#if>
 				    </tr>
 				</#list>
 				</tbody>

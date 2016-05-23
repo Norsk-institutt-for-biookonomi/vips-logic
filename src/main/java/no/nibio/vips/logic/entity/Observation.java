@@ -89,6 +89,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Boolean isQuantified;
     private Boolean broadcastMessage;
     
+    private String observationDataSchema;
+    
     private Set<ObservationIllustration> observationIllustrationSet;
     
     private GISUtil GISUtil;
@@ -400,6 +402,17 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setObservationData(String observationData) {
         this.observationData = observationData;
+    }
+    
+    @Transient
+    public String getObservationDataSchema()
+    {
+        return this.observationDataSchema != null ? this.observationDataSchema : "";
+    }
+    
+    public void setObservationDataSchema(String observationDataSchema)
+    {
+        this.observationDataSchema = observationDataSchema;
     }
 
     /**

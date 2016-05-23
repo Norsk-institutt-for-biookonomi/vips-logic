@@ -121,6 +121,14 @@
 			     </select>
 			     <span class="help-block" id="${formId}_countryCode_validation"></span>
 			  </div>
+                          <div class="form-group">
+                            <label for="organizationGroupIds">${i18nBundle.availableFor} ${i18nBundle.organizationGroupList?lower_case}</label>
+                            <select class="form-control chosen-select" name="organizationGroupIds" onblur="validateField(this);" multiple="multiple">
+                                <#list groups as group>
+                                        <option value="${group.organizationGroupId}" <#if poiGroupIds?seq_contains(group.organizationGroupId)> selected="selected"</#if>>${group.groupName}</option>
+                                </#list>
+                             </select>
+                        </div>
 			  <fieldset>
 			  <#if user.isSuperUser() || user.isOrganizationAdmin()>
 			<h3>${i18nBundle.externalResources}</h3>

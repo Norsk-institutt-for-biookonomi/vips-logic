@@ -30,6 +30,7 @@ import de.micromata.opengis.kml.v_2_2_0.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import javax.ejb.LocalBean;
@@ -50,6 +51,7 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.web.forms.FormField;
 
 
 /**
@@ -351,15 +353,75 @@ public class PointOfInterestBean {
                     .setParameter("organizationId", user.getOrganizationId())
                     .getResultList();
         }
-        // Regular users get all locations that they have created
+        // Regular users get all locations that they have created AND locations shared via groups
         else
         {
             retVal = em.createNamedQuery("PointOfInterest.findByUserId", PointOfInterest.class)
                     .setParameter("userId", user)
                     .getResultList();
+            
+            // Getting all group membership pois
+            try
+            {
+                retVal.addAll(em.createNativeQuery(
+                        "SELECT * FROM public.point_of_interest "
+                        + " WHERE point_of_interest_id IN ("
+                                + " SELECT point_of_interest_id FROM public.organization_group_poi "
+                                + " WHERE organization_group_id IN ("
+                                    + " SELECT organization_group_id FROM public.organization_group_user "
+                                    + " WHERE user_id=:userId"
+                                    + ")"
+                                + ")"
+                        + " AND user_id <> :userId", 
+                        PointOfInterest.class)
+                        .setParameter("userId", user.getUserId())
+                        .getResultList());
+            }
+            catch(NoResultException ex) {}
         }
         Collections.sort(retVal);
         return retVal;
+    }
+
+    public  List<Integer> getPoiGroupIds(PointOfInterest poi) {
+        if(poi.getPointOfInterestId() != null)
+        {
+            return em.createNativeQuery("SELECT organization_group_id FROM public.organization_group_poi "
+                    + "WHERE point_of_interest_id = :pointOfInterestId")
+                    .setParameter("pointOfInterestId", poi.getPointOfInterestId())
+                    .getResultList();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public void storePointOfInterestOrganizationGroupIds(PointOfInterest poi, String[] organizationGroupIds) {
+        // First delete all current group memberships
+        em.createNativeQuery("DELETE FROM public.organization_group_poi WHERE point_of_interest_id=:pointOfInterestId")
+                .setParameter("pointOfInterestId", poi.getPointOfInterestId())
+                .executeUpdate();
+        
+        if(organizationGroupIds != null)
+        {
+            Query q = em.createNativeQuery("INSERT INTO public.organization_group_poi (organization_group_id, point_of_interest_id) "
+                    + "VALUES(:organizationGroupId, :pointOfInterestId)")
+                    .setParameter("pointOfInterestId", poi.getPointOfInterestId());
+            // Then add
+            for(String groupIdStr:organizationGroupIds)
+            {
+                try {
+                    Integer groupId = Integer.valueOf(groupIdStr);
+                    q.setParameter("organizationGroupId", groupId);
+                    q.executeUpdate();
+                }
+                catch(NumberFormatException ex)
+                {
+                    // Continue
+                }
+            }
+        }
     }
 
     

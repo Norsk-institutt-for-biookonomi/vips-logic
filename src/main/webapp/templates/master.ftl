@@ -49,6 +49,7 @@
 		<ul class="dropdown-menu">
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() >
 			  <li><a href="/user">${i18nBundle.users}</a></li>
+                          <li><a href="/organizationgroup">${i18nBundle.organizationGroupList}</a></li>
 			  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
 			  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
 			  <li><a href="/organism">${i18nBundle.organisms}</a></li>

@@ -34,10 +34,13 @@
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
-	<p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+        <#if user.isSuperUser() || user.isOrganizationAdmin()>
+            <p><a href="/user" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+        </#if>
         <h1><#if viewUser.userId?has_content>${viewUser.firstName!""} ${viewUser.lastName}<#else>${i18nBundle.newUser}</#if></h1>
         <a href="/user?action=viewUser&userId=${viewUser.userId}" class="btn btn-default" role="button">${i18nBundle.userAccountInformation}</a>
         <button type="button" class="btn btn-primary">${i18nBundle.notificationSubscriptions}</button>
+        <a href="/organizationgroup?action=viewUserOrganizationGroups&userId=${viewUser.userId}" class="btn btn-default" role="button">${i18nBundle.organizationGroupList}</a>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
 	</div>

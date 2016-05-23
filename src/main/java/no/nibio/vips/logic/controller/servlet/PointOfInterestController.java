@@ -36,6 +36,7 @@ import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.OrganizationGroup;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResource;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResourcePK;
@@ -500,6 +501,9 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        request.getSession().setAttribute("groups", user.isSuperUser() || user.isOrganizationAdmin() ? SessionControllerGetter.getUserBean().getOrganizationGroups(user.getOrganizationId())
+                                :SessionControllerGetter.getUserBean().getOrganizationGroups(user));
+                        request.getSession().setAttribute("poiGroupIds", SessionControllerGetter.getPointOfInterestBean().getPoiGroupIds(poi));
                         // Finding all external resources where entry is missing
                         request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
                 
@@ -537,6 +541,9 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
+                        request.getSession().setAttribute("groups", user.isSuperUser() || user.isOrganizationAdmin() ? SessionControllerGetter.getUserBean().getOrganizationGroups(user.getOrganizationId())
+                                :SessionControllerGetter.getUserBean().getOrganizationGroups(user));
+                        request.getSession().setAttribute("poiGroupIds", SessionControllerGetter.getPointOfInterestBean().getPoiGroupIds(poi));
                         // Finding all external resources where entry is missing
                         request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
@@ -558,13 +565,10 @@ public class PointOfInterestController extends HttpServlet {
                 }
                 
             }
-            // Authorization: ORGANIZATION ADMIN or SUPERUSER
             else if(action.equals("poiFormSubmit"))
             {
-                
                     try
                     {
-                       
                         Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                         PointOfInterest poi = pointOfInterestId > 0 ? 
                                                                         em.find(PointOfInterest.class, pointOfInterestId) 
@@ -635,7 +639,9 @@ public class PointOfInterestController extends HttpServlet {
                                         }
                                     }
                                 }
-
+                                
+                                SessionControllerGetter.getPointOfInterestBean().storePointOfInterestOrganizationGroupIds(poi,formValidation.getFormField("organizationGroupIds").getWebValues());
+                                
                                 String returnIdCallback = request.getParameter("returnIdCallback");
 
                                 if(returnIdCallback != null && !returnIdCallback.isEmpty())

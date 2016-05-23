@@ -39,6 +39,7 @@ import no.nibio.vips.logic.entity.ObservationIllustration;
 import no.nibio.vips.logic.entity.ObservationIllustrationPK;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.observationdata.ObservationDataSchema;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
 
@@ -84,6 +85,7 @@ public class ObservationBean {
         if(retVal != null)
         {
             retVal.setGeoinfos(this.getGeoinfoForObservation(retVal));
+            //ObservationDataSchema schema = 
         }
         return retVal;
     }

@@ -65,6 +65,7 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.MapLayer;
 import no.nibio.vips.logic.entity.MessageLocale;
 import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.OrganizationGroup;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.UserAuthentication;
 import no.nibio.vips.logic.entity.UserAuthenticationPK;
@@ -711,5 +712,101 @@ public class UserBean {
         return em.createNamedQuery("Country.findByCountryCodes")
                 .setParameter("countryCodes",Arrays.asList(UserBean.USER_COUNTRY_CODES))
                 .getResultList();
+    }
+
+    public List<OrganizationGroup> getOrganizationGroups(Organization organization) {
+        try
+        {
+            return em.createNamedQuery("OrganizationGroup.findByOrganizationId")
+                    .setParameter("organizationId", organization.getOrganizationId())
+                    .getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return new ArrayList<>();
+        }
+    }
+    
+    public List<OrganizationGroup> getOrganizationGroups(VipsLogicUser user) {
+        try
+        {
+            return em.createNativeQuery(
+                    "SELECT * FROM public.organization_group WHERE organization_group_id IN ("
+                    + " SELECT organization_group_id FROM organization_group_user WHERE user_id = :userId)",OrganizationGroup.class)
+                    .setParameter("userId", user.getUserId())
+                    .getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public OrganizationGroup getOrganizationGroup(Integer organizationGroupId) {
+        return em.find(OrganizationGroup.class, organizationGroupId);
+    }
+
+    public List<Integer> getOrganizationGroupMemberIds(OrganizationGroup oGroup) {
+        if(oGroup.getOrganizationGroupId() != null)
+        {
+            return em.createNativeQuery("SELECT user_id FROM public.organization_group_user "
+                    + "WHERE organization_group_id = :organizationGroupId")
+                    .setParameter("organizationGroupId", oGroup.getOrganizationGroupId())
+                    .getResultList();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public OrganizationGroup storeOrganizationGroup(OrganizationGroup oGroup, String[] userIdsFromForm) {
+        if(oGroup.getOrganizationGroupId() != null && oGroup.getOrganizationGroupId() > 0)
+        {
+            oGroup = em.merge(oGroup);
+        }
+        else
+        {
+            em.persist(oGroup);
+            
+        }
+        // Delete all former and insert all current members
+        em.createNativeQuery("DELETE FROM public.organization_group_user WHERE organization_group_id = :organizationGroupId")
+                .setParameter("organizationGroupId", oGroup.getOrganizationGroupId())
+                .executeUpdate();
+        
+        Query q = em.createNativeQuery(
+                    "INSERT INTO public.organization_group_user(organization_group_id,user_id) "
+                    + "VALUES(:organizationGroupId, :userId)"
+                )
+                .setParameter("organizationGroupId", oGroup.getOrganizationGroupId());
+        
+        if(userIdsFromForm != null)
+        {
+            for(String userIdStr : userIdsFromForm)
+            {
+                q.setParameter("userId", Integer.valueOf(userIdStr));
+                q.executeUpdate();
+            }
+        }
+        return oGroup;
+    }
+
+    /**
+     * Removes group from VIPS. TODO: Take all relationships into account. E.g. places
+     * @param oGroup 
+     */
+    public void deleteOrganizationGroup(OrganizationGroup oGroup) {
+        // Delete all memberships
+        em.createNativeQuery("DELETE FROM public.organization_group_user WHERE organization_group_id = :organizationGroupId")
+                .setParameter("organizationGroupId", oGroup.getOrganizationGroupId())
+                .executeUpdate();
+        
+        em.remove(em.find(OrganizationGroup.class, oGroup.getOrganizationGroupId()));
+        
+    }
+
+    public VipsLogicUser getVipsLogicUser(Integer userId) {
+        return em.find(VipsLogicUser.class, userId);
     }
 }

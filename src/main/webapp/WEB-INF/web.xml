@@ -71,6 +71,10 @@
         <servlet-name>AppleFruitMothController</servlet-name>
         <servlet-class>no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>OrganizationGroupController</servlet-name>
+        <servlet-class>no.nibio.vips.logic.controller.servlet.OrganizationGroupController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -126,6 +130,10 @@
     <servlet-mapping>
         <servlet-name>AppleFruitMothController</servlet-name>
         <url-pattern>/applefruitmoth</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OrganizationGroupController</servlet-name>
+        <url-pattern>/organizationgroup</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

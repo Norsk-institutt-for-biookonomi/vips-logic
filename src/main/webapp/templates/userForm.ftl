@@ -35,6 +35,7 @@
         <#if viewUser.userId?has_content>
 		<button type="button" class="btn btn-primary">${i18nBundle.userAccountInformation}</button>
 		<a href="/user/notificationsubscription?userId=${viewUser.userId}" class="btn btn-default" role="button">${i18nBundle.notificationSubscriptions}</a>
+                <a href="/organizationgroup?action=viewUserOrganizationGroups&userId=${viewUser.userId}" class="btn btn-default" role="button">${i18nBundle.organizationGroupList}</a>
         </#if>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>

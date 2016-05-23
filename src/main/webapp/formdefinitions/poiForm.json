@@ -63,6 +63,12 @@
             "required" : true
         },
         {
+            "name" : "organizationGroupIds",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_MULTIPLE",
+            "required" : false
+        },
+        {
             "name" : "userId",
             "dataType" : "INTEGER",
             "required" : false
