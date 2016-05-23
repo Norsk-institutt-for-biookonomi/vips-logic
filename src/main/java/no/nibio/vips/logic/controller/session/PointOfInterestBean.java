@@ -363,8 +363,11 @@ public class PointOfInterestBean {
             // Getting all group membership pois
             try
             {
-                retVal.addAll(em.createNativeQuery(
-                        "SELECT * FROM public.point_of_interest "
+                // Need to do this in two steps because Hibernate struggles
+                // with mapping to subclasses like PointOfInterestWeatherStation when
+                // using native query
+                List<Integer> memberPoiIds = em.createNativeQuery(
+                        "SELECT point_of_interest_id FROM public.point_of_interest "
                         + " WHERE point_of_interest_id IN ("
                                 + " SELECT point_of_interest_id FROM public.organization_group_poi "
                                 + " WHERE organization_group_id IN ("
@@ -372,10 +375,15 @@ public class PointOfInterestBean {
                                     + " WHERE user_id=:userId"
                                     + ")"
                                 + ")"
-                        + " AND user_id <> :userId", 
-                        PointOfInterest.class)
+                        + " AND user_id <> :userId"
+                        )
                         .setParameter("userId", user.getUserId())
-                        .getResultList());
+                        .getResultList();
+                
+                retVal.addAll(em.createNamedQuery("PointOfInterest.findByPointOfInterestIds")
+                        .setParameter("pointOfInterestIds", memberPoiIds)
+                        .getResultList()
+                );
             }
             catch(NoResultException ex) {}
         }
