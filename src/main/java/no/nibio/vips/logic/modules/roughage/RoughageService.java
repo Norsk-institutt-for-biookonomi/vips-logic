@@ -376,44 +376,47 @@ public class RoughageService {
             // Definere normalparametre
             // Hente normaldata
             try {
-                    weatherStation = em.find(PointOfInterestWeatherStation.class, normalDataWeatherStationId);
-                    observations = wsdUtil.getWeatherObservations(
-                        weatherStation,
-                        WeatherObservation.LOG_INTERVAL_ID_1D,
-                        new String[]{
-                            WeatherElements.getNormalDataParameter(WeatherElements.TEMPERATURE_MEAN),
-                            WeatherElements.getNormalDataParameter(WeatherElements.PRECIPITATION),
-                            WeatherElements.getNormalDataParameter(WeatherElements.GLOBAL_RADIATION),
-                            WeatherElements.getNormalDataParameter(WeatherElements.SOIL_TEMPERATURE_10CM_MEAN),
-                            WeatherElements.getNormalDataParameter(WeatherElements.POTENTIAL_EVAPORATION)
-                        },
-                        aprilFirst, 
-                        dateOfLastWeatherData
-                    );
-                    
-                    // Add waterings to normal data precipitation?
-                    if(
-                            wateringAffectsNormalData != null && wateringAffectsNormalData.equals("true")
-                            && wateringMap != null
-                    )
-                    {
-                        for(WeatherObservation obs:observations)
-                        {
-                            if(
-                                    obs.getElementMeasurementTypeId().equals("RR")
-                                    && wateringMap.containsKey(obs.getTimeMeasured())
-                            )
-                            {
-                                //System.out.println("Old: " + obs.getValue() + ", new: " + (obs.getValue() + wateringMap.get(obs.getTimeMeasured())));
-                                obs.setValue(obs.getValue() + wateringMap.get(obs.getTimeMeasured()));
-                            }
-                        }
-                    }
-                    /*System.out.println("Antall normaldata: " + observations.size());
+                // Last date to fetch data 
+                Date latestObsDate = wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured();
+                weatherStation = em.find(PointOfInterestWeatherStation.class, normalDataWeatherStationId);
+                observations = wsdUtil.getWeatherObservations(
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1D,
+                    new String[]{
+                        WeatherElements.getNormalDataParameter(WeatherElements.TEMPERATURE_MEAN),
+                        WeatherElements.getNormalDataParameter(WeatherElements.PRECIPITATION),
+                        WeatherElements.getNormalDataParameter(WeatherElements.GLOBAL_RADIATION),
+                        WeatherElements.getNormalDataParameter(WeatherElements.SOIL_TEMPERATURE_10CM_MEAN),
+                        WeatherElements.getNormalDataParameter(WeatherElements.POTENTIAL_EVAPORATION)
+                    },
+                    aprilFirst, 
+                    //dateOfLastWeatherData
+                    latestObsDate
+                );
+
+                // Add waterings to normal data precipitation?
+                if(
+                        wateringAffectsNormalData != null && wateringAffectsNormalData.equals("true")
+                        && wateringMap != null
+                )
+                {
                     for(WeatherObservation obs:observations)
                     {
-                        System.out.println(obs.toString());
-                    }*/
+                        if(
+                                obs.getElementMeasurementTypeId().equals("RR")
+                                && wateringMap.containsKey(obs.getTimeMeasured())
+                        )
+                        {
+                            //System.out.println("Old: " + obs.getValue() + ", new: " + (obs.getValue() + wateringMap.get(obs.getTimeMeasured())));
+                            obs.setValue(obs.getValue() + wateringMap.get(obs.getTimeMeasured()));
+                        }
+                    }
+                }
+                /*System.out.println("Antall normaldata: " + observations.size());
+                for(WeatherObservation obs:observations)
+                {
+                    System.out.println(obs.toString());
+                }*/
             } catch (WeatherDataSourceException ex) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
             }
