@@ -60,7 +60,7 @@
 		    <select class="form-control" name="preferredLocale" onblur="validateField(this);">
 		    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.preferredLocale?lower_case}</option>
 			<#list availableLocales?sort_by("displayLanguage") as locale>
-				<option value="${locale.language}"<#if defaultLocale?has_content && defaultLocale == locale.language> selected="selected"</#if>>${locale.getDisplayLanguage(currentLocale)}</option>
+				<option value="${locale.language}"<#if (defaultLocale?has_content && defaultLocale == locale.language) || (!defaultLocale?has_content && locale.language=="nb")> selected="selected"</#if>>${locale.getDisplayLanguage(currentLocale)}</option>
 			</#list>
 		     </select>
 		     <span class="help-block" id="${formId}_preferredLocale_validation"></span>
