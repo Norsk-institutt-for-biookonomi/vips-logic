@@ -22,6 +22,8 @@ package no.nibio.vips.logic.controller.session;
 import com.ibm.icu.util.ULocale;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -341,5 +343,18 @@ public class OrganismBean {
                 .setParameter("latinName", latinName)
                 .getSingleResult();
         return organism;
+    }
+    
+    public List<Organism> sortOrganismsByLocalName(List<Organism> organisms, final String locale)
+    {
+        Collections.sort(organisms, new Comparator<Organism>() {
+                @Override
+                public int compare(Organism org1, Organism org2)
+                {
+                    return org1.getLocalName(locale).compareTo(org2.getLocalName(locale));
+                }
+            }
+        );
+        return organisms;
     }
 }

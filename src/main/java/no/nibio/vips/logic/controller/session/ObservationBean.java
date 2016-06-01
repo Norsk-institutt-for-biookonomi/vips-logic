@@ -85,6 +85,7 @@ public class ObservationBean {
         if(retVal != null)
         {
             retVal.setGeoinfos(this.getGeoinfoForObservation(retVal));
+            retVal.setUser(em.find(VipsLogicUser.class, retVal.getUserId()));
             //ObservationDataSchema schema = 
         }
         return retVal;

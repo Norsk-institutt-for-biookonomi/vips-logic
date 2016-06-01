@@ -48,7 +48,7 @@
 		    	<td>${observation.organism.latinName!""}/${observation.organism.getLocalName(currentLocale.language)!""}</td>
 		    	<td>${observation.observationHeading}</td>
 		    	<td><#switch observation.statusTypeId><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></td>
-		    	<td><#if userHasObserverPrivilege><a href="/observation?action=editObservationForm&observationId=${observation.observationId}" class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
+		    	<td><#if userIsObservationAuthority || observation.userId == user.userId><a href="/observation?action=editObservationForm&observationId=${observation.observationId}" class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
 		    </tr>
 		</#list>
 		</tbody>

@@ -60,9 +60,7 @@
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isMessageAuthor()>
 		  	<li><a href="/message">${i18nBundle.messages}</a></li>
 		  </#if>
-		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isObservationAuthority()>
-		  	<li><a href="/observation">${i18nBundle.observations}</a></li>
-		  </#if>
+		  <li><a href="/observation">${i18nBundle.observations}</a></li>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator()>
 		  	<li><a href="/applefruitmoth">${i18nBundle.appleFruitMoth}</a></li>

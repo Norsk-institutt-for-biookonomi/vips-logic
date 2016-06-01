@@ -89,6 +89,9 @@
 			});
 			
 			refreshLocationPointOfInterests(<#if observation.locationPointOfInterestId?has_content>${observation.locationPointOfInterestId}<#else>null</#if>);
+                        <#if ! observation.organism?has_content>
+                        initCropCategories();
+                        </#if>
 		});
 		
 		// Adding selected file name to a box
@@ -286,6 +289,79 @@
 				return true;
 			}
 		}
+                
+                var cropCategories = [];
+                function initCropCategories(){
+                    $.getJSON("/rest/organism/cropcategory/${user.organizationId.organizationId}" , function( json ) {
+                                cropCategories = json;
+                                renderCropCategories();
+                            }
+                    );
+                }
+                    
+                function renderCropCategories() {
+                    var cropCategoryIdList = document.getElementById("cropCategoryIdList");
+                    for(var i in cropCategories)
+                    {
+                        var cropCategory = cropCategories[i];
+                        // Best effort getting name for crop category
+                        var catName = cropCategory.defaultName;
+                        for(var j in cropCategory.cropCategoryLocalSet)
+                        {
+                            var cLocal = cropCategory.cropCategoryLocalSet[j];
+                            if(cLocal.cropCategoryLocalPK.locale == "${currentLocale}")
+                            {
+                                catName = cLocal.localName;
+                            }
+                        }
+                        var cOption = new Option(catName,cropCategory.cropCategoryId);
+                        cropCategoryIdList.options[cropCategoryIdList.options.length] = cOption;
+                    }
+                }
+                    
+                function filterCrops(selectedCropCategoryId)
+                {
+                    // Searching for selected crop category
+                    for(var i in cropCategories)
+                    {
+                        var cropCategory = cropCategories[i];
+                        if(cropCategory.cropCategoryId == parseInt(selectedCropCategoryId))
+                        {
+                            // Filter based on match
+                            var matchingCropOrganismOptions = [];
+                            var theRest = [];
+                            var cropOrganismIdList = document.getElementById("cropOrganismIdList");
+                            for(var j=0;j<cropOrganismIdList.length;j++)
+                            {
+                                var cropOption = cropOrganismIdList.options[j];
+                                if(cropCategory.cropOrganismIds.indexOf(parseInt(cropOption.value)) >= 0)
+                                {
+                                    matchingCropOrganismOptions.push(cropOption);
+                                }
+                                else if(parseInt(cropOption.value) > 0)
+                                {
+                                    theRest.push(cropOption);
+                                }
+                            }
+                            renderCropList(matchingCropOrganismOptions, theRest);
+                        }
+                    }
+                }
+                    
+                function renderCropList(matchingCropOrganismOptions, theRest)
+                {
+                    var cropOrganismIdList = document.getElementById("cropOrganismIdList");
+                    cropOrganismIdList.options.length = 1;
+                    for(var i in matchingCropOrganismOptions)
+                    {
+                        cropOrganismIdList.options[cropOrganismIdList.options.length] = matchingCropOrganismOptions[i];
+                    }
+                    cropOrganismIdList.options[cropOrganismIdList.options.length] = new Option("----",-1);
+                    for(var i in theRest)
+                    {
+                        cropOrganismIdList.options[cropOrganismIdList.options.length] = theRest[i];
+                    }
+                }
 	</script>
 </#macro>
 <#macro page_contents>
@@ -308,20 +384,28 @@
 			  <input type="hidden" name="observationData" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');console.log(theForm['geoInfo']);console.log(theForm['observationData']);theForm['geoInfo'].value=getFeatures();mw.save();console.log(theForm['observationData']);theForm['observationData'].value=JSON.stringify(mw.toInspect);validateForm(theForm);">Test</button-->
-			  
+			  <#if ! observation.organism?has_content>
+                          <div class="form-group">
+			    <label for="cropCategoryId">${i18nBundle.filterByCropCategory}</label>
+			    <select class="form-control" id="cropCategoryIdList" name="cropCategoryId" onchange="filterCrops(this.options[this.options.selectedIndex].value);">
+                                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
+                                <!-- Options added by JavaScript function renderCropCategories() -->
+			    </select>
+                            </div>
+                          </#if>
 			   <div class="form-group">
 			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-			    <select class="form-control" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
+			    <select class="form-control" id="cropOrganismIdList" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
 				<#if ! observation.organism?has_content>
 					<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 					<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-					<#list allCrops?sort_by("latinName") as cropOrganism>
+					<#list allCrops as cropOrganism>
 						<option value="${cropOrganism.organismId}"
 							<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
 						>${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
 					</#list>
 				<#else>
-					<#list allCrops?sort_by("latinName") as cropOrganism>
+					<#list allCrops as cropOrganism>
 						<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>
 							<option value="${cropOrganism.organismId}" selected="selected">${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
 						</#if>
@@ -336,13 +420,13 @@
 			    	<#if ! observation.organism?has_content>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
 				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-				<#list allPests?sort_by("latinName") as organism>
+				<#list allPests as organism>
 					<option value="${organism.organismId}"
 						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
 					>${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
 				</#list>
 				<#else>
-					<#list allPests?sort_by("latinName") as organism>
+					<#list allPests as organism>
 						<#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>
 							<option value="${organism.organismId}" selected="selected">${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
 						</#if>

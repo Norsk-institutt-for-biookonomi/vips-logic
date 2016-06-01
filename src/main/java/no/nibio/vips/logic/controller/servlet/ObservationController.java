@@ -21,6 +21,7 @@ package no.nibio.vips.logic.controller.servlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -30,6 +31,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationMethod;
 import no.nibio.vips.logic.entity.Organism;
@@ -88,9 +90,12 @@ public class ObservationController extends HttpServlet {
             {
                 observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId(), statusTypeId);
             }
+            Collections.sort(observations);
+            Collections.reverse(observations);
             request.setAttribute("selectedStatusTypeId", statusTypeId);
             request.setAttribute("observations", observations);
             request.setAttribute("userHasObserverPrivilege", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
+            request.setAttribute("userIsObservationAuthority", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
             // If this is a redirect from a controller, with a message to be passed on
             request.setAttribute("messageKey", request.getParameter("messageKey"));
             request.getRequestDispatcher("/observationList.ftl").forward(request, response);
@@ -99,7 +104,7 @@ public class ObservationController extends HttpServlet {
         // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
         else if(action.equals("newObservationForm"))
         {
-            if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
             {
                 try
                 {
@@ -110,9 +115,9 @@ public class ObservationController extends HttpServlet {
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     request.setAttribute("locationPointOfInterests", SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user));
                     List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
-                    request.setAttribute("allPests", allPests);
+                    request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                     List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
-                    request.setAttribute("allCrops", allCrops);
+                    request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
@@ -148,9 +153,9 @@ public class ObservationController extends HttpServlet {
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
-                    request.setAttribute("allPests", allPests);
+                    request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                     List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
-                    request.setAttribute("allCrops", allCrops);
+                    request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());

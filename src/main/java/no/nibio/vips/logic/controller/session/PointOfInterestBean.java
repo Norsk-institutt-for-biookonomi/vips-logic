@@ -379,11 +379,13 @@ public class PointOfInterestBean {
                         )
                         .setParameter("userId", user.getUserId())
                         .getResultList();
-                
-                retVal.addAll(em.createNamedQuery("PointOfInterest.findByPointOfInterestIds")
-                        .setParameter("pointOfInterestIds", memberPoiIds)
-                        .getResultList()
-                );
+                if(memberPoiIds != null && memberPoiIds.size() > 0)
+                {
+                    retVal.addAll(em.createNamedQuery("PointOfInterest.findByPointOfInterestIds")
+                            .setParameter("pointOfInterestIds", memberPoiIds)
+                            .getResultList()
+                    );
+                }
             }
             catch(NoResultException ex) {}
         }

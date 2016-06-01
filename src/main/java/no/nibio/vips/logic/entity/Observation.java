@@ -91,6 +91,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     
     private String observationDataSchema;
     
+    private VipsLogicUser user; // Transient
+    
     private Set<ObservationIllustration> observationIllustrationSet;
     
     private GISUtil GISUtil;
@@ -499,6 +501,21 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     @Override
     public int compareTo(Object t) {
         return this.getTimeOfObservation().compareTo(((no.nibio.vips.observation.Observation)t).getTimeOfObservation());
+    }
+
+    /**
+     * @return the user
+     */
+    @Transient
+    public VipsLogicUser getUser() {
+        return user;
+    }
+
+    /**
+     * @param user the user to set
+     */
+    public void setUser(VipsLogicUser user) {
+        this.user = user;
     }
 
 }
