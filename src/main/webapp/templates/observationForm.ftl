@@ -395,8 +395,8 @@
                           </#if>
 			   <div class="form-group">
 			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-			    <select class="form-control" id="cropOrganismIdList" name="cropOrganismId" <#if observation.organism?has_content>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
-				<#if ! observation.organism?has_content>
+			    <select class="form-control" id="cropOrganismIdList" name="cropOrganismId" <#if observation.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
+				<#if ! observation.organism?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
 					<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 					<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
 					<#list allCrops as cropOrganism>
@@ -416,8 +416,8 @@
 			  </div>
 			  <div class="form-group">
 			    <label for="organismId">${i18nBundle.organism}</label>
-			    <select class="form-control" name="organismId" <#if observation.organism?has_content>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
-			    	<#if ! observation.organism?has_content>
+			    <select class="form-control" name="organismId" <#if observation.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
+			    	<#if ! observation.organism?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
 				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
 				<#list allPests as organism>

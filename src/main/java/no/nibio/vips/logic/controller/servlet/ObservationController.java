@@ -220,7 +220,7 @@ public class ObservationController extends HttpServlet {
                     {
                         // Storing observation
                         // Only new observations can set the organism
-                        if(observationId <= 0)
+                        if(observationId <= 0 || user.isSuperUser() || user.isOrganizationAdmin())
                         {
                             observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
                             observation.setCropOrganism(em.find(Organism.class, formValidation.getFormField("cropOrganismId").getValueAsInteger()));
