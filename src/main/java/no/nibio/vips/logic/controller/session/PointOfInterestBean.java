@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.Set;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -432,6 +433,12 @@ public class PointOfInterestBean {
                 }
             }
         }
+    }
+
+    public List<PointOfInterest> getPois(Set<Integer> locationPointOfInterestIds) {
+        return em.createNamedQuery("PointOfInterest.findByPointOfInterestIds")
+                .setParameter("pointOfInterestIds", locationPointOfInterestIds)
+                .getResultList();
     }
 
     

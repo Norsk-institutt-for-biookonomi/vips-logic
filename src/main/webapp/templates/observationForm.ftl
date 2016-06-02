@@ -386,7 +386,7 @@
 			  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');console.log(theForm['geoInfo']);console.log(theForm['observationData']);theForm['geoInfo'].value=getFeatures();mw.save();console.log(theForm['observationData']);theForm['observationData'].value=JSON.stringify(mw.toInspect);validateForm(theForm);">Test</button-->
 			  <#if ! observation.organism?has_content>
                           <div class="form-group">
-			    <label for="cropCategoryId">${i18nBundle.filterByCropCategory}</label>
+			    <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
 			    <select class="form-control" id="cropCategoryIdList" name="cropCategoryId" onchange="filterCrops(this.options[this.options.selectedIndex].value);">
                                 <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
                                 <!-- Options added by JavaScript function renderCropCategories() -->

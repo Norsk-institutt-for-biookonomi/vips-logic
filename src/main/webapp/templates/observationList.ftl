@@ -37,7 +37,10 @@
 		<thead>
 			<th>${i18nBundle.timeOfObservation}</th>
 			<th>${i18nBundle.organism}</th>
-			<th>${i18nBundle.heading}</th>
+                        <th>${i18nBundle.cropOrganismId}</th>
+                        <th>${i18nBundle.location}</th>
+                        <th>${i18nBundle.observer}</th>
+                        <th>${i18nBundle.heading}</th>
 			<th>${i18nBundle.status}</th>
 			<th></th>
 		</thead>
@@ -46,7 +49,10 @@
 		    <tr>
 		    	<td>${observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ")}</td>
 		    	<td>${observation.organism.latinName!""}/${observation.organism.getLocalName(currentLocale.language)!""}</td>
-		    	<td>${observation.observationHeading}</td>
+                        <td>${observation.cropOrganism.latinName!""}/${observation.cropOrganism.getLocalName(currentLocale.language)!""}</td>
+		    	<td><#if observation.location?has_content>${observation.location.name!""}</#if></td>
+                        <td><#if observation.user?has_content>${observation.user.firstName!""} ${observation.user.lastName!""}</#if></td>
+                        <td>${observation.observationHeading}</td>
 		    	<td><#switch observation.statusTypeId><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></td>
 		    	<td><#if userIsObservationAuthority || observation.userId == user.userId><a href="/observation?action=editObservationForm&observationId=${observation.observationId}" class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
 		    </tr>

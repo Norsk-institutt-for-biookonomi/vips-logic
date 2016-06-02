@@ -23,8 +23,10 @@ import com.vividsolutions.jts.geom.Geometry;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -38,7 +40,9 @@ import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationIllustration;
 import no.nibio.vips.logic.entity.ObservationIllustrationPK;
 import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
@@ -54,14 +58,16 @@ public class ObservationBean {
     
     public List<Observation> getObservations(Integer organizationId)
     {
-        Organization organization= em.find(Organization.class, organizationId);
-        List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
-                                        .setParameter("organizationId", organization)
-                                        .getResultList();
+        Organization organization = em.find(Organization.class,organizationId);
+        List<Observation> observations = em.createNamedQuery("Observation.findByOrganizationId")
+                .setParameter("organizationId", organization)
+                .getResultList();
         
-        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findAll").getResultList());
+        observations = this.getObservationsWithGeoInfo(observations);
+        observations = this.getObservationsWithLocations(observations);
+        observations = getObservationsWithObservers(observations);
         
-        return retVal;
+        return observations;
     }
     
     public List<Observation> getObservations(Integer organizationId, Integer statusTypeId)
@@ -285,5 +291,55 @@ public class ObservationBean {
                 .setParameter("startDateGrowth", startDateGrowth)
                 .setParameter("endDateCalculation", endDateCalculation)
                 .getResultList();
+    }
+
+    private List<Observation> getObservationsWithLocations(List<Observation> observations) {
+         Set<Integer> locationPointOfInterestIds = new HashSet<>();
+         for(Observation o:observations)
+         {
+             if(o.getLocationPointOfInterestId() != null)
+             {
+                 locationPointOfInterestIds.add(o.getLocationPointOfInterestId());
+             }
+         }
+         List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPois(locationPointOfInterestIds);
+         Map<Integer, PointOfInterest> mappedPois = new HashMap<>();
+         for(PointOfInterest poi:pois)
+         {
+             mappedPois.put(poi.getPointOfInterestId(), poi);
+         }
+         for(Observation o:observations)
+         {
+             if(o.getLocationPointOfInterestId() != null)
+             {
+                 o.setLocation(mappedPois.get(o.getLocationPointOfInterestId()));
+             }
+         }
+         return observations;
+    }
+
+    private List<Observation> getObservationsWithObservers(List<Observation> observations) {
+        Set<Integer> userIds = new HashSet<>();
+         for(Observation o:observations)
+         {
+             if(o.getUserId() != null)
+             {
+                 userIds.add(o.getUserId());
+             }
+         }
+         List<VipsLogicUser> users = SessionControllerGetter.getUserBean().getUsers(userIds);
+         Map<Integer, VipsLogicUser> mappedUsers = new HashMap<>();
+         for(VipsLogicUser user:users)
+         {
+             mappedUsers.put(user.getUserId(), user);
+         }
+         for(Observation o:observations)
+         {
+             if(o.getUserId() != null)
+             {
+                 o.setUser(mappedUsers.get(o.getUserId()));
+             }
+         }
+         return observations;
     }
 }

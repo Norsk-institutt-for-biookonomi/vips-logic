@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -808,5 +809,11 @@ public class UserBean {
 
     public VipsLogicUser getVipsLogicUser(Integer userId) {
         return em.find(VipsLogicUser.class, userId);
+    }
+
+    public List<VipsLogicUser> getUsers(Set<Integer> userIds) {
+        return em.createNamedQuery("VipsLogicUser.findByUserIds")
+                .setParameter("userIds", userIds)
+                .getResultList();
     }
 }

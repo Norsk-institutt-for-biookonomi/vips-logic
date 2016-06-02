@@ -61,6 +61,7 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "Observation.findAll", query = "SELECT o FROM Observation o"),
     @NamedQuery(name = "Observation.findByObservationId", query = "SELECT o FROM Observation o WHERE o.observationId = :observationId"),
     @NamedQuery(name = "Observation.findByUserId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId)"),
+    @NamedQuery(name = "Observation.findByOrganizationId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
     @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId"),
     @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
     @NamedQuery(name = "Observation.findByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism"),
@@ -92,6 +93,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private String observationDataSchema;
     
     private VipsLogicUser user; // Transient
+    private PointOfInterest location; // Transient
     
     private Set<ObservationIllustration> observationIllustrationSet;
     
@@ -516,6 +518,21 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setUser(VipsLogicUser user) {
         this.user = user;
+    }
+
+    /**
+     * @return the location
+     */
+    @Transient
+    public PointOfInterest getLocation() {
+        return location;
+    }
+
+    /**
+     * @param location the location to set
+     */
+    public void setLocation(PointOfInterest location) {
+        this.location = location;
     }
 
 }
