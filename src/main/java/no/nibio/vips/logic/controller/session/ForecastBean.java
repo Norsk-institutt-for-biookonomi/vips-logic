@@ -565,7 +565,7 @@ public class ForecastBean {
                 }
                 //System.out.println("VIPSCoreUserId = " + VIPSCoreUserId + ", name=" + forecastConfiguration.getVipsLogicUserId().getLastName());
                 request.setVipsCoreUserId(VIPSCoreUserId);
-                //System.out.println("RunModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
+                //System.out.println("RunModel for wsId " + forecastConfiguration.getWeatherStationPointOfInterestId());
                 //System.out.println(config.toJSON());
                 /* DEBUG STUFF */
                 /*ObjectMapper mapper = new ObjectMapper();
