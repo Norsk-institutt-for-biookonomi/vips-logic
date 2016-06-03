@@ -86,6 +86,7 @@ public class WeatherDataSourceUtil {
                         continue;
                     }
                     Collections.sort(paramObs);
+                    //System.out.println("elementMeasurementType " + elementMeasurementType + " first date = " + paramObs.get(0).getTimeMeasured());
                     latestCommonDate = latestCommonDate == null ? paramObs.get(paramObs.size() - 1).getTimeMeasured() : new Date(Math.min(latestCommonDate.getTime(), paramObs.get(paramObs.size() - 1).getTimeMeasured().getTime()));
                 }
                 Integer previousObsSize = null;

@@ -30,6 +30,8 @@ import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.util.WeatherElements;
+import no.nibio.vips.util.WeatherObservationListException;
+import no.nibio.vips.util.WeatherUtil;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
@@ -45,13 +47,14 @@ public class NegativePrognosisModelPreprocessor extends ModelRunPreprocessor{
         TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
         
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
+        WeatherUtil wUtil = new WeatherUtil();
             
         List<WeatherObservation> observations;
             
    
         try {
             observations = wdsUtil.getWeatherObservations(
-                    weatherStation.getDataFetchUri(),
+                    weatherStation,
                     WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
                         WeatherElements.TEMPERATURE_MEAN,
@@ -59,12 +62,12 @@ public class NegativePrognosisModelPreprocessor extends ModelRunPreprocessor{
                         WeatherElements.RELATIVE_HUMIDITY_MEAN
                     },
                     configuration.getDateStartInTimeZone(),
-                    configuration.getDateEndInTimeZone(),
-                    timeZone);
-        } catch (WeatherDataSourceException ex) {
+                    configuration.getDateEndInTimeZone());
+            observations = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(observations);
+        } catch (WeatherDataSourceException | WeatherObservationListException ex) {
             throw new PreprocessorException(ex.getMessage());
         }
-            
+        
         ModelConfiguration retVal = new ModelConfiguration();
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", weatherStation.getTimeZone());

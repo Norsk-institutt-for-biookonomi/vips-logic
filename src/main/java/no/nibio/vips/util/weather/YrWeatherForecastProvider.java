@@ -152,6 +152,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
         }
         catch(IOException | ParserConfigurationException | SAXException | ParseException ex)
         {
+            ex.printStackTrace();
             throw new ParseWeatherDataException(ex.getClass().getName() + ": " + ex.getMessage());
         }
         return this.createHourlyDataFromYr(yrValues);
