@@ -57,7 +57,7 @@ public class CydiaPomonellaModelPreprocessor extends ModelRunPreprocessor{
         }
         catch(ParseException ex)
         {
-            
+            throw new PreprocessorException(ex.getMessage());
         }
         
         // This season is either deduced from the date of catch or from current system time
