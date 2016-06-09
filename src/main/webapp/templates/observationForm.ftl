@@ -44,14 +44,14 @@
 		$(document).ready(function() {
 			// Make sure that there is a datetime picker present for HTML5 
 			// date input fields
-			if (!Modernizr.inputtypes.datetime) {
-			    $('input[type=datetime]').datetimepicker({
-					lang:"no",
-					dayOfWeekStart: 1,
-					format: "Y-m-d G:iO",
-					step: 30
-				});
-			}
+			
+                        $('#timeOfObservation').datetimepicker({
+                                    lang:"no",
+                                    dayOfWeekStart: 1,
+                                    format: "Y-m-d H:iO",
+                                    step: 30
+                            });
+			
 			// Load main form definition (for validation)
 			loadFormDefinition("observationForm");
 			
@@ -443,9 +443,10 @@
 			     </select>
 			     <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 			  </div>
+                          <#setting time_zone=user.organizationId.defaultTimeZone!"UTC">
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
-			    <input type="datetime" class="form-control" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
+			    <input type="text" class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
 			    <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
 			  </div>
 			  

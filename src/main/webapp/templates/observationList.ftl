@@ -15,6 +15,7 @@
   You should have received a copy of the NIBIO Open Source License
   along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
 --><#include "master.ftl">
+<#setting time_zone=user.organizationId.defaultTimeZone!"UTC">
 <#macro page_head>
         <title>${i18nBundle.observations}</title>
 </#macro>
