@@ -400,9 +400,11 @@
 					<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 					<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
 					<#list allCrops as cropOrganism>
+                                                <#if cropOrganism.hierarchyCategoryId <= 120>
 						<option value="${cropOrganism.organismId}"
 							<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
 						>${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
+                                                </#if>
 					</#list>
 				<#else>
 					<#list allCrops as cropOrganism>

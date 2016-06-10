@@ -389,6 +389,8 @@ public class PointOfInterestBean {
                 }
             }
             catch(NoResultException ex) {}
+            // Getting all weather stations for user's organization
+            retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE));
         }
         Collections.sort(retVal);
         return retVal;

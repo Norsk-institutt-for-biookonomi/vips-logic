@@ -274,22 +274,25 @@ public class ObservationBean {
      * Fetch observations of a particular organism at a particular place and period
      * @param organismId
      * @param pointOfInterestId
-     * @param startDateGrowth
-     * @param endDateCalculation
+     * @param startDate
+     * @param endDate
      * @return 
      */
-    public List<no.nibio.vips.observation.Observation> getObservations(Integer organismId, Integer pointOfInterestId, Date startDateGrowth, Date endDateCalculation) {
+    public List<no.nibio.vips.observation.Observation> getObservations(Integer organismId, Integer pointOfInterestId, Date startDate, Date endDate) {
+        System.out.println("organismId = " + organismId);
+        System.out.println("pointOfInterestId = " + pointOfInterestId);
+        System.out.println("period= " + startDate + "-" + endDate);
         return em.createNativeQuery(
                 "SELECT * FROM public.observation "
                 + "WHERE organism_id = :organismId "
                 + "AND location_point_of_interest_id = :locationPointOfInterestId "
-                + "AND time_of_observation BETWEEN :startDateGrowth AND :endDateCalculation"
+                + "AND time_of_observation BETWEEN :startDate AND :endDate"
                 ,Observation.class
         )
                 .setParameter("organismId", organismId)
                 .setParameter("locationPointOfInterestId",pointOfInterestId)
-                .setParameter("startDateGrowth", startDateGrowth)
-                .setParameter("endDateCalculation", endDateCalculation)
+                .setParameter("startDate", startDate)
+                .setParameter("endDate", endDate)
                 .getResultList();
     }
 
