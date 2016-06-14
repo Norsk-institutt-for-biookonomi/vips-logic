@@ -279,9 +279,9 @@ public class ObservationBean {
      * @return 
      */
     public List<no.nibio.vips.observation.Observation> getObservations(Integer organismId, Integer pointOfInterestId, Date startDate, Date endDate) {
-        System.out.println("organismId = " + organismId);
+        /*System.out.println("organismId = " + organismId);
         System.out.println("pointOfInterestId = " + pointOfInterestId);
-        System.out.println("period= " + startDate + "-" + endDate);
+        System.out.println("period= " + startDate + "-" + endDate);*/
         return em.createNativeQuery(
                 "SELECT * FROM public.observation "
                 + "WHERE organism_id = :organismId "
