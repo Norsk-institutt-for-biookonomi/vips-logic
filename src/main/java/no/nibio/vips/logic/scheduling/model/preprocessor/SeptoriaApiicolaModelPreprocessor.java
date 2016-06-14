@@ -19,8 +19,13 @@
 
 package no.nibio.vips.logic.scheduling.model.preprocessor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -31,6 +36,7 @@ import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.model.ConfigValidationException;
 import no.nibio.vips.observation.Observation;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherObservationListException;
@@ -67,12 +73,28 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
                     weatherStation,
                     WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
-                        WeatherElements.LEAF_WETNESS
+                        WeatherElements.LEAF_WETNESS,
+                        WeatherElements.TEMPERATURE_MEAN,
+                        WeatherElements.PRECIPITATION,
+                        WeatherElements.RELATIVE_HUMIDITY_MEAN
                     },
                     configuration.getDateStartInTimeZone(),
                     configuration.getDateEndInTimeZone());
             observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
-        } catch (WeatherDataSourceException | WeatherObservationListException ex) {
+            List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS)));
+            List<WeatherObservation> TM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.TEMPERATURE_MEAN)));
+            List<WeatherObservation> RR = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.PRECIPITATION)));
+            List<WeatherObservation> UM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.RELATIVE_HUMIDITY_MEAN)));
+            if(BT.size() != TM.size())
+            {
+                BT = wUtil.calculateLeafWetnessHourSeriesSimple(TM, RR, UM);
+            }
+            observations = new ArrayList<>();
+            observations.addAll(BT);
+            observations.addAll(TM);
+            observations.addAll(RR);
+            observations.addAll(UM);
+        } catch (WeatherDataSourceException | WeatherObservationListException | ConfigValidationException ex ) {
             throw new PreprocessorException(ex.getMessage());
         }
         
