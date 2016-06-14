@@ -744,15 +744,25 @@ public class ForecastBean {
      */
     public void updateForecastResultCacheTable()
     {
-        String dateFormat = "yyyy-MM-dd";
-        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+        // Because we might be in completely different time zones, 
+        // Today must stretch from UTC 00:00 -12h to UTC 24:00 +12h, ie 48 hours
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        cal.setTime(SystemTime.getSystemTime());
+        cal.set(Calendar.HOUR_OF_DAY, 12);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND, 0);
+        cal.add(Calendar.DATE, -1);
+        Date startTime = cal.getTime();
+        cal.add(Calendar.DATE,2);
+        Date endTime = cal.getTime();
         String transactionSQL = new StringBuilder()
                 .append("BEGIN;")
                 .append("   LOCK TABLE forecast_result_cache;")
                 .append("   TRUNCATE forecast_result_cache;")
                 .append("   INSERT INTO forecast_result_cache ")
                 .append("       SELECT * FROM forecast_result ")
-                .append("       WHERE to_char(result_valid_time, '").append(dateFormat).append("') = :dateStr ")
+                .append("       WHERE result_valid_time between :startTime and :endTime ")
                 .append("       AND forecast_configuration_id IN (")
                 .append("           SELECT forecast_configuration_id ")
                 .append("           FROM public.forecast_configuration ")
@@ -762,7 +772,8 @@ public class ForecastBean {
                 .toString();
         
         Query query = em.createNativeQuery(transactionSQL);
-        query.setParameter("dateStr", format.format(SystemTime.getSystemTime()));
+        query.setParameter("startTime", startTime);
+        query.setParameter("endTime", endTime);
         query.setParameter("currentDate", SystemTime.getSystemTime());
         query.executeUpdate();
     }
@@ -926,8 +937,16 @@ public class ForecastBean {
         // If theDate=systemDate, data is fetched from the caching table forecast_result_cache
         String tableName = (format.format(theDate).equals(format.format(SystemTime.getSystemTime()))) ? "forecast_result_cache" : "forecast_result";
         //this.updateForecastResultCacheTable();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(theDate);
+        WeatherUtil wUtil = new WeatherUtil();
         for(PointOfInterest poi: pois)
         {
+            Date midnight = wUtil.normalizeToExactDate(theDate, TimeZone.getTimeZone(poi.getTimeZone()));
+            cal.setTime(theDate);
+            cal.add(Calendar.DATE, 1);
+            Date nextMidnight = cal.getTime();
+            
             String sql = "SELECT max(warning_status) FROM " + tableName + " \n" +
                         "WHERE forecast_configuration_id IN( \n" +
                         "	SELECT forecast_configuration_id \n" +
@@ -936,11 +955,12 @@ public class ForecastBean {
                         "       AND location_point_of_interest_id=:locationPointOfInterestId \n" +
                         (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                         ")\n" +
-                        "AND to_char(result_valid_time, '" + dateFormat + "') = :dateStr";
+                        "AND result_valid_time between :midnight AND :nextMidnight";
             //System.out.println(poi.getName() + " SQL=" + sql);
             Query q = em.createNativeQuery(sql);
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
-            q.setParameter("dateStr", format.format(theDate));
+            q.setParameter("midnight", midnight);
+            q.setParameter("nextMidnight", nextMidnight);
             Integer result = (Integer) q.getSingleResult();
             poi.getProperties().put("forecastsAggregate", result);
             
