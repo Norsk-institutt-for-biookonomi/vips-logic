@@ -94,6 +94,7 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
             observations.addAll(TM);
             observations.addAll(RR);
             observations.addAll(UM);
+            observations = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(observations);
         } catch (WeatherDataSourceException | WeatherObservationListException | ConfigValidationException ex ) {
             throw new PreprocessorException(ex.getMessage());
         }
