@@ -46,9 +46,7 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
         ModelConfiguration config = new ModelConfiguration();
-        PointOfInterest location = configuration.getLocationPointOfInterestId();
         PointOfInterestWeatherStation weatherStation =  (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
-        
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
         WeatherUtil wUtil = new WeatherUtil();
         
