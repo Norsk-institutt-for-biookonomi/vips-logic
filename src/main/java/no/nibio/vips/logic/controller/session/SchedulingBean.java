@@ -190,6 +190,7 @@ public class SchedulingBean {
         definedTasks.add(cacheHandlerCollector);
         definedTasks.add(summariesCollector);
         definedTasks.add(deleteAllExpiredUserUuidsCollector);
+        definedTasks.add((sendForecastNotificationsCollector));
         return definedTasks;
     }
     
