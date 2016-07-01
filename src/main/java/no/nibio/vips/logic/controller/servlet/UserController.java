@@ -248,7 +248,7 @@ public class UserController extends HttpServlet {
                         Boolean emailAlreadyInUse = false;
                         try
                         {
-                            VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue());
+                            VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue().toLowerCase());
                             emailAlreadyInUse = (foundUser != null);
                         }
                         catch(NonUniqueResultException ex)
@@ -263,7 +263,7 @@ public class UserController extends HttpServlet {
                     }
                     if(formValidation.isValid())
                     {
-                        viewUser.setEmail(formValidation.getFormField("email").getWebValue());
+                        viewUser.setEmail(formValidation.getFormField("email").getWebValue().toLowerCase());
                         viewUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
                         viewUser.setLastName(formValidation.getFormField("lastName").getWebValue());
                         viewUser.setPhoneCountryCode(formValidation.getFormField("phoneCountryCode").getWebValue());
@@ -521,7 +521,7 @@ public class UserController extends HttpServlet {
                 Boolean emailAlreadyInUse = false;
                 try
                 {
-                    VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue());
+                    VipsLogicUser foundUser = userBean.getUserByEmail(emailField.getWebValue().toLowerCase());
                     emailAlreadyInUse = (foundUser != null);
                 }
                 catch(NonUniqueResultException ex)
@@ -550,7 +550,7 @@ public class UserController extends HttpServlet {
                         auth.setUsername((String)request.getSession().getAttribute("openId"));
                     }
                     // Adding user info
-                    newUser.setEmail(formValidation.getFormField("email").getWebValue());
+                    newUser.setEmail(formValidation.getFormField("email").getWebValue().toLowerCase());
                     newUser.setFirstName(formValidation.getFormField("firstName").getWebValue());
                     newUser.setLastName(formValidation.getFormField("lastName").getWebValue());
                     newUser.setPreferredLocale(formValidation.getFormField("preferredLocale").getWebValue());
@@ -695,7 +695,7 @@ public class UserController extends HttpServlet {
                 {
                     try
                     {
-                        String email = formValidation.getFormField("email").getWebValue();
+                        String email = formValidation.getFormField("email").getWebValue().toLowerCase();
                         // Check that this email address exists in the system
                         VipsLogicUser resetPasswordUser = em.createNamedQuery("VipsLogicUser.findByEmail", VipsLogicUser.class)
                                                     .setParameter("email", email)

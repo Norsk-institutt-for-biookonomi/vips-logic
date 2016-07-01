@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -60,6 +61,8 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -81,6 +84,7 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
 import no.nibio.vips.util.MD5Encrypter;
+import no.nibio.web.forms.FormValidationException;
 
 /**
  * Handles user stuff, credentials
@@ -152,14 +156,27 @@ public class UserBean {
         return null;
     }
     
-    public VipsLogicUser storeUserFirstTime(VipsLogicUser user,UserAuthentication auth)
+    public VipsLogicUser storeUserFirstTime(VipsLogicUser user,UserAuthentication auth) throws FormValidationException
     {
-        em.persist(user);
-        auth.setVipsLogicUser(user);
-        UserAuthenticationPK pk = new UserAuthenticationPK(user.getUserId(), auth.getUserAuthenticationType().getUserAuthenticationTypeId());
-        auth.setUserAuthenticationPK(pk);
-        em.persist(auth);
-        return user;
+        try
+        {
+            em.persist(user);
+            auth.setVipsLogicUser(user);
+            UserAuthenticationPK pk = new UserAuthenticationPK(user.getUserId(), auth.getUserAuthenticationType().getUserAuthenticationTypeId());
+            auth.setUserAuthenticationPK(pk);
+            em.persist(auth);
+            return user;
+        }
+        catch(ConstraintViolationException ex)
+        {
+            
+            String errors = "";
+            for(ConstraintViolation cv: ex.getConstraintViolations())
+            {
+                errors += cv.getMessage() + "\n";
+            }
+            throw new FormValidationException("Constraint error(s): \n" + errors);
+        }
     }
     
     public void sendUserEmailVerification(VipsLogicUser user, ResourceBundle i18nBundle, String serverName)
