@@ -51,13 +51,16 @@ public class CydiaPomonellaModelPreprocessor extends ModelRunPreprocessor{
         TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
         Date observedDateOfFirstCatch = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        try
+        if(!configuration.getForecastModelConfigurationValue(CYDIAPOMON_OBSERVED_DATE_OF_FIRST_CATCH).isEmpty())
         {
-            observedDateOfFirstCatch = format.parse(configuration.getForecastModelConfigurationValue(CYDIAPOMON_OBSERVED_DATE_OF_FIRST_CATCH));
-        }
-        catch(ParseException ex)
-        {
-            throw new PreprocessorException(ex.getMessage());
+            try
+            {
+                observedDateOfFirstCatch = format.parse(configuration.getForecastModelConfigurationValue(CYDIAPOMON_OBSERVED_DATE_OF_FIRST_CATCH));
+            }
+            catch(ParseException ex)
+            {
+                throw new PreprocessorException(ex.getMessage());
+            }
         }
         
         // This season is either deduced from the date of catch or from current system time
