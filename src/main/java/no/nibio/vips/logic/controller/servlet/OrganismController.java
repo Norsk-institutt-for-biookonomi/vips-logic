@@ -112,13 +112,24 @@ public class OrganismController extends HttpServlet {
         }
         else if(action.equals("listCrops"))
         {
-            request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
+            
+            List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+            request.setAttribute("allCrops", 
+                    SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(
+                        allCrops, 
+                        SessionLocaleUtil.getCurrentLocale(request).getLanguage())
+            );
             request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
             request.getRequestDispatcher("/cropList.ftl").forward(request, response);
         }
         else if(action.equals("listPests"))
         {
-            request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
+            List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+            request.setAttribute("allPests", 
+                    SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(
+                            allPests, 
+                            SessionLocaleUtil.getCurrentLocale(request).getLanguage())
+            );
             request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
             request.getRequestDispatcher("/pestList.ftl").forward(request, response);
         }

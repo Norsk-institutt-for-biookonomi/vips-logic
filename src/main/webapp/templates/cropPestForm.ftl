@@ -43,6 +43,8 @@
 	<#if messageKey?has_content>
 	<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
+        <a href="/organism?action=editOrganismForm&organismId=${cropOrganismId}" class="btn btn-default" role="button">${i18nBundle.back}</a>
+        <a href="/organism?action=listCrops" class="btn btn-default" role="button">${i18nBundle.listCrops}</a>
 	<#assign formId = "cropPestForm">
 	<form id="${formId}" action="/organism?action=submitCropPest" method="POST" role="form" onsubmit="return validateForm(this);">
 	<div class="form-group">
