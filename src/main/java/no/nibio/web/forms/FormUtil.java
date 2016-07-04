@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import no.nibio.vips.logic.util.Globals;
 import org.apache.commons.fileupload.FileItem;
 
@@ -93,5 +95,12 @@ public class FormUtil {
     {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         return format.parse(dateStr);
+    }
+    
+    public static boolean whitespaceFoundInString(String theString)
+    {
+        Pattern pattern = Pattern.compile("\\s");
+        Matcher matcher = pattern.matcher(theString);
+        return matcher.find();
     }
 }

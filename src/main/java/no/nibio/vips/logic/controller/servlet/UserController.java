@@ -30,6 +30,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
@@ -52,6 +54,7 @@ import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
+import no.nibio.web.forms.FormUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
@@ -225,17 +228,24 @@ public class UserController extends HttpServlet {
 
                     // Standard form validation
                     FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
+                    FormField usernameField = formValidation.getFormField("username");
+                    String username = usernameField.getWebValue().trim();
+                    // Check for whitespace inside trimmed username
+                    if(FormUtil.whitespaceFoundInString(username))
+                    {
+                         usernameField.setValid(false);
+                         usernameField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "noWhitespaceAllowed") + ": " + username);
+                    }
                     // If new user: check if username or email already exists
                     if(userId <= 0)
                     {
                         try
                         {
-                            FormField username = formValidation.getFormField("username");
-                            UserAuthentication authTest = em.createNamedQuery("UserAuthentication.findByUsername",UserAuthentication.class).setParameter("username", username.getWebValue()).getSingleResult();
+                            UserAuthentication authTest = em.createNamedQuery("UserAuthentication.findByUsername",UserAuthentication.class).setParameter("username", usernameField.getWebValue()).getSingleResult();
                             if(authTest != null)
                             {
-                                username.setValid(false);
-                                username.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "usernameExists"), formValidation.getFormField("username").getWebValue()));
+                                usernameField.setValid(false);
+                                usernameField.setValidationMessage(MessageFormat.format(SessionLocaleUtil.getI18nText(request, "usernameExists"), formValidation.getFormField("username").getWebValue()));
                             }
                         }
                         catch(NoResultException ex)
@@ -310,7 +320,7 @@ public class UserController extends HttpServlet {
                             // Create authentication for user
                             UserAuthentication authentication = new UserAuthentication();
                             authentication.setUserAuthenticationType(em.find(UserAuthenticationType.class, UserAuthenticationType.TYPE_PASSWORD));
-                            authentication.setUsername(formValidation.getFormField("username").getWebValue());
+                            authentication.setUsername(username);
                             String password = userBean.generateValidPassword();
                             authentication.setPassword(userBean.getMD5EncryptedString(password));
                             // Store the user for the first time
@@ -533,15 +543,23 @@ public class UserController extends HttpServlet {
                     emailField.setValid(false);
                     emailField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "emailAddressIsAlreadyInUse"));
                 }
+                FormField usernameField = formValidation.getFormField("username");
+                String username = usernameField.getWebValue().trim();
+                if(FormUtil.whitespaceFoundInString(username))
+                {
+                    usernameField.setValid(false);
+                    usernameField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "noWhitespaceAllowed") + ": " + username);
+                }
+                
 
                 if(formValidation.isValid())
                 {
-
+                    
                     // Setting authentication info first
                     auth.setUserAuthenticationType(userAuthenticationType);
                     if(userAuthenticationType.getUserAuthenticationTypeId().equals(UserAuthenticationType.TYPE_PASSWORD))
                     {
-                        auth.setUsername(formValidation.getFormField("username").getWebValue());
+                        auth.setUsername(username);
                         auth.setPassword(userBean.getMD5EncryptedString(formValidation.getFormField("password").getWebValue()));
                     }
                     // For OpenId and GoogleId
