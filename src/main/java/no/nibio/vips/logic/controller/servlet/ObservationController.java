@@ -76,22 +76,35 @@ public class ObservationController extends HttpServlet {
         {
             List<Observation> observations = null;
             Integer statusTypeId = -1; 
+            Integer pestOrganismId = -1;
             try 
             {
-                statusTypeId = Integer.valueOf(request.getParameter("statusTypeId"));
+                statusTypeId = request.getParameter("statusTypeId") != null ? Integer.valueOf(request.getParameter("statusTypeId")) : -1;
+                pestOrganismId = request.getParameter("pestOrganismId") != null ? Integer.valueOf(request.getParameter("pestOrganismId")) : -1;
             }
-            catch(NumberFormatException nfe) {}
+            catch(NumberFormatException nfe) {
+            }
             
-            if(statusTypeId < 0)
-            {
-                observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
-            }
-            else
+            
+            if(statusTypeId > 0)
             {
                 observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId(), statusTypeId);
             }
+            else if(pestOrganismId > 0)
+            {
+                observations = SessionControllerGetter.getObservationBean().getObservationsOfPest(pestOrganismId);
+            }
+            else
+            {
+                observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
+            }
+            
             Collections.sort(observations);
             Collections.reverse(observations);
+            List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+            request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
+            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.setAttribute("selectedPestOrganismId", pestOrganismId);
             request.setAttribute("selectedStatusTypeId", statusTypeId);
             request.setAttribute("observations", observations);
             request.setAttribute("userHasObserverPrivilege", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));

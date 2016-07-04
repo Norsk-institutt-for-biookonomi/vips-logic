@@ -22,7 +22,7 @@
 <#macro page_contents>
 <div class="singleBlockContainer">
         <h1>${i18nBundle.observations}</h1>
-        <p>TODO: Add map and filters for organism and time</p>
+        <p>TODO: Add map and filter for time</p>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
@@ -33,6 +33,17 @@
 		<option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case -1>${i18nBundle.allCategories}<#break><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
 		</#list>
 	</select>
+        <select class="form-control" name="pestOrganismId" onchange="window.location.href='/observation?pestOrganismId=' + this.options[this.options.selectedIndex].value;">
+            <option value="-1">${i18nBundle.allPests}</option>
+            <#list allPests as pestOrganism>
+                <option value="${pestOrganism.organismId}" <#if selectedPestOrganismId?has_content && pestOrganism.organismId == selectedPestOrganismId> selected="selected"</#if>>
+                    ${pestOrganism.getLocalName(currentLocale.language)!""} (${pestOrganism.latinName!""}) ${hierarchyCategories.getName(pestOrganism.hierarchyCategoryId)?upper_case}
+                </option>
+            </#list>
+        </select>
+        <#if observations?size == 0>
+        <div class="alert alert-warning">${i18nBundle.noResultsFoundForCriteria}</div>
+        </#if>
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>

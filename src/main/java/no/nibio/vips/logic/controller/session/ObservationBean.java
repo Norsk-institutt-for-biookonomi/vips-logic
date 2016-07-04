@@ -39,6 +39,7 @@ import no.nibio.vips.logic.entity.MessageIllustrationPK;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationIllustration;
 import no.nibio.vips.logic.entity.ObservationIllustrationPK;
+import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.VipsLogicUser;
@@ -345,4 +346,13 @@ public class ObservationBean {
          }
          return observations;
     }
+    
+    public List<Observation> getObservationsOfPest(Integer pestOrganismId)
+    {
+        return em.createNamedQuery("Observation.findByOrganism")
+                .setParameter("organism", em.find(Organism.class, pestOrganismId))
+                .getResultList();
+    }
+
+    
 }
