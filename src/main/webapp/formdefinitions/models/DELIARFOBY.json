@@ -18,11 +18,6 @@
     ],
     "_comment" : "Structure of the specific fields for DELIARFOBS",
     "fields": [
-        {
-            "name" : "startDateGrowth",
-            "dataType" : "DATE",
-            "dateFormat" : "yyyy-MM-dd",
-            "required" : true
-        }
+        
     ]
 }

@@ -21,7 +21,7 @@ package no.nibio.vips.logic.scheduling.model.preprocessor;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -56,8 +56,24 @@ public class DeliaRadicumFloralisModelPreprocessor extends ModelRunPreprocessor{
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             format.setTimeZone(timeZone);
 
-            Date startDateGrowth = format.parse(configuration.getForecastModelConfigurationValue(this.getModelId() + "_" + START_DATE_GROWTH));
+            // Only the standard model takes growth start into account
+            Date startDateGrowth;
+            if(this.getModelId().equals("DELIARFOBS"))
+            {
+                startDateGrowth = format.parse(configuration.getForecastModelConfigurationValue(this.getModelId() + "_" + START_DATE_GROWTH));
+                
+            }
+            else // Use April 1st as start date
+            {
+                Calendar cal = Calendar.getInstance(timeZone);
+                cal.setTime(SystemTime.getSystemTime());
+                cal.set(cal.get(Calendar.YEAR), Calendar.APRIL, 1, 0, 0, 0);
+                cal.set(Calendar.MILLISECOND, 0);
+                startDateGrowth = cal.getTime();
+            }
+            
             config.setConfigParameter("startDateGrowth", configuration.getForecastModelConfigurationValue(this.getModelId() + "_" + START_DATE_GROWTH));
+            
             WeatherUtil wUtil = new WeatherUtil();
             Date endDateCalculation = wUtil.normalizeToExactDate(SystemTime.getSystemTime(),timeZone);
             config.setConfigParameter("endDateCalculation", format.format(endDateCalculation));
