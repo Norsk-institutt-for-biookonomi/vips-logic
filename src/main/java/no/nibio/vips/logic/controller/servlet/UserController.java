@@ -229,16 +229,18 @@ public class UserController extends HttpServlet {
                     // Standard form validation
                     FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
                     FormField usernameField = formValidation.getFormField("username");
-                    String username = usernameField.getWebValue().trim();
-                    // Check for whitespace inside trimmed username
-                    if(FormUtil.whitespaceFoundInString(username))
-                    {
-                         usernameField.setValid(false);
-                         usernameField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "noWhitespaceAllowed") + ": " + username);
-                    }
+                    String username = null;
+                   
                     // If new user: check if username or email already exists
                     if(userId <= 0)
                     {
+                        username = usernameField.getWebValue().trim();
+                        // Check for whitespace inside trimmed username
+                        if(FormUtil.whitespaceFoundInString(username))
+                        {
+                             usernameField.setValid(false);
+                             usernameField.setValidationMessage(SessionLocaleUtil.getI18nText(request, "noWhitespaceAllowed") + ": " + username);
+                        }
                         try
                         {
                             UserAuthentication authTest = em.createNamedQuery("UserAuthentication.findByUsername",UserAuthentication.class).setParameter("username", usernameField.getWebValue()).getSingleResult();
