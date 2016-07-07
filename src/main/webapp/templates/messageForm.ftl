@@ -140,7 +140,7 @@
 	     </select>
 	</div>
 	<div class="form-group">
-		<label for="cropCategoryIds">${i18nBundle.cropCategoryIds}</label>
+            <label for="cropCategoryIds">${i18nBundle.cropCategoryIds} <sub>(${i18nBundle.helpMessageFormCropCategoryIds})</sub></label>
 		<select class="form-control chosen-select" name="cropCategoryIds" onblur="validateField(this);" multiple="multiple">
 			<#list allCropCategoryIds as cropCategory>
 				<option value="${cropCategory.cropCategoryId}"
@@ -225,7 +225,7 @@
 		</div>
 	</#if>
         <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
-        <#if message.messageId?has_content && user.isSuperUser()>
+        <#if message.messageId?has_content && (user.isSuperUser() || user.isOrganizationAdmin())>
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/message?action=deleteMessage&messageId=${message.messageId}';}">${i18nBundle.delete}</button>
 	  </#if>
         <a href="/message" class="btn btn-default" role="button">${i18nBundle.cancel}</a>
