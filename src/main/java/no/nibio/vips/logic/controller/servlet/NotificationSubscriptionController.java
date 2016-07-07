@@ -20,6 +20,8 @@ package no.nibio.vips.logic.controller.servlet;
 
 import freemarker.core.ParseException;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -27,8 +29,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.ForecastEventNotificationSubscription;
 import no.nibio.vips.logic.messaging.MessageNotificationSubscription;
 import no.nibio.vips.logic.messaging.ObservationNotificationSubscription;
@@ -96,7 +100,12 @@ public class NotificationSubscriptionController extends HttpServlet {
                 ForecastEventNotificationSubscription forecastEventNotificationSubscription = SessionControllerGetter.getMessagingBean().getForecastEventNotificationSubscription(viewUser.getUserId());
                 request.setAttribute("forecastEventNotificationSubscription",forecastEventNotificationSubscription);
                 request.setAttribute("viewUser", viewUser);
-                request.setAttribute("allCropCategories", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId", viewUser.getOrganizationId().getOrganizationId()).getResultList());
+                List<CropCategory> allCropCategories = SessionControllerGetter.getOrganismBean()
+                        .sortCropCategoryByLocalName(
+                                em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId", viewUser.getOrganizationId().getOrganizationId()).getResultList(),
+                                SessionLocaleUtil.getCurrentLocale(request).getLanguage()
+                        );
+                request.setAttribute("allCropCategories", allCropCategories);
                 request.setAttribute("messageTagSet", em.createNamedQuery("MessageTag.findAll").getResultList());
                 request.setAttribute("weatherStationIds", SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(viewUser.getOrganizationId(), true));
                 request.setAttribute("universalMessageFormats", SessionControllerGetter.getMessagingBean().getAllUniversalMessageFormats());

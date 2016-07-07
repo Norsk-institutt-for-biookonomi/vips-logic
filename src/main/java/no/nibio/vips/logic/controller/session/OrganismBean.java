@@ -357,4 +357,17 @@ public class OrganismBean {
         );
         return organisms;
     }
+    
+    public List<CropCategory> sortCropCategoryByLocalName(List<CropCategory> cropCategories, final String language)
+    {
+        Collections.sort(cropCategories, new Comparator<CropCategory>() {
+                @Override
+                public int compare(CropCategory cc1, CropCategory cc2)
+                {
+                    return cc1.getLocalName(language).compareTo(cc2.getLocalName(language));
+                }
+            }
+        );
+        return cropCategories;
+    }
 }
