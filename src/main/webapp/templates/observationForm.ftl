@@ -210,25 +210,38 @@
 		
 		var allPois = [];
 		
+                /**
+                 * Fetches locations and weather stations, renders the list
+                 */
 		function refreshLocationPointOfInterests(pointOfInterestId)
 		{
-			$.getJSON("/rest/poi/user", function( json ) {
-					allPois = json;
-					var theList = document.getElementById("locationPointOfInterestId");
-					theList.options.length = 1;
-					for(var i=0;i< allPois.length;i++)
-					{
-						var poi = allPois[i];
-						var option = new Option(poi.name, poi.pointOfInterestId);
-						if(poi.pointOfInterestId == pointOfInterestId)
-						{
-							option.selected=true;
-						}
-						theList.options[theList.options.length] = option;
-					}
-					showCorrectMap();
-				}
-			);
+                    var poiTypes = ["${i18nBundle.genericPlaces}","${i18nBundle.weatherStations}"]
+                    $.getJSON("/rest/poi/user", function( json ) {
+                                    allPois = json;
+                                    var theList = document.getElementById("locationPointOfInterestId");
+                                    theList.options.length = 1;
+                                    // Locations first, weather stations next
+                                    for(var h=0;h<poiTypes.length;h++)
+                                    {
+                                        var option = new Option("-- " + poiTypes[h] + " --","-1");
+                                        theList.options[theList.options.length] = option;
+                                        for(var i=0;i< allPois.length;i++)
+                                        {
+                                            var poi = allPois[i];
+                                            if(poi.pointOfInterestTypeId == h)
+                                            {
+                                                var option = new Option(poi.name, poi.pointOfInterestId);
+                                                if(poi.pointOfInterestId == pointOfInterestId)
+                                                {
+                                                        option.selected=true;
+                                                }
+                                                theList.options[theList.options.length] = option;
+                                            }
+                                        }
+                                    }
+                                    showCorrectMap();
+                            }
+                    );
 		}
 		
 		
@@ -241,7 +254,6 @@
 				document.getElementById("observationFormMap").style.display="none";
 				document.getElementById("poiFormMap").style.display="block";
 				initLocationMap(locationList.options[locationList.options.selectedIndex].value);
-				
 			}
 			else
 			{
