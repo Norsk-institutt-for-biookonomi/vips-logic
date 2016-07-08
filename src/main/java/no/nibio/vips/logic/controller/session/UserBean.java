@@ -24,20 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.Calendar;
 import com.ibm.icu.util.TimeZone;
 import com.ibm.icu.util.ULocale;
-import edu.vt.middleware.password.CharacterCharacteristicsRule;
-import edu.vt.middleware.password.CharacterRule;
-import edu.vt.middleware.password.DigitCharacterRule;
-import edu.vt.middleware.password.LengthRule;
-import edu.vt.middleware.password.LowercaseCharacterRule;
-import edu.vt.middleware.password.MessageResolver;
-import edu.vt.middleware.password.Password;
-import edu.vt.middleware.password.PasswordData;
-import edu.vt.middleware.password.PasswordGenerator;
-import edu.vt.middleware.password.PasswordValidator;
-import edu.vt.middleware.password.Rule;
-import edu.vt.middleware.password.RuleResult;
-import edu.vt.middleware.password.UppercaseCharacterRule;
-import edu.vt.middleware.password.WhitespaceRule;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -85,6 +72,18 @@ import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
 import no.nibio.vips.util.MD5Encrypter;
 import no.nibio.web.forms.FormValidationException;
+import org.passay.CharacterCharacteristicsRule;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.LengthRule;
+import org.passay.MessageResolver;
+import org.passay.PasswordData;
+import org.passay.PasswordGenerator;
+import org.passay.PasswordValidator;
+import org.passay.PropertiesMessageResolver;
+import org.passay.Rule;
+import org.passay.RuleResult;
+import org.passay.WhitespaceRule;
 
 /**
  * Handles user stuff, credentials
@@ -303,8 +302,8 @@ public class UserBean {
         // Try to load localized error messages
         try
         {
-            props.load(this.getClass().getResourceAsStream("/no/nibio/vips/logic/i18n/vtpassword" + propertiesFileSuffix + ".properties"));
-            MessageResolver resolver = new MessageResolver(props);
+            props.load(this.getClass().getResourceAsStream("/no/nibio/vips/logic/i18n/passay" + propertiesFileSuffix + ".properties"));
+            MessageResolver resolver = new PropertiesMessageResolver(props);
             validator = new PasswordValidator(resolver, this.getDefaultPasswordValidatorRuleList());
         }
         // Something went wrong when attempting to get localized error messages. Skip that.
@@ -313,7 +312,7 @@ public class UserBean {
             validator = new PasswordValidator(this.getDefaultPasswordValidatorRuleList());
         }
 
-        PasswordData passwordData = new PasswordData(new Password(password));
+        PasswordData passwordData = new PasswordData(password);
         RuleResult result = validator.validate(passwordData);
         if(result.isValid())
         {
@@ -395,11 +394,11 @@ public class UserBean {
     {
         List<CharacterRule> defaultCharacterRules = new ArrayList<>();
         // require at least 1 digit in passwords
-        defaultCharacterRules.add(new DigitCharacterRule(1));
+        defaultCharacterRules.add(new CharacterRule(EnglishCharacterData.Digit,1));
         // require at least 1 upper case char
-        defaultCharacterRules.add(new UppercaseCharacterRule(1));
+        defaultCharacterRules.add(new CharacterRule(EnglishCharacterData.UpperCase, 1));
         // require at least 1 lower case char
-        defaultCharacterRules.add(new LowercaseCharacterRule(1));
+        defaultCharacterRules.add(new CharacterRule(EnglishCharacterData.LowerCase, 1));
         return defaultCharacterRules;
     }
     

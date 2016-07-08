@@ -133,6 +133,11 @@
       <type>jar</type>
     </dependency>
     <dependency>
+      <groupId>org.passay</groupId>
+      <artifactId>passay</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-web-api</artifactId>
       <version>7.0</version>
@@ -158,11 +163,11 @@
 	<artifactId>google-api-client</artifactId>
 	<version>1.19.1</version>
 </dependency>
-  <dependency>
+  <!--dependency>
       <groupId>edu.vt.middleware</groupId>
       <artifactId>vt-password</artifactId>
       <version>3.1.2</version>
-  </dependency>
+  </dependency-->
 <dependency>
 	<groupId>commons-fileupload</groupId>
 	<artifactId>commons-fileupload</artifactId>
