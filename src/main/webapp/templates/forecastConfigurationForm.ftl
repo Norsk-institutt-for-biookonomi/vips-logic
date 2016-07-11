@@ -27,6 +27,7 @@
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript">
+            $(document).ready(function() {
 		// Make sure that there is a date picker present for HTML5 
 		// date input fields
 		if (!Modernizr.inputtypes.date) {
@@ -40,7 +41,144 @@
 		if(document.getElementById('modelId').options.selectedIndex > 0)
 		{
 			renderModelSpecificFields("${formId}");
+                        
 		}
+                    
+                initCropCategories();
+            });
+            
+            var cropCategories = [];
+            function initCropCategories(){
+                $.getJSON("/rest/organism/cropcategory/${user.organizationId.organizationId}" , function( json ) {
+                            cropCategories = json;
+                            renderCropCategories();
+                        }
+                );
+            }
+
+            function renderCropCategories() {
+                var cropCategoryIdList = document.getElementById("cropCategoryIdList");
+                for(var i in cropCategories)
+                {
+                    var cropCategory = cropCategories[i];
+                    // Best effort getting name for crop category
+                    var catName = cropCategory.defaultName;
+                    for(var j in cropCategory.cropCategoryLocalSet)
+                    {
+                        var cLocal = cropCategory.cropCategoryLocalSet[j];
+                        if(cLocal.cropCategoryLocalPK.locale == "${currentLocale}")
+                        {
+                            catName = cLocal.localName;
+                        }
+                    }
+                    var cOption = new Option(catName,cropCategory.cropCategoryId);
+                    cropCategoryIdList.options[cropCategoryIdList.options.length] = cOption;
+                }
+            }
+
+            function filterCrops(selectedCropCategoryId)
+            {
+                // Searching for selected crop category
+                for(var i in cropCategories)
+                {
+                    var cropCategory = cropCategories[i];
+                    if(cropCategory.cropCategoryId == parseInt(selectedCropCategoryId))
+                    {
+                        // Filter based on match
+                        var matchingCropOrganismOptions = [];
+                        var theRest = [];
+                        var cropOrganismIdList = document.getElementById("cropOrganismId");
+                        for(var j=0;j<cropOrganismIdList.length;j++)
+                        {
+                            var cropOption = cropOrganismIdList.options[j];
+                            if(cropCategory.cropOrganismIds.indexOf(parseInt(cropOption.value)) >= 0)
+                            {
+                                matchingCropOrganismOptions.push(cropOption);
+                            }
+                            else if(parseInt(cropOption.value) > 0)
+                            {
+                                theRest.push(cropOption);
+                            }
+                        }
+                        renderCropList(matchingCropOrganismOptions, theRest);
+                    }
+                }
+            }
+                
+            function renderCropList(matchingCropOrganismOptions, theRest)
+            {
+                var cropOrganismIdList = document.getElementById("cropOrganismId");
+                cropOrganismIdList.options.length = 1;
+                for(var i in matchingCropOrganismOptions)
+                {
+                    cropOrganismIdList.options[cropOrganismIdList.options.length] = matchingCropOrganismOptions[i];
+                }
+                cropOrganismIdList.options[cropOrganismIdList.options.length] = new Option("----",-1);
+                for(var i in theRest)
+                {
+                    cropOrganismIdList.options[cropOrganismIdList.options.length] = theRest[i];
+                }
+            }
+                
+            var updateCropPests = function(){
+                    var theForm = document.getElementById('${formId}');
+                    var selectedCropId = theForm["cropOrganismId"].options[theForm["cropOrganismId"].options.selectedIndex].value;
+                    
+                    $.getJSON( "/rest/organism/croppest/" + selectedCropId, function( json ) {
+                            updateCropPestsCallback(json);
+                    })
+                    .fail(function() {
+                        alert( "Error getting pests for this crop. Please contact system administrator" );
+                      });
+            };
+
+            var updateCropPestsCallback = function(cropPest) {
+                    var pestList = document.getElementById('${formId}')["pestOrganismId"];
+                    if(cropPest == null)
+                    {
+                            // Need to reorganize pests back to default
+                            var allPests = [];
+                            for(var i=2;i<pestList.options.length;i++)
+                            {
+                                    allPests.push(pestList.options[i]);
+                            }
+                            allPests.sort(compareSelectListOptions);
+                            pestList.options.length=2; // Keeping the top two
+                            for(var i=0;i<allPests.length;i++)
+                            {
+                                    pestList.options[pestList.options.length] = allPests[i];
+                            }
+                    }
+                    else
+                    {
+                            var prioritatedPests = [];
+                            var unprioritatedPests = []
+                            for(var i=2;i<pestList.options.length;i++)
+                            {
+                                    if(cropPest.pestOrganismIds.indexOf(parseInt(pestList.options[i].value)) >= 0)
+                                    {
+                                            //console.log(pestList.options[i].value + " is prioritated");
+                                            prioritatedPests.push(pestList.options[i]);
+                                    }
+                                    else if(pestList.options[i].value != "-1") // Avoiding the "---" option
+                                    {
+                                            //console.log(pestList.options[i].value + " is unprioritated");
+                                            unprioritatedPests.push(pestList.options[i]);
+                                    }
+
+                            }
+                            pestList.options.length=2; // Keeping the top two
+                            for(var i=0;i<prioritatedPests.length;i++)
+                            {
+                                    pestList.options[pestList.options.length] = prioritatedPests[i];
+                            }
+                            pestList.options[pestList.options.length] = new Option("---","-1");
+                            for(var i=0;i<unprioritatedPests.length;i++)
+                            {
+                                    pestList.options[pestList.options.length] = unprioritatedPests[i];
+                            }
+                    }
+            };
 	</script>
 </#macro>
 <#macro page_contents>
@@ -71,9 +209,18 @@
 	    </select>
 	    <span class="help-block" id="${formId}_modelId_validation"></span>
 	  </div>
+          <#if ! forecastConfiguration.cropOrganismId?has_content>
+            <div class="form-group">
+              <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
+              <select class="form-control" id="cropCategoryIdList" name="cropCategoryId" onchange="filterCrops(this.options[this.options.selectedIndex].value);">
+                  <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
+                  <!-- Options added by JavaScript function renderCropCategories() -->
+              </select>
+              </div>
+            </#if>
 	  <div class="form-group">
 	    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-	    <select class="form-control" id="cropOrganismId" name="cropOrganismId" onblur="validateField(this);" onchange="renderModelSpecificFields('${formId}');">
+	    <select class="form-control" id="cropOrganismId" name="cropOrganismId" onblur="validateField(this);" onchange="updateCropPests();">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 	    	<#list allCrops?sort_by("latinName") as organism>
 			<option value="${organism.organismId}"
