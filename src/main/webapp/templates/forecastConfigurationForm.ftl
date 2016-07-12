@@ -315,13 +315,12 @@
 	    <select class="form-control" name="vipsLogicUserId" onblur="validateField(this);">
 	    	<#if user.isSuperUser() || user.isOrganizationAdmin()>
 			<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.vipsLogicUserId?lower_case}</option>
-			<#list vipsLogicUsers?sort_by("lastName") as user>
-			<option value="${user.userId}"<#if forecastConfiguration.vipsLogicUserId?has_content && user.userId == forecastConfiguration.vipsLogicUserId.userId> selected="selected"</#if>>${user.lastName}, ${user.firstName}</option>
+			<#list vipsLogicUsers?sort_by("lastName") as vlUser>
+			<option value="${vlUser.userId}"<#if (forecastConfiguration.vipsLogicUserId?has_content && vlUser.userId == forecastConfiguration.vipsLogicUserId.userId)
+                                                            || (!forecastConfiguration.vipsLogicUserId?has_content && vlUser.userId == user.userId)> selected="selected"</#if>>${vlUser.lastName}, ${vlUser.firstName}</option>
 			</#list>
 	    	<#else>
-			
-					<option value="${user.userId}" selected="selected">${user.lastName}, ${user.firstName}</option>
-			
+			<option value="${user.userId}" selected="selected">${user.lastName}, ${user.firstName}</option>
 	    	</#if>
 	    </select>
 	    <span class="help-block" id="${formId}_vipsLogicUserId_validation"></span>
