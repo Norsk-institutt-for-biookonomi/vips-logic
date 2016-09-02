@@ -722,7 +722,7 @@ public class UserBean {
     }
     
     // TODO: Put in config file?
-    private final static String[] USER_COUNTRY_CODES = {"NO","SE","BA","LV"};
+    private final static String[] USER_COUNTRY_CODES = {"NO","SE","BA","LV","US"};
     
     public List<Country> getUserCountries()
     {
