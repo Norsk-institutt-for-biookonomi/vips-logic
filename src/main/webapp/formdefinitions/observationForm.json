@@ -76,12 +76,12 @@
         {
             "name" : "observationHeading",
             "dataType" : "STRING",
-            "required" : false
+            "required" : true
         },
         {
             "name" : "observationText",
             "dataType" : "STRING",
-            "required" : false
+            "required" : true
         },
         {
             "name" : "deleteIllustration",

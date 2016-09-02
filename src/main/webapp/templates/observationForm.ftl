@@ -395,7 +395,7 @@
 			  <input type="hidden" name="geoInfo" value=""/>
 			  <input type="hidden" name="observationData" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
-			  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');console.log(theForm['geoInfo']);console.log(theForm['observationData']);theForm['geoInfo'].value=getFeatures();mw.save();console.log(theForm['observationData']);theForm['observationData'].value=JSON.stringify(mw.toInspect);validateForm(theForm);">Test</button-->
+			  <button type="button" onclick="var theForm=document.getElementById('observationForm');theForm['geoInfo'].value=getFeatures();try{mw.save();theForm['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(theForm) && validateGIS(theForm);}catch(e){console.log(e.message);console.log(e);return false;}">Test</button>
 			  <#if ! observation.organism?has_content>
                           <div class="form-group">
 			    <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
