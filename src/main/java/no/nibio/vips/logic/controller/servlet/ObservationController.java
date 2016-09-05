@@ -250,7 +250,7 @@ public class ObservationController extends HttpServlet {
                         observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
                         observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
 
-                        boolean sendNotification = false;
+                        boolean sendNotification = false;    
                         // Storing approval status
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                         {
@@ -263,7 +263,7 @@ public class ObservationController extends HttpServlet {
                                 observation.setStatusChangedByUserId(user.getUserId());
                                 observation.setStatusChangedTime(SystemTime.getSystemTime());
                                 // Status changed to approved, sending notifications
-                                if(statusTypeId.equals(Observation.STATUS_TYPE_ID_APPROVED))
+                                if(statusTypeId.equals(Observation.STATUS_TYPE_ID_APPROVED) && observation.getBroadcastMessage())
                                 {
                                     sendNotification = true;
                                 }
