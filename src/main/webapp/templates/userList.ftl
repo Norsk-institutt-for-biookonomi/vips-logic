@@ -30,16 +30,24 @@
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>
-			<th>Name</th>
-			<th>Status</th>
+			<th>${i18nBundle.lastName}</th>
+                        <th>${i18nBundle.firstName}</th>
+			<th>${i18nBundle.status}</th>
 		</thead>
 		<tbody>
-		<#list users?sort_by("lastName") as user>
-		    <tr>
-		    	<td><a href="/user?action=viewUser&userId=${user.userId}">${user.firstName} ${user.lastName}</a></td>
-		    	<td>${i18nBundle["userStatus_" + user.userStatusId]}</td>
-		    </tr>
-		</#list>
+                <!-- The ones that need treatment first -->
+                <#assign userStatusOrdering = [2,4,3,1,5]>
+                <#list userStatusOrdering as currentUserStatusId>
+                    <#list users?sort_by("lastName") as user>
+                        <#if user.userStatusId == currentUserStatusId>
+                        <tr>
+                            <td><a href="/user?action=viewUser&userId=${user.userId}">${user.lastName}</a></td>
+                            <td><a href="/user?action=viewUser&userId=${user.userId}">${user.firstName}</a></td>
+                            <td>${i18nBundle["userStatus_" + user.userStatusId]}</td>
+                        </tr>
+                        </#if>
+                    </#list>
+                </#list>
 		</tbody>
         </table>
         </div>
