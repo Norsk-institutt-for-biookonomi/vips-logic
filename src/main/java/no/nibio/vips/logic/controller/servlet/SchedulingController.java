@@ -102,7 +102,7 @@ public class SchedulingController extends HttpServlet {
 
                     TaskExecutor[] taskExecutors = schedulingBean.getRunningTasks();
                     request.setAttribute("taskExecutors", taskExecutors);
-                    request.setAttribute("schedulingStarted", Boolean.valueOf(schedulingBean.getSystemScheduler().isStarted()));
+                    request.setAttribute("schedulingStarted", schedulingBean.getSystemScheduler().isStarted());
                     request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks());
                     request.setAttribute("taskHistoryDate",taskHistoryDate);
                     request.setAttribute("taskHistory",schedulingBean.getTaskHistory(taskHistoryDate));

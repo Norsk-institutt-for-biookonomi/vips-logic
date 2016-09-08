@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import no.nibio.vips.i18n.I18nImpl;
@@ -37,7 +38,7 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
 
 /**
- * @copyright 2013-2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class RunAllForecastConfigurationsTask extends VipsLogicTask{
@@ -50,53 +51,83 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
         { 
             weatherStationPointOfInterestId =  Integer.valueOf(this.getConfiguration().get("weatherStationPointOfInterestId")[0]);
         }
+        
+        // Is organization configured? In that case, pick only one. Otherwhise, pick em all
+        // The config could come from a form
+        if(this.getConfiguration() != null && this.getConfiguration().get("organizationId") != null)
+        {
+            this.setOrganization(SessionControllerGetter.getUserBean().getOrganization(Integer.valueOf(this.getConfiguration().get("organizationId")[0])));
+        }
+        
+        List<Organization> organizations = new ArrayList<>();
+        if(this.getOrganization() != null)
+        {
+            organizations.add(this.getOrganization());
+        }
+        else
+        {
+            organizations = SessionControllerGetter.getUserBean().getOrganizations();
+        }
         tec.setCompleteness(0d);
         int totalNumberofForecastConfigurations = 0;
         int numberOfCompletedForecastConfigurations = 0;
         StringBuilder errorMessage = new StringBuilder();
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
-        for(Organization organization : SessionControllerGetter.getUserBean().getOrganizations())
+        boolean noForecastConfigurationsFound = true;
+        for(Organization organization : organizations)
         {
             List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(organization, SystemTime.getSystemTime());
-            
-            for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
+            //System.out.println("Current forecasts for " + organization.getOrganizationName() + ":" + currentForecastConfigurations.size());
+            if(currentForecastConfigurations != null && !currentForecastConfigurations.isEmpty())
             {
-                if(
-                        weatherStationPointOfInterestId == null
-                        || weatherStationPointOfInterestId <= 0
-                        || forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                noForecastConfigurationsFound = false;
+                for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
                 {
-                    try 
+                    if(
+                            weatherStationPointOfInterestId == null
+                            || weatherStationPointOfInterestId <= 0
+                            || forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
                     {
-                        totalNumberofForecastConfigurations++;
-                        SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
-                        /*
-                        if(DEBUG && totalNumberofForecastConfigurations == 2)
+                        try 
                         {
-                            throw new RunModelException("This is a test!!!");
-                        }*/
-                        numberOfCompletedForecastConfigurations++;
-                        //System.out.println("All went well");
+                            totalNumberofForecastConfigurations++;
+                            SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
+                            /*
+                            if(DEBUG && totalNumberofForecastConfigurations == 2)
+                            {
+                                throw new RunModelException("This is a test!!!");
+                            }*/
+                            numberOfCompletedForecastConfigurations++;
+                            //System.out.println("All went well");
+                        }
+                        catch (PreprocessorException | RunModelException ex) 
+                        {
+                            errorMessage
+                                    .append(
+                                        SchedulingUtil.createSchedulingMessageHTML(
+                                            "Error with forecast #" + forecastConfiguration.getForecastConfigurationId(), 
+                                            ex.getMessage(), 
+                                            SchedulingUtil.MESSAGE_STATUS_DANGER)
+                                    );
+                            //System.out.println("Error caught");
+                            continue;
+                        }
+
                     }
-                    catch (PreprocessorException | RunModelException ex) 
-                    {
-                        errorMessage
-                                .append(
-                                    SchedulingUtil.createSchedulingMessageHTML(
-                                        "Error with forecast #" + forecastConfiguration.getForecastConfigurationId(), 
-                                        ex.getMessage(), 
-                                        SchedulingUtil.MESSAGE_STATUS_DANGER)
-                                );
-                        //System.out.println("Error caught");
-                        continue;
-                    }
-                    
+
+                    double completeness = (double) numberOfCompletedForecastConfigurations/totalNumberofForecastConfigurations;
+                    tec.setCompleteness(completeness);
                 }
-                
-                double completeness = (double) numberOfCompletedForecastConfigurations/totalNumberofForecastConfigurations;
-                tec.setCompleteness(completeness);
             }
+            
         }
+        
+        if(noForecastConfigurationsFound)
+        {
+               tec.setCompleteness(1.0);
+               tec.setStatusMessage("No current forecast configurations were found");
+        }
+        
         if(tec.getTaskExecutor().getCompleteness() != 1.0)
         {
             //System.out.println("Error detected");
@@ -156,6 +187,37 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     .append(station.getPointOfInterestId())
                     .append("\", \"label\":\"")
                     .append(station.getName())
+                    .append("\",\"selected\":")
+                    .append("false")
+                    .append("}\n");
+
+        }
+        retVal  .append("           ]")
+                .append("       }");
+        retVal  .append("       ,{")
+                .append("           \"name\":\"organizationId\",")
+                .append("           \"dataType\":\"").append(FormField.DATA_TYPE_INTEGER).append("\",")
+                .append("           \"fieldType\":\"").append(FormField.FIELD_TYPE_SELECT_SINGLE).append("\",")
+                .append("           \"nullValue\":\"-1\",")
+                .append("           \"required\":false,")
+                .append("           \"options\": [");
+
+        
+        retVal.append("               {\"value\":\"")
+                    .append("-1")
+                    .append("\", \"label\":\"")
+                    .append(this.getI18nImpl().getText("pleaseSelect", language)).append(" ").append(this.getI18nImpl().getText("organizationId", language).toLowerCase())
+                    .append("\",\"selected\":")
+                    .append("false")
+                    .append("}\n");
+        List<Organization> organizations = SessionControllerGetter.getUserBean().getOrganizations();
+        //Collections.sort(organizations);
+        for(Organization organization:organizations)
+        {
+            retVal.append("               ,{\"value\":\"")
+                    .append(organization.getOrganizationId())
+                    .append("\", \"label\":\"")
+                    .append(organization.getOrganizationName())
                     .append("\",\"selected\":")
                     .append("false")
                     .append("}\n");

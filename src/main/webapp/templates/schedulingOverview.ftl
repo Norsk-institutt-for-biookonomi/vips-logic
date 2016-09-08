@@ -43,6 +43,7 @@
 			<thead>
 				<th>${i18nBundle.startTime}</th>
 				<th>${i18nBundle.name}</th>
+                                <th>${i18nBundle.organizationId}</th>
 				<th>${i18nBundle.progress}</th>
 			</thead>
 			<tbody>
@@ -50,6 +51,7 @@
 			    <tr>
 			    	<td>${taskExecutor.startTime?number_to_datetime}</td>
 				<td>${taskExecutor.getTask().getName(currentLocale)}</td>
+                                <td><#if taskExecutor.getTask().organization??>${taskExecutor.getTask().organization.organizationName}<#else>${i18nBundle.allSystems}</#if></td>
 				<td><progress max="1" value="${taskExecutor.completeness}">Progress</progress></td>
 			    </tr>
 			</#list>
@@ -73,6 +75,7 @@
 		<thead>
 			<th>${i18nBundle.timestamp}</th>
 			<th>${i18nBundle.name}</th>
+                        <th>${i18nBundle.organizationId}</th>
 		</thead>
 		<tbody>
 		<#list orderedScheduledTasks?keys as executionTime>
@@ -81,6 +84,7 @@
 			<tr>
 				<td>${executionTime}</td>
 				<td>${task.getName(currentLocale)}</td>
+                                <td><#if task.organization??>${task.organization.organizationName}<#else>${i18nBundle.allSystems}</#if></td>
 			</tr>
 			</#list>
 		</#list>
@@ -102,6 +106,7 @@
 			<th>${i18nBundle.startTime}</th>
 			<th>${i18nBundle.endTime}</th>
 			<th>${i18nBundle.name}</th>
+                        <th>${i18nBundle.organizationId}</th>
 			<th>${i18nBundle.status}</th>
 		</thead>
 		<tbody>
@@ -111,6 +116,7 @@
 				<td>${taskHistoryItem.startTime}</td>
 				<td>${taskHistoryItem.finishTime}</td>
 				<td>${allTasksMap[taskHistoryItem.taskFactoryId?string].getName(currentLocale)}</td>
+                                <td><#if taskHistoryItem.organization??>${taskHistoryItem.organization.organizationName}<#else>${i18nBundle.allSystems}</#if></td>
 				<td>${i18nBundle[taskHistoryItem.taskHistoryStatusId.taskHistoryStatusId]} <a href="/scheduling?action=viewTaskHistoryDetails&taskHistoryId=${taskHistoryItem.taskHistoryId}">${i18nBundle.details}</a></td>
 			</tr>
 		</#list>

@@ -53,6 +53,7 @@ import no.nibio.vips.entity.ModelRunRequest;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.logic.scheduling.VIPSLogicTaskCollector;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
+import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.TaskHistory;
 import no.nibio.vips.logic.entity.TaskHistoryStatus;
 import no.nibio.vips.logic.scheduling.TaskLoggerSchedulerListener;
@@ -62,6 +63,7 @@ import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.scheduling.model.preprocessor.NaerstadModelPreprocessor;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.util.SystemTime;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
@@ -162,7 +164,22 @@ public class SchedulingBean {
         // Running all forecasts every hour:30
         VIPSLogicTaskCollector modelRunCollector = new VIPSLogicTaskCollector(-1);
         SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
-        modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK));
+        // Separating the forecasts for each organization
+        List<Organization> organizations = SessionControllerGetter.getUserBean().getOrganizationsWithActiveForecastConfigurations(SystemTime.getSystemTime());
+        if(organizations != null && !organizations.isEmpty())
+        {
+            for(Organization org:organizations)
+            {
+                VipsLogicTask runAllForecastsTask = VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK);
+                runAllForecastsTask.setOrganization(org);
+                modelRunCollector.getTasks().add(halfPastPattern, runAllForecastsTask);
+            }
+        }
+        else // We run an empty job for all VIPS systems just to show that we've tried, but there's nothing to do
+        {
+            VipsLogicTask runAllForecastsTask = VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK);
+            modelRunCollector.getTasks().add(halfPastPattern, runAllForecastsTask);
+        }
         modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
         
         // Update forecast cache
@@ -295,7 +312,13 @@ public class SchedulingBean {
     {
         VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
         
-        System.out.println("############ Task " + task.getName() + " launched at " + new Date(taskExecutor.getStartTime()).toString() + "!!! ############");
+        String organizationName = "all organizations";
+        
+        if(task.getOrganization() != null)
+        {
+            organizationName = task.getOrganization().getOrganizationName();
+        }
+        System.out.println("############ Task " + task.getName() + " launched for " + organizationName + " at " + new Date(taskExecutor.getStartTime()).toString() + "!!! ############");
     }
     
     public void logTaskSucceeded(TaskExecutor taskExecutor)
@@ -307,8 +330,18 @@ public class SchedulingBean {
         taskHistory.setStartTime(new Date(taskExecutor.getStartTime()));
         taskHistory.setFinishTime(new Date());
         taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
+        taskHistory.setOrganization(task.getOrganization());
+        taskHistory.setMessage(taskExecutor.getStatusMessage());
         em.persist(taskHistory);
-        System.out.println("############ Task " + task.getName() + " started at " + new Date(taskExecutor.getStartTime()) + ", finished OK at " + new Date() + "!!! ############");
+        
+        String organizationName = "all organizations";
+        
+        if(task.getOrganization() != null)
+        {
+            organizationName = task.getOrganization().getOrganizationName();
+        }
+        
+        System.out.println("############ Task " + task.getName() + " for " + organizationName + " started at " + new Date(taskExecutor.getStartTime()) + ", finished OK at " + new Date() + "!!! ############");
     }
     
     public void logTaskFailed(TaskExecutor taskExecutor, Throwable throwable)
@@ -320,6 +353,7 @@ public class SchedulingBean {
         taskHistory.setStartTime(new Date(taskExecutor.getStartTime()));
         taskHistory.setFinishTime(new Date());
         taskHistory.setCompletenessAtFinish(taskExecutor.getCompleteness());
+        taskHistory.setOrganization(task.getOrganization());
         String taskHistoryStatusId = taskHistory.getCompletenessAtFinish() > 0 ? TaskHistoryStatus.STATUS_FAILED_PARTLY : TaskHistoryStatus.STATUS_FAILED_COMPLETELY;
         taskHistory.setTaskHistoryStatusId(em.find(TaskHistoryStatus.class, taskHistoryStatusId));
         
@@ -334,8 +368,15 @@ public class SchedulingBean {
         taskHistory.setMessage(taskExecutor.getStatusMessage());
         em.persist(taskHistory);
         
+        String organizationName = "all organizations";
+        
+        if(task.getOrganization() != null)
+        {
+            organizationName = task.getOrganization().getOrganizationName();
+        }
         
         System.out.println("############ Task " + task.getName() + 
+                "for " + organizationName +
                 " failed at + " + taskExecutor.getStartTime() + 
                 ", finished at " + new Date() + 
                 ". Status is " + taskHistory.getTaskHistoryStatusId() + 

@@ -22,10 +22,11 @@ package no.nibio.vips.logic.scheduling;
 import it.sauronsoftware.cron4j.Task;
 import java.util.Map;
 import no.nibio.vips.i18n.I18nImpl;
+import no.nibio.vips.logic.entity.Organization;
 
 /**
  * Adding some metadata properties to the task
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public abstract class VipsLogicTask extends Task{
@@ -35,6 +36,7 @@ public abstract class VipsLogicTask extends Task{
     private final I18nImpl i18n;
     private Map<String,String[]> configuration;
     private Integer factoryId;
+    private Organization organization;
     
     public abstract String getConfigFormDefinition(String language);
     
@@ -130,5 +132,19 @@ public abstract class VipsLogicTask extends Task{
      */
     public void setFactoryId(int factoryId) {
         this.factoryId = factoryId;
+    }
+
+    /**
+     * @return the organizationId
+     */
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    /**
+     * @param organizationId the organizationId to set
+     */
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }

@@ -832,4 +832,23 @@ public class UserBean {
                 .setParameter("userIds", userIds)
                 .getResultList();
     }
+    
+    public List<Organization> getOrganizationsWithActiveForecastConfigurations(Date theDate)
+    {
+        try
+        {
+        return em.createNativeQuery("SELECT * FROM public.organization WHERE organization_id IN("
+                + "SELECT DISTINCT organization_id FROM public.vips_logic_user WHERE user_id IN ("
+                    + "SELECT DISTINCT vips_logic_user_id FROM public.forecast_configuration "
+                    + "WHERE date_start <= :currentDate AND date_end >= :currentDate"
+                    + ")"
+                + ")", Organization.class)
+                .setParameter("currentDate", theDate)
+                .getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
 }

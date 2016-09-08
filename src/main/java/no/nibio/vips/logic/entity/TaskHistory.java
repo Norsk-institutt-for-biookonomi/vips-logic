@@ -38,7 +38,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -46,6 +46,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "TaskHistory.findAll", query = "SELECT t FROM TaskHistory t"),
+    @NamedQuery(name = "TaskHistory.findByOrganization", query = "SELECT t FROM TaskHistory t WHERE t.organization = :organization"),
     @NamedQuery(name = "TaskHistory.findByTaskHistoryId", query = "SELECT t FROM TaskHistory t WHERE t.taskHistoryId = :taskHistoryId"),
     @NamedQuery(name = "TaskHistory.findByTaskFactoryId", query = "SELECT t FROM TaskHistory t WHERE t.taskFactoryId = :taskFactoryId"),
     @NamedQuery(name = "TaskHistory.findByPeriod", query = "SELECT t FROM TaskHistory t WHERE t.startTime BETWEEN :periodStart AND :periodEnd"),
@@ -62,6 +63,9 @@ public class TaskHistory implements Serializable {
     private Long taskHistoryId;
     @Column(name = "task_factory_id")
     private Integer taskFactoryId;
+    @JoinColumn(name = "organization_id", referencedColumnName = "organization_id")
+    @ManyToOne
+    private Organization organization;
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
@@ -163,6 +167,20 @@ public class TaskHistory implements Serializable {
     @Override
     public String toString() {
         return "no.nibio.vips.logic.entity.TaskHistory[ taskHistoryId=" + taskHistoryId + " ]";
+    }
+
+    /**
+     * @return the organizationId
+     */
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    /**
+     * @param organizationId the organizationId to set
+     */
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
 }
