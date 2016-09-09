@@ -56,6 +56,7 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.TaskHistory;
 import no.nibio.vips.logic.entity.TaskHistoryStatus;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.scheduling.TaskLoggerSchedulerListener;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
@@ -293,6 +294,46 @@ public class SchedulingBean {
                 */
     }
     
+    /**
+     * 
+     * @return List of scheduled tasks, ordered chronologically by next predicted
+     * execution time
+     */
+    public SortedMap<String, List<VipsLogicTask>> getOrderedScheduledTasks(VipsLogicUser user)
+    {
+        if(user.isSuperUser())
+        {
+            return this.getOrderedScheduledTasks();
+        }
+        
+        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultTimestampFormat);
+        // Need to do some bucket sorting (date for next execution time as bucket)
+        SortedMap<String, List<VipsLogicTask>> sortedTasks = new TreeMap<>();
+        for(TaskCollector taskCollector: this.getSystemScheduler().getTaskCollectors())
+        {
+            TaskTable taskTable = taskCollector.getTasks();
+            for(int i=0;i<taskTable.size();i++)
+            {
+                SchedulingPattern pattern = taskTable.getSchedulingPattern(i);
+                Predictor p = new Predictor(pattern);
+                Date nextExecutionTime = p.nextMatchingDate();
+                VipsLogicTask task = (VipsLogicTask) taskTable.getTask(i);
+                if(task.getOrganization() == null || task.getOrganization().equals(user.getOrganizationId()))
+                {
+                    List<VipsLogicTask> tasksAtSameTime = sortedTasks.get(format.format(nextExecutionTime));
+                    if(tasksAtSameTime == null)
+                    {
+                        tasksAtSameTime = new ArrayList<>();
+                        sortedTasks.put(format.format(nextExecutionTime), tasksAtSameTime);
+                    }
+                    tasksAtSameTime.add(task);
+                }
+            }
+        }
+        return sortedTasks;
+        
+    }
+    
     public List<VipsLogicTask> getAllVipsLogicTasks()
     {
         return VipsLogicTaskFactory.getAllVipsLogicTasks();
@@ -400,6 +441,32 @@ public class SchedulingBean {
         Query q = em.createNamedQuery("TaskHistory.findByPeriod");
         q.setParameter("periodStart", periodStart);
         q.setParameter("periodEnd", periodEnd);
+        return q.getResultList();
+    }
+    
+    public List<TaskHistory> getTaskHistory(Date historyDate, VipsLogicUser user)
+    {
+        // SuperUser can see all, hear all, he is OMNIPOTENT
+        if(user.isSuperUser())
+        {
+            return this.getTaskHistory(historyDate);
+        }
+        
+        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+        cal.setTime(historyDate);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND,0);
+        
+        Date periodStart = cal.getTime();
+        cal.add(Calendar.DATE, 1);
+        Date periodEnd = cal.getTime();
+        
+        Query q = em.createNamedQuery("TaskHistory.findByPeriodAndOrganizationIncludingCommon");
+        q.setParameter("periodStart", periodStart);
+        q.setParameter("periodEnd", periodEnd);
+        q.setParameter("organization", user.getOrganizationId());
         return q.getResultList();
     }
     

@@ -50,6 +50,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "TaskHistory.findByTaskHistoryId", query = "SELECT t FROM TaskHistory t WHERE t.taskHistoryId = :taskHistoryId"),
     @NamedQuery(name = "TaskHistory.findByTaskFactoryId", query = "SELECT t FROM TaskHistory t WHERE t.taskFactoryId = :taskFactoryId"),
     @NamedQuery(name = "TaskHistory.findByPeriod", query = "SELECT t FROM TaskHistory t WHERE t.startTime BETWEEN :periodStart AND :periodEnd"),
+    @NamedQuery(name = "TaskHistory.findByPeriodAndOrganizationIncludingCommon", query = "SELECT t FROM TaskHistory t WHERE t.startTime BETWEEN :periodStart AND :periodEnd AND (t.organization IS NULL OR t.organization = :organization)"),
     @NamedQuery(name = "TaskHistory.findByStartTime", query = "SELECT t FROM TaskHistory t WHERE t.startTime = :startTime"),
     @NamedQuery(name = "TaskHistory.findByFinishTime", query = "SELECT t FROM TaskHistory t WHERE t.finishTime = :finishTime"),
     @NamedQuery(name = "TaskHistory.findByCompletenessAtFinish", query = "SELECT t FROM TaskHistory t WHERE t.completenessAtFinish = :completenessAtFinish"),

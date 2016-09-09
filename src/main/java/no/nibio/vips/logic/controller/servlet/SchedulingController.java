@@ -103,9 +103,9 @@ public class SchedulingController extends HttpServlet {
                     TaskExecutor[] taskExecutors = schedulingBean.getRunningTasks();
                     request.setAttribute("taskExecutors", taskExecutors);
                     request.setAttribute("schedulingStarted", schedulingBean.getSystemScheduler().isStarted());
-                    request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks());
+                    request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks(user));
                     request.setAttribute("taskHistoryDate",taskHistoryDate);
-                    request.setAttribute("taskHistory",schedulingBean.getTaskHistory(taskHistoryDate));
+                    request.setAttribute("taskHistory",schedulingBean.getTaskHistory(taskHistoryDate, user));
                     request.setAttribute("allTasksMap", VipsLogicTaskFactory.getAllVipsLogicTasksMap());
                     // If this is a redirect from a controller, with a message to be passed on
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
