@@ -89,7 +89,7 @@ public class GeometryEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "no.nibio.vips.logic.modules.applefruitmoth.GeometryEntity[ id=" + id + " ]";
+        return "no.nibio.vips.logic.gis.GeometryEntity[ id=" + id + " ]";
     }
 
     /**
