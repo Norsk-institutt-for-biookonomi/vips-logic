@@ -24,13 +24,22 @@
         </#if>
 </#macro>
 <#macro custom_js>
+        <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
 	<script src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
 	<script type="text/javascript">
 		// Load main form definition (for validation)
 		loadFormDefinition("organismForm");
+                $(document).ready( function() {
+                    // Activating chosen plugin
+                    $(".chosen-select").chosen();
+                });
 	</script>
 
+</#macro>
+<#macro custom_css>
+	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
@@ -112,6 +121,18 @@
 		  </label>
 		</div>
 	</div>
+        <#if (organism.isCrop?has_content && organism.isCrop == true)>
+        <div class="form-group">
+	    <label for="cropCategoryIds">${i18nBundle.cropCategoryIds}</label>
+	    <select class="form-control chosen-select" name="cropCategoryIds" onblur="validateField(this);" multiple="multiple">
+	    	<#if cropCategories?has_content >
+			<#list cropCategories as cropCategory>
+				<option value="${cropCategory.cropCategoryId}" <#if cropCategory.containsCropOrganismId(organism.organismId)>selected="selected"</#if>>${(cropCategory.getLocalName(currentLocale))!cropCategory.defaultName}</option>
+			</#list>
+		</#if>
+	     </select>
+	</div>
+        </#if>
 	<fieldset>
 	<h3>${i18nBundle.externalResources}</h3>
 	<#if organism.organismExternalResourceSet?has_content>

@@ -41,6 +41,12 @@
             "required" : false
         },
         {
+            "name" : "cropCategoryIds",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_MULTIPLE",
+            "required" : false
+        },
+        {
             "name" : "hierarchyCategoryId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

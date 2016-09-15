@@ -21,6 +21,8 @@ package no.nibio.vips.logic.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -173,5 +175,45 @@ public class CropCategory implements Serializable {
             }
         }
         return null;
+    }
+    
+    @JsonIgnore
+    public boolean containsCropOrganismId(Integer organismId)
+    {
+        if(this.getCropOrganismIds() == null)
+        {
+            return false;
+        }
+        for(Integer oId:this.getCropOrganismIds())
+        {
+            if(oId.equals(organismId))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void addCropOrganismId(Integer organismId) {
+        Set<Integer> cropSet;
+        if(this.getCropOrganismIds() == null)
+        {
+            cropSet = new HashSet<>();
+        }
+        else
+        {
+            cropSet = new HashSet<>(Arrays.asList(this.getCropOrganismIds()));
+        }
+        cropSet.add(organismId);
+        this.setCropOrganismIds(cropSet.toArray(new Integer[cropSet.size()]));
+    }
+
+    public void removeCropOrganismId(Integer organismId) {
+        if(this.getCropOrganismIds() != null)
+        {
+            Set<Integer> cropSet = new HashSet<>(Arrays.asList(this.getCropOrganismIds()));
+            cropSet.remove(organismId);
+            this.setCropOrganismIds(cropSet.toArray(new Integer[cropSet.size()]));
+        }
     }
 }

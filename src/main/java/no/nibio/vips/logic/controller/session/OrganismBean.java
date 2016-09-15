@@ -25,8 +25,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -369,5 +371,24 @@ public class OrganismBean {
             }
         );
         return cropCategories;
+    }
+
+    public void storeOrganismCropCategories(Integer organizationId, Organism organism, Set<Integer> cropCategoryIds) {
+        List<CropCategory> cropCategories = this.getCropCategories(organizationId);
+        if(cropCategoryIds == null)
+        {
+            cropCategoryIds = new HashSet<>();
+        }
+        for(CropCategory cropCategory : cropCategories)
+        {
+            if(cropCategoryIds.contains(cropCategory.getCropCategoryId()))
+            {
+                cropCategory.addCropOrganismId(organism.getOrganismId());
+            }
+            else
+            {
+                cropCategory.removeCropOrganismId(organism.getOrganismId());
+            }
+        }
     }
 }

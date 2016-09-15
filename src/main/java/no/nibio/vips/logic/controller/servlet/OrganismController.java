@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -20,8 +20,11 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -32,6 +35,7 @@ import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.OrganismExternalResource;
 import no.nibio.vips.logic.entity.OrganismExternalResourcePK;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
@@ -43,7 +47,7 @@ import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
 
 /**
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class OrganismController extends HttpServlet {
@@ -62,7 +66,7 @@ public class OrganismController extends HttpServlet {
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
-        
+        VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
         // Default: View top organisms
         // for everyone
         if(action == null || action.equals("listChildOrganisms"))
@@ -137,10 +141,10 @@ public class OrganismController extends HttpServlet {
         {
             try
             {
-                
                 Integer organismId = Integer.valueOf(request.getParameter("organismId"));
                 Organism organism = em.find(Organism.class, organismId);
                 request.setAttribute("organism", organism);
+                
                 // Hierarchy categories
                 request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                 request.setAttribute("parentOrganism", organism.getParentOrganismId() != null ? em.find(Organism.class, organism.getParentOrganismId()) : null);
@@ -166,6 +170,10 @@ public class OrganismController extends HttpServlet {
                 Integer organismId = Integer.valueOf(request.getParameter("organismId"));
                 Organism organism = em.find(Organism.class, organismId);
                 request.setAttribute("organism", organism);
+                if(organism.getIsCrop())
+                {
+                    request.setAttribute("cropCategories", SessionControllerGetter.getOrganismBean().getCropCategories(user.getOrganizationId().getOrganizationId()));
+                }
                 // All organisms used for parent organism list
                 List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
                 request.setAttribute("allOrganisms", allOrganisms);
@@ -228,6 +236,17 @@ public class OrganismController extends HttpServlet {
                             SessionLocaleUtil.getCurrentLocale(request)
                             );
                     
+                    Set<Integer> cropCategoryIds = null;
+                    if(formValidation.getFormField("cropCategoryIds").getWebValues() != null)
+                    {
+                       cropCategoryIds = new HashSet<>();
+                       for(String idStr:formValidation.getFormField("cropCategoryIds").getWebValues())
+                       {
+                           cropCategoryIds.add(Integer.valueOf(idStr));
+                       }
+                    }
+                    SessionControllerGetter.getOrganismBean().storeOrganismCropCategories(user.getOrganizationId().getOrganizationId(), organism, cropCategoryIds);
+                    
                     //System.out.println(formValidation.getFormFields().toString());
                     Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
                     for(String key:externalResourceIdentifiers.keySet())
@@ -247,6 +266,10 @@ public class OrganismController extends HttpServlet {
                     // Need to refresh organism after storing the external resources
                     Organism refreshedOrganism = em.find(Organism.class, organism.getOrganismId());
                     request.setAttribute("organism", refreshedOrganism);
+                    if(refreshedOrganism.getIsCrop())
+                    {
+                        request.setAttribute("cropCategories", SessionControllerGetter.getOrganismBean().getCropCategories(user.getOrganizationId().getOrganizationId()));
+                    }
                     request.setAttribute("allOrganisms", em.createNamedQuery("Organism.findAll").getResultList());
                     // Hierarchy categories
                     request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
