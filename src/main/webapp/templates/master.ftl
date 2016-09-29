@@ -1,5 +1,5 @@
 <#-- 
-    Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+    Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
   VIPSLogic is free software: you can redistribute it and/or modify
@@ -53,6 +53,7 @@
 			  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
 			  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
 			  <li><a href="/organism">${i18nBundle.organisms}</a></li>
+                          <li><a href="/organism/cropcategory">${i18nBundle.cropCategoryIds}</a></li>
 		  <#else>
 		  	<li><a href="/user?action=viewUser&userId=${user.userId}">${i18nBundle.myAccount}</a></li>
 		  </#if>

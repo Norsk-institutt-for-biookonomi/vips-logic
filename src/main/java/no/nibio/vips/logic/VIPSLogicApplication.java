@@ -25,7 +25,7 @@ import javax.ws.rs.core.Application;
 
 /**
  * Responsible for adding REST resources
- * @copyright 2015 {@link http://www.nibio.no NIBIO}
+ * @copyright 2016 {@link http://www.nibio.no NIBIO}
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @ApplicationPath("/rest/")

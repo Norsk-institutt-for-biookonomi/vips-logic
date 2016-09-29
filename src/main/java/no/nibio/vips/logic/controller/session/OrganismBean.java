@@ -259,6 +259,17 @@ public class OrganismBean {
     {
         return em.createNamedQuery("Organism.findAllCrops").getResultList();
     }
+    
+    public Map<Integer, Organism> getAllCropsMapped()
+    {
+        List<Organism> cropList = this.getAllCrops();
+        Map<Integer, Organism> cropMap = new HashMap<>();
+        for(Organism crop:cropList)
+        {
+            cropMap.put(crop.getOrganismId(), crop);
+        }
+        return cropMap;
+    }
 
     public CropPest getCropPest(Integer cropOrganismId) {
         try
@@ -390,5 +401,13 @@ public class OrganismBean {
                 cropCategory.removeCropOrganismId(organism.getOrganismId());
             }
         }
+    }
+
+    public CropCategory getCropCategory(Integer cropCategoryId) {
+        return em.find(CropCategory.class, cropCategoryId);
+    }
+
+    public void storeCropCategory(CropCategory cropCategory) {
+        em.merge(cropCategory);
     }
 }
