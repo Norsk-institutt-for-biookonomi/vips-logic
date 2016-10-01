@@ -315,7 +315,7 @@ public class RoughageService {
                     Double wateringAmount = Double.parseDouble(elems[1]);
                     wateringMap.put(wateringDate, wateringAmount);
                 }
-                catch(ParseException ex)
+                catch(ParseException | ArrayIndexOutOfBoundsException ex)
                 {
                     // Skip to next
                 }    
