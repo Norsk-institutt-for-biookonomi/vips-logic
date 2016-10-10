@@ -86,7 +86,7 @@ public class Organization implements Serializable {
     @Column(name = "default_vips_core_user_id")
     private Integer defaultVipsCoreUserId;
     @JsonIgnore
-    @Type(type = "org.hibernate.spatial.GeometryType")
+    //@Type(type = "org.hibernate.spatial.GeometryType")
     @Column(name = "default_map_center", columnDefinition = "Geometry")
     private Point defaultMapCenter;
     @OneToMany(mappedBy = "parentOrganizationId", fetch = FetchType.EAGER)

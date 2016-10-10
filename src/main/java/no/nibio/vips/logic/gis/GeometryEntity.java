@@ -53,7 +53,7 @@ public class GeometryEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     
-    @Type(type = "org.hibernate.spatial.GeometryType")
+    //@Type(type = "org.hibernate.spatial.GeometryType")
     @Column(name = "geometry_value", columnDefinition = "Geometry")
     private Geometry geometryValue;
 

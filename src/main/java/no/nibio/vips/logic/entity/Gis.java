@@ -32,7 +32,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.hibernate.annotations.Type;
+//import org.hibernate.annotations.Type;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -54,7 +54,7 @@ public class Gis implements Serializable {
     @Column(name = "gis_id")
     private Integer gisId;
     @JsonIgnore
-    @Type(type = "org.hibernate.spatial.GeometryType")
+    //@Type(type = "org.hibernate.spatial.GeometryType")
     @Column(name = "gis_geom", columnDefinition = "Geometry")
     private Geometry gisGeom;
 
