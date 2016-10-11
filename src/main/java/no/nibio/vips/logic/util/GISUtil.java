@@ -25,6 +25,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,11 +91,10 @@ public class GISUtil {
         List<Feature> features = new ArrayList<>();
         Map<String, Object> properties = new HashMap<>();
         GeoJSONWriter writer = new GeoJSONWriter();
-        for(Gis gis:geoinfo)
-        {
-            features.add(new Feature(writer.write(gis.getGisGeom()), properties));
-        }
-
+        geoinfo.stream().forEach(
+                (gis)->features.add(new Feature(writer.write(gis.getGisGeom()), properties))
+        );
+       
         FeatureCollection json = writer.write(features);
         return json.toString();
     }
