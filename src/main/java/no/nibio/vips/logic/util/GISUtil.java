@@ -108,11 +108,7 @@ public class GISUtil {
         List<Feature> features = new ArrayList<>();
         Map<String, Object> properties = new HashMap<>();
         GeoJSONWriter writer = new GeoJSONWriter();
-        for(Geometry geometry:geometries)
-        {
-            features.add(new Feature(writer.write(geometry), properties));
-        }
-
+        geometries.stream().forEach((geometry)->features.add(new Feature(writer.write(geometry), properties)));
         FeatureCollection json = writer.write(features);
         return json.toString();
     }
