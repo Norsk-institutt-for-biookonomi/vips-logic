@@ -32,6 +32,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.persistence.Transient;
 
 /**
  * Extension of {@see PointOfInterest}, with additional info for weather stations
@@ -53,22 +54,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 })
 public class PointOfInterestWeatherStation extends PointOfInterest implements Serializable {
     @Size(max = 255)
-    @Column(name = "weather_station_remote_id")
     private String weatherStationRemoteId;
-    @JoinColumn(name = "weather_station_data_source_id", referencedColumnName = "weather_station_data_source_id")
-    @ManyToOne
     private WeatherStationDataSource weatherStationDataSourceId;
     @JsonIgnore
-    @JoinColumn(name = "point_of_interest_id", referencedColumnName = "point_of_interest_id", insertable = false, updatable = false)
-    @OneToOne(optional = false)
     private PointOfInterest pointOfInterest;
-    @Column(name="active")
     private Boolean active;
 
     public PointOfInterestWeatherStation() {
     }
 
 
+    @Column(name = "weather_station_remote_id")
     public String getWeatherStationRemoteId() {
         return weatherStationRemoteId;
     }
@@ -77,6 +73,8 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
         this.weatherStationRemoteId = weatherStationRemoteId;
     }
 
+    @JoinColumn(name = "weather_station_data_source_id", referencedColumnName = "weather_station_data_source_id")
+    @ManyToOne
     public WeatherStationDataSource getWeatherStationDataSourceId() {
         return weatherStationDataSourceId;
     }
@@ -85,6 +83,8 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
         this.weatherStationDataSourceId = weatherStationDataSourceId;
     }
 
+    @JoinColumn(name = "point_of_interest_id", referencedColumnName = "point_of_interest_id", insertable = false, updatable = false)
+    @OneToOne(optional = false)
     public PointOfInterest getPointOfInterest() {
         return pointOfInterest;
     }
@@ -131,6 +131,7 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
      * weather data source and weather station
      * @return 
      */
+    @Transient
     public String getDataFetchUri()
     {
         String dataRequestUri = String.format(this.getWeatherStationDataSourceId().getDatafetchUriExpression(),this.getWeatherStationRemoteId());
@@ -140,6 +141,7 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
     /**
      * @return the active
      */
+    @Column(name="active")
     public Boolean getActive() {
         return active;
     }

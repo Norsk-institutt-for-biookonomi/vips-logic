@@ -50,6 +50,7 @@ import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
+import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.web.forms.FormField;
@@ -189,6 +190,7 @@ public class PointOfInterestBean {
         
         
         String description = "";
+        GISUtil gisUtil = new GISUtil();
         for(PointOfInterest poi:pois)
         {
             if(excludePoiId != null && excludePoiId.equals(poi.getPointOfInterestId()))
@@ -229,11 +231,7 @@ public class PointOfInterestBean {
             
             final Point point = placemark.createAndSetPoint();
             List<Coordinate> coord = point.createAndSetCoordinates();
-            coord.add(new Coordinate(
-                    poi.getLongitude(),
-                    poi.getLatitude(),
-                    poi.getAltitude() != null ? poi.getAltitude() : 0
-            ));
+            coord.add(gisUtil.getKMLCoordinateFromJTSCoordinate(poi.getGisGeom().getCoordinate()));
         }
         return kml;
     }

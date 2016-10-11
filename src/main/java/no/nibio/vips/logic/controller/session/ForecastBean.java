@@ -72,6 +72,7 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
+import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -689,6 +690,8 @@ public class ForecastBean {
         //Date benchmark = new Date();
         List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
         //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
+        
+        GISUtil gisUtil = new GISUtil();
         for(PointOfInterest poiWithAggregate:poisWithAggregate)
         {
             // If it's an inactive weather station, we don't produce a placemark
@@ -728,11 +731,8 @@ public class ForecastBean {
             
             final Point point = placemark.createAndSetPoint();
             List<Coordinate> coord = point.createAndSetCoordinates();
-            coord.add(new Coordinate(
-                    poiWithAggregate.getLongitude(),
-                    poiWithAggregate.getLatitude(),
-                    poiWithAggregate.getAltitude() != null ? poiWithAggregate.getAltitude() : 0
-            ));
+            
+            coord.add(gisUtil.getKMLCoordinateFromJTSCoordinate(poiWithAggregate.getGisGeom().getCoordinate()));
         }
         //System.out.println(kml.marshal());
         return kml;

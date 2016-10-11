@@ -54,7 +54,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
     @Override
     public List<WeatherObservation> getWeatherForecasts(PointOfInterest location) throws ParseWeatherDataException 
     {
-        return this.getWeatherForecasts(location.getLongitude(), location.getLatitude(), location.getAltitude());
+        return this.getWeatherForecasts(location.getGisGeom().getCoordinate().x, location.getGisGeom().getCoordinate().y, location.getGisGeom().getCoordinate().z);
     }
     
     

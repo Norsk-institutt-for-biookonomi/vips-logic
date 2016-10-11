@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import java.io.Serializable;
 import javax.persistence.Basic;
@@ -79,6 +80,13 @@ public class Gis implements Serializable {
     }
 
     public void setGisGeom(Geometry gisGeom) {
+        for(Coordinate c:gisGeom.getCoordinates())
+        {
+            if(Double.isNaN(c.z))
+            {
+                c.setCoordinate(new Coordinate(c.x,c.y,0.0));
+            }
+        }
         this.gisGeom = gisGeom;
     }
 

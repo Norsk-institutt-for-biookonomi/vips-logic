@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
@@ -48,6 +49,7 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.logic.entity.WeatherForecastProvider;
+import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormValidation;
@@ -261,11 +263,20 @@ public class PointOfInterestController extends HttpServlet {
                             // Set values
                             weatherStation.setName(formValidation.getFormField("name").getWebValue());
                             weatherStation.setActive(formValidation.getFormField("active").getWebValue() != null);
+
+                            Double altitude = 0.0;
+                            Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();
                             try
                             {
-                                weatherStation.setAltitude(formValidation.getFormField("altitude").getValueAsDouble());
+                                altitude = formValidation.getFormField("altitude").getValueAsDouble();
+                                weatherStation.setAltitude(altitude);
+                                
                             }
                             catch(NullPointerException | NumberFormatException ex) {}
+                            Coordinate coordinate = new Coordinate(p2d.getX(), p2d.getY(),altitude);
+                            GISUtil gisUtil = new GISUtil();
+                            Point p3d = gisUtil.createPointWGS84(coordinate);
+                            weatherStation.setGisGeom(p3d);
                             weatherStation.setLongitude(formValidation.getFormField("location").getValueAsPointWGS84().getX());
                             weatherStation.setLatitude(formValidation.getFormField("location").getValueAsPointWGS84().getY());
                             weatherStation.setWeatherStationDataSourceId(em.find(WeatherStationDataSource.class, formValidation.getFormField("weatherStationDataSourceId").getValueAsInteger()));
@@ -584,11 +595,18 @@ public class PointOfInterestController extends HttpServlet {
                             {
                                 // Set values
                                 poi.setName(formValidation.getFormField("name").getWebValue());
+                                Double altitude = 0.0;
+                                Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();
                                 try
                                 {
-                                    poi.setAltitude(formValidation.getFormField("altitude").getValueAsDouble());
+                                    altitude = formValidation.getFormField("altitude").getValueAsDouble();
+                                    poi.setAltitude(altitude);
                                 }
                                 catch(NullPointerException | NumberFormatException ex) {}
+                                Coordinate coordinate = new Coordinate(p2d.getX(), p2d.getY(),altitude);
+                                GISUtil gisUtil = new GISUtil();
+                                Point p3d = gisUtil.createPointWGS84(coordinate);
+                                poi.setGisGeom(p3d);
                                 poi.setLongitude(formValidation.getFormField("location").getValueAsPointWGS84().getX());
                                 poi.setLatitude(formValidation.getFormField("location").getValueAsPointWGS84().getY());
                                 poi.setWeatherForecastProviderId(formValidation.getFormField("weatherForecastProviderId").getWebValue() != null ?

@@ -39,12 +39,14 @@ import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vividsolutions.jts.geom.Geometry;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
+import no.nibio.vips.logic.util.GISUtil;
 
 /**
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
@@ -63,60 +65,51 @@ import javax.persistence.OneToMany;
     //@NamedQuery(name = "PointOfInterest.findByPointOfInterestTypeId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType = :pointOfInterestType"),
     @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
-    @NamedQuery(name = "PointOfInterest.findByLongitude", query = "SELECT p FROM PointOfInterest p WHERE p.longitude = :longitude"),
-    @NamedQuery(name = "PointOfInterest.findByLatitude", query = "SELECT p FROM PointOfInterest p WHERE p.latitude = :latitude"),
-    @NamedQuery(name = "PointOfInterest.findByAltitude", query = "SELECT p FROM PointOfInterest p WHERE p.altitude = :altitude"),
+    //@NamedQuery(name = "PointOfInterest.findByLongitude", query = "SELECT p FROM PointOfInterest p WHERE p.longitude = :longitude"),
+    //@NamedQuery(name = "PointOfInterest.findByLatitude", query = "SELECT p FROM PointOfInterest p WHERE p.latitude = :latitude"),
+    //@NamedQuery(name = "PointOfInterest.findByAltitude", query = "SELECT p FROM PointOfInterest p WHERE p.altitude = :altitude"),
     @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.userId = :userId ORDER BY p.name ASC")
 })
 public class PointOfInterest implements Serializable, Comparable {
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "pointOfInterest", fetch = FetchType.EAGER)
     private Set<PointOfInterestExternalResource> pointOfInterestExternalResourceSet;
 
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "point_of_interest_id")
     private Integer pointOfInterestId;
     @Size(max = 255)
-    @Column(name = "name")
     private String name;
     @Size(max = 255)
-    @Column(name = "time_zone")
     private String timeZone;
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
-    @Column(name = "longitude")
     private Double longitude;
-    @Column(name = "latitude")
     private Double latitude;
-    @Column(name = "altitude")
     private Double altitude;
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    @ManyToOne
+    @JsonIgnore
+    private Geometry gisGeom;
     private VipsLogicUser userId;
-    @JoinColumn(name = "country_code", referencedColumnName = "country_code")
-    @ManyToOne
     private Country countryCode;
-    @JoinColumn(name = "weather_forecast_provider_id", referencedColumnName = "weather_forecast_provider_id")
-    @ManyToOne
     private WeatherForecastProvider weatherForecastProviderId;
     
-    @Column(name = "point_of_interest_type_id", insertable = false, updatable = false)
     private Integer pointOfInterestTypeId;
    
     
     // For attaching ad-hoc properties
     // e.g. Worst warning for map
-    @Transient
     private Map<String, Object> properties;
     
+    private GISUtil gisUtil;
+    
     public PointOfInterest() {
+        this.gisUtil = new GISUtil();
     }
 
     public PointOfInterest(Integer pointOfInterestId) {
         this.pointOfInterestId = pointOfInterestId;
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "point_of_interest_id")
     public Integer getPointOfInterestId() {
         return pointOfInterestId;
     }
@@ -125,6 +118,7 @@ public class PointOfInterest implements Serializable, Comparable {
         this.pointOfInterestId = pointOfInterestId;
     }
 
+    @Column(name = "name")
     public String getName() {
         return name;
     }
@@ -133,6 +127,7 @@ public class PointOfInterest implements Serializable, Comparable {
         this.name = name;
     }
 
+    @Column(name = "longitude")
     public Double getLongitude() {
         return longitude;
     }
@@ -141,6 +136,7 @@ public class PointOfInterest implements Serializable, Comparable {
         this.longitude = longitude;
     }
 
+    @Column(name = "latitude")
     public Double getLatitude() {
         return latitude;
     }
@@ -149,6 +145,7 @@ public class PointOfInterest implements Serializable, Comparable {
         this.latitude = latitude;
     }
 
+    @Column(name = "altitude")
     public Double getAltitude() {
         return altitude;
     }
@@ -158,6 +155,8 @@ public class PointOfInterest implements Serializable, Comparable {
     }
 
     
+    @JoinColumn(name = "country_code", referencedColumnName = "country_code")
+    @ManyToOne
     public Country getCountryCode() {
         return countryCode;
     }
@@ -225,6 +224,7 @@ public class PointOfInterest implements Serializable, Comparable {
     /**
      * @return the timeZone
      */
+    @Column(name = "time_zone")
     public String getTimeZone() {
         return timeZone;
     }
@@ -239,6 +239,7 @@ public class PointOfInterest implements Serializable, Comparable {
     /**
      * @return the properties
      */
+    @Transient
     public Map<String,Object> getProperties() {
         if(this.properties == null)
         {
@@ -257,6 +258,8 @@ public class PointOfInterest implements Serializable, Comparable {
     /**
      * @return the userId
      */
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    @ManyToOne
     @JsonIgnore
     public VipsLogicUser getUserId() {
         return userId;
@@ -272,6 +275,8 @@ public class PointOfInterest implements Serializable, Comparable {
     /**
      * @return the weatherForecastProviderId
      */
+    @JoinColumn(name = "weather_forecast_provider_id", referencedColumnName = "weather_forecast_provider_id")
+    @ManyToOne
     public WeatherForecastProvider getWeatherForecastProviderId() {
         return weatherForecastProviderId;
     }
@@ -284,6 +289,7 @@ public class PointOfInterest implements Serializable, Comparable {
     }
 
     //@XmlTransient
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "pointOfInterest", fetch = FetchType.EAGER)
     public Set<PointOfInterestExternalResource> getPointOfInterestExternalResourceSet() {
         return pointOfInterestExternalResourceSet;
     }
@@ -295,6 +301,7 @@ public class PointOfInterest implements Serializable, Comparable {
     /**
      * @return the pointOfInterestTypeId
      */
+    @Column(name = "point_of_interest_type_id", insertable = false, updatable = false)
     public Integer getPointOfInterestTypeId() {
         return pointOfInterestTypeId;
     }
@@ -304,6 +311,27 @@ public class PointOfInterest implements Serializable, Comparable {
      */
     public void setPointOfInterestTypeId(Integer pointOfInterestTypeId) {
         this.pointOfInterestTypeId = pointOfInterestTypeId;
+    }
+
+    /**
+     * @return the gisGeom
+     */
+    @Column(name = "gis_geom", columnDefinition = "Geometry")
+    public Geometry getGisGeom() {
+        return gisGeom;
+    }
+
+    @Transient
+    public String getGeoJSON()
+    {
+        return this.gisUtil.getGeoJSONFromGeometry(this.getGisGeom());
+    }
+    
+    /**
+     * @param gisGeom the gisGeom to set
+     */
+    public void setGisGeom(Geometry gisGeom) {
+        this.gisGeom = gisGeom;
     }
 
     

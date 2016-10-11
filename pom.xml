@@ -26,11 +26,11 @@
             
 </repositories>
   <dependencies>
-      <dependency>
+      <!--dependency>
         <groupId>com.github.bjornharrtell</groupId>
         <artifactId>jts2geojson</artifactId>
         <version>0.6.0</version>
-    </dependency>
+    </dependency-->
       <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-spatial</artifactId>
@@ -147,6 +147,11 @@
       <artifactId>postgresql</artifactId>
       <version>9.4.1211</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.wololo</groupId>
+      <artifactId>jts2geojson</artifactId>
+      <version>0.8.0</version>
     </dependency>
     <dependency>
       <groupId>javax</groupId>

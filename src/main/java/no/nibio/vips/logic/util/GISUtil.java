@@ -19,7 +19,11 @@
 
 package no.nibio.vips.logic.util;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -111,5 +115,36 @@ public class GISUtil {
 
         FeatureCollection json = writer.write(features);
         return json.toString();
+    }
+    
+    public String getGeoJSONFromGeometry(Geometry geometry)
+    {
+        if(geometry == null)
+        {
+            return "";
+        }
+        List<Feature> features = new ArrayList<>();
+        Map<String, Object> properties = new HashMap<>();
+        GeoJSONWriter writer = new GeoJSONWriter();
+       
+        features.add(new Feature(writer.write(geometry), properties));
+        
+        FeatureCollection json = writer.write(features);
+        return json.toString();
+    }
+    
+    public Point createPointWGS84(Coordinate coordinate)
+    {
+        GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
+        return gf.createPoint(coordinate);
+    }
+    
+    public de.micromata.opengis.kml.v_2_2_0.Coordinate getKMLCoordinateFromJTSCoordinate(com.vividsolutions.jts.geom.Coordinate jtsCoordinate)
+    {
+        return new de.micromata.opengis.kml.v_2_2_0.Coordinate(
+                jtsCoordinate.x, 
+                jtsCoordinate.y, 
+                Double.isNaN(jtsCoordinate.z) ? 0.0 :  jtsCoordinate.z
+        );
     }
 }

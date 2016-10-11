@@ -136,9 +136,9 @@ public class CydiaPomonellaModelPreprocessor extends ModelRunPreprocessor{
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
         retVal.setConfigParameter("observedDateOfFirstCatch", observedDateOfFirstCatch);
-        retVal.setConfigParameter("latitude", configuration.getLocationPointOfInterestId().getLatitude());
-        retVal.setConfigParameter("longitude", configuration.getLocationPointOfInterestId().getLongitude());
-        retVal.setConfigParameter("altitude", configuration.getLocationPointOfInterestId().getAltitude());
+        retVal.setConfigParameter("longitude", configuration.getLocationPointOfInterestId().getGisGeom().getCoordinate().x);
+        retVal.setConfigParameter("latitude", configuration.getLocationPointOfInterestId().getGisGeom().getCoordinate().y);
+        retVal.setConfigParameter("altitude", configuration.getLocationPointOfInterestId().getGisGeom().getCoordinate().z);
         return retVal;
     }
 

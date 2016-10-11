@@ -155,7 +155,6 @@ public class FormField {
         return gf.createPoint(coordinate);
     }
     
-    
     /**
      * Default state is valid
      */
