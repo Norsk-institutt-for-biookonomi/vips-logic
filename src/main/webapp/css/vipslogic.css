@@ -264,3 +264,8 @@ legend {
     font-size: smaller;
     font-style: italic;
 }
+
+div.popover {
+	min-width: 350px;
+	max-width: 400px !important;
+}

@@ -19,11 +19,17 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletContext;
@@ -35,6 +41,8 @@ import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationMethod;
 import no.nibio.vips.logic.entity.Organism;
+import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -72,308 +80,396 @@ public class ObservationController extends HttpServlet {
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
         // Default: View message list
         // for everyone
-        if(action == null)
+        if(request.getServletPath().endsWith("/observation"))
         {
-            List<Observation> observations = null;
-            Integer statusTypeId = -1; 
-            Integer pestOrganismId = -1;
-            try 
+            if(action == null)
             {
-                statusTypeId = request.getParameter("statusTypeId") != null ? Integer.valueOf(request.getParameter("statusTypeId")) : -1;
-                pestOrganismId = request.getParameter("pestOrganismId") != null ? Integer.valueOf(request.getParameter("pestOrganismId")) : -1;
-            }
-            catch(NumberFormatException nfe) {
-            }
-            
-            
-            if(statusTypeId > 0)
-            {
-                observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId(), statusTypeId);
-            }
-            else if(pestOrganismId > 0)
-            {
-                observations = SessionControllerGetter.getObservationBean().getObservationsOfPest(pestOrganismId);
-            }
-            else
-            {
-                observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
-            }
-            
-            Collections.sort(observations);
-            Collections.reverse(observations);
-            List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
-            request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
-            request.setAttribute("selectedPestOrganismId", pestOrganismId);
-            request.setAttribute("selectedStatusTypeId", statusTypeId);
-            request.setAttribute("observations", observations);
-            request.setAttribute("userHasObserverPrivilege", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
-            request.setAttribute("userIsObservationAuthority", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
-            // If this is a redirect from a controller, with a message to be passed on
-            request.setAttribute("messageKey", request.getParameter("messageKey"));
-            request.getRequestDispatcher("/observationList.ftl").forward(request, response);
-        }
-        // Create a new observation
-        // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
-        else if(action.equals("newObservationForm"))
-        {
-            if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
-            {
-                try
+                List<Observation> observations = null;
+                Integer statusTypeId = -1; 
+                Integer pestOrganismId = -1;
+                try 
                 {
-                    Observation observation = new Observation();
-                    request.setAttribute("observation", observation);
-                    request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
-                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
-                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                    request.setAttribute("locationPointOfInterests", SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user));
-                    List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
-                    request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-                    List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
-                    request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-                    // Hierarchy categories
-                    request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
-                    request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
-                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
-                    {
-                        request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
-                    }
-                    request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
+                    statusTypeId = request.getParameter("statusTypeId") != null ? Integer.valueOf(request.getParameter("statusTypeId")) : -1;
+                    pestOrganismId = request.getParameter("pestOrganismId") != null ? Integer.valueOf(request.getParameter("pestOrganismId")) : -1;
                 }
-                catch(NullPointerException | NumberFormatException ex)
-                {
-                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                catch(NumberFormatException nfe) {
                 }
-            }
-            else
-            {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
-            }
-        }
-        // Edit an existing observation
-        // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
-        else if(action.equals("editObservationForm"))
-        {
-            if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
-            {
-                try
+
+
+                if(statusTypeId > 0)
                 {
-                    Integer observationId = Integer.valueOf(request.getParameter("observationId"));
-                    Observation observation = SessionControllerGetter.getObservationBean().getObservation(observationId);//em.find(Observation.class, observationId);
-                    request.setAttribute("observation", observation);
-                    request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
-                    //System.out.println(observation.getGeoinfo());
-                    request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
-                    request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                    List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
-                    request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-                    List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
-                    request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-                    // Hierarchy categories
-                    request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
-                    request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
-                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
-                    {
-                        request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
-                    }
-                    if(request.getParameter("messageKey") != null)
-                    {
-                        request.setAttribute("messageKey",request.getParameter("messageKey"));
-                    }
-                    request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
+                    observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId(), statusTypeId);
                 }
-                catch(NullPointerException | NumberFormatException ex)
+                else if(pestOrganismId > 0)
                 {
-                    response.sendError(500, ex.getMessage() + ": " + ExceptionUtil.getStackTrace(ex));
+                    observations = SessionControllerGetter.getObservationBean().getObservationsOfPest(pestOrganismId);
                 }
-            }
-            else
-            {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
-            }
-        }
-        // Store an observation
-        // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
-        else if(action.equals("observationFormSubmit"))
-        {
-            if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
-            {
-                try
+                else
                 {
-                    Map<String,String[]> parameterMap;
-                    List<FileItem> items = null;
-                    if(ServletFileUpload.isMultipartContent(request))
+                    observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
+                }
+
+                Collections.sort(observations);
+                Collections.reverse(observations);
+                List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+                request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
+                request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                request.setAttribute("selectedPestOrganismId", pestOrganismId);
+                request.setAttribute("selectedStatusTypeId", statusTypeId);
+                request.setAttribute("observations", observations);
+                request.setAttribute("userHasObserverPrivilege", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
+                request.setAttribute("userIsObservationAuthority", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
+                // If this is a redirect from a controller, with a message to be passed on
+                request.setAttribute("messageKey", request.getParameter("messageKey"));
+                request.getRequestDispatcher("/observationList.ftl").forward(request, response);
+            }
+            // Create a new observation
+            // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
+            else if(action.equals("newObservationForm"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
                     {
-                        // Create a factory for disk-based file items
-                        DiskFileItemFactory factory = new DiskFileItemFactory();
-
-                        // Configure a repository (to ensure a secure temp location is used)
-                        ServletContext servletContext = this.getServletConfig().getServletContext();
-                        File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
-                        factory.setRepository(repository);
-
-                        // Create a new file upload handler
-                        ServletFileUpload upload = new ServletFileUpload(factory);
-
-                        // Parse the request
-                        items = upload.parseRequest(request);
-                        parameterMap = FormUtil.getParameterMap(items,"UTF-8");
-                    }
-                    else
-                    {
-                        parameterMap = request.getParameterMap();
-                    }
-                    FormValidation formValidation = FormValidator.validateForm("observationForm", parameterMap, SessionLocaleUtil.getI18nBundle(request), getServletContext());
-                    Integer observationId = formValidation.getFormField("observationId").getValueAsInteger();
-                    Observation observation = observationId > 0 ? em.find(Observation.class, observationId) : new Observation();
-                    
-                    
-                    
-                    if(formValidation.isValid())
-                    {
-                        // Storing observation
-                        // Only new observations can set the organism
-                        if(observationId <= 0 || user.isSuperUser() || user.isOrganizationAdmin())
-                        {
-                            observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
-                            observation.setCropOrganism(em.find(Organism.class, formValidation.getFormField("cropOrganismId").getValueAsInteger()));
-                        }
-                        //observation.setDenominator(formValidation.getFormField("denominator").getValueAsInteger());
-                        //observation.setObservationMethodId(em.find(ObservationMethod.class, formValidation.getFormField("observationMethodId").getWebValue()));
-                        observation.setTimeOfObservation(formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
-                        //observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
-                        observation.setUserId(user.getUserId());
-                        
-                        observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
-                        observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
-                        observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
-                        observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
-                        observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
-
-                        boolean sendNotification = false;    
-                        // Storing approval status
-                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
-                        {
-                            Integer statusTypeId = formValidation.getFormField("statusTypeId").getValueAsInteger();
-                            if(
-                                    observation.getStatusTypeId() == null
-                                    || ! observation.getStatusTypeId().equals(statusTypeId)
-                                    )
-                            {
-                                observation.setStatusChangedByUserId(user.getUserId());
-                                observation.setStatusChangedTime(SystemTime.getSystemTime());
-                                // Status changed to approved, sending notifications
-                                if(statusTypeId.equals(Observation.STATUS_TYPE_ID_APPROVED) && observation.getBroadcastMessage())
-                                {
-                                    sendNotification = true;
-                                }
-                            }
-                            observation.setStatusTypeId(statusTypeId);
-                            observation.setStatusRemarks(formValidation.getFormField("statusRemarks").getWebValue());
-                        }
-                        else if(observation.getStatusTypeId() == null)
-                        {
-                            observation.setStatusTypeId(Observation.STATUS_TYPE_ID_PENDING);
-                        }
-                        //observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
-                        //System.out.println(formValidation.getFormField("geoInfo").getWebValue());
-                        observation.setLocationPointOfInterestId(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() > 0 ? 
-                                formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() : null);
-                        if(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() > 0)
-                        {
-                            observation.setLocationPointOfInterestId(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger());
-                            observation.setGeoinfo(null);
-                        }
-                        else
-                        {
-                            observation.setLocationPointOfInterestId(null);
-                            observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
-                        }
-                        observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
-
-                        // Image handling
-                        // Delete the current illustration
-                        String deleteIllustration = formValidation.getFormField("deleteIllustration").getWebValue();
-                        if(deleteIllustration != null && deleteIllustration.equals("true"))
-                        {
-                            observation = SessionControllerGetter.getObservationBean().deleteObservationIllustration(observation);
-                        }
-
-                        // Store the new illustration (replaces former illustration if not already deleted)
-                        if(items != null)
-                        {
-                            for(FileItem item:items)
-                            {
-                                if(!item.isFormField() && item.getSize() > 0)
-                                {
-                                    observation = SessionControllerGetter.getObservationBean().storeObservationIllustration(observation, item);
-                                }
-                            }
-                        }
-
-                        // All transactions finished, we can send notifications
-                        // if conditions are met
-                        if(sendNotification)
-                        {
-                            SessionControllerGetter.getMessagingBean().sendUniversalMessage(observation);
-                        }
-                        
-                        // Redirect to form
-                        response.sendRedirect(new StringBuilder("http://")
-                                .append(ServletUtil.getServerName(request))
-                                .append("/observation?action=editObservationForm&observationId=").append(observation.getObservationId())
-                                .append("&messageKey=").append("observationStored").toString()
-
-                        );
-                    }
-                    else
-                    {
-                        // Redirect to form with error messages
-                        request.setAttribute("formValidation", formValidation);
+                        Observation observation = new Observation();
                         request.setAttribute("observation", observation);
-                        List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
-                        request.setAttribute("allOrganisms", allOrganisms);
+                        request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
+                        request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                        request.setAttribute("locationPointOfInterests", SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user));
+                        List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+                        request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
+                        List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+                        request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                         // Hierarchy categories
                         request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                         request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                        {
+                            request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
+                        }
                         request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
                     }
-                    
+                    catch(NullPointerException | NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
                 }
-                catch(NullPointerException | NumberFormatException | FormValidationException | FileUploadException ex)
+                else
                 {
-                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
-                }
-                catch(Exception ex)
-                {
-                    ex.printStackTrace();
-                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
             }
-            else
+            // Edit an existing observation
+            // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
+            else if(action.equals("editObservationForm"))
             {
-                response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Integer observationId = Integer.valueOf(request.getParameter("observationId"));
+                        Observation observation = SessionControllerGetter.getObservationBean().getObservation(observationId);//em.find(Observation.class, observationId);
+                        request.setAttribute("observation", observation);
+                        request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
+                        //System.out.println(observation.getGeoinfo());
+                        request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                        List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+                        request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
+                        List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+                        request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
+                        // Hierarchy categories
+                        request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                        request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                        {
+                            request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
+                        }
+                        if(request.getParameter("messageKey") != null)
+                        {
+                            request.setAttribute("messageKey",request.getParameter("messageKey"));
+                        }
+                        request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
+                    }
+                    catch(NullPointerException | NumberFormatException ex)
+                    {
+                        response.sendError(500, ex.getMessage() + ": " + ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+            // Store an observation
+            // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
+            else if(action.equals("observationFormSubmit"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Map<String,String[]> parameterMap;
+                        List<FileItem> items = null;
+                        if(ServletFileUpload.isMultipartContent(request))
+                        {
+                            // Create a factory for disk-based file items
+                            DiskFileItemFactory factory = new DiskFileItemFactory();
+
+                            // Configure a repository (to ensure a secure temp location is used)
+                            ServletContext servletContext = this.getServletConfig().getServletContext();
+                            File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
+                            factory.setRepository(repository);
+
+                            // Create a new file upload handler
+                            ServletFileUpload upload = new ServletFileUpload(factory);
+
+                            // Parse the request
+                            items = upload.parseRequest(request);
+                            parameterMap = FormUtil.getParameterMap(items,"UTF-8");
+                        }
+                        else
+                        {
+                            parameterMap = request.getParameterMap();
+                        }
+                        FormValidation formValidation = FormValidator.validateForm("observationForm", parameterMap, SessionLocaleUtil.getI18nBundle(request), getServletContext());
+                        Integer observationId = formValidation.getFormField("observationId").getValueAsInteger();
+                        Observation observation = observationId > 0 ? em.find(Observation.class, observationId) : new Observation();
+
+
+
+                        if(formValidation.isValid())
+                        {
+                            // Storing observation
+                            // Only new observations can set the organism
+                            if(observationId <= 0 || user.isSuperUser() || user.isOrganizationAdmin())
+                            {
+                                observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
+                                observation.setCropOrganism(em.find(Organism.class, formValidation.getFormField("cropOrganismId").getValueAsInteger()));
+                            }
+                            //observation.setDenominator(formValidation.getFormField("denominator").getValueAsInteger());
+                            //observation.setObservationMethodId(em.find(ObservationMethod.class, formValidation.getFormField("observationMethodId").getWebValue()));
+                            observation.setTimeOfObservation(formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
+                            //observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
+                            observation.setUserId(user.getUserId());
+
+                            observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
+                            observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
+                            observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
+                            observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
+                            observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
+
+                            boolean sendNotification = false;    
+                            // Storing approval status
+                            if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                            {
+                                Integer statusTypeId = formValidation.getFormField("statusTypeId").getValueAsInteger();
+                                if(
+                                        observation.getStatusTypeId() == null
+                                        || ! observation.getStatusTypeId().equals(statusTypeId)
+                                        )
+                                {
+                                    observation.setStatusChangedByUserId(user.getUserId());
+                                    observation.setStatusChangedTime(SystemTime.getSystemTime());
+                                    // Status changed to approved, sending notifications
+                                    if(statusTypeId.equals(Observation.STATUS_TYPE_ID_APPROVED) && observation.getBroadcastMessage())
+                                    {
+                                        sendNotification = true;
+                                    }
+                                }
+                                observation.setStatusTypeId(statusTypeId);
+                                observation.setStatusRemarks(formValidation.getFormField("statusRemarks").getWebValue());
+                            }
+                            else if(observation.getStatusTypeId() == null)
+                            {
+                                observation.setStatusTypeId(Observation.STATUS_TYPE_ID_PENDING);
+                            }
+                            //observation.setLocation(formValidation.getFormField("location").getValueAsPointWGS84());
+                            //System.out.println(formValidation.getFormField("geoInfo").getWebValue());
+                            observation.setLocationPointOfInterestId(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() > 0 ? 
+                                    formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() : null);
+                            if(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger() > 0)
+                            {
+                                observation.setLocationPointOfInterestId(formValidation.getFormField("locationPointOfInterestId").getValueAsInteger());
+                                observation.setGeoinfo(null);
+                            }
+                            else
+                            {
+                                observation.setLocationPointOfInterestId(null);
+                                observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
+                            }
+                            observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
+
+                            // Image handling
+                            // Delete the current illustration
+                            String deleteIllustration = formValidation.getFormField("deleteIllustration").getWebValue();
+                            if(deleteIllustration != null && deleteIllustration.equals("true"))
+                            {
+                                observation = SessionControllerGetter.getObservationBean().deleteObservationIllustration(observation);
+                            }
+
+                            // Store the new illustration (replaces former illustration if not already deleted)
+                            if(items != null)
+                            {
+                                for(FileItem item:items)
+                                {
+                                    if(!item.isFormField() && item.getSize() > 0)
+                                    {
+                                        observation = SessionControllerGetter.getObservationBean().storeObservationIllustration(observation, item);
+                                    }
+                                }
+                            }
+
+                            // All transactions finished, we can send notifications
+                            // if conditions are met
+                            if(sendNotification)
+                            {
+                                SessionControllerGetter.getMessagingBean().sendUniversalMessage(observation);
+                            }
+
+                            // Redirect to form
+                            response.sendRedirect(new StringBuilder("http://")
+                                    .append(ServletUtil.getServerName(request))
+                                    .append("/observation?action=editObservationForm&observationId=").append(observation.getObservationId())
+                                    .append("&messageKey=").append("observationStored").toString()
+
+                            );
+                        }
+                        else
+                        {
+                            // Redirect to form with error messages
+                            request.setAttribute("formValidation", formValidation);
+                            request.setAttribute("observation", observation);
+                            List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
+                            request.setAttribute("allOrganisms", allOrganisms);
+                            // Hierarchy categories
+                            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                            request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                            request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
+                        }
+
+                    }
+                    catch(NullPointerException | NumberFormatException | FormValidationException | FileUploadException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                    catch(Exception ex)
+                    {
+                        ex.printStackTrace();
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+            // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
+            else if(action.equals("deleteObservation"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        Integer observationId = Integer.valueOf(request.getParameter("observationId"));
+                        SessionControllerGetter.getObservationBean().deleteObservation(observationId);
+
+                        // Redirect to list
+                        response.sendRedirect(new StringBuilder("http://")
+                                .append(ServletUtil.getServerName(request))
+                                .append("/observation")
+                                .append("?messageKey=").append("observationDeleted").toString()
+                        );
+                    }
+                    catch(NullPointerException | NumberFormatException ex)
+                    {
+                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
             }
         }
-        // Authorization: ORGANIZATION ADMIN, OBSERVER or SUPERUSER
-        else if(action.equals("deleteObservation"))
+        else if(request.getServletPath().endsWith("/map"))
         {
-            if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            // Only for superusers, organizationadmins and observation authorities
+            if(SessionControllerGetter.getUserBean().authorizeUser(user, 
+                    VipsLogicRole.SUPERUSER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.OBSERVATION_AUTHORITY)
+                    )
             {
                 try
                 {
-                    Integer observationId = Integer.valueOf(request.getParameter("observationId"));
-                    SessionControllerGetter.getObservationBean().deleteObservation(observationId);
-                    
-                    // Redirect to list
-                    response.sendRedirect(new StringBuilder("http://")
-                            .append(ServletUtil.getServerName(request))
-                            .append("/observation")
-                            .append("?messageKey=").append("observationDeleted").toString()
+                    FormValidation formValidation = FormValidator.validateForm("observationMapForm", request, getServletContext());
+                    Organization organization = null;
+                    if(user.isSuperUser()){
+                        Integer organizationId = formValidation.getFormField("organizationId") != null ?
+                                formValidation.getFormField("organizationId").getValueAsInteger()
+                                :user.getOrganizationId().getOrganizationId();
+                        organization = em.find(Organization.class, organizationId);
+                        request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
+                        request.setAttribute("organizationId", organizationId);
 
+                    }
+                    else
+                    {
+                        organization = user.getOrganizationId();
+                        request.setAttribute("organizationId", organization.getOrganizationId());
+                    }
+
+                    if(organization != null)
+                    {
+                        request.setAttribute("defaultMapCenter",organization.getDefaultMapCenter());
+                        request.setAttribute("defaultMapZoom", organization.getDefaultMapZoom());
+                    }
+
+                    // Input control
+                    // from: Default is start of year (jan 1st)
+                    Date from;
+                    Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+                    if(!formValidation.getFormField("from").isEmpty())
+                    {
+                        from = formValidation.getFormField("from").getValueAsDate();
+                    }
+                    else
+                    {
+                        cal.setTime(SystemTime.getSystemTime());
+                        cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY,1,0,0,0);
+                        from = cal.getTime();
+                    }
+                    request.setAttribute("from", from);
+                    // to
+                    Date to;
+                    if(!formValidation.getFormField("to").isEmpty())
+                    {
+                        to = formValidation.getFormField("to").getValueAsDate();
+                    }
+                    else
+                    {
+                        cal.setTime(SystemTime.getSystemTime());
+                        cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER,31,23,59,59);
+                        to = cal.getTime();
+                    }
+                    request.setAttribute("to", to);
+                    // pestId
+                    request.setAttribute("pestId", formValidation.getFormField("pestId").isEmpty() ? null : 
+                            formValidation.getFormField("pestId").getValueAsInteger()
                     );
+                    // cropId
+                    request.setAttribute("cropId", formValidation.getFormField("cropId").isEmpty() ? null : 
+                            formValidation.getFormField("cropId").getValueAsInteger()
+                    );
+                    // cropCategoryId
+                    request.setAttribute("cropCategoryId", formValidation.getFormField("cropCategoryId").isEmpty() ? null : 
+                            formValidation.getFormField("cropCategoryId").getValueAsInteger()
+                    );
+
+                    request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    request.getRequestDispatcher("/observationMap.ftl").forward(request, response);
                 }
-                catch(NullPointerException | NumberFormatException ex)
+                catch(FormValidationException ex)
                 {
                     response.sendError(500, ExceptionUtil.getStackTrace(ex));
                 }

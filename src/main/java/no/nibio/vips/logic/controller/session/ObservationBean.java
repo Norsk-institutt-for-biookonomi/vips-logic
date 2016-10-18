@@ -22,6 +22,7 @@ package no.nibio.vips.logic.controller.session;
 import com.vividsolutions.jts.geom.Geometry;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageIllustration;
@@ -39,6 +41,7 @@ import no.nibio.vips.logic.entity.MessageIllustrationPK;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationIllustration;
 import no.nibio.vips.logic.entity.ObservationIllustrationPK;
+import no.nibio.vips.logic.entity.ObservationStatusType;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
@@ -153,18 +156,16 @@ public class ObservationBean {
         // Then persist the new ones
         if(observation.getGeoinfos() != null && ! observation.getGeoinfos().isEmpty())
         {
-            for(Gis gis : observation.getGeoinfos())
-            {
+            observation.getGeoinfos().stream().forEach((gis) -> {
                 em.persist(gis);
-            }
+            });
             
             Query q = em.createNativeQuery("INSERT INTO public.gis_observation(gis_id,observation_id) VALUES(:gisId,:observationId)")
                 .setParameter("observationId", retVal.getObservationId());
-            for(Gis gis:observation.getGeoinfos())
-            {
+            observation.getGeoinfos().stream().forEach((gis) -> {
                 q.setParameter("gisId", gis.getGisId())
                         .executeUpdate();
-            }
+            });
         }
         /*
         for(Geometry geom:observation.getGeometries())
@@ -299,51 +300,38 @@ public class ObservationBean {
 
     private List<Observation> getObservationsWithLocations(List<Observation> observations) {
          Set<Integer> locationPointOfInterestIds = new HashSet<>();
-         for(Observation o:observations)
-         {
-             if(o.getLocationPointOfInterestId() != null)
-             {
-                 locationPointOfInterestIds.add(o.getLocationPointOfInterestId());
-             }
-         }
+         observations.stream().filter((o) -> (o.getLocationPointOfInterestId() != null)).forEach((o) -> {
+             locationPointOfInterestIds.add(o.getLocationPointOfInterestId());
+        });
+         // Nothing to do?
+        if(locationPointOfInterestIds.isEmpty())
+        {
+            return observations;
+        }
          List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPois(locationPointOfInterestIds);
          Map<Integer, PointOfInterest> mappedPois = new HashMap<>();
-         for(PointOfInterest poi:pois)
-         {
+         pois.stream().forEach((poi) -> {
              mappedPois.put(poi.getPointOfInterestId(), poi);
-         }
-         for(Observation o:observations)
-         {
-             if(o.getLocationPointOfInterestId() != null)
-             {
-                 o.setLocation(mappedPois.get(o.getLocationPointOfInterestId()));
-             }
-         }
+        });
+         observations.stream().filter((o) -> (o.getLocationPointOfInterestId() != null)).forEach((o) -> {
+             o.setLocation(mappedPois.get(o.getLocationPointOfInterestId()));
+        });
          return observations;
     }
 
     private List<Observation> getObservationsWithObservers(List<Observation> observations) {
         Set<Integer> userIds = new HashSet<>();
-         for(Observation o:observations)
-         {
-             if(o.getUserId() != null)
-             {
-                 userIds.add(o.getUserId());
-             }
-         }
+        observations.stream().filter((o) -> (o.getUserId() != null)).forEach((o) -> {
+            userIds.add(o.getUserId());
+        });
          List<VipsLogicUser> users = SessionControllerGetter.getUserBean().getUsers(userIds);
          Map<Integer, VipsLogicUser> mappedUsers = new HashMap<>();
-         for(VipsLogicUser user:users)
-         {
+         users.stream().forEach((user) -> {
              mappedUsers.put(user.getUserId(), user);
-         }
-         for(Observation o:observations)
-         {
-             if(o.getUserId() != null)
-             {
-                 o.setUser(mappedUsers.get(o.getUserId()));
-             }
-         }
+        });
+         observations.stream().filter((o) -> (o.getUserId() != null)).forEach((o) -> {
+             o.setUser(mappedUsers.get(o.getUserId()));
+        });
          return observations;
     }
     
@@ -354,5 +342,97 @@ public class ObservationBean {
                 .getResultList();
     }
 
+    public List<Observation> getFilteredObservations(
+            Integer organizationId, 
+            Integer pestId, 
+            Integer cropId, 
+            Integer cropCategoryId,
+            Date from, 
+            Date to
+    ) 
+    {
+        // The minimum SQL
+        String sql = "SELECT * FROM public.observation \n" +
+                     "WHERE status_type_id = :statusTypeId \n " + 
+                     "AND user_id IN (SELECT user_id FROM public.vips_logic_user WHERE organization_id = :organizationId) \n";
+       
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("statusTypeId", ObservationStatusType.STATUS_APPROVED);
+        parameters.put("organizationId", organizationId);
+        
+        // Filter for pest
+        if(pestId != null && pestId > 0)
+        {
+            sql += "AND organism_id = :organismId \n";
+            parameters.put("organismId", pestId);
+        }
+        // Filter either for crop or cropCategoryId
+        if(cropId != null && cropId > 0)
+        {
+            sql += "AND crop_organism_id = :cropOrganismId \n";
+            parameters.put("cropOrganismId", cropId);
+        }
+        else if(cropCategoryId != null && cropCategoryId > 0)
+        {
+            CropCategory cropCategory = em.createNamedQuery("CropCategory.findByCropCategoryId", CropCategory.class)
+                    .setParameter("cropCategoryId", cropCategoryId)
+                    .getSingleResult();
+            List<Integer> cropIds = Arrays.asList(cropCategory.getCropOrganismIds());
+                    
+            sql += "AND crop_organism_id IN (:cropOrganismIds) \n";
+            parameters.put("cropOrganismIds", cropIds);
+        }
+        // Filter for dates
+        if(from != null)
+        {
+            sql += "AND time_of_observation >= :from \n";
+            parameters.put("from", from);
+        }
+        if(to != null)
+        {
+            sql += "AND time_of_observation <= :to \n";
+            parameters.put("to", to);
+        }
+        
+        Query q = em.createNativeQuery(sql, Observation.class);
+        // Setting the parameters one by one
+        parameters.keySet().stream().forEach(
+                (key)->q.setParameter(key, parameters.get(key))
+        );
+        
+        List<Observation> observations = q.getResultList();
+        
+        observations.stream().forEach(
+                (observation)->observation.setUser(em.find(VipsLogicUser.class, observation.getUserId()))
+        );
+        
+        return observations.isEmpty() ?
+                new ArrayList<>()
+                : this.getObservationsWithLocations(this.getObservationsWithGeoInfo(observations));
+    }
+
+    public List<Organism> getObservedPests(Integer organizationId) {
+        Query q = em.createNativeQuery("SELECT DISTINCT organism_id FROM public.observation WHERE user_id IN ("
+                + " SELECT user_id FROM vips_logic_user WHERE organization_id = :organizationId"
+                + ")");
+        List<Integer> pestIds = q.setParameter("organizationId", organizationId).getResultList();
+        return em.createNamedQuery("Organism.findByOrganismIds")
+                .setParameter("organismIds", pestIds)
+                .getResultList();
+        
+    }
+    
+    public List<Organism> getObservedCrops(Integer organizationId) {
+        Query q = em.createNativeQuery("SELECT DISTINCT crop_organism_id FROM public.observation WHERE user_id IN ("
+                + " SELECT user_id FROM vips_logic_user WHERE organization_id = :organizationId"
+                + ")");
+        List<Integer> cropIds = q.setParameter("organizationId", organizationId).getResultList();
+        return em.createNamedQuery("Organism.findByOrganismIds")
+                .setParameter("organismIds", cropIds)
+                .getResultList();
+        
+    }
+
+    
     
 }

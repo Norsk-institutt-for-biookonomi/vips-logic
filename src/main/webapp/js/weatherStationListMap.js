@@ -93,7 +93,7 @@ function initMap(center, zoomLevel, organizationId)
               popOverlay.setPosition(geometry.getCoordinates());
               poiDetails.popover('destroy');
               // Create the popup, showing it
-            poiDetails.popover({
+              poiDetails.popover({
                     animation: true,
                     trigger: 'manual',
                     html: true,

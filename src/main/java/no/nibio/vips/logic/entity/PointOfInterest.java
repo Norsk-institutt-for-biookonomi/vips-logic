@@ -324,7 +324,9 @@ public class PointOfInterest implements Serializable, Comparable {
     @Transient
     public String getGeoJSON()
     {
-        return this.gisUtil.getGeoJSONFromGeometry(this.getGisGeom());
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("pointOfInterestId", this.getPointOfInterestId());
+        return this.gisUtil.getGeoJSONFromGeometry(this.getGisGeom(), properties);
     }
     
     /**

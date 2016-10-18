@@ -19,18 +19,15 @@
     <id>jitpack.io</id>
     <url>https://jitpack.io</url>
 </repository>
-    <!--repository>
-                    <id>Hibernate Spatial repo</id>
-                    <url>http://www.hibernatespatial.org/repository</url>
-            </repository-->
-            
+   
 </repositories>
   <dependencies>
-      <!--dependency>
+      <dependency>
         <groupId>com.github.bjornharrtell</groupId>
+          <!--groupId>org.wololo</groupId-->
         <artifactId>jts2geojson</artifactId>
-        <version>0.6.0</version>
-    </dependency-->
+        <version>0.9.0</version>
+    </dependency>
       <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-spatial</artifactId>
@@ -111,19 +108,19 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.4.1</version>
+      <version>2.7.4</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.4.1</version>
+      <version>2.7.4</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.4.1</version>
+      <version>2.7.4</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
@@ -147,11 +144,6 @@
       <artifactId>postgresql</artifactId>
       <version>9.4.1211</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.wololo</groupId>
-      <artifactId>jts2geojson</artifactId>
-      <version>0.8.0</version>
     </dependency>
     <dependency>
       <groupId>javax</groupId>
@@ -214,8 +206,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.0.2</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
     </plugins>

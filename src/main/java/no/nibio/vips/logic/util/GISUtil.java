@@ -25,8 +25,6 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import no.nibio.vips.logic.entity.Gis;
@@ -82,14 +80,13 @@ public class GISUtil {
         return retVal;
     }
     
-    public String getGeoJSONFromGis(List<Gis> geoinfo)
+    public String getGeoJSONFromGis(List<Gis> geoinfo, Map<String, Object> properties)
     {
         if(geoinfo == null || geoinfo.isEmpty())
         {
             return "";
         }
         List<Feature> features = new ArrayList<>();
-        Map<String, Object> properties = new HashMap<>();
         GeoJSONWriter writer = new GeoJSONWriter();
         geoinfo.stream().forEach(
                 (gis)->features.add(new Feature(writer.write(gis.getGisGeom()), properties))
@@ -99,28 +96,26 @@ public class GISUtil {
         return json.toString();
     }
     
-    public String getGeoJSONFromGeometries(List<Geometry> geometries)
+    public String getGeoJSONFromGeometries(List<Geometry> geometries, Map<String, Object> properties)
     {
         if(geometries == null || geometries.isEmpty())
         {
             return "";
         }
         List<Feature> features = new ArrayList<>();
-        Map<String, Object> properties = new HashMap<>();
         GeoJSONWriter writer = new GeoJSONWriter();
         geometries.stream().forEach((geometry)->features.add(new Feature(writer.write(geometry), properties)));
         FeatureCollection json = writer.write(features);
         return json.toString();
     }
     
-    public String getGeoJSONFromGeometry(Geometry geometry)
+    public String getGeoJSONFromGeometry(Geometry geometry,Map<String, Object> properties)
     {
         if(geometry == null)
         {
             return "";
         }
         List<Feature> features = new ArrayList<>();
-        Map<String, Object> properties = new HashMap<>();
         GeoJSONWriter writer = new GeoJSONWriter();
        
         features.add(new Feature(writer.write(geometry), properties));

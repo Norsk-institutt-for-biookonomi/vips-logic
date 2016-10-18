@@ -19,7 +19,7 @@
         <title>${i18nBundle.weatherStations}</title>
 </#macro>
 <#macro custom_css>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/>
 </#macro>
 <#macro custom_js>
 	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>

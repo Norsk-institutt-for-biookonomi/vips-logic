@@ -18,12 +18,15 @@
  */
 package no.nibio.vips.util.weather;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Point;
 import no.nibio.vips.util.weather.YrWeatherForecastProvider;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
 import java.util.Collections;
 import java.util.List;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.util.GISUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -64,9 +67,12 @@ public class YrWeatherForecastProviderTest {
         System.out.println("getWeatherForecasts");
         PointOfInterestWeatherStation weatherStation = new PointOfInterestWeatherStation();
         //Testing in Bosnia (Rodoc, Mostar)
-        weatherStation.setAltitude(67.0);
+        GISUtil gisUtil = new GISUtil();
+        Point p = gisUtil.createPointWGS84(new Coordinate(17.8094, 43.301, 67.0));
+        /*weatherStation.setAltitude(67.0);
         weatherStation.setLongitude(17.8094);
-        weatherStation.setLatitude(43.301);
+        weatherStation.setLatitude(43.301);*/
+        weatherStation.setGisGeom(p);
         YrWeatherForecastProvider instance = new YrWeatherForecastProvider();
         try
         {

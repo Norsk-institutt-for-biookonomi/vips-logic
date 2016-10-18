@@ -1,0 +1,155 @@
+/*
+ * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
+ * later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * NIBIO Open Source License for more details.
+ * 
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * 
+ */
+
+package no.nibio.vips.logic.service;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.SessionControllerGetter;
+
+/**
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
+ */
+@Path("rest/observation")
+public class ObservationService {
+    
+    /**
+     * NOTE TO SELF
+     * How to query for observations within a bounding box
+     * Select * from gis where ST_Intersects(
+     *   ST_SetSRID(ST_MakeBox2D(ST_MakePoint(2.9004, 57.7511), ST_MakePoint(32.4316, 71.3851)),4326),
+     *   gis_geom);
+     * First point is SW, last is NE (but could be anything?)
+     * @param organizationId
+     * @param pestId
+     * @param cropId
+     * @param cropCategoryId
+     * @param from
+     * @param to
+     * @return 
+     */
+    @GET
+    @Path("filter/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getFilteredObservations(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("pestId") Integer pestId,
+            @QueryParam("cropId") Integer cropId,
+            @QueryParam("cropCategoryId") Integer cropCategoryId,
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr
+            
+    )
+    {
+        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
+        //TODO Set correct timeZone!!!
+        Date from = null;
+        Date to = null;
+        try
+        {
+            from = fromStr != null ? format.parse(fromStr) : null;
+            to = toStr != null ? format.parse(toStr) : null;
+        }
+        catch(ParseException ex){ System.out.println("ERROR");}
+                
+        List<Observation> filteredObservations = SessionControllerGetter.getObservationBean().getFilteredObservations(
+            organizationId,
+            pestId,
+            cropId,
+            cropCategoryId,
+            from,
+            to
+        );
+        return Response.ok().entity(filteredObservations).build();
+    }
+    
+    /**
+     * Get a list of all observed pests for one organization
+     * Practical for building effective select lists
+     * TODO: Should be cached??
+     * @param organizationId
+     * @return 
+     */
+    @GET
+    @Path("pest/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservedPests(@PathParam("organizationId") Integer organizationId)
+    {
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservedPests(organizationId)).build();
+    }
+    
+    /**
+     * Get a list of all crop cultures where observations have been made for one organization
+     * Practical for building effective select lists
+     * TODO: Should be cached??
+     * @param organizationId
+     * @return 
+     */
+    @GET
+    @Path("crop/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservedCrops(@PathParam("organizationId") Integer organizationId)
+    {
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservedCrops(organizationId)).build();
+    }
+    
+    
+    /**
+     * Publicly available observations per organization
+     * @param organizationId
+     * @return APPROVED observations
+     */
+    @GET
+    @Path("list/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservations(@PathParam("organizationId") Integer organizationId){
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
+    }
+    
+    /**
+     * Publicly available observations per organization
+     * @param organizationId
+     * @return APPROVED observations
+     */
+    @GET
+    @Path("broadcast/list/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getBroadcastObservations(@PathParam("organizationId") Integer organizationId){
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId)).build();
+    }
+    
+    @GET
+    @Path("{observationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservation(@PathParam("observationId") Integer observationId){
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservation(observationId)).build();
+    }
+    
+}

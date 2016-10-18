@@ -37,7 +37,9 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.FetchType;
@@ -173,7 +175,9 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     @Override
     public String getGeoinfo()
     {
-        return this.GISUtil.getGeoJSONFromGis(this.geoinfo);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("observationId", this.getObservationId());
+        return this.GISUtil.getGeoJSONFromGis(this.geoinfo, properties);
     }
     
     /*@Transient

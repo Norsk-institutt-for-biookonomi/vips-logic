@@ -43,6 +43,12 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "ObservationStatusType.findByStatusTypeId", query = "SELECT o FROM ObservationStatusType o WHERE o.statusTypeId = :statusTypeId"),
     @NamedQuery(name = "ObservationStatusType.findByStatusTitle", query = "SELECT o FROM ObservationStatusType o WHERE o.statusTitle = :statusTitle")})
 public class ObservationStatusType implements Serializable {
+    
+    public static final Integer STATUS_PENDING = 1;
+    public static final Integer STATUS_REJECTED = 2;
+    public static final Integer STATUS_APPROVED = 3;
+
+    
 
     private static final long serialVersionUID = 1L;
     @Id
