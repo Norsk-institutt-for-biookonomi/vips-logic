@@ -26,7 +26,7 @@
         <groupId>com.github.bjornharrtell</groupId>
           <!--groupId>org.wololo</groupId-->
         <artifactId>jts2geojson</artifactId>
-        <version>0.9.0</version>
+        <version>0.10.0</version>
     </dependency>
       <dependency>
                 <groupId>org.hibernate</groupId>

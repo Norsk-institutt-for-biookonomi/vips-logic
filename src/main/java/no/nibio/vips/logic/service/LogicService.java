@@ -73,6 +73,7 @@ import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
 import no.nibio.vips.util.weather.MetosDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
+import org.jboss.resteasy.annotations.GZIP;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
@@ -91,6 +92,7 @@ public class LogicService {
     
     @GET
     @Path("forecastresults/{forecastConfigurationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getForecastResults(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
@@ -114,6 +116,7 @@ public class LogicService {
     
     @GET
     @Path("forecastresults/{forecastConfigurationId}/{latestDays}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getForecastResults(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
@@ -138,6 +141,7 @@ public class LogicService {
     
     @GET
     @Path("forecastconfigurationsummaries/{organizationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getForecastSummaries(
             @PathParam("organizationId") Integer organizationId,
@@ -150,6 +154,7 @@ public class LogicService {
     
     @GET
     @Path("forecastconfigurationsummaries/private/{userUUID}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getForecastSummaries(
             @PathParam("userUUID") String userUUID
@@ -226,6 +231,7 @@ public class LogicService {
      */
     @GET
     @Path("organizationforecastconfigurations/{organizationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getForecastConfigurationsForOrganization(
             @PathParam("organizationId") Integer organizationId, 
@@ -295,6 +301,7 @@ public class LogicService {
     
     @GET
     @Path("forecastresults/aggregate/{organizationId}")
+    @GZIP
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getForecastResultsAggregate(
             @PathParam("organizationId") Integer organizationId,
@@ -314,6 +321,7 @@ public class LogicService {
     
     @GET
     @Path("forecastresults/latest/poi/{poiId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getLatestForecastResultsForPoi(@PathParam("poiId") Integer poiId)
     {
@@ -401,6 +409,7 @@ public class LogicService {
     
     @GET
     @Path("message/list/{organizationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getMessageList(
             @QueryParam("publishedFrom") String publishedFrom , @QueryParam("publishedTo") String publishedTo,
@@ -434,6 +443,7 @@ public class LogicService {
     
     @GET
     @Path("message/list/{organizationId}/tagfilter")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
     {
@@ -454,6 +464,7 @@ public class LogicService {
     
     @GET
     @Path("observation")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getObservationList(@QueryParam("organizationId") Integer organizationId)
     {
@@ -547,6 +558,7 @@ public class LogicService {
     @GET
     @POST
     @Path("weather/proxy/metos/{stationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getMetosWeatherData(
             @PathParam("stationId") String stationId, 
@@ -575,6 +587,7 @@ public class LogicService {
     @GET
     @POST
     @Path("weather/proxy/fruitwebdavis/{stationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getFruitWebDavisWeatherData(
             @PathParam("stationId") String stationId, 
@@ -604,6 +617,7 @@ public class LogicService {
     @GET
     @POST
     @Path("weather/proxy/alab/{stationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getALabWeatherData(
             @PathParam("stationId") String stationId, 

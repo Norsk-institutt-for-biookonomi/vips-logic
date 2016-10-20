@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import org.jboss.resteasy.annotations.GZIP;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -57,6 +58,7 @@ public class ObservationService {
      */
     @GET
     @Path("filter/{organizationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getFilteredObservations(
             @PathParam("organizationId") Integer organizationId,
@@ -128,6 +130,7 @@ public class ObservationService {
      */
     @GET
     @Path("list/{organizationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getObservations(@PathParam("organizationId") Integer organizationId){
         return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
@@ -140,6 +143,7 @@ public class ObservationService {
      */
     @GET
     @Path("broadcast/list/{organizationId}")
+    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getBroadcastObservations(@PathParam("organizationId") Integer organizationId){
         return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId)).build();
