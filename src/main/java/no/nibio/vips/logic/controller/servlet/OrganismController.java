@@ -37,6 +37,7 @@ import no.nibio.vips.logic.entity.OrganismExternalResource;
 import no.nibio.vips.logic.entity.OrganismExternalResourcePK;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
@@ -314,7 +315,7 @@ public class OrganismController extends HttpServlet {
                 if(SessionControllerGetter.getOrganismBean().deleteOrganism(organismId))
                 {
                     // Route back to where we were with confirmation message
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/organism?action=listChildOrganisms&organismId=").append(parentOrganismId).append("&messageKey=organismDeleted").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/organism?action=listChildOrganisms&organismId=").append(parentOrganismId).append("&messageKey=organismDeleted").toString());
                 }
                 else
                 {
@@ -381,7 +382,7 @@ public class OrganismController extends HttpServlet {
                     
                     SessionControllerGetter.getOrganismBean().storeCropPest(cropPest);
                     
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/organism?action=editCropPest&cropOrganismId=").append(cropOrganismId).append("&messageKey=cropPestUpdated").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/organism?action=editCropPest&cropOrganismId=").append(cropOrganismId).append("&messageKey=cropPestUpdated").toString());
                 }
                     
                 

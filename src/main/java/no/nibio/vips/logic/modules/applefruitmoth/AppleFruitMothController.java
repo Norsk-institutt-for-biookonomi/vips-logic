@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
@@ -119,7 +120,7 @@ public class AppleFruitMothController extends HttpServlet {
                             SessionControllerGetter.getAppleFruitMothBean().storeObservationSite(observationSite);
                             
                             // Redirect to form
-                            response.sendRedirect(new StringBuilder("http://")
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/applefruitmoth?action=viewObservationSite&observationSiteId=").append(observationSite.getObservationSiteId())
                                 .append("&currentSeason=").append(currentSeason)

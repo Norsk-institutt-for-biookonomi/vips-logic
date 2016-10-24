@@ -137,7 +137,7 @@ public class PointOfInterestBean {
     }
 
     public Kml getPoisForOrganization(Integer organizationId, Integer excludePoiId, Integer highlightPoiId, String serverName, ResourceBundle i18nBundle, Integer pointOfInterestTypeId) {
-        String iconPath = "http://" + serverName + "/public/images/";
+        String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         
         List<PointOfInterest> pois = new ArrayList<>();
         if(organizationId.equals(-1))

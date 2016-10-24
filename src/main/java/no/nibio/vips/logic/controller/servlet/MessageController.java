@@ -41,6 +41,7 @@ import no.nibio.vips.logic.entity.MessageLocale;
 import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
@@ -321,7 +322,7 @@ public class MessageController extends HttpServlet {
                     
                     
                     // Redirect to form
-                    response.sendRedirect(new StringBuilder("http://")
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                             .append(ServletUtil.getServerName(request))
                             .append("/message?action=editMessageForm&messageId=").append(message.getMessageId())
                             .append("&messageLocale=").append(formValidation.getFormField("locale").getWebValue())
@@ -373,7 +374,7 @@ public class MessageController extends HttpServlet {
                 Integer messageId = Integer.valueOf(request.getParameter("messageId"));
                 SessionControllerGetter.getMessageBean().deleteMessage(messageId);
                 // Redirect to list
-                response.sendRedirect(new StringBuilder("http://")
+                response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                         .append(ServletUtil.getServerName(request))
                         .append("/message")
                         .append("?messageKey=").append("messageDeleted").toString());

@@ -75,6 +75,16 @@
 			     </select>
 			     <span class="help-block" id="${formId}_pointOfInterestTypeId_validation"></span>
 			  </div>
+                          <#if user.isSuperUser() || user.isOrganizationAdmin()>
+                          <div class="form-group">
+			  	<div class="checkbox">
+					<label>
+						<input type="checkbox" name="isForecastLocation"<#if poi.isForecastLocation?has_content && poi.isForecastLocation == true> checked="checked"<#else></#if>/>
+					</label>
+					${i18nBundle.isForecastLocation}
+			  	</div>
+			  </div>
+                          </#if>
 			  <div class="form-group">
 			    <label for="location">${i18nBundle.location} (<a href="http://en.wikipedia.org/wiki/World_Geodetic_System#A_new_World_Geodetic_System:_WGS_84" target="new">WGS84</a>: ${i18nBundle.longitude},${i18nBundle.latitude})</label>
 			    <input type="text" class="form-control" id="location" name="location" placeholder="${i18nBundle.location}" value="${(poi.longitude?c)!""},${(poi.latitude?c)!""}" onblur="validateField(this);" onchange="if(validateField(this)){updateMarkerPosition();}" />

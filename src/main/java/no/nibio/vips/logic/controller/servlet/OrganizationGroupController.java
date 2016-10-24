@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.OrganizationGroup;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
@@ -123,7 +124,7 @@ public class OrganizationGroupController extends HttpServlet {
                     oGroup = SessionControllerGetter.getUserBean().storeOrganizationGroup(oGroup, formValidation.getFormField("organizationGroupUserIds").getWebValues());
                     
                     response.sendRedirect(
-                            "http://" + ServletUtil.getServerName(request)
+                            Globals.PROTOCOL + "://" + ServletUtil.getServerName(request)
                             + "/organizationgroup?action=editOrganizationGroup&organizationGroupId=" + oGroup.getOrganizationGroupId()
                             + "&messageKey=organizationGroupStored" 
                     );
@@ -149,7 +150,7 @@ public class OrganizationGroupController extends HttpServlet {
                 }
                 
                 response.sendRedirect(
-                            "http://" + ServletUtil.getServerName(request)
+                            Globals.PROTOCOL + "://" + ServletUtil.getServerName(request)
                             + "/organizationgroup?messageKey="  + messageKey
                     );
             }

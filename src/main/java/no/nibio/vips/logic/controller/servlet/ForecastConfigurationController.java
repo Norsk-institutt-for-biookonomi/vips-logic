@@ -330,7 +330,7 @@ public class ForecastConfigurationController extends HttpServlet {
 
 
                             request.setAttribute("messageKey", request.getParameter("formConfigurationUpdated"));
-                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=").append(forecastConfiguration.getForecastConfigurationId()).append("&messageKey=").append("forecastConfigurationUpdated").toString());
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=").append(forecastConfiguration.getForecastConfigurationId()).append("&messageKey=").append("forecastConfigurationUpdated").toString());
                         }
                         else
                         {
@@ -340,7 +340,7 @@ public class ForecastConfigurationController extends HttpServlet {
                                 forecastBean.storeNewMultipleForecastConfiguration(weatherStationPointOfInterestId, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());    
                             }
                             request.setAttribute("messageKey", request.getParameter("multipleForecastConfigurationsCreated"));
-                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?messageKey=").append("multipleForecastConfigurationsCreated").toString());
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?messageKey=").append("multipleForecastConfigurationsCreated").toString());
                         }
                     }
                     else
@@ -395,7 +395,7 @@ public class ForecastConfigurationController extends HttpServlet {
                     else
                     {
                         forecastBean.deleteForecastConfiguration(forecastConfigurationId);
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?").append("&messageKey=").append("forecastConfigurationDeleted").toString());
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?").append("&messageKey=").append("forecastConfigurationDeleted").toString());
                        
                     }
                 }

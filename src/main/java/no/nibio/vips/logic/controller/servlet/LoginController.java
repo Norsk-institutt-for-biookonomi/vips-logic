@@ -107,7 +107,7 @@ public class LoginController extends HttpServlet {
                         System.getProperty("no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID"),
                         System.getProperty("no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_SECRET"),
                         authorizationCode,
-                        "http://" + ServletUtil.getServerName(request) + "/oauth2callback" 
+                        Globals.PROTOCOL + "://" + ServletUtil.getServerName(request) + "/oauth2callback" 
                 ).execute();
                 GoogleIdToken idToken = GoogleIdToken.parse(new JacksonFactory(), tokenResponse.getIdToken());
                 Payload payload = idToken.getPayload();
@@ -122,14 +122,14 @@ public class LoginController extends HttpServlet {
                     {
                         nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
                     }
-                    if(nextPage.indexOf("http") == 0)
+                    if(nextPage.indexOf(Globals.PROTOCOL) == 0)
                     {
                         System.out.println("nextPage=" + nextPage);
                         response.sendRedirect(nextPage);
                     }
                     else
                     {
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                     }
                 }
                 else
@@ -195,14 +195,14 @@ public class LoginController extends HttpServlet {
                         {
                             nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
                         }
-                        if(nextPage.indexOf("http") == 0)
+                        if(nextPage.indexOf(Globals.PROTOCOL) == 0)
                         {
                             System.out.println("nextPage=" + nextPage);
                             response.sendRedirect(nextPage);
                         }
                         else
                         {
-                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                         }
                     }
                     else if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
@@ -236,7 +236,7 @@ public class LoginController extends HttpServlet {
                     // configure the return_to URL where your application will receive
                     // the authentication responses from the OpenID Connect provider
                     String serverName = ServletUtil.getServerName(request);
-                    String callbackUrl = "http://" + serverName + "/oauth2callback" ;
+                    String callbackUrl = Globals.PROTOCOL + "://" + serverName + "/oauth2callback" ;
                     // We store the information about the next page in a session
                     // as Google does not accept to forward it
                     request.getSession().setAttribute("nextPage", URLEncoder.encode(nextPage, "UTF-8"));
@@ -268,7 +268,7 @@ public class LoginController extends HttpServlet {
         {
             if(request.getParameter("nextPage") != null)
             {
-                request.setAttribute("checkRemember", request.getParameter("nextPage").indexOf("http") == 0);
+                request.setAttribute("checkRemember", request.getParameter("nextPage").indexOf(Globals.PROTOCOL) == 0);
             }
             request.setAttribute("messageKey", request.getParameter("messageKey"));
             request.setAttribute("errorMessageKey", request.getParameter("errorMessageKey"));

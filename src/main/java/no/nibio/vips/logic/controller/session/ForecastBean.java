@@ -73,6 +73,7 @@ import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -635,7 +636,7 @@ public class ForecastBean {
     
     public Kml getForecastsAggregateKml(Integer organizationId, List<Integer> cropOrganismIds, Date theDate, String serverName)
     {
-        String iconPath = "http://" + serverName + "/public/images/";
+        String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         // Initialization
         final Vec2 hotspot = new Vec2()
                 .withX(0.5)
@@ -923,7 +924,7 @@ public class ForecastBean {
         List<PointOfInterest> pois;
         if(organizationId != null && organizationId > 0)
         {
-            pois = em.createNamedQuery("PointOfInterest.findByOrganizationId")
+            pois = em.createNamedQuery("PointOfInterest.findForecastLocationsByOrganizationId")
                                 .setParameter("organizationId", em.find(Organization.class, organizationId))
                                 .getResultList();
         }

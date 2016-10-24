@@ -41,6 +41,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.nibio.vips.logic.util.Globals;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -87,7 +88,7 @@ public class AppleFruitMothBean {
     }
 
     public Kml getObservationSitesKml(Integer season, String serverName) {
-        String iconPath = "http://" + serverName + "/public/images/";
+        String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         // Initialization
         final Vec2 hotspot = new Vec2()
                 .withX(0.5)
@@ -190,7 +191,7 @@ public class AppleFruitMothBean {
         
         ObservationSite observationSite = em.find(ObservationSite.class, observationSiteId);
         
-        String iconPath = "http://" + serverName + "/public/images/";
+        String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         // Initialization
         final Vec2 hotspot = new Vec2()
                 .withX(0.5)

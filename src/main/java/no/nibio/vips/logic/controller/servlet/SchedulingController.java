@@ -42,6 +42,7 @@ import no.nibio.vips.logic.scheduling.TaskLoggerSchedulerListener;
 import no.nibio.vips.logic.scheduling.TerminateSchedulerListener;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
@@ -205,7 +206,7 @@ public class SchedulingController extends HttpServlet {
                             schedulingBean.getOneOffSchedulers().add(oneTimeScheduler);
                         }
                         String message = MessageFormat.format(SessionLocaleUtil.getI18nText(request, "taskXWasLaunched"), task.getName(SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
                     }
                     else
                     {
@@ -238,7 +239,7 @@ public class SchedulingController extends HttpServlet {
             {
                 schedulingBean.stopSystemScheduler();
                 String message = SessionLocaleUtil.getI18nText(request, "schedulingStopped");
-                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
+                response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
             }
             else
             {
@@ -253,7 +254,7 @@ public class SchedulingController extends HttpServlet {
             {
                 schedulingBean.startSystemScheduler();
                 String message = SessionLocaleUtil.getI18nText(request, "schedulingStarted");
-                response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
+                response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
             }
             else
             {

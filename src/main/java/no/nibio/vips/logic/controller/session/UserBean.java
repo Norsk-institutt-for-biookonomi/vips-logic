@@ -196,7 +196,7 @@ public class UserBean {
     
     public String getUserEmailVerificationBody(ResourceBundle i18nBundle, String serverName, String verificationCode)
     {
-        String verificationURL = "http://" + serverName + "/user?action=confirmEmail&verificationCode=" + verificationCode;
+        String verificationURL = Globals.PROTOCOL + "://" + serverName + "/user?action=confirmEmail&verificationCode=" + verificationCode;
         String body = MessageFormat.format(i18nBundle.getString("userRegistrationEmailVerificationMessageBody"), serverName,verificationURL);
         return body;
     }
@@ -497,8 +497,8 @@ public class UserBean {
             String body = MessageFormat.format(i18nBundle.getString("informAdminOfConfirmedEmailBody"), 
                                 confirmUser.getLastName(),
                                 confirmUser.getApprovalApplication(),
-                                "http://" + serverName + "/user?action=viewUser&userId=" + confirmUser.getUserId(),
-                                "http://" + serverName + "/user?action=approveUser&userId=" + confirmUser.getUserId()
+                                Globals.PROTOCOL + "://" + serverName + "/user?action=viewUser&userId=" + confirmUser.getUserId(),
+                                Globals.PROTOCOL + "://" + serverName + "/user?action=approveUser&userId=" + confirmUser.getUserId()
                             );
             
             //System.out.println(body);
@@ -527,7 +527,7 @@ public class UserBean {
     {
         String subject = i18nBundle.getString("sendUserApprovalConfirmationSubject");
         String body = MessageFormat.format(i18nBundle.getString("sendUserApprovalConfirmationBody"), 
-                            "http://" + serverName + "/");
+                            Globals.PROTOCOL + "://" + serverName + "/");
         // Send email
         String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
         SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
@@ -594,7 +594,7 @@ public class UserBean {
         String subject = i18nBundle.getString("createPasswordResetCodeAndSendToUserSubject");
         String body = MessageFormat.format(i18nBundle.getString("createPasswordResetCodeAndSendToUserBody"), 
                 this.getUserName(resetPasswordUser, UserAuthenticationType.TYPE_PASSWORD),
-                "http://" + serverName + "/user?action=resetPassword&passwordResetCode=" + resetCode);
+                Globals.PROTOCOL + "://" + serverName + "/user?action=resetPassword&passwordResetCode=" + resetCode);
         
         // Send email
         String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");

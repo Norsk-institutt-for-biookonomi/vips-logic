@@ -263,6 +263,11 @@ public class PointOfInterestController extends HttpServlet {
                             // Set values
                             weatherStation.setName(formValidation.getFormField("name").getWebValue());
                             weatherStation.setActive(formValidation.getFormField("active").getWebValue() != null);
+                            // New weather stations are forecast locations by default
+                            if(weatherStation.getPointOfInterestId() == null)
+                            {
+                                weatherStation.setIsForecastLocation(Boolean.TRUE);
+                            }
 
                             Double altitude = 0.0;
                             Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();
@@ -328,7 +333,7 @@ public class PointOfInterestController extends HttpServlet {
                             }
                             
                             // Redirect to form
-                            response.sendRedirect(new StringBuilder("http://")
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/weatherStation?action=editWeatherStationForm&pointOfInterestId=").append(weatherStation.getPointOfInterestId())
                                 .append("&messageKey=").append("weatherStationStored").toString()
@@ -371,7 +376,7 @@ public class PointOfInterestController extends HttpServlet {
                         // If no strings attached, delete immediately
                         if(forecastConfigurations.isEmpty())
                         {
-                            response.sendRedirect(new StringBuilder("http://")
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/weatherStation?action=deleteWeatherStation&pointOfInterestId=").append(weatherStation.getPointOfInterestId())
                                 .toString()
@@ -406,7 +411,7 @@ public class PointOfInterestController extends HttpServlet {
                         Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                         //PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
                         SessionControllerGetter.getPointOfInterestBean().deleteWeatherStation(pointOfInterestId);
-                        response.sendRedirect(new StringBuilder("http://")
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/weatherStation")
                                 .append("?messageKey=").append("weatherStationDeleted").toString()
@@ -584,17 +589,27 @@ public class PointOfInterestController extends HttpServlet {
                         PointOfInterest poi = pointOfInterestId > 0 ? 
                                                                         em.find(PointOfInterest.class, pointOfInterestId) 
                                                                         : new PointOfInterest();
-                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                             || poi.getPointOfInterestId() == null
                             || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
                             )
                         {
-                            
                             FormValidation formValidation = FormValidator.validateForm("poiForm", request, getServletContext());
                             if(formValidation.isValid())
                             {
                                 // Set values
                                 poi.setName(formValidation.getFormField("name").getWebValue());
+                                // A POI is per default not a forecast location. Only superusers and orgadmins 
+                                // may change the status
+                                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                                {
+                                    poi.setIsForecastLocation(formValidation.getFormField("isForecastLocation").getWebValue() != null);
+                                }
+                                else if(pointOfInterestId <= 0)
+                                {
+                                    poi.setIsForecastLocation(Boolean.FALSE);
+                                }
+                                
                                 Double altitude = 0.0;
                                 Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();
                                 try
@@ -671,7 +686,7 @@ public class PointOfInterestController extends HttpServlet {
                                 else
                                 {
                                     // Redirect to form
-                                    response.sendRedirect(new StringBuilder("http://")
+                                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                         .append(ServletUtil.getServerName(request))
                                         .append("/poi?action=editPoiForm&pointOfInterestId=").append(poi.getPointOfInterestId())
                                         .append("&messageKey=").append("poiStored").toString()
@@ -721,7 +736,7 @@ public class PointOfInterestController extends HttpServlet {
                         // If no strings attached, delete immediately
                         if(forecastConfigurations.isEmpty())
                         {
-                            response.sendRedirect(new StringBuilder("http://")
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/poi?action=deletePoi&pointOfInterestId=").append(poi.getPointOfInterestId())
                                 .toString()
@@ -757,7 +772,7 @@ public class PointOfInterestController extends HttpServlet {
                         Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                         //PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
                         SessionControllerGetter.getPointOfInterestBean().deletePoi(pointOfInterestId);
-                        response.sendRedirect(new StringBuilder("http://")
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/poi")
                                 .append("?messageKey=").append("poiDeleted").toString()

@@ -83,4 +83,6 @@ public class Globals {
     
     public static int DEFAULT_UUID_VALIDITY_DURATION_DAYS = 30;
     
+    public static String PROTOCOL = System.getProperty("no.nibio.vips.logic.VIPSLOGIC_PROTOCOL");
+    
 }

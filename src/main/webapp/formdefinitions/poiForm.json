@@ -78,7 +78,11 @@
             "dataType" : "STRING",
             "fieldType" : "MULTIPLE_MAP",
             "required" : false
+        },
+        {
+            "name" : "isForecastLocation",
+            "dataType" : "STRING",
+            "required" : false
         }
-        
     ]
 }

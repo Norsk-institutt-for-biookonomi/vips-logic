@@ -88,7 +88,7 @@ public class AuthenticationFilter implements Filter{
                     String nextPage = ServletUtil.getFullRequestURI(httpRequest);
                     nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
                 }
-                ((HttpServletResponse)response).sendRedirect("http://" + ServletUtil.getServerName(httpRequest) + "/login" + nextPageDirective);
+                ((HttpServletResponse)response).sendRedirect(Globals.PROTOCOL + "://" + ServletUtil.getServerName(httpRequest) + "/login" + nextPageDirective);
             }
             else
             {

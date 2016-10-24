@@ -64,6 +64,7 @@ import no.nibio.vips.logic.util.GISUtil;
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestIds", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId IN :pointOfInterestIds"),
     //@NamedQuery(name = "PointOfInterest.findByPointOfInterestTypeId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType = :pointOfInterestType"),
     @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findForecastLocationsByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.isForecastLocation IS TRUE AND p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     //@NamedQuery(name = "PointOfInterest.findByLongitude", query = "SELECT p FROM PointOfInterest p WHERE p.longitude = :longitude"),
     //@NamedQuery(name = "PointOfInterest.findByLatitude", query = "SELECT p FROM PointOfInterest p WHERE p.latitude = :latitude"),
@@ -88,7 +89,7 @@ public class PointOfInterest implements Serializable, Comparable {
     private VipsLogicUser userId;
     private Country countryCode;
     private WeatherForecastProvider weatherForecastProviderId;
-    
+    private Boolean isForecastLocation;
     private Integer pointOfInterestTypeId;
    
     
@@ -334,6 +335,21 @@ public class PointOfInterest implements Serializable, Comparable {
      */
     public void setGisGeom(Geometry gisGeom) {
         this.gisGeom = gisGeom;
+    }
+
+    /**
+     * @return the isForecastLocation
+     */
+    @Column(name = "is_forecast_location")
+    public Boolean getIsForecastLocation() {
+        return isForecastLocation;
+    }
+
+    /**
+     * @param isForecastLocation the isForecastLocation to set
+     */
+    public void setIsForecastLocation(Boolean isForecastLocation) {
+        this.isForecastLocation = isForecastLocation;
     }
 
     

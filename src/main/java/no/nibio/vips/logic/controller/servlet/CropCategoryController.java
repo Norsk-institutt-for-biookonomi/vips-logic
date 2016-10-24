@@ -32,6 +32,7 @@ import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormUtil;
@@ -97,7 +98,7 @@ public class CropCategoryController extends HttpServlet {
                     cropCategory.setCropOrganismIds(cropCategoryCropOrganismIds.toArray(new Integer[cropCategoryCropOrganismIds.size()]));
                     SessionControllerGetter.getOrganismBean().storeCropCategory(cropCategory);
                     
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/organism/cropcategory?messageKey=cropCategoryUpdated").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/organism/cropcategory?messageKey=cropCategoryUpdated").toString());
                 }
                 else
                 {

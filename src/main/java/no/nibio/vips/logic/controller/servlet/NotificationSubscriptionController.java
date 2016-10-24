@@ -36,6 +36,7 @@ import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.ForecastEventNotificationSubscription;
 import no.nibio.vips.logic.messaging.MessageNotificationSubscription;
 import no.nibio.vips.logic.messaging.ObservationNotificationSubscription;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormUtil;
@@ -145,7 +146,7 @@ public class NotificationSubscriptionController extends HttpServlet {
                 SessionControllerGetter.getMessagingBean().storeObservationNotificationSubscription(oSubscription);
                 
                 // Redirect to form with confirmation message
-                response.sendRedirect(new StringBuilder("http://")
+                response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                             .append(ServletUtil.getServerName(request))
                             .append("/user/notificationsubscription?userId=").append(viewUser.getUserId())
                             .append("&messageKey=").append("notificationSubscriptionsUpdated").toString()

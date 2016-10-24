@@ -19,9 +19,6 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -37,15 +34,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationMethod;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
@@ -329,7 +325,7 @@ public class ObservationController extends HttpServlet {
                             }
 
                             // Redirect to form
-                            response.sendRedirect(new StringBuilder("http://")
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                     .append(ServletUtil.getServerName(request))
                                     .append("/observation?action=editObservationForm&observationId=").append(observation.getObservationId())
                                     .append("&messageKey=").append("observationStored").toString()
@@ -376,7 +372,7 @@ public class ObservationController extends HttpServlet {
                         SessionControllerGetter.getObservationBean().deleteObservation(observationId);
 
                         // Redirect to list
-                        response.sendRedirect(new StringBuilder("http://")
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/observation")
                                 .append("?messageKey=").append("observationDeleted").toString()

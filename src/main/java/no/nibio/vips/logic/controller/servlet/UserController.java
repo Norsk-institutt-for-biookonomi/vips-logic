@@ -342,7 +342,7 @@ public class UserController extends HttpServlet {
                             response.sendError(403,"Access not authorized"); // HTTP Forbidden
                         }
 
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append(messageKey).toString());
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user?action=viewUser&userId=").append(viewUser.getUserId()).append("&messageKey=").append(messageKey).toString());
                     }
                     else
                     {
@@ -382,7 +382,7 @@ public class UserController extends HttpServlet {
                     // If some resources connected, render form, otherwise, route to user delete
                     if(userResources.isEmpty())
                     {
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user").append("?action=deleteUser&userId=").append(userId).toString());
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user").append("?action=deleteUser&userId=").append(userId).toString());
                     }
                     else
                     {
@@ -440,7 +440,7 @@ public class UserController extends HttpServlet {
                         }
                         if(!resourcesTransferred)
                         {
-                            response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request))
+                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request))
                                     .append("/user")
                                     .append("?action=userDeleteForm&userId=").append(userId)
                                     .append("&errorMsg=").append(URLEncoder.encode("User has resources that must be transferred", "UTF-8"))
@@ -451,7 +451,7 @@ public class UserController extends HttpServlet {
                     }
                     //em.remove(viewUser);
                     userBean.deleteUser(viewUser);
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userDeleted").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userDeleted").toString());
                     
                 }
                 catch(NullPointerException | NumberFormatException ex)
@@ -585,7 +585,7 @@ public class UserController extends HttpServlet {
                     {
                         userBean.sendUserEmailVerification(newUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                     }
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user?action=registerNewUserFormReceipt").toString());
                 }
                 else
                 {
@@ -644,7 +644,7 @@ public class UserController extends HttpServlet {
                         SessionControllerGetter.getUserBean().storeUser(userToApprove);
                         // Handle user status change
                         SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, userToApprove, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userApproved").toString());
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userApproved").toString());
                     }
                 }
                 catch(NullPointerException | NumberFormatException ex)
@@ -724,7 +724,7 @@ public class UserController extends HttpServlet {
                         userBean.createPasswordResetCodeAndSendToUser(resetPasswordUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                         
                         // Show login page
-                        response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?messageKey=").append("resetPasswordRequestAccepted").toString());
+                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/login?messageKey=").append("resetPasswordRequestAccepted").toString());
                     }
                     catch(NoResultException | NonUniqueResultException ex)
                     {
@@ -769,7 +769,7 @@ public class UserController extends HttpServlet {
                 if(auth.getPasswordResetCodeCreationTime().compareTo(cal.getTime()) < 0)
                 {
                     // Too late, redirect to login page with error message
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeExpired").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeExpired").toString());
                 }
                 else
                 {
@@ -780,7 +780,7 @@ public class UserController extends HttpServlet {
             catch(NoResultException ex)
             {
                 // Too late, redirect to login page with error message
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeNotFound").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeNotFound").toString());
             }
         }
         else if(action.equals("resetPasswordFormSubmit"))
@@ -799,7 +799,7 @@ public class UserController extends HttpServlet {
                 if(auth.getPasswordResetCodeCreationTime().compareTo(cal.getTime()) < 0)
                 {
                     // Too late, redirect to login page with error message
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeExpired").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeExpired").toString());
                 }
                 else
                 {
@@ -807,13 +807,13 @@ public class UserController extends HttpServlet {
                     auth.setPasswordResetCodeCreationTime(null);
                     auth.setPassword(userBean.getMD5EncryptedString(request.getParameter("password")));
                     userBean.storeUserAuthentication(auth);
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?messageKey=").append("passwordResetSuccess").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/login?messageKey=").append("passwordResetSuccess").toString());
                 }
             }
             catch(NoResultException ex)
             {
                 // Too late, redirect to login page with error message
-                    response.sendRedirect(new StringBuilder("http://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeNotFound").toString());
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/login?errorMessageKey=").append("passwordResetCodeNotFound").toString());
             }
         }
         
@@ -823,7 +823,7 @@ public class UserController extends HttpServlet {
     {
         String nextPage = ServletUtil.getFullRequestURI(request);
         String nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
-        response.sendRedirect("http://" + ServletUtil.getServerName(request) + "/login" + nextPageDirective);
+        response.sendRedirect(Globals.PROTOCOL + "://" + ServletUtil.getServerName(request) + "/login" + nextPageDirective);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

@@ -60,7 +60,7 @@ public class MessagingBean {
     
     public void sendUniversalMessage(Message message)
     {
-        String msgDownloadUrlTpl = "http://www.vips-landbruk.no/";
+        String msgDownloadUrlTpl = "https://www.vips-landbruk.no/";
         // Create a universal message from the message
         // TODO: When UniversalMessage has changed, pick
         UniversalMessage uMessage = new UniversalMessage();
@@ -401,7 +401,7 @@ public class MessagingBean {
         {
             return;
         }
-        String msgDownloadUrlTpl = "http://www.vips-landbruk.no/";
+        String msgDownloadUrlTpl = "https://www.vips-landbruk.no/";
         // Create a universal message from the message
         // TODO: When UniversalMessage has changed, pick
         UniversalMessage uMessage = new UniversalMessage();
