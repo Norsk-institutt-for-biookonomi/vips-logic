@@ -36,7 +36,7 @@
 	      <span class="icon-bar"></span>
 	      <span class="icon-bar"></span>
 	    </button>
-	    <a class="navbar-brand" href="/"><img src="/images/logo_vips.svg" alt="VIPS logo" style="height:48px;"/></a><span id="siteTitle" class="navbar-brand">${i18nBundle.VIPSLogicTitle}</span>
+	    <a class="navbar-brand" href="/"><img src="/images/logo_vips.png" alt="VIPS logo" style="height:48px;"/></a><span id="siteTitle" class="navbar-brand">${i18nBundle.VIPSLogicTitle}</span>
 	  </div>
 	<!-- Collect the nav links, forms, and other content for toggling -->
 	  <div class="collapse navbar-collapse navbar-ex1-collapse">
@@ -70,13 +70,26 @@
 	      </li>
 	      <li><a href="/userguide/VIPSLogic_user_guide.html">${i18nBundle.help}</a></li>
 	    </ul>
-	    <form class="navbar-form navbar-right"  action="/logout" method="POST" role="logout">
-	      <div class="form-group">
-	      	<!--input type="hidden" name="logout" value="true"/-->
-		${i18nBundle.loggedinas} <a href="/user?action=viewUser&userId=${user.userId}">${user.firstName} ${user.lastName}</a> (${user.organizationId.organizationName})
-	      </div>
-	      <button type="submit" class="btn btn-default">${i18nBundle.logout}</button>
-	    </form>
+            <div id="loginAndLanguageInfo" >
+                <form action="${requestURL}" id="languageSelect" method="post" style="display: inline;">
+                            <label for="language">${i18nBundle.language}</label>
+                            <select name="userRequestedLocale" onchange="this.form.submit();" >
+                                <#list availableLocales as locale>
+                                    <option value="${locale.language}<#if locale.country?has_content>_${locale.country}</#if>"
+                                            <#if locale == currentLocale> selected="selected"</#if>
+                                            >${locale.getDisplayLanguage(locale)}</option>
+                                </#list>
+                            <!-- get language codes>
+                            <option value="" {% if language.code == LANGUAGE_CODE %} selected="selected" {% endif %}>{{ language.name_local }}</option>
+                            <-->
+                            </select>
+                </form>
+                &nbsp;&nbsp;
+                ${i18nBundle.loggedinas} <a href="/user?action=viewUser&userId=${user.userId}">${user.firstName} ${user.lastName}</a> (${user.organizationId.organizationName})
+                <form action="/logout" method="POST" role="logout" style="display: inline;">
+                  <button type="submit">${i18nBundle.logout}</button>
+                </form>
+            </div>
 	  </div><!-- /.navbar-collapse -->
 	  
 	</nav>

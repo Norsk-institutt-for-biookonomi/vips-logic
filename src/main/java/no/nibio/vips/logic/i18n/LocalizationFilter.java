@@ -21,6 +21,9 @@ package no.nibio.vips.logic.i18n;
 
 import com.ibm.icu.util.ULocale;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import static java.util.stream.Collectors.toList;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -28,19 +31,23 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import no.nibio.vips.i18n.LanguageUtil;
 import no.nibio.vips.logic.util.SystemTime;
 
 /**
  * This filter checks if there are any changes in locale requests, and
- * changes servlet session settings accordingly
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * changes servlet session settings accordingly. It also keeps
+ * track of available languages
+ * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class LocalizationFilter implements Filter{
-    
+    private List<ULocale> availableLocales;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        
+        this.availableLocales = LanguageUtil.getAvailableLocalesWithDistinctLanguage();
         
     }
 
@@ -95,8 +102,11 @@ public class LocalizationFilter implements Filter{
             }
         }
         
+        // Set the available locales
+        ((HttpServletRequest)request).getSession().setAttribute("availableLocales", this.availableLocales); 
+        
         // We always make the system time available for FreeMarker templates
-        request.setAttribute("systemTime", SystemTime.getSystemTime());
+        //request.setAttribute("systemTime", SystemTime.getSystemTime());
         
         chain.doFilter(request, response);
         

@@ -143,7 +143,6 @@ public class UserController extends HttpServlet {
                 {
                     request.setAttribute("viewUser", viewUser);
                     request.setAttribute("countries", userBean.getUserCountries());
-                    request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                     request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                     request.setAttribute("userStatusIds", userBean.getUserStatusIds());
                     request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
@@ -175,7 +174,6 @@ public class UserController extends HttpServlet {
 
                 request.setAttribute("viewUser", viewUser);
                 request.setAttribute("countries", userBean.getUserCountries());
-                request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                 request.setAttribute("defaultLocale", user.getOrganizationId().getDefaultLocale());
                 request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                 request.setAttribute("userStatusIds", userBean.getUserStatusIds());
@@ -350,7 +348,6 @@ public class UserController extends HttpServlet {
                         request.setAttribute("formValidation", formValidation);
                         request.setAttribute("viewUser", viewUser);
                         request.setAttribute("countries", userBean.getUserCountries());
-                        request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                         request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
                         request.setAttribute("userStatusIds", userBean.getUserStatusIds());
                         request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
@@ -500,7 +497,6 @@ public class UserController extends HttpServlet {
             request.setAttribute("userAuthenticationTypeId", userAuthenticationTypeId);
             // Get available organizations, add for select list
             request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-            request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
             request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
         }
         
@@ -591,7 +587,6 @@ public class UserController extends HttpServlet {
                 {
                     request.setAttribute("formValidation", formValidation);
                     request.setAttribute("organizations", em.createNamedQuery("Organization.findAll").getResultList());
-                    request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                     request.setAttribute("userAuthenticationTypeId", userAuthenticationType.getUserAuthenticationTypeId());
                     request.getRequestDispatcher("/userRegistrationForm.ftl").forward(request, response);
                 }

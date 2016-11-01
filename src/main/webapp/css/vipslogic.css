@@ -269,3 +269,25 @@ div.popover {
 	min-width: 350px;
 	max-width: 400px !important;
 }
+
+#loginAndLanguageInfo {
+    position: absolute;
+    top: 0px;
+    right: 5px;
+    /*background-color: #31ab6e;*/
+    padding: 0px 3px;
+    font-size: small;
+}
+
+@media (max-width: 500px)
+{
+        #siteTitle {display: none;}
+	#loginAndLanguageInfo {
+		top: 70px !important;
+		right: auto !important;
+		left: 15px;
+	}
+        #languageSelect {
+            display: block !important;
+        }
+}

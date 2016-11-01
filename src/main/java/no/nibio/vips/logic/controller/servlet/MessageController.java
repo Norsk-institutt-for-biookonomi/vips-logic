@@ -165,7 +165,6 @@ public class MessageController extends HttpServlet {
                                 request.getParameter("messageLocale") 
                                 : SessionLocaleUtil.getCurrentLocale(request).getLanguage();
                 request.setAttribute("messageLocale", messageLocale);
-                request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                 // If whe have existing versions of the message in other languages, 
                 // we must find the most relevant translation and use as reference
                 if(message.getMessageLocaleSet().size() > 1)
@@ -239,7 +238,6 @@ public class MessageController extends HttpServlet {
                                 request.getParameter("messageLocale") 
                                 : SessionLocaleUtil.getCurrentLocale(request).getLanguage()
                 );
-                request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                 request.setAttribute("unusedTags", em.createNamedQuery("MessageTag.findAll").getResultList());
                 request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
                 request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
@@ -352,7 +350,6 @@ public class MessageController extends HttpServlet {
                                     request.getParameter("messageLocale") 
                                     : SessionLocaleUtil.getCurrentLocale(request).getLanguage()
                     );
-                    request.setAttribute("availableLocales", LanguageUtil.getAvailableLocalesWithDistinctLanguage());
                     request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
                 }
             }
