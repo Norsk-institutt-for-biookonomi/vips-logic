@@ -39,6 +39,7 @@ import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
 import no.nibio.vips.util.weather.MetosDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
+import no.nibio.vips.util.weather.USPestDataParser;
 import org.jboss.resteasy.annotations.GZIP;
 
 /**
@@ -135,6 +136,35 @@ public class WeatherProxyService {
             String userName = userNamePOST != null ? userNamePOST:userNameGET;
             String password = passwordPOST != null ? passwordPOST:passwordGET;
             observations = new ALabDataParser().getWeatherObservations(stationId, timeZone, startDate1, userName, password);
+        } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
+            return Response.serverError().entity(ex).build();
+        }
+        return Response.ok().entity(observations).build();
+    }
+    
+    @GET
+    @POST
+    @Path("uspest/{stationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getUSPestWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET
+            )
+    {
+        List<WeatherObservation> observations;
+        try 
+        {
+            String timeZoneParam = timeZonePOST != null ? timeZonePOST : timeZoneGET != null ? timeZoneGET : "UTC";
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneParam);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone);
+            String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
+            Date startDate1 = format.parse(startDateParam);
+            observations = new USPestDataParser().getWeatherObservations(stationId, timeZone, startDate1);
         } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
             return Response.serverError().entity(ex).build();
         }
