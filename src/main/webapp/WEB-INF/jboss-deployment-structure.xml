@@ -4,7 +4,7 @@
     <dependencies>  
       <module name="org.postgresql" />  
       <module name="com.fasterxml.jackson.core.jackson-core" />
-      <module name="com.fasterxml.jackson.core.jackson-databind" />
+      <module name="org.apache.httpcomponents" />
     </dependencies>  
   </deployment>  
 </jboss-deployment-structure> 
