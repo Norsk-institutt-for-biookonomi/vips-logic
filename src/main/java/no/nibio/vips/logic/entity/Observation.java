@@ -37,6 +37,7 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,6 +157,15 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setGeoinfos(List<Gis> geoinfo)
     {
         this.geoinfo = geoinfo;
+    }
+    
+    public void addGeoInfo(Gis geoinfo)
+    {
+        if(this.geoinfo == null)
+        {
+            this.geoinfo = new ArrayList<>();
+        }
+        this.geoinfo.add(geoinfo);
     }
     
     @JsonIgnore

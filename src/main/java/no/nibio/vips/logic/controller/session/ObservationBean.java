@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.entity.CropCategory;
@@ -121,19 +122,37 @@ public class ObservationBean {
     
     public List<Observation> getObservationsWithGeoInfo(List<Observation> observations)
     {
-        Query q1 = em.createNamedQuery("Gis.findByGisIds",Gis.class);
         
-        Query q2 = em.createNativeQuery("SELECT gis_id FROM public.gis_observation WHERE observation_id = :observationId");
+        // Using this method as opposed to db query for each observation, we 
+        // slim the time down from 24 seconds to 270 milliseconds! DB connections are expensive....
         
-        for(Observation obs:observations)
-        {
-            List<Integer> gisIds = q2.setParameter("observationId", obs.getObservationId()).getResultList();
-            if(!gisIds.isEmpty())
-            {
-                obs.setGeoinfos(q1.setParameter("gisIds", gisIds).getResultList());
-            }
-            //
-        }
+        // Indexing observations
+        Map<Integer, Observation> obsBucket = new HashMap<>();
+        observations.stream().forEach((obs) -> {
+            obsBucket.put(obs.getObservationId(), obs);
+        });
+        
+        // Getting many-to-many relations
+        Query q = em.createNativeQuery("SELECT gis_id, observation_id FROM public.gis_observation WHERE observation_id IN :observationIds");
+        q.setParameter("observationIds", obsBucket.keySet());
+        List<Object[]> gisObservationIds = q.getResultList();
+        
+        // Collecting and indexing geoInfo
+        Query q2 = em.createNativeQuery("SELECT * FROM public.gis WHERE gis_id IN (SELECT gis_id FROM public.gis_observation WHERE observation_id IN :observationIds)", Gis.class);
+        List<Gis> geoInfos = q2.setParameter("observationIds", obsBucket.keySet()).getResultList();
+        Map<Integer, Gis> gisBucket = new HashMap<>();
+        geoInfos.stream().forEach((geoinfo) -> {
+            gisBucket.put(geoinfo.getGisId(), geoinfo);
+        });
+        
+        // Iterating the many-to-many relations,
+        // adding geoinfo to the correct observations
+        gisObservationIds.stream().forEach((gisObsIds) -> {
+            Integer gisId = (Integer) gisObsIds[0];
+            Integer observationId = (Integer) gisObsIds[1];
+            obsBucket.get(observationId).addGeoInfo(gisBucket.get(gisId));
+        });
+        
         return observations;
     }
 
@@ -400,15 +419,32 @@ public class ObservationBean {
                 (key)->q.setParameter(key, parameters.get(key))
         );
         
+        //Date start = new Date();
+        
         List<Observation> observations = q.getResultList();
         
+        //System.out.println("Finding obs took " + (new Date().getTime() - start.getTime()) + " milliseconds");
+        
+        //start = new Date();
         observations.stream().forEach(
                 (observation)->observation.setUser(em.find(VipsLogicUser.class, observation.getUserId()))
         );
         
-        return observations.isEmpty() ?
-                new ArrayList<>()
-                : this.getObservationsWithLocations(this.getObservationsWithGeoInfo(observations));
+        //System.out.println("Finding users took " + (new Date().getTime() - start.getTime()) + " milliseconds");
+        
+        List<Observation> retVal = new ArrayList<>();
+        if(! observations.isEmpty())
+        {
+            //start = new Date();
+            retVal = this.getObservationsWithGeoInfo(observations);
+            //System.out.println("Finding geoinfo took " + (new Date().getTime() - start.getTime()) + " milliseconds");
+            //start = new Date();
+            retVal = this.getObservationsWithLocations(retVal);
+            //System.out.println("Finding locations took " + (new Date().getTime() - start.getTime()) + " milliseconds");
+        }
+        
+        return retVal;
+        
     }
 
     public List<Organism> getObservedPests(Integer organizationId) {
