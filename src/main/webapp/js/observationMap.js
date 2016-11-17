@@ -107,9 +107,13 @@ var initMap = function(
 
                 obsFeatures = JSON.parse(observation.location.geoJSON).features;
             }
-            else if(observation.geoinfo !== null)
+            else if(observation.geoinfo !== null && observation.geoinfo.trim() != "")
             {
                 obsFeatures = JSON.parse(observation.geoinfo).features;
+            }
+            else
+            {
+                continue;
             }
             
             for(var j=0; j<obsFeatures.length; j++)
