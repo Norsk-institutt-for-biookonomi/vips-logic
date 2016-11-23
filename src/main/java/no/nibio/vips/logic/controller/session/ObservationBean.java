@@ -19,8 +19,10 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -51,6 +53,9 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
+import org.wololo.geojson.Feature;
+import org.wololo.geojson.FeatureCollection;
+import org.wololo.geojson.GeoJSONFactory;
 
 /**
  * @copyright 2014-2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -122,6 +127,10 @@ public class ObservationBean {
     
     public List<Observation> getObservationsWithGeoInfo(List<Observation> observations)
     {
+        if(observations.isEmpty())
+        {
+            return observations;
+        }
         
         // Using this method as opposed to db query for each observation, we 
         // slim the time down from 24 seconds to 270 milliseconds! DB connections are expensive....
@@ -343,6 +352,11 @@ public class ObservationBean {
         observations.stream().filter((o) -> (o.getUserId() != null)).forEach((o) -> {
             userIds.add(o.getUserId());
         });
+        // Nothing to do?
+        if(userIds.isEmpty())
+        {
+            return observations;
+        }
          List<VipsLogicUser> users = SessionControllerGetter.getUserBean().getUsers(userIds);
          Map<Integer, VipsLogicUser> mappedUsers = new HashMap<>();
          users.stream().forEach((user) -> {
@@ -356,9 +370,15 @@ public class ObservationBean {
     
     public List<Observation> getObservationsOfPest(Integer pestOrganismId)
     {
-        return em.createNamedQuery("Observation.findByOrganism")
-                .setParameter("organism", em.find(Organism.class, pestOrganismId))
-                .getResultList();
+        List <Observation> observations = 
+            em.createNamedQuery("Observation.findByOrganism")
+                    .setParameter("organism", em.find(Organism.class, pestOrganismId))
+                    .getResultList();
+        
+        observations = this.getObservationsWithGeoInfo(observations);
+        observations = this.getObservationsWithLocations(observations);
+        observations = getObservationsWithObservers(observations);
+        return observations;
     }
 
     public List<Observation> getFilteredObservations(
@@ -469,6 +489,25 @@ public class ObservationBean {
         
     }
 
-    
+    public Observation getObservationFromGeoJSON(String geoJSON) throws IOException {
+        System.out.println(geoJSON);
+        FeatureCollection featureCollection = (FeatureCollection) GeoJSONFactory.create(geoJSON);
+        Feature firstAndBest = featureCollection.getFeatures()[0];
+        Map<String, Object> properties = firstAndBest.getProperties();
+        Observation observation = new Observation();
+        Integer observationId = (Integer) properties.get("observationId");
+        if(observationId > 0)
+        {
+            observation.setObservationId(observationId);
+        }
+        observation.setObservationData((String) properties.get("observationData"));
+        ObjectMapper mapper = new ObjectMapper();
+        //observation.setCropOrganism(mapper.readValue((String) properties.get("cropOrganism"), Organism.class));
+        //observation.setOrganism(mapper.readValue((String) properties.get("organism"), Organism.class));
+        observation.setObservationText((String)properties.get("observationText"));
+        observation.setTimeOfObservation(new Date((Long) properties.get("timeOfObservation")));
+        observation.setGeoinfo(geoJSON);
+        return observation; 
+    }
     
 }
