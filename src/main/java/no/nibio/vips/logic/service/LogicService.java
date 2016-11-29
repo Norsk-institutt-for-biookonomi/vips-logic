@@ -28,6 +28,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -384,6 +385,16 @@ public class LogicService {
     public Response getOrganismList()
     {
         List<Organism> organismList = SessionControllerGetter.getOrganismBean().getOrganismSubTree(null);
+        return Response.ok().entity(organismList).build();
+    }
+    
+    @GET
+    @Path("organism/search/latinnames")
+    @Produces("application/json;charset=UTF-8")
+    public Response findOrganismsByLatinNames(@QueryParam("keywords") String keywords)
+    {
+        List<String> latinNames = Arrays.asList(keywords.split(","));
+        List<Organism> organismList = SessionControllerGetter.getOrganismBean().findOrganismsByLatinNames(latinNames);
         return Response.ok().entity(organismList).build();
     }
     

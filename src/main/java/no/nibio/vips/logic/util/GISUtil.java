@@ -25,9 +25,11 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import no.nibio.vips.logic.entity.Gis;
+import no.nibio.vips.logic.entity.Observation;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.FeatureCollection;
 import org.wololo.geojson.GeoJSONFactory;
@@ -96,6 +98,67 @@ public class GISUtil {
         return json.toString();
     }
     
+    /**
+     * Converts a list of observations to a FeatureCollection
+     * Other observations properties are stored in (you guessed it) Feature properties
+     * @param observations
+     * @return 
+     */
+    public FeatureCollection getGeoJSONFromObservations(List<Observation> observations)
+    {
+        GeoJSONWriter writer = new GeoJSONWriter();
+        List<Feature> features = new ArrayList<>();
+        observations.stream().filter(
+                        (observation)-> observation.getGeoinfos() != null
+                    ).forEach(
+                        (observation) -> {
+                            features.addAll(this.getFeaturesFromObservation(observation, writer));
+                            //retVal.add(writer.write(features));
+                        }
+                    );
+        return writer.write(features);
+    }
+    
+    public FeatureCollection getGeoJSONFromObservation(Observation observation)
+    {
+        GeoJSONWriter writer = new GeoJSONWriter();
+        List<Feature> features =this.getFeaturesFromObservation(observation, writer);
+        return writer.write(features);
+    }
+    
+    /**
+     * Method overloading
+     * @param observation
+     * @return 
+     */
+    public List<Feature> getFeaturesFromObservation(Observation observation){
+        return this.getFeaturesFromObservation(observation, new GeoJSONWriter());
+    }
+    
+    public List<Feature> getFeaturesFromObservation(Observation observation, GeoJSONWriter writer)
+    {
+        List<Feature> features = new ArrayList<>();
+        if(observation.getGeoinfos() == null)
+        {
+            return features;
+        }
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("observationId", observation.getObservationId());
+        properties.put("timeOfObservation", observation.getTimeOfObservation());
+        properties.put("cropOrganism", observation.getCropOrganism());
+        properties.put("organism", observation.getOrganism());
+        properties.put("observationHeading", observation.getObservationHeading());
+        properties.put("observationText", observation.getObservationText());
+        if(observation.getIsQuantified())
+        {
+            properties.put("observationData", observation.getObservationData());
+        }
+        observation.getGeoinfos().stream().forEach(
+                (gis)->features.add(new Feature(gis.getGisId(),writer.write(gis.getGisGeom()),properties))
+        );
+        return features;
+    }
+    
     public String getGeoJSONFromGeometries(List<Geometry> geometries, Map<String, Object> properties)
     {
         if(geometries == null || geometries.isEmpty())
@@ -138,4 +201,6 @@ public class GISUtil {
                 Double.isNaN(jtsCoordinate.z) ? 0.0 :  jtsCoordinate.z
         );
     }
+
+    
 }

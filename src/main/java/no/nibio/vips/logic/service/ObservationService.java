@@ -19,20 +19,35 @@
 
 package no.nibio.vips.logic.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.annotations.GZIP;
+import org.jboss.resteasy.spi.HttpRequest;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -40,6 +55,9 @@ import org.jboss.resteasy.annotations.GZIP;
  */
 @Path("rest/observation")
 public class ObservationService {
+    
+    @Context
+    private HttpServletRequest httpServletRequest;
     
     /**
      * NOTE TO SELF
@@ -90,6 +108,44 @@ public class ObservationService {
             to
         );
         return Response.ok().entity(filteredObservations).build();
+    }
+    
+    @GET
+    @Path("filter/{organizationId}/geoJSON")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getFilteredObservationsAsGeoJSON(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("pestId") Integer pestId,
+            @QueryParam("cropId") Integer cropId,
+            @QueryParam("cropCategoryId") Integer cropCategoryId,
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr
+            
+    )
+    {
+        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
+        //TODO Set correct timeZone!!!
+        Date from = null;
+        Date to = null;
+        try
+        {
+            from = fromStr != null ? format.parse(fromStr) : null;
+            to = toStr != null ? format.parse(toStr) : null;
+        }
+        catch(ParseException ex){ System.out.println("ERROR");}
+                
+        List<Observation> filteredObservations = SessionControllerGetter.getObservationBean().getFilteredObservations(
+            organizationId,
+            pestId,
+            cropId,
+            cropCategoryId,
+            from,
+            to
+        );
+        
+        GISUtil gisUtil = new GISUtil();
+        return Response.ok().entity(gisUtil.getGeoJSONFromObservations(filteredObservations)).build();
     }
     
     /**
@@ -155,5 +211,48 @@ public class ObservationService {
     public Response getObservation(@PathParam("observationId") Integer observationId){
         return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservation(observationId)).build();
     }
+    
+    /**
+     * Deletes a gis entity and its corresponding observation
+     * TODO Authentication
+     */
+    @DELETE
+    @Path("gisobservation/{gisId}")
+    public Response deleteGisObservation(@PathParam("gisId") Integer gisId)
+    {
+        SessionControllerGetter.getObservationBean().deleteGisObservationByGis(gisId);
+        return Response.noContent().build();
+    }
+    
+    /**
+     * TODO Authentication
+     * @param geoJSON
+     * @return 
+     */
+    @POST
+    @Path("gisobservation")
+    @Consumes("application/json;charset=UTF-8")
+    @Produces("application/json;charset=UTF-8")
+    public Response storeGisObservation(String geoJSON)
+    {
+        try
+        {
+            // Create the Observation
+            Observation observation = SessionControllerGetter.getObservationBean().getObservationFromGeoJSON(geoJSON);
+            VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+            //System.out.println("user exists?" + (user != null));
+            observation.setUserId(user.getUserId());
+            observation.setStatusChangedByUserId(user.getUserId());
+            observation.setStatusChangedTime(new Date());
+            observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
+            GISUtil gisUtil = new GISUtil();
+            return Response.created(URI.create("/observation/" + observation.getObservationId())).entity(gisUtil.getGeoJSONFromObservation(observation)).build();
+        }catch (IOException ex)
+        {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex).build();
+        }
+    }
+
+    
     
 }

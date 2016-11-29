@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>P&aelig;rebrannregistrering</title>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <link href="css/3rdparty/ol.css" rel="stylesheet" media="screen" />
+    <style type="text/css">
+    html, body, #map {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #text1-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                z-index: 2000;
+                background-color: transparent;
+            }
+            .text
+            {
+                background-color: white;
+                margin: 5px;
+                padding: 5px;
+                border: 1px solid #dddddd;
+            }
+            .ol-zoom {
+                top:    2.5em;
+                bottom: auto;
+                left: auto;
+                right: .5em
+            }
+            
+            #searchResults {
+                display: none;
+            }
+            
+            #searchResults li {
+                cursor: pointer;
+            }
+            
+            .geo-location
+            {
+                top: 7.0em;
+                right: 0.5em;
+                bottom: auto;
+                left: auto;
+                z-index: 1000;
+            }
+            
+            
+            
+            .geo-location button {
+
+                width: 1.375em;
+                height: 1.375em;
+                background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDIxIDc5LjE1NTc3MiwgMjAxNC8wMS8xMy0xOTo0NDowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkY3RkRGRkNGQTU2MDExRTU5NzkwREJDNkE0NDk4ODlEIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkY3RkRGRkQwQTU2MDExRTU5NzkwREJDNkE0NDk4ODlEIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RjdGREZGQ0RBNTYwMTFFNTk3OTBEQkM2QTQ0OTg4OUQiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6RjdGREZGQ0VBNTYwMTFFNTk3OTBEQkM2QTQ0OTg4OUQiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7kZLS4AAAABlBMVEX9/fwAAABwf477AAAAAnRSTlP/AOW3MEoAAAHzSURBVHja7NvBcsJADANQ+f9/misHsmvZkhNgfWwhes10htheEOXCe9Wvosm/H4ADOIADOIBZAD7WEADLcgOQKB8A6bIAQJUcALqkAJRKB0C1NAA0SgFAr7oAtKsHANwC2PM3BAzkLwWYyF8JMJK/EGAm/1qAofxLAabySQAwJUAx/8NDaU1QAlw+FRcEoPPXj+W0AGT+vi/wAlKNCSUAk5/tjHqA7LsJ3EpAAKjeMC1AlN9J/boPoLvj7I2s5gf7gh6gNB/I/S+XO3/2FTkA9Tm2/6DxAjSTFDjzRYAIsWASsL8ivPn3A+KRADCAGAQ4bsD2r3o8IH4T8P5wzXRhnqGqY/p5AAdwAAdwAAdAXlO/jiTS//SB5KnPhPGTgHZj8u2tGdec3t6eDw0oWACcNyA1pBqcEYlvAVSA4qCyMid86qi2BKgNq/MC07heti8oLyzy7zStbDQ7o87SSrC2623NsntH3+Kyubold7f08noHUCyvc1v4zA+r6/ttY3EB0B1g8HR3Nx9ioc6Q3H+KRi8IFhAz+VNnyaICiIn8mfOEUQWICNEAhDt/f6zXPdcyH2xOHFu2jv0yF3dOHkMGCFc88QUH01A1HONPbqiq6Lc77Tzd+0vTo/ZFJ1l4FfBRUb6Oav5zAAdwAH8PiK8FvAQYAObrJPi2gfjAAAAAAElFTkSuQmCC);
+                background-size: 20px 20px;
+                background-repeat: no-repeat;
+                background-position: 2px 2px;
+                background-color: rgba(0,60,136,.5);
+                border: none;
+            }
+    
+            #featureForm {
+                display: none;
+                width: 300px;
+                max-width: 90%;
+                height: 80%;
+                position: absolute;
+                top: 45px;
+                left: 10px;
+                z-index: 1999;
+                background-color: white;
+                border: 1px solid black;
+                padding: 10px;
+                opacity: 0.85;
+            }
+            
+            #legend {
+                position: absolute;
+                top: auto;
+                bottom: 40px;
+                right: 10px;
+                z-index: 1999;
+                background-color: white;
+                border: 1px solid black;
+                padding: 10px;
+                opacity: 0.85;
+            }
+            
+            #legend ul {
+                list-style: none;
+                padding:0;
+                margin:0;
+            }
+            
+            #legend ul li:before {
+                content: "";
+                line-height: 1em;
+                width: .7em;
+                height: .7em;
+                float: left;
+                margin: .25em .25em 0;
+                border-radius: 50%;
+                border: 1px solid black;
+            }
+            
+            #legend ul li.bulk:before { background-color: rgb(255,0,0); }
+            #legend ul li.sprik:before { background-color: rgb(239,133,19); }
+            #legend ul li.pil:before { background-color: rgb(239,236,19); }
+            #legend ul li.eple:before { background-color: rgb(0,255,0); }
+            #legend ul li.paere:before { background-color: rgb(122,175,131); }
+            #legend ul li.plante:before { background-color: rgb(0,0,255); }
+            
+            /* Screen size adjustments */
+            @media (max-width: 500px)
+            {
+                #legend {
+                    display: none;
+                }
+            }
+    </style>
+  </head>
+
+  <body>
+      
+      <div id="map" class="map">
+          <div class="geo-location ol-unselectable ol-control"><button onclick="navToLocation();"></button></div>
+      </div>
+      <div id="text1-container">
+          <div class="text">
+              <img src="/images/logo_vips.png" alt="VIPS Logo" style="height: 20px;" />
+              <input type="text" size="30" placeholder="S&oslash;k etter stedsnavn" onkeyup="showResults(this);" style="width: 80%"/>
+              <div id="searchResults"></div>
+              
+          </div>
+      </div>
+      
+      <div id="featureForm"></div>
+      <div id="menu"></div>
+      <div id="legend">
+                  <ul>
+                      <li class="bulk">Bulkemispel</li>
+                      <li class="sprik">Sprikemispel</li>
+                      <li class="pil">Pilemispel</li>
+                      <li class="eple">Eple</li>
+                      <li class="paere">Pære</li>
+                      <li class="plante">Annet</li>
+                  </ul>
+              </div>
+    
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="/js/environment.js"></script>
+    <script type="text/javascript" src="/js/util.js"></script>
+    <script type="text/javascript" src="/js/constants.js"></script>
+    <script type="text/javascript" src="js/3rdparty/jquery-3.1.1.js"></script>
+    <script type="text/javascript" src="js/3rdparty/ol-debug.js"></script>
+    <script type="text/javascript" src="js/3rdparty/proj4.js"></script>
+    <script type="text/javascript" src="js/3rdparty/moment.js"></script>
+    <script type="text/javascript" src="js/map.js"></script>
+    <script type="text/javascript">
+        
+        var stedsnavnProj = "+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs";
+        proj4.defs("EPSG:32633", "+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs");
+        
+        $(document).ready(function() {
+            initForekomsttyper();
+            // initMap() kalles i denne funksjonens callback
+            // Dette fordi vi må finne databaseId til pærebrann dynamisk først
+            initPaerebrann(); 
+        });
+        
+        function showResults(inputField)
+        {
+            var phrase = inputField.value;
+            if(phrase.trim().length > 2)
+            {
+                console.log(phrase);
+                $.getJSON( "https://ws.geonorge.no/SKWS3Index/ssr/sok?navn=" + phrase + "*&maxAnt=5&tilSosiKoordSyst=4258&fylkeKommuneListe=&eksakteForst=true", renderResults);
+            }
+        }
+        
+        var renderResults = function(data) {
+            //console.log(data);
+            var html = "<ul class='resultList'>";
+            for(var i=0; i<Math.min(data.stedsnavn.length,6); i++)
+            {
+                var location = data.stedsnavn[i];
+                var coordinateOrig = [parseFloat(location.aust), parseFloat(location.nord)];
+                var coordinateDec = proj4(stedsnavnProj, "EPSG:4326", coordinateOrig);
+                html += "<li onclick=\"navigateTo([" + coordinateDec + "]);\"><b>" + location.stedsnavn + "</b>, " + location.kommunenavn + " (" + location.navnetype + ")</li>";
+            }
+            html += "</ul>"
+            var searchResultsEl = document.getElementById("searchResults");
+            searchResultsEl.innerHTML = html;
+            searchResultsEl.style.display="block";
+            
+            //console.log(location)
+            // Get EPSG projection in data, transform to decimal degrees
+            
+        }
+        
+    </script>
+  </body>
+</html>

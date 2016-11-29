@@ -28,6 +28,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.wololo.geojson.Feature;
+import org.wololo.geojson.FeatureCollection;
+import org.wololo.geojson.GeoJSONFactory;
 import org.wololo.geojson.Geometry;
 import org.wololo.geojson.Point;
 
@@ -72,7 +74,19 @@ public class GISUtilTest {
         String result = instance.getGeoJSONFromGeometries(geometries, properties);
         //System.out.println(result);
         assertEquals(json, result);
+        
+        
     }
-
+    
+    
+    // Actually testing the helper API
+    @Test
+    public void testJTSToGeoJSON()
+    {
+        System.out.println("testJTSToGeoJSON");
+        String json = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"id\":-1,\"geometry\":{\"type\":\"Point\",\"coordinates\":[9.12109375,61.93990427940116,0]},\"properties\":{\"name\":\"Ny observasjon\",\"observationId\":-1,\"observationData\":\"{\\\"symptom\\\":\\\"\\\",\\\"tiltak\\\":\\\"\\\",\\\"forekomststorrelse\\\":\\\"\\\"}\",\"cropOrganism\":{},\"observationText\":\"\",\"timeOfObservation\":1479865788123}}]}";
+        FeatureCollection result = (FeatureCollection) GeoJSONFactory.create(json);
+        assertNotNull(result);
+    }
     
 }

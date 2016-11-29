@@ -56,6 +56,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Organism.findByOrganismIds", query = "SELECT o FROM Organism o WHERE o.organismId IN :organismIds"),
     @NamedQuery(name = "Organism.findByParentOrganismId", query = "SELECT o FROM Organism o WHERE o.parentOrganismId = :parentOrganismId"),
     @NamedQuery(name = "Organism.findByLatinName", query = "SELECT o FROM Organism o WHERE o.latinName = :latinName"),
+    @NamedQuery(name = "Organism.findByLatinNames", query = "SELECT o FROM Organism o WHERE o.latinName IN :latinNames"),
     @NamedQuery(name = "Organism.findByTradeName", query = "SELECT o FROM Organism o WHERE o.tradeName = :tradeName"),
     @NamedQuery(name = "Organism.findByLogicallyDeleted", query = "SELECT o FROM Organism o WHERE o.logicallyDeleted = :logicallyDeleted")})
 public class Organism implements Serializable {

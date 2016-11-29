@@ -410,4 +410,8 @@ public class OrganismBean {
     public void storeCropCategory(CropCategory cropCategory) {
         em.merge(cropCategory);
     }
+
+    public List<Organism> findOrganismsByLatinNames(List<String> latinNames) {
+        return em.createNamedQuery("Organism.findByLatinNames").setParameter("latinNames", latinNames).getResultList();
+    }
 }

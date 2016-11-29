@@ -204,6 +204,9 @@ public class ObservationBean {
             gises.add(gis);
         }*/
         
+        // The GisObservations are not included in the merged object, so we should add them
+        retVal.setGeoinfos(this.getGeoinfoForObservation(retVal));
+        
         return retVal;
     }
 
@@ -490,7 +493,7 @@ public class ObservationBean {
     }
 
     public Observation getObservationFromGeoJSON(String geoJSON) throws IOException {
-        System.out.println(geoJSON);
+        //System.out.println(geoJSON);
         FeatureCollection featureCollection = (FeatureCollection) GeoJSONFactory.create(geoJSON);
         Feature firstAndBest = featureCollection.getFeatures()[0];
         Map<String, Object> properties = firstAndBest.getProperties();
@@ -498,16 +501,28 @@ public class ObservationBean {
         Integer observationId = (Integer) properties.get("observationId");
         if(observationId > 0)
         {
-            observation.setObservationId(observationId);
+            observation = em.find(Observation.class, observationId);
         }
         observation.setObservationData((String) properties.get("observationData"));
         ObjectMapper mapper = new ObjectMapper();
-        //observation.setCropOrganism(mapper.readValue((String) properties.get("cropOrganism"), Organism.class));
-        //observation.setOrganism(mapper.readValue((String) properties.get("organism"), Organism.class));
+        observation.setCropOrganism(mapper.convertValue(properties.get("cropOrganism"), Organism.class));
+        observation.setOrganism(mapper.convertValue(properties.get("organism"), Organism.class));
+        observation.setObservationHeading((String)properties.get("observationHeading"));
         observation.setObservationText((String)properties.get("observationText"));
         observation.setTimeOfObservation(new Date((Long) properties.get("timeOfObservation")));
         observation.setGeoinfo(geoJSON);
+        observation.setStatusTypeId((Integer) properties.get("statusTypeId"));
+        observation.setStatusRemarks((String) properties.get("statusRemarks"));
+        observation.setIsQuantified((Boolean) properties.get("isQuantified"));
+        observation.setBroadcastMessage((Boolean) properties.get("broadcastMessage"));
         return observation; 
+    }
+
+    public void deleteGisObservationByGis(Integer gisId) {
+        Observation observation = (Observation) em.createNativeQuery("SELECT * FROM observation WHERE observation_id = (SELECT DISTINCT observation_id FROM gis_observation WHERE gis_id = :gisId);", Observation.class)
+                .setParameter("gisId", gisId)
+                .getSingleResult();
+        this.deleteObservation(observation.getObservationId());
     }
     
 }
