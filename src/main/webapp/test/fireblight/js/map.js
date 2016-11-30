@@ -39,7 +39,8 @@ function initMap()
   
   // The layer for putting the data
   var features = new ol.Collection();
-  
+
+var iconRadius = 10;
     
 var styles = {
     // Bulkemispel = rød
@@ -47,7 +48,7 @@ var styles = {
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [255,0,0,1] }),
             stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-            radius: 7
+            radius: iconRadius
         })
     })],
     // Sprikemispel = dyp oransje
@@ -55,7 +56,7 @@ var styles = {
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [239,133,19,1] }),
             stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-            radius: 7
+            radius: iconRadius
         })
     })],
     // Pilemispel = gul
@@ -63,7 +64,7 @@ var styles = {
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [239,236,19,1] }),
             stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-            radius: 7
+            radius: iconRadius
         })
     })],
     // Eple = grønn
@@ -71,7 +72,7 @@ var styles = {
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [0,255,0,1] }),
             stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-            radius: 7
+            radius: iconRadius
         })
     })],
     // Pære = grågrønn
@@ -79,7 +80,7 @@ var styles = {
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [122,175,131,1] }),
             stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-            radius: 7
+            radius: iconRadius
         })
     })],
     // Planteriket = blå 
@@ -87,7 +88,7 @@ var styles = {
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [0,0,255,1] }),
             stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-            radius: 7
+            radius: iconRadius
         })
     })]
 };
@@ -116,7 +117,7 @@ var styles = {
     style: [new ol.style.Style({
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [255,255,255,1] }),
-            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+            stroke: new ol.style.Stroke({ color: [0,0,0,1], width: 3, lineDash: [2,2] }),
             radius: 10
         })
     })]
@@ -159,22 +160,19 @@ var styles = {
             evt.pixel, function(ft, l) { return ft; }
         );
 
-        //console.info(features);
+        var vectorSource = newFeatureOverlay.getSource();
+        // Remove any new features already created
+        vectorSource.clear();
+
         if (feature) {
-            //console.info(feature);
-            //you can see all properties with getProperties()
-            //console.info(feature.getProperties());
-            displayFeature(feature);
+            // Create a fake icon for highlighting
+            var fakeFeature = createFeature(feature.getGeometry().getCoordinates());
+            vectorSource.addFeature(fakeFeature);
+            displayFeature(feature);   
         }
         else
         {
-            //console.log("Attempt to create new observation at " + evt.pixel);
-            var vectorSource = newFeatureOverlay.getSource();
-            // Remove any new features already created
-            vectorSource.clear();
-            //console.info(map.getCoordinateFromPixel(evt.pixel));
             var newFeature = createFeature(map.getCoordinateFromPixel(evt.pixel));
-            //console.info(newFeature);
             vectorSource.addFeature(newFeature);
             editFeature(newFeature.getId());
         }
@@ -182,6 +180,11 @@ var styles = {
     
 }
 
+/**
+ * Creates a new feature
+ * @param {type} coordinate
+ * @returns {createFeature.newFeature|ol.Feature}
+ */
 var createFeature = function(coordinate)
 {
     if(coordinate.length == 2)
@@ -302,7 +305,7 @@ var editFeature = function(featureId)
         '<textarea id="beskrivelse" name="beskrivelse">' + (feature.get("observationText") != null ? feature.get("observationText") : "")  + '</textarea>' +
         '</td></tr>' +
         '<tr><td>Dato</td><td>' +
-        '<input type="text" id="dato" name="dato" value="'+ timeOfObservation.format("DD.MM.YYYY") + '"/></td></tr>' +
+        '<input type="text" id="dato" name="dato" size="10" value="'+ timeOfObservation.format("DD.MM.YYYY") + '"/></td></tr>' +
         '<tr><td></td><td>' +
         '<input type="submit" value="Lagre" onclick="storeFeature(' + feature.getId() + ');"/></td></tr>' +
         '</table>';
