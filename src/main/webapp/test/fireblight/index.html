@@ -41,8 +41,8 @@
                 /*border: 1px solid #dddddd;*/
             }
             .ol-zoom {
-                top:    2.5em;
-                bottom: auto;
+                top:    auto;
+                bottom: 3.5em;
                 left: auto;
                 right: .5em
             }
@@ -57,9 +57,9 @@
             
             .geo-location
             {
-                top: 7.0em;
+                top: auto;
                 right: 0.5em;
-                bottom: auto;
+                bottom: 8.0em;
                 left: auto;
                 z-index: 1000;
             }
@@ -80,11 +80,11 @@
     
             #featureForm {
                 display: none;
-                width: 300px;
+                width: auto;
                 max-width: 90%;
                 height: auto;
                 position: absolute;
-                top: 45px;
+                top: 3.0em;
                 left: 10px;
                 z-index: 1999;
                 background-color: white;
@@ -95,8 +95,8 @@
             
             #legend {
                 position: absolute;
-                top: auto;
-                bottom: 40px;
+                top: 3.0em;
+                bottom: auto;
                 right: 10px;
                 z-index: 1999;
                 background-color: white;
@@ -170,7 +170,7 @@
   <body>
       
       <div id="map" class="map">
-          <div class="geo-location ol-unselectable ol-control"><button onclick="navToLocation();"></button></div>
+          <div class="geo-location ol-unselectable ol-control"><button onclick="navToLocation();" title="Finn min posisjon"></button></div>
       </div>
       <div id="searchFieldContainer">
           <div id="searchFieldInnerContainer">
