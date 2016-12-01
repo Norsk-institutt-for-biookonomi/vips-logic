@@ -125,8 +125,8 @@ function initGisInfoMap(containerId, center, zoomLevel, displayMarker, drawnObjs
       }
     })
   });
-
-
+  
+  
 
   //########################Get maplayers you can choose from########################
 

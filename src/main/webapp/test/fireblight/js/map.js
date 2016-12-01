@@ -25,13 +25,27 @@ function initMap()
     source: new ol.source.TileWMS({
         attributions: [
             new ol.Attribution({
-              html: "Kartgrunnlag: Statens kartverk (<a href='http://creativecommons.org/licenses/by-sa/3.0/no/' target='new'>cc-by-sa-3.0</a>)"
+              html: "Kartgrunnlag: Statens kartverk (<a href='//creativecommons.org/licenses/by-sa/3.0/no/' target='new'>cc-by-sa-3.0</a>)"
             })
           ],
-      url: "http://opencache.statkart.no/gatekeeper/gk/gk.open?",
-      //url: "//openwms.statkart.no/skwms1/wms.topo2.graatone?"//,
+      url: "//opencache.statkart.no/gatekeeper/gk/gk.open?",
       params: {
         LAYERS: 'topo2graatone',
+        VERSION: '1.1.1'
+      }
+    })
+  });
+  
+  // Detailed Norway map in colours
+  var topo2 = 
+          new ol.layer.Tile({
+    title: "Farger",
+    type: 'base',
+    visible: true,
+    source: new ol.source.TileWMS({
+      url: "//opencache.statkart.no/gatekeeper/gk/gk.open?",
+      params: {
+        LAYERS: 'topo2',
         VERSION: '1.1.1'
       }
     })
@@ -129,7 +143,8 @@ var styles = {
   map = new ol.Map({
         target: 'map',
         layers: [
-          topo2graatone,
+          //topo2graatone, 
+          topo2,
           featureOverlay,
           newFeatureOverlay
         ],
