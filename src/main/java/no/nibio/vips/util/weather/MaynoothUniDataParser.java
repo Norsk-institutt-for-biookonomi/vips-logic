@@ -93,10 +93,12 @@ public class MaynoothUniDataParser {
         List<String[]> data = new ArrayList<>();
         String[] headers;
         Map<Integer, Integer> elementOrdering = new HashMap<>();
-        try {
+        try 
+        {
             URL maynoothURL = new URL(MessageFormat.format(MaynoothUniDataParser.MAYNOOTH_URL_TEMPLATE, stationID));
-            BufferedReader in = new BufferedReader(
-            new InputStreamReader(maynoothURL.openStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    maynoothURL.openStream()
+            ));
 
             String inputLine;
             Date testTimestamp = null;
