@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletContext;
@@ -36,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationMethod;
+import no.nibio.vips.logic.entity.ObservationStatusType;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicRole;
@@ -74,37 +76,57 @@ public class ObservationController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        // Default: View message list
+        // Default: View observation list
         // for everyone
         if(request.getServletPath().endsWith("/observation"))
         {
             if(action == null)
             {
-                List<Observation> observations = null;
-                Integer statusTypeId = -1; 
+                List<Observation> observations;
+                Integer statusTypeId = -1;
                 Integer pestOrganismId = -1;
+                Boolean viewOthersObservations;
                 try 
                 {
                     statusTypeId = request.getParameter("statusTypeId") != null ? Integer.valueOf(request.getParameter("statusTypeId")) : -1;
                     pestOrganismId = request.getParameter("pestOrganismId") != null ? Integer.valueOf(request.getParameter("pestOrganismId")) : -1;
+                    viewOthersObservations = request.getParameter("viewOthersObservations") != null;
                 }
                 catch(NumberFormatException nfe) {
+                    statusTypeId = null;
+                    pestOrganismId = null;
+                    viewOthersObservations = false;
                 }
 
-
-                if(statusTypeId > 0)
-                {
-                    observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId(), statusTypeId);
-                }
-                else if(pestOrganismId > 0)
-                {
-                    observations = SessionControllerGetter.getObservationBean().getObservationsOfPest(pestOrganismId);
-                }
-                else
+                // First: Get observations for organization or user
+                if(viewOthersObservations && SessionControllerGetter.getUserBean().authorizeUser(user, 
+                        VipsLogicRole.OBSERVATION_AUTHORITY, 
+                        VipsLogicRole.ORGANIZATION_ADMINISTRATOR, 
+                        VipsLogicRole.SUPERUSER))
                 {
                     observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
                 }
-
+                else 
+                {
+                    observations = SessionControllerGetter.getObservationBean().getObservationsForUser(user);
+                }
+                
+                // Then: Filter on other criteria
+                if(statusTypeId > 0)
+                {
+                    final Integer s = statusTypeId; // Local variables used in lambdas must be effectively final
+                    observations = observations.stream().
+                            filter(obs->obs.getStatusTypeId().equals(s))
+                            .collect(Collectors.toList());
+                }
+                if(pestOrganismId > 0)
+                {
+                    final Integer p = pestOrganismId;
+                    observations = observations.stream()
+                            .filter(obs->obs.getOrganismId().equals(p))
+                            .collect(Collectors.toList());
+                }
+                
                 Collections.sort(observations);
                 Collections.reverse(observations);
                 List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
@@ -112,6 +134,7 @@ public class ObservationController extends HttpServlet {
                 request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                 request.setAttribute("selectedPestOrganismId", pestOrganismId);
                 request.setAttribute("selectedStatusTypeId", statusTypeId);
+                request.setAttribute("viewOthersObservations",viewOthersObservations);
                 request.setAttribute("observations", observations);
                 request.setAttribute("userHasObserverPrivilege", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
                 request.setAttribute("userIsObservationAuthority", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));

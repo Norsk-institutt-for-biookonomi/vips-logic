@@ -27,20 +27,32 @@
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
 	<a href="/observation?action=newObservationForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
-
-	<select class="form-control" name="statusTypeId" onchange="window.location.href='/observation?statusTypeId=' + this.options[this.options.selectedIndex].value;">
-		<#list [-1,1,2,3] as statusTypeId>
-		<option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case -1>${i18nBundle.allCategories}<#break><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
-		</#list>
-	</select>
-        <select class="form-control" name="pestOrganismId" onchange="window.location.href='/observation?pestOrganismId=' + this.options[this.options.selectedIndex].value;">
-            <option value="-1">${i18nBundle.allPests}</option>
-            <#list allPests as pestOrganism>
-                <option value="${pestOrganism.organismId}" <#if selectedPestOrganismId?has_content && pestOrganism.organismId == selectedPestOrganismId> selected="selected"</#if>>
-                    ${pestOrganism.getLocalName(currentLocale.language)!""} (${pestOrganism.latinName!""}) ${hierarchyCategories.getName(pestOrganism.hierarchyCategoryId)?upper_case}
-                </option>
-            </#list>
-        </select>
+        <form action="/observation" method="post">
+            <select class="form-control" name="statusTypeId" onchange="this.form.submit();">
+                    <#list [-1,1,2,3] as statusTypeId>
+                    <option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case -1>${i18nBundle.allCategories}<#break><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
+                    </#list>
+            </select>
+            <select class="form-control" name="pestOrganismId" onchange="this.form.submit();">
+                <option value="-1">${i18nBundle.allPests}</option>
+                <#list allPests as pestOrganism>
+                    <option value="${pestOrganism.organismId}" <#if selectedPestOrganismId?has_content && pestOrganism.organismId == selectedPestOrganismId> selected="selected"</#if>>
+                        ${pestOrganism.getLocalName(currentLocale.language)!""} (${pestOrganism.latinName!""}) ${hierarchyCategories.getName(pestOrganism.hierarchyCategoryId)?upper_case}
+                    </option>
+                </#list>
+            </select>
+            <div class="form-group">
+                <div class="checkbox">
+                        <label>
+                            <input type="checkbox" value="true" name="viewOthersObservations"
+                                   onclick="this.form.submit();"
+                                   <#if viewOthersObservations >checked="checked"</#if>
+                                   />
+                        </label>
+                        ${i18nBundle.viewOthersObservations}
+                </div>
+            </div>
+        </form>
         <#if observations?size == 0>
         <div class="alert alert-warning">${i18nBundle.noResultsFoundForCriteria}</div>
         </#if>

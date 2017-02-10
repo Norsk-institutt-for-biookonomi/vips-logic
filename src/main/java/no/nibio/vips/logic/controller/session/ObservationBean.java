@@ -75,7 +75,7 @@ public class ObservationBean {
         
         observations = this.getObservationsWithGeoInfo(observations);
         observations = this.getObservationsWithLocations(observations);
-        observations = getObservationsWithObservers(observations);
+        observations = this.getObservationsWithObservers(observations);
         
         return observations;
     }
@@ -89,6 +89,28 @@ public class ObservationBean {
         
         List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeId")
                 .setParameter("organizationId", organization)
+                .setParameter("statusTypeId", statusTypeId)
+                .getResultList());
+        
+        return retVal;
+    }
+    
+    public List<Observation> getObservationsForUser(VipsLogicUser user)
+    {
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByUserId")
+                .setParameter("userId", user.getUserId())
+                .getResultList());
+        
+        retVal = this.getObservationsWithLocations(retVal);
+        retVal = this.getObservationsWithObservers(retVal);
+        
+        return retVal;
+    }
+    
+    public List<Observation> getObservationsForUser(VipsLogicUser user, Integer statusTypeId)
+    {
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByUserIdAndStatusTypeId")
+                .setParameter("userId", user.getUserId())
                 .setParameter("statusTypeId", statusTypeId)
                 .getResultList());
         
@@ -368,7 +390,7 @@ public class ObservationBean {
          observations.stream().filter((o) -> (o.getUserId() != null)).forEach((o) -> {
              o.setUser(mappedUsers.get(o.getUserId()));
         });
-         return observations;
+        return observations;
     }
     
     public List<Observation> getObservationsOfPest(Integer pestOrganismId)
@@ -381,6 +403,20 @@ public class ObservationBean {
         observations = this.getObservationsWithGeoInfo(observations);
         observations = this.getObservationsWithLocations(observations);
         observations = getObservationsWithObservers(observations);
+        return observations;
+    }
+    
+    public List<Observation> getObservationsOfPestForUser(VipsLogicUser user, Integer pestOrganismId)
+    {
+        List <Observation> observations = 
+            em.createNamedQuery("Observation.findByUserIdAndOrganism")
+                    .setParameter("userId", user.getUserId())
+                    .setParameter("organism", em.find(Organism.class, pestOrganismId))
+                    .getResultList();
+        
+        observations = this.getObservationsWithGeoInfo(observations);
+        observations = this.getObservationsWithLocations(observations);
+        observations = this.getObservationsWithObservers(observations);
         return observations;
     }
 
