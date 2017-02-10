@@ -41,6 +41,7 @@
                     </option>
                 </#list>
             </select>
+            <#if user.isSuperUser() || user.isOrganizationAdmin() || userIsObservationAuthority>
             <div class="form-group">
                 <div class="checkbox">
                         <label>
@@ -52,6 +53,7 @@
                         ${i18nBundle.viewOthersObservations}
                 </div>
             </div>
+            </#if>
         </form>
         <#if observations?size == 0>
         <div class="alert alert-warning">${i18nBundle.noResultsFoundForCriteria}</div>
