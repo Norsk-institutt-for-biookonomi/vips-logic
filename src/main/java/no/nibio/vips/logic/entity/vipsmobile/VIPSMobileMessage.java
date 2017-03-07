@@ -19,13 +19,14 @@
 
 package no.nibio.vips.logic.entity.vipsmobile;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class VIPSMobileMessage {
+public class VIPSMobileMessage implements Comparable{
     
     private int meldingId;
     private String tittel;
@@ -119,6 +120,7 @@ public class VIPSMobileMessage {
     /**
      * @return the registrertDato
      */
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     public Date getRegistrertDato() {
         return registrertDato;
     }
@@ -133,6 +135,7 @@ public class VIPSMobileMessage {
     /**
      * @return the gyldigTilDato
      */
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     public Date getGyldigTilDato() {
         return gyldigTilDato;
     }
@@ -189,6 +192,11 @@ public class VIPSMobileMessage {
     public boolean getLeaf()
     {
         return true;
+    }
+
+    @Override
+    public int compareTo(Object t) {
+        return this.getRegistrertDato().compareTo(((VIPSMobileMessage)t).getRegistrertDato());
     }
 
 }

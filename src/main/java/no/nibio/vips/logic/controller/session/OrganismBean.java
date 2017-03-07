@@ -326,13 +326,11 @@ public class OrganismBean {
                 .setParameter("cropCategoryIds", cropCategoryIds)
                 .getResultList();
         List<Integer> retVal = new ArrayList<>();
-        for(CropCategory cc:cropCategories)
-        {
-            if(cc.getCropOrganismIds() != null)
-            {
-                retVal.addAll(Arrays.asList(cc.getCropOrganismIds()));
-            }
-        }
+        cropCategories.stream()
+                .filter((cc) -> (cc.getCropOrganismIds() != null))
+                .forEachOrdered((cc) -> {
+                    retVal.addAll(Arrays.asList(cc.getCropOrganismIds()));
+                });
         
         return retVal;
     }

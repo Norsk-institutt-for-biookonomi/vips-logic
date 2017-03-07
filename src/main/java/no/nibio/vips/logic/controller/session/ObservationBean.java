@@ -237,7 +237,7 @@ public class ObservationBean {
         em.remove(observation);
     }
 
-    public Object getBroadcastObservations(Integer organizationId) {
+    public List<Observation> getBroadcastObservations(Integer organizationId) {
         Organization organization= em.find(Organization.class, organizationId);
         /*List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
                                         .setParameter("organizationId", organization)

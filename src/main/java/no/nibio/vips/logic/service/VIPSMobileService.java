@@ -19,8 +19,11 @@
 
 package no.nibio.vips.logic.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +31,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TimeZone;
+import javax.json.JsonObject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,14 +41,18 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.Result;
+import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastSummary;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageIllustration;
 import no.nibio.vips.logic.entity.MessageLocale;
 import no.nibio.vips.logic.entity.ModelInformation;
+import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.vipsmobile.VIPSMobileCropCategory;
 import no.nibio.vips.logic.entity.vipsmobile.VIPSMobileForecast;
 import no.nibio.vips.logic.entity.vipsmobile.VIPSMobileMessage;
 import no.nibio.vips.logic.entity.vipsmobile.VIPSMobilePresentation;
@@ -59,7 +67,7 @@ import org.jboss.resteasy.spi.HttpRequest;
  * were implemented in the old VIPS. It's assumed that it's easier to adapt the
  * service layer than the client layer in Sencha Touch...
  * 
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/vipsmobile")
@@ -70,6 +78,7 @@ public class VIPSMobileService {
     @Context
     private HttpServletRequest httpServletRequest;
     
+    // TODO: Add observation messages
     @GET
     @Path("melding")
     @Produces("application/json;charset=UTF-8")
@@ -114,10 +123,12 @@ public class VIPSMobileService {
                 
                 String imageURL = "";
                 String imageCaption = "";
+                Integer messageTagId = 2; // Default: Advisory system message
                 try
                 {
                     MessageIllustration illustration = message.getMessageIllustrationSet().iterator().next();
                     imageURL = String.format("/static/images/messages/%s/%s", pragmaticBestLocale.getCreatedBy().getOrganizationId().getOrganizationId(), illustration.getMessageIllustrationPK().getFileName());
+                    messageTagId = message.getMessageTagSet().iterator().next().getMessageTagId();
                 }catch(NoSuchElementException | NullPointerException ex){}
                 
                 VIPSMobileMessage vmMessage = new VIPSMobileMessage(
@@ -127,7 +138,7 @@ public class VIPSMobileService {
                         pragmaticBestLocale.getBody(),
                         message.getDatePub(),
                         message.getDateValidTo(),
-                        message.getMessageTagSet().iterator().next().getMessageTagId(),
+                        messageTagId,
                         imageURL,
                         "Test"
                 );
@@ -135,7 +146,63 @@ public class VIPSMobileService {
                 retVal.add(vmMessage);
             }
             
+            // TODO Add observation messages
+            // Using code specific to current VIPSMobile app
+            Integer observationMessageTagId = 1;
+            List<Observation> broadcastObservations = SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId);
+            // Making an observation message valid for 3 months by default
+            Calendar cal = Calendar.getInstance();
+            broadcastObservations.stream().forEach(
+                    obs -> {
+                        cal.setTime(obs.getTimeOfObservation());
+                        cal.add(Calendar.MONTH, 3);
+                        Date msgValidTo = cal.getTime();
+                        VIPSMobileMessage vmMessage = new VIPSMobileMessage(
+                            obs.getObservationId() * 1000000,
+                            obs.getObservationHeading(),
+                            "",
+                            obs.getObservationText(),
+                            obs.getTimeOfObservation(),
+                            msgValidTo,
+                            observationMessageTagId,
+                            "",
+                            "Test"
+                        );
+                        retVal.add(vmMessage);
+                    }
+            );
+            Collections.sort(retVal, Collections.reverseOrder());
             return Response.ok().entity(retVal).build();
+    }
+    
+    @GET
+    @Path("varselkulturkategorier")
+    @Produces("application/json;charset=UTF-8")
+    public Response getCropCategories(
+            @QueryParam("organizationId") Integer organizationId,
+            @QueryParam("locale") String locale
+        )
+    {
+        List<Organism> cropList = SessionControllerGetter.getOrganismBean().getAllCrops();
+        Map<Integer, Organism> allCrops = new HashMap<>();
+        cropList.forEach((crop) -> {
+            allCrops.put(crop.getOrganismId(), crop);
+        });
+        List<CropCategory> cropCategories = SessionControllerGetter.getOrganismBean().getCropCategories(organizationId);
+        List<VIPSMobileCropCategory> retVal = new ArrayList<>();
+        cropCategories.stream().forEach(
+                cc -> {
+                    List<Organism> ccCropList = new ArrayList<>();
+                    Arrays.asList(cc.getCropOrganismIds()).stream().forEach(
+                            cropId -> {
+                                ccCropList.add(allCrops.get(cropId));
+                            }
+                    );
+                    retVal.add(new VIPSMobileCropCategory(cc, ccCropList, "nb"));
+                }
+        );
+        
+        return Response.ok().entity(retVal).build();
     }
     
     @GET
@@ -272,7 +339,7 @@ public class VIPSMobileService {
         Date to = SystemTime.getSystemTime();
         Calendar cal = Calendar.getInstance();
         cal.setTime(to);
-        cal.add(Calendar.MONTH, -2);
+        cal.set(Calendar.MONTH, Calendar.JANUARY);
         Date from = cal.getTime();
         
         PointOfInterestWeatherStation station = (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(klimastasjonId);

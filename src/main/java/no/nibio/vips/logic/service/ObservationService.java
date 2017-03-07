@@ -19,10 +19,7 @@
 
 package no.nibio.vips.logic.service;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,21 +30,18 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.annotations.GZIP;
-import org.jboss.resteasy.spi.HttpRequest;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
