@@ -42,6 +42,7 @@ import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageIllustration;
 import no.nibio.vips.logic.entity.MessageIllustrationPK;
 import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.ObservationFormShortcut;
 import no.nibio.vips.logic.entity.ObservationIllustration;
 import no.nibio.vips.logic.entity.ObservationIllustrationPK;
 import no.nibio.vips.logic.entity.ObservationStatusType;
@@ -559,6 +560,12 @@ public class ObservationBean {
                 .setParameter("gisId", gisId)
                 .getSingleResult();
         this.deleteObservation(observation.getObservationId());
+    }
+
+    public List<ObservationFormShortcut> getObservationFormShortcuts(Organization organization) {
+        return em.createNamedQuery("ObservationFormShortcut.findByOrganizationId").
+                setParameter("organizationId", organization.getOrganizationId())
+                .getResultList();
     }
     
 }

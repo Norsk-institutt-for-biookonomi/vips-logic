@@ -111,6 +111,15 @@ public class OrganismBean {
         }
         return retVal;
     }
+    
+    public List<Organism> getCropChildren(Organism crop)
+    {
+        List<Organism> children = em.createNamedQuery("Organism.findByParentOrganismId").setParameter("parentOrganismId", crop.getOrganismId()).getResultList();
+        List<Organism> grandChildren = new ArrayList();
+        children.stream().forEach(childCrop -> grandChildren.addAll(this.getCropChildren(childCrop)));
+        children.addAll(grandChildren);
+        return children;
+    }
 
     public List<ExternalResource> getUnusedExternalResourcesForOrganism(Organism organism) {
         StringBuilder sql = new StringBuilder()
@@ -264,10 +273,9 @@ public class OrganismBean {
     {
         List<Organism> cropList = this.getAllCrops();
         Map<Integer, Organism> cropMap = new HashMap<>();
-        for(Organism crop:cropList)
-        {
+        cropList.forEach((crop) -> {
             cropMap.put(crop.getOrganismId(), crop);
-        }
+        });
         return cropMap;
     }
 
@@ -282,6 +290,42 @@ public class OrganismBean {
         {
             return null;
         }
+    }
+    
+    /**
+     * 
+     * @param pestOrganismId
+     * @return the crops associated with this pest (in the public.crop_pest database
+     */
+    public List<Organism> getPestCrops(Integer pestOrganismId)
+    {
+        /*Integer[] pestOrganismIds = {pestOrganismId};
+        List<CropPest> cropPests = em.createNamedQuery("CropPest.findByPestOrganismId")
+                .setParameter("pestOrganismId", pestOrganismId)
+                .getResultList();
+        */
+        List<CropPest> cropPests = em.createNativeQuery("SELECT * FROM public.crop_pest where :pestOrganismId = ANY(pest_organism_ids)", CropPest.class)
+                .setParameter("pestOrganismId", pestOrganismId)
+                .getResultList();
+        
+        /*System.out.println("PestId=" + pestOrganismId);
+        Syem.out.println("cropPests.size()=" + cropPests.size());*/
+        
+        // Using map to avoid potential duplicates
+        Map<Integer, Organism> pestCrops = new HashMap();
+        if(cropPests != null)
+        {
+            cropPests.stream().forEach(cropPest->{
+                Organism crop = em.find(Organism.class, cropPest.getCropOrganismId());
+                pestCrops.put(crop.getOrganismId(), crop);
+                if(cropPest.getIncludeAllChildCrops())
+                {
+                    this.getCropChildren(crop).stream().forEach(cropChild->pestCrops.put(cropChild.getOrganismId(), cropChild));
+                }
+            });
+        }
+        
+        return new ArrayList<>(pestCrops.values());
     }
     
     /**

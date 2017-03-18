@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -36,8 +36,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.ObservationFormShortcut;
 import no.nibio.vips.logic.entity.ObservationMethod;
-import no.nibio.vips.logic.entity.ObservationStatusType;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicRole;
@@ -58,7 +58,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 /**
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ObservationController extends HttpServlet {
@@ -127,9 +127,13 @@ public class ObservationController extends HttpServlet {
                             .collect(Collectors.toList());
                 }
                 
+                // Check for form shortcuts
+                List<ObservationFormShortcut> shortcuts = SessionControllerGetter.getObservationBean().getObservationFormShortcuts(user.getOrganizationId());
+                
                 Collections.sort(observations);
                 Collections.reverse(observations);
                 List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
+                request.setAttribute("shortcuts", shortcuts);
                 request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                 request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                 request.setAttribute("selectedPestOrganismId", pestOrganismId);
@@ -150,15 +154,40 @@ public class ObservationController extends HttpServlet {
                 {
                     try
                     {
+                        
                         Observation observation = new Observation();
+                        // See if there are presets on the URL string
+                        if(request.getParameter("cropOrganismId") != null)
+                        {
+                            observation.setCropOrganism(em.find(Organism.class, Integer.valueOf(request.getParameter("cropOrganismId"))));
+                        }
+                        
+                        List<Organism> allCrops;
+                        if(request.getParameter("organismId") != null)
+                        {
+                            Integer organismId = Integer.valueOf(request.getParameter("organismId"));
+                            observation.setOrganism(em.find(Organism.class, organismId));
+                            // If pest has been selected, include only associated crops
+                            allCrops = SessionControllerGetter.getOrganismBean().getPestCrops(organismId);
+                        }
+                        else
+                        {
+                            allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+                        }
+                        
                         request.setAttribute("observation", observation);
+                        request.setAttribute("shortcut", request.getParameter("observationFormShortcutId") != null ?
+                                    em.find(ObservationFormShortcut.class, Integer.valueOf(request.getParameter("observationFormShortcutId")))
+                                    : null
+                                );
+                        request.setAttribute("hideObservationFormMap", request.getParameter("hideObservationFormMap") != null ? request.getParameter("hideObservationFormMap").equals("true") : false);
+                        request.setAttribute("noBroadcast", request.getParameter("noBroadcast") != null);
                         request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                         request.setAttribute("locationPointOfInterests", SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user));
                         List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
                         request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-                        List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
                         request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                         // Hierarchy categories
                         request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
@@ -190,6 +219,7 @@ public class ObservationController extends HttpServlet {
                         Integer observationId = Integer.valueOf(request.getParameter("observationId"));
                         Observation observation = SessionControllerGetter.getObservationBean().getObservation(observationId);//em.find(Observation.class, observationId);
                         request.setAttribute("observation", observation);
+                        request.setAttribute("noBroadcast", request.getParameter("noBroadcast") != null);
                         request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
                         //System.out.println(observation.getGeoinfo());
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
@@ -277,6 +307,7 @@ public class ObservationController extends HttpServlet {
                             observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
                             observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
                             observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
+                            observation.setLocationIsPrivate(formValidation.getFormField("locationIsPrivate").getWebValue() != null);
                             observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
 
                             boolean sendNotification = false;    

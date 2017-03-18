@@ -152,7 +152,9 @@ public class VIPSMobileService {
             List<Observation> broadcastObservations = SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId);
             // Making an observation message valid for 3 months by default
             Calendar cal = Calendar.getInstance();
-            broadcastObservations.stream().forEach(
+            broadcastObservations.stream().filter(
+                    obs -> obs.getBroadcastMessage() && !obs.getObservationHeading().trim().isEmpty()
+            ).forEach(
                     obs -> {
                         cal.setTime(obs.getTimeOfObservation());
                         cal.add(Calendar.MONTH, 3);

@@ -46,6 +46,7 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "CropPest.findAll", query = "SELECT c FROM CropPest c"),
     @NamedQuery(name = "CropPest.findByCropOrganismId", query = "SELECT c FROM CropPest c WHERE c.cropOrganismId = :cropOrganismId"),
     @NamedQuery(name = "CropPest.findByPestOrganismIds", query = "SELECT c FROM CropPest c WHERE c.pestOrganismIds = :pestOrganismIds"),
+    @NamedQuery(name = "CropPest.findByPestOrganismId", query = "SELECT c FROM CropPest c WHERE :pestOrganismId IN (c.pestOrganismIds)"),
     @NamedQuery(name = "CropPest.findByIncludeAllChildCrops", query = "SELECT c FROM CropPest c WHERE c.includeAllChildCrops = :includeAllChildCrops")})
 public class CropPest implements Serializable {
 

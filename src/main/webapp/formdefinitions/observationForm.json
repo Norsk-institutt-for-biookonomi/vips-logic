@@ -58,6 +58,11 @@
             "required" : false
         },
         {
+            "name" : "locationIsPrivate",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "isQuantified",
             "dataType" : "STRING",
             "required" : false

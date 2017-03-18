@@ -1,5 +1,5 @@
 <#-- 
-    Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+    Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
   VIPSLogic is free software: you can redistribute it and/or modify
@@ -69,9 +69,9 @@
 			<#if observation.observationData?has_content>
 				observationData = ${observation.observationData};
 				getDataSchema(${observation.organism.organismId}, organizationId);
-			<#else>
+			<#elseif observation.organism?has_content>
 			// Setting 
-				
+				initObservationData(${observation.organism.organismId},organizationId);
 			</#if>
 			
 			// Activating file selection
@@ -245,11 +245,19 @@
 		}
 		
 		
-		// If locationPointOfInterestId is selected, show map for locations
+		// If locationPointOfInterestId is selected OR observation drawing map is deliberately disabled, 
+                // show map for locations
 		// If not, show the observation drawing map
+                var hideObservationFormMap = ${hideObservationFormMap?c!"false"};
 		function showCorrectMap(){
 			var locationList = document.getElementById("locationPointOfInterestId");
-			if(locationList.options[locationList.options.selectedIndex].value != "-1")
+                        if(hideObservationFormMap && locationList.options[locationList.options.selectedIndex].value == "-1")
+                        {
+                            document.getElementById("observationFormMap").style.display="none";
+                            document.getElementById("poiFormMap").style.display="block";
+                            initLocationMap(null);
+                        }
+			else if(locationList.options[locationList.options.selectedIndex].value != "-1")
 			{
 				document.getElementById("observationFormMap").style.display="none";
 				document.getElementById("poiFormMap").style.display="block";
@@ -374,12 +382,24 @@
                         cropOrganismIdList.options[cropOrganismIdList.options.length] = theRest[i];
                     }
                 }
+                <#if noBroadcast>
+                /**
+                 * In the unlikely event that the user in a pre-filled form decides to
+                 * change the organism, we'll update the observationText and heading   
+                 */
+                function updateHeadingAndText(organismName)
+                {
+                    var registrationOfText = "${i18nBundle.registrationOf} " + organismName;
+                    document.getElementById("observationHeading").value = registrationOfText;
+                    document.getElementById("observationText").value = registrationOfText;
+                }
+                </#if>
 	</script>
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
 	<p><a href="/observation" class="btn btn-default back" role="button">${i18nBundle.back}</a><#if observation.observationId?has_content><a href="/observation?action=newObservationForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a></#if></p>
-        <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if></h1>
+        <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
 	</div>
@@ -389,7 +409,7 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationForm">
-			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this) && validateGIS(this);}catch(e){console.log(e.message);console.log(e);return false;}">
+			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);console.info('validateGIS = ' + (validateGIS(this)));return validateForm(this) && validateGIS(this);}catch(e){console.log(e.message);console.log(e);return false;}">
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
 			  <input type="hidden" name="geoInfo" value=""/>
@@ -407,17 +427,17 @@
                           </#if>
 			   <div class="form-group">
 			    <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-			    <select class="form-control" id="cropOrganismIdList" name="cropOrganismId" <#if observation.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
-				<#if ! observation.organism?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
+			    <select class="form-control" id="cropOrganismIdList" name="cropOrganismId" <#if observation.observationId?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
+				<#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
 					<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 					<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-					<#list allCrops as cropOrganism>
+                                        <#list allCrops as cropOrganism>
                                                 <#if cropOrganism.hierarchyCategoryId <= 121>
 						<option value="${cropOrganism.organismId}"
 							<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
 						>${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
                                                 </#if>
-					</#list>
+					</#list>                                        
 				<#else>
 					<#list allCrops as cropOrganism>
 						<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>
@@ -430,7 +450,7 @@
 			  </div>
 			  <div class="form-group">
 			    <label for="organismId">${i18nBundle.organism}</label>
-			    <select class="form-control" name="organismId" <#if observation.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly"<#else>onchange="initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
+			    <select class="form-control" name="organismId" <#if observation.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly"<#else>onchange="<#if noBroadcast>updateHeadingAndText(this.options[this.options.selectedIndex].text);</#if>initObservationData(this.options[this.options.selectedIndex].value,organizationId);" onblur="validateField(this);"</#if>>
 			    	<#if ! observation.organism?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
 				<option value="-10"<#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
@@ -451,11 +471,19 @@
 			    
 			  </div>
 			   <div class="form-group">
-			    <label for="locationPointOfInterestId">${i18nBundle.location}&nbsp;&nbsp;<i class="fa fa-plus-square" aria-hidden="true" style="cursor:pointer;" title="${i18nBundle.addNew}" onclick="addNewLocationPopup();"></i></label>
+                               <label for="locationPointOfInterestId">${i18nBundle.location}&nbsp;&nbsp;<button role="button" type="button" onclick="addNewLocationPopup();">${i18nBundle.addNew}</button></label>
 			    <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId" onchange="showCorrectMap();">
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
 			     </select>
 			     <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
+			  </div>
+                          <div class="form-group">
+			  	<div class="checkbox">
+					<label>
+						<input type="checkbox" name="locationIsPrivate"<#if !observation.locationIsPrivate?has_content || observation.locationIsPrivate == false><#else>checked="checked"</#if>/>
+					</label>
+					${i18nBundle.locationIsPrivate}
+			  	</div>
 			  </div>
                           <#setting time_zone=user.organizationId.defaultTimeZone!"UTC">
 			  <div class="form-group">
@@ -474,67 +502,52 @@
 			  </div>
 			  <div class="form-group">
 			  <fieldset>
-			  	<legend>Observation data</legend>
+			  	<legend>${i18nBundle.observationData}</legend>
 			  	<div id="metawidget"></div>
 			  </fieldset>
 			  </div>
-			  <!--div class="form-group">
-			    <label for="observedValue">${i18nBundle.observedValue}</label>
-			    <input type="number" class="form-control" name="observedValue" placeholder="${i18nBundle.observedValue}" value="${(observation.observedValue?c)!""}" onblur="validateField(this);"/>
-			    <span class="help-block" id="${formId}_observedValue_validation"></span>
-			  </div>
-			  <div class="form-group">
-			    <label for="denominator">${i18nBundle.denominator}</label>
-			    <input type="number" class="form-control" name="denominator" placeholder="${i18nBundle.denominator}" value="${(observation.denominator?c)!"1"}" onblur="validateField(this);"/>
-			    <span class="help-block" id="${formId}_denominator_validation"></span>
-			  </div-->
-			  <!--div class="form-group">
-			    <label for="observationMethodId">${i18nBundle.observationMethodId}</label>
-			    <select class="form-control" name="observationMethodId" onblur="validateField(this);">
-				<#list observationMethods as observationMethod>
-					<option value="${observationMethod.observationMethodId}"
-						<#if observation.observationMethodId?has_content && observation.observationMethodId.observationMethodId == observationMethod.observationMethodId>selected="selected"</#if>
-					>${i18nBundle("observationMethodTitle_" + observationMethod.observationMethodId)}</option>
-				</#list>
-			     </select>
-			     <span class="help-block" id="${formId}_observationMethodId_validation"></span>
-			  </div-->
+			  <#if !noBroadcast>
 			  <div class="form-group">
 			  	<div class="checkbox">
 					<label>
-						<input type="checkbox" name="broadcastMessage"<#if observation.broadcastMessage?has_content && observation.broadcastMessage == false><#else>checked="checked"</#if>/>
+						<input type="checkbox" name="broadcastMessage"<#if (observation.broadcastMessage?has_content && observation.broadcastMessage == false) || noBroadcast><#else>checked="checked"</#if>/>
 					</label>
 					${i18nBundle.broadcastMessage}
 			  	</div>
 			  </div>
-			  <div class="form-group">
-			    <label for="observationHeading">${i18nBundle.observationHeading}</label>
-			    <input type="text" class="form-control" name="observationHeading" placeholder="" value="${observation.observationHeading!""}" onblur="validateField(this);"/>
-			    <span class="help-block" id="${formId}_observationHeading_validation"></span>
-			  </div>
-			  <div class="form-group">
-			    <label for="observationText">${i18nBundle.observationText}</label>
-			    <textarea class="form-control" name="observationText" placeholder="" >${observation.observationText!""}</textarea>
-			    <span class="help-block" id="${formId}_observationText_validation"></span>
-			  </div>
-			  <#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>
-				<#assign illustration = observation.observationIllustrationSet?first>
-				<img src="/static/images/observations/${observation.organismId}/${illustration.observationIllustrationPK.fileName}" alt="TODO: Add describing text" class="img-responsive"/>
-				<div class="checkbox">
-				  <label>
-				    <input type="checkbox" name="deleteIllustration" value="true">
-				    ${i18nBundle.deleteIllustration}
-				  </label>
-				</div>
-			</#if>
-			  <div class="form-group">
-				<div class="input-group">
-					<label for="illustration"><#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>${i18nBundle.replaceIllustration}<#else>${i18nBundle.newIllustration}</#if></label><br/>
-					<span class="btn btn-default btn-file">${i18nBundle.browse}<input type="file" name="illustration"></span>
-					<input type="text" class="form-control" readonly>
-				</div>
-			</div>
-	
+                          
+                            <div class="form-group">
+                              <label for="observationHeading">${i18nBundle.observationHeading}</label>
+                              <input type="text" class="form-control" name="observationHeading" placeholder="" value="${observation.observationHeading!""}" onblur="validateField(this);"/>
+                              <span class="help-block" id="${formId}_observationHeading_validation"></span>
+                            </div>
+                            <div class="form-group">
+                              <label for="observationText">${i18nBundle.observationText}</label>
+                              <textarea class="form-control" name="observationText" placeholder="" >${observation.observationText!""}</textarea>
+                              <span class="help-block" id="${formId}_observationText_validation"></span>
+                            </div>
+                            <#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>
+                                  <#assign illustration = observation.observationIllustrationSet?first>
+                                  <img src="/static/images/observations/${observation.organismId}/${illustration.observationIllustrationPK.fileName}" alt="TODO: Add describing text" class="img-responsive"/>
+                                  <div class="checkbox">
+                                    <label>
+                                      <input type="checkbox" name="deleteIllustration" value="true">
+                                      ${i18nBundle.deleteIllustration}
+                                    </label>
+                                  </div>
+                          </#if>
+                            <div class="form-group">
+                                  <div class="input-group">
+                                          <label for="illustration"><#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>${i18nBundle.replaceIllustration}<#else>${i18nBundle.newIllustration}</#if></label><br/>
+                                          <span class="btn btn-default btn-file">${i18nBundle.browse}<input type="file" name="illustration"></span>
+                                          <input type="text" class="form-control" readonly>
+                                  </div>
+                          </div>
+                        <#else>
+                            <!-- broadcastMessage is checkbox, omitting it sets it default to false -->
+                            <input type="hidden" id="observationHeading" name="observationHeading" value="<#if observation.organism?has_content>${i18nBundle.registrationOf} ${observation.organism.getLocalName(currentLocale.language)!""} (${observation.organism.latinName!""})</#if>"/> 
+                            <input type="hidden" id="observationText" name="observationText" value="<#if observation.organism?has_content>${i18nBundle.registrationOf} ${observation.organism.getLocalName(currentLocale.language)!""} (${observation.organism.latinName!""})</#if>"/>
+                        </#if> <!-- visibility -->
 			  <#if user.isObservationAuthority() || user.isOrganizationAdmin() || user.isSuperUser()>
 				  <div class="form-group">
 				    <label for="statusTypeId">${i18nBundle.statusTypeId}</label>

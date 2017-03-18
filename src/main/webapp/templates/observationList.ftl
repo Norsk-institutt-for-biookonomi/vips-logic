@@ -27,6 +27,14 @@
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
 	<a href="/observation?action=newObservationForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
+        <#if shortcuts?has_content>
+            <h4>${i18nBundle.registrationShortcuts}</h4>
+            <#list shortcuts as shortcut>
+            <a href="/observation?action=newObservationForm${shortcut.formQueryParamString}&observationFormShortcutId=${shortcut.observationFormShortcutId}" class="btn btn-default" role="button">${shortcut.getLocalLabel(currentLocale.language)}</a>
+            </#list>
+            <h4>${i18nBundle.filterList}</h4>
+        </#if>
+        
         <form action="/observation" method="post">
             <select class="form-control" name="statusTypeId" onchange="this.form.submit();">
                     <#list [-1,1,2,3] as statusTypeId>
@@ -55,6 +63,11 @@
             </div>
             </#if>
         </form>
+        <#if shortcuts?has_content>
+            <#list shortcuts as shortcut>
+                <a href="/observation?${shortcut.listQueryParamString}" class="btn btn-default" role="button">${shortcut.getLocalLabel(currentLocale.language)}</a>
+            </#list>
+        </#if>
         <#if observations?size == 0>
         <div class="alert alert-warning">${i18nBundle.noResultsFoundForCriteria}</div>
         </#if>

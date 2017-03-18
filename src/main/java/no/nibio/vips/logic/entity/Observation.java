@@ -94,6 +94,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private String observationData;
     private Boolean isQuantified;
     private Boolean broadcastMessage;
+    private Boolean locationIsPrivate;
     
     private String observationDataSchema;
     
@@ -549,6 +550,21 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setLocation(PointOfInterest location) {
         this.location = location;
+    }
+
+    /**
+     * @return the locationIsPrivate
+     */
+    @Column(name = "location_is_private")
+    public Boolean getLocationIsPrivate() {
+        return locationIsPrivate;
+    }
+
+    /**
+     * @param locationIsPrivate the locationIsPrivate to set
+     */
+    public void setLocationIsPrivate(Boolean locationIsPrivate) {
+        this.locationIsPrivate = locationIsPrivate;
     }
 
 }
