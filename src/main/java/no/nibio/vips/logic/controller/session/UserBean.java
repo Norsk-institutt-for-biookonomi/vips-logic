@@ -21,8 +21,6 @@ package no.nibio.vips.logic.controller.session;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.util.Calendar;
-import com.ibm.icu.util.TimeZone;
 import com.ibm.icu.util.ULocale;
 
 import java.io.IOException;
@@ -30,6 +28,8 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -640,7 +640,7 @@ public class UserBean {
      */
     public UserUuid createAndPersistUserUuid(VipsLogicUser user)
     {
-        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(user.getOrganizationId().getDefaultTimeZone()));
         cal.setTime(new Date());
         cal.add(Calendar.DATE, Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS);
         UserUuid u = new UserUuid();

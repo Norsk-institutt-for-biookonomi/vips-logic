@@ -195,8 +195,12 @@ public class ObservationService {
     @Path("broadcast/list/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
-    public Response getBroadcastObservations(@PathParam("organizationId") Integer organizationId){
-        return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId)).build();
+    public Response getBroadcastObservations(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("season") Integer season
+    )
+    {
+        return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId, season)).build();
     }
     
     @GET

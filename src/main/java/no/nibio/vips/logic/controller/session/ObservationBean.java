@@ -20,27 +20,24 @@
 package no.nibio.vips.logic.controller.session;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vividsolutions.jts.geom.Geometry;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Gis;
-import no.nibio.vips.logic.entity.Message;
-import no.nibio.vips.logic.entity.MessageIllustration;
-import no.nibio.vips.logic.entity.MessageIllustrationPK;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationFormShortcut;
 import no.nibio.vips.logic.entity.ObservationIllustration;
@@ -51,7 +48,6 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
-import no.nibio.vips.observationdata.ObservationDataSchema;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
 import org.wololo.geojson.Feature;
@@ -238,17 +234,34 @@ public class ObservationBean {
         em.remove(observation);
     }
 
-    public List<Observation> getBroadcastObservations(Integer organizationId) {
+    public List<Observation> getBroadcastObservations(Integer organizationId, Integer season) {
         Organization organization= em.find(Organization.class, organizationId);
         /*List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
                                         .setParameter("organizationId", organization)
-                                        .getResultList();*/
         
-        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage")
-                .setParameter("organizationId", organization)
-                .setParameter("statusTypeId", Observation.STATUS_TYPE_ID_APPROVED)
-                .getResultList());
-        
+        .getResultList();*/
+        List<Observation> retVal = null;
+        if(season == null)
+        {
+             retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage")
+                    .setParameter("organizationId", organization)
+                    .setParameter("statusTypeId", Observation.STATUS_TYPE_ID_APPROVED)
+                    .getResultList());
+        }
+        else
+        {
+            Calendar cal = Calendar.getInstance();
+            cal.set(season, Calendar.JANUARY, 1, 0, 0, 0);
+            Date start = cal.getTime();
+            cal.set(season, Calendar.DECEMBER, 31, 23, 59, 59);
+            Date end = cal.getTime();
+            retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndSeason")
+                    .setParameter("organizationId", organization)
+                    .setParameter("statusTypeId", Observation.STATUS_TYPE_ID_APPROVED)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList());
+        }
         return retVal;
     }
     /**
