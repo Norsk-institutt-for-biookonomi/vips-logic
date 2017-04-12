@@ -48,6 +48,7 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.util.SystemTime;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
 import org.wololo.geojson.Feature;
@@ -234,6 +235,12 @@ public class ObservationBean {
         em.remove(observation);
     }
 
+    /**
+     * 
+     * @param organizationId
+     * @param season
+     * @return 
+     */
     public List<Observation> getBroadcastObservations(Integer organizationId, Integer season) {
         Organization organization= em.find(Organization.class, organizationId);
         /*List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
@@ -255,15 +262,44 @@ public class ObservationBean {
             Date start = cal.getTime();
             cal.set(season, Calendar.DECEMBER, 31, 23, 59, 59);
             Date end = cal.getTime();
-            retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndSeason")
-                    .setParameter("organizationId", organization)
-                    .setParameter("statusTypeId", Observation.STATUS_TYPE_ID_APPROVED)
-                    .setParameter("start", start)
-                    .setParameter("end", end)
-                    .getResultList());
+            retVal = this.getBroadcastObservations(organizationId, start, end);
         }
         return retVal;
     }
+    
+    /**
+     * 
+     * @param organizationId
+     * @param start When period starts. Default: Jan 1st 2000
+     * @param end When period ends. Default: 100 years from now
+     * @return 
+     */
+    public List<Observation> getBroadcastObservations(Integer organizationId, Date start, Date end) {
+        if(start == null || end == null)
+        {
+            Calendar cal = Calendar.getInstance();
+            if(start == null) // Default Jan 1st 2000
+            {
+                cal.set(2000, Calendar.JANUARY,1,0,0,0);
+                start = cal.getTime();
+            }
+            if(end == null) // Default: Today + 100 years
+            {
+                cal.setTime(SystemTime.getSystemTime());
+                cal.add(Calendar.YEAR, 100);
+                end = cal.getTime();
+            }
+        }
+        Organization organization= em.find(Organization.class, organizationId);
+        return this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndPeriod")
+                .setParameter("organizationId", organization)
+                .setParameter("statusTypeId", Observation.STATUS_TYPE_ID_APPROVED)
+                .setParameter("start", start)
+                .setParameter("end", end)
+                .getResultList());
+    }
+    
+    
     /**
      * 
      * @param message

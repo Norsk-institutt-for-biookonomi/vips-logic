@@ -197,10 +197,38 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     public Response getBroadcastObservations(
             @PathParam("organizationId") Integer organizationId,
-            @QueryParam("season") Integer season
+            @QueryParam("season") Integer season,
+            @QueryParam("timeOfObservationFrom") String timeOfObservationFrom,
+            @QueryParam("timeOfObservationTo") String timeOfObservationTo
     )
     {
-        return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId, season)).build();
+        if((timeOfObservationFrom != null && ! timeOfObservationFrom.isEmpty()) 
+                || (timeOfObservationTo != null && ! timeOfObservationTo.isEmpty()))
+        {
+            Date from = null;
+            Date to = null;
+            try
+            {
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                if(timeOfObservationFrom != null && ! timeOfObservationFrom.isEmpty())
+                {
+                    from = format.parse(timeOfObservationFrom);
+                }
+                if(timeOfObservationTo != null && ! timeOfObservationTo.isEmpty())
+                {
+                    to = format.parse(timeOfObservationTo);
+                }
+                return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId, from, to)).build();
+            }
+            catch(ParseException ex)
+            {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid date format").build();
+            }
+        }
+        else
+        {
+            return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId, season)).build();
+        }
     }
     
     @GET
