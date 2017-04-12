@@ -145,6 +145,7 @@ var styles = {
         layers: [
           //topo2graatone, 
           topo2,
+          //osm,
           featureOverlay,
           newFeatureOverlay
         ],
@@ -479,7 +480,7 @@ var navigateTo = function(center)
     var centerPosition = ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857');
         view = new ol.View({
         center: centerPosition,
-        zoom: 12
+        zoom: 18
       });
 
       map.setView(view);
