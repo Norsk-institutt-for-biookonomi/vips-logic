@@ -19,6 +19,18 @@
 <#macro page_head>
         <title>${i18nBundle.observations}</title>
 </#macro>
+<#macro custom_css>
+	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
+</#macro>
+        <#macro custom_js>
+	<script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready( function() {
+			// Activating chosen plugin
+			$(".chosen-select").chosen();
+		});
+	</script>
+</#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
         <h1>${i18nBundle.observations}</h1>
@@ -35,26 +47,46 @@
             <h4>${i18nBundle.filterList}</h4>
         </#if>
         
-        <form action="/observation" method="post">
-            <select class="form-control" name="statusTypeId" onchange="this.form.submit();">
-                    <#list [-1,1,2,3] as statusTypeId>
-                    <option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case -1>${i18nBundle.allCategories}<#break><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
-                    </#list>
-            </select>
-            <select class="form-control" name="pestOrganismId" onchange="this.form.submit();">
-                <option value="-1">${i18nBundle.allPests}</option>
-                <#list allPests as pestOrganism>
-                    <option value="${pestOrganism.organismId}" <#if selectedPestOrganismId?has_content && pestOrganism.organismId == selectedPestOrganismId> selected="selected"</#if>>
-                        ${pestOrganism.getLocalName(currentLocale.language)!""} (${pestOrganism.latinName!""}) ${hierarchyCategories.getName(pestOrganism.hierarchyCategoryId)?upper_case}
-                    </option>
-                </#list>
-            </select>
+        <form action="/observation" method="get">
+            <div class="form-inline">
+                <div class="form-group">
+                    <select class="form-control" name="statusTypeId">
+                            <#list [-1,1,2,3] as statusTypeId>
+                            <option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case -1>${i18nBundle.allCategories}<#break><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
+                            </#list>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" name="pestOrganismId">
+                        <option value="-1">${i18nBundle.allPests}</option>
+                        <#list allPests as pestOrganism>
+                            <option value="${pestOrganism.organismId}" <#if selectedPestOrganismId?has_content && pestOrganism.organismId == selectedPestOrganismId> selected="selected"</#if>>
+                                ${pestOrganism.getLocalName(currentLocale.language)!""} (${pestOrganism.latinName!""}) ${hierarchyCategories.getName(pestOrganism.hierarchyCategoryId)?upper_case}
+                            </option>
+                        </#list>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="date" class="form-control" name="timeOfObservationFrom" value="" placeholder="Dato fra"/>
+                </div> &nbsp;&ndash;&nbsp;
+                <div class="form-group">
+                    <input type="date" class="form-control" name="timeOfObservationTo" value="" placeholder="Dato til"/>
+                </div>
+            </div>
+            <div class="form-inline">
+                <div class="form-group">
+                    <select class="form-control chosen-select" name="organizationGroupId" multiple="multiple" data-placeholder="${i18nBundle.organizationGroupList}">
+                        <#list organizationGroups as group>
+                        <option value="${group.organizationGroupId}" <#if organizationGroupId?has_content && organizationGroupId?seq_contains(group.organizationGroupId)> selected="selected"</#if>> ${group.groupName}</option>
+                        </#list>
+                    </select>
+                </div>
+            </div>
             <#if user.isSuperUser() || user.isOrganizationAdmin() || userIsObservationAuthority>
             <div class="form-group">
                 <div class="checkbox">
                         <label>
                             <input type="checkbox" value="true" name="viewOthersObservations"
-                                   onclick="this.form.submit();"
                                    <#if viewOthersObservations >checked="checked"</#if>
                                    />
                         </label>
@@ -62,12 +94,8 @@
                 </div>
             </div>
             </#if>
+            <button type="submit" class="btn btn-default">Bruk filter</button>
         </form>
-        <#if shortcuts?has_content>
-            <#list shortcuts as shortcut>
-                <a href="/observation?${shortcut.listQueryParamString}" class="btn btn-default" role="button">${shortcut.getLocalLabel(currentLocale.language)}</a>
-            </#list>
-        </#if>
         <#if observations?size == 0>
         <div class="alert alert-warning">${i18nBundle.noResultsFoundForCriteria}</div>
         </#if>

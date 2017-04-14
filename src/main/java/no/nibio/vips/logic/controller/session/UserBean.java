@@ -851,4 +851,8 @@ public class UserBean {
             return null;
         }
     }
+
+    public List<OrganizationGroup> getOrganizationGroups() {
+        return em.createNamedQuery("OrganizationGroup.findAll").getResultList();
+    }
 }

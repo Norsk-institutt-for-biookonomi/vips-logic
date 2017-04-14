@@ -616,5 +616,46 @@ public class ObservationBean {
                 setParameter("organizationId", organization.getOrganizationId())
                 .getResultList();
     }
+
+    public  List<Integer> getOrganizationGroupIds(Observation observation) {
+        if(observation.getObservationId() != null)
+        {
+            return em.createNativeQuery("SELECT organization_group_id FROM public.organization_group_observation "
+                    + "WHERE observation_id = :observationId")
+                    .setParameter("observationId", observation.getObservationId())
+                    .getResultList();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
+    }
+    
+    public void storeOrganizationGroupObservationIds(Observation obs, String[] organizationGroupIds) {
+        // First delete all current group memberships
+        em.createNativeQuery("DELETE FROM public.organization_group_observation WHERE observation_id=:observationId")
+                .setParameter("observationId", obs.getObservationId())
+                .executeUpdate();
+        
+        if(organizationGroupIds != null)
+        {
+            Query q = em.createNativeQuery("INSERT INTO public.organization_group_observation (organization_group_id, observation_id) "
+                    + "VALUES(:organizationGroupId, :observationId)")
+                    .setParameter("observationId", obs.getObservationId());
+            // Then add
+            for(String groupIdStr:organizationGroupIds)
+            {
+                try {
+                    Integer groupId = Integer.valueOf(groupIdStr);
+                    q.setParameter("organizationGroupId", groupId);
+                    q.executeUpdate();
+                }
+                catch(NumberFormatException ex)
+                {
+                    // Continue
+                }
+            }
+        }
+    }
     
 }

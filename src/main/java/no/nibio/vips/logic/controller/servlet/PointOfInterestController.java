@@ -20,7 +20,6 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
@@ -37,7 +36,6 @@ import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.OrganizationGroup;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResource;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResourcePK;

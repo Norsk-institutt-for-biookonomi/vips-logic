@@ -63,6 +63,12 @@
             "required" : false
         },
         {
+            "name" : "organizationGroupId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_MULTIPLE",
+            "required" : false
+        },
+        {
             "name" : "isQuantified",
             "dataType" : "STRING",
             "required" : false

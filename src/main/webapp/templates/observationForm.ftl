@@ -19,12 +19,14 @@
         <title><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if></title>
 </#macro>
 <#macro custom_css>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/ >
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol3-layerswitcher.css"/ >
-	<link rel="stylesheet" type="text/css" href="/css/map.css"/ >
+        <link rel="stylesheet" href="/css/3rdparty/chosen.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol3-layerswitcher.css"/>
+	<link rel="stylesheet" type="text/css" href="/css/map.css"/>
 </#macro>
 <#macro custom_js>
+        <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/jquery.datetimepicker.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
@@ -92,6 +94,8 @@
                         <#if ! observation.organism?has_content>
                         initCropCategories();
                         </#if>
+                        // Activating chosen plugin
+			$(".chosen-select").chosen();
 		});
 		
 		// Adding selected file name to a box
@@ -248,7 +252,7 @@
 		// If locationPointOfInterestId is selected OR observation drawing map is deliberately disabled, 
                 // show map for locations
 		// If not, show the observation drawing map
-                var hideObservationFormMap = ${hideObservationFormMap?c!"false"};
+                var hideObservationFormMap = <#if hideObservationFormMap??>${hideObservationFormMap?c}<#else>false</#if>;
 		function showCorrectMap(){
 			var locationList = document.getElementById("locationPointOfInterestId");
                         if(hideObservationFormMap && locationList.options[locationList.options.selectedIndex].value == "-1")
@@ -485,6 +489,14 @@
 					${i18nBundle.locationIsPrivate}
 			  	</div>
 			  </div>
+                          <div class="form-group">
+                                <label for="organizationGroupId">${i18nBundle.availableFor} ${i18nBundle.organizationGroupList?lower_case}</label>
+                                <select class="form-control chosen-select" name="organizationGroupId" multiple="multiple" data-placeholder="${i18nBundle.all}">
+                                    <#list organizationGroups as group>
+                                    <option value="${group.organizationGroupId}" <#if selectedOrganizationGroupIds?seq_contains(group.organizationGroupId)> selected="selected"</#if>>${group.groupName}</option>
+                                    </#list>
+                                </select>
+                          </div>
                           <#setting time_zone=user.organizationId.defaultTimeZone!"UTC">
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>

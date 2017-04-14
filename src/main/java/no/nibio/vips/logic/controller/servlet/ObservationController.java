@@ -21,11 +21,14 @@ package no.nibio.vips.logic.controller.servlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -40,6 +43,7 @@ import no.nibio.vips.logic.entity.ObservationFormShortcut;
 import no.nibio.vips.logic.entity.ObservationMethod;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.OrganizationGroup;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -76,6 +80,20 @@ public class ObservationController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
+        // Get the organization groups for the current user
+        List<OrganizationGroup> organizationGroups = null;
+        if(user.isSuperUser())
+        {
+           organizationGroups =  SessionControllerGetter.getUserBean().getOrganizationGroups();
+        }
+        else if(user.isOrganizationAdmin())
+        {
+            organizationGroups = SessionControllerGetter.getUserBean().getOrganizationGroups(user.getOrganizationId());
+        }
+        else
+        {
+            organizationGroups = SessionControllerGetter.getUserBean().getOrganizationGroups(user);
+        }
         // Default: View observation list
         // for everyone
         if(request.getServletPath().endsWith("/observation"))
@@ -83,19 +101,33 @@ public class ObservationController extends HttpServlet {
             if(action == null)
             {
                 List<Observation> observations;
-                Integer statusTypeId = -1;
-                Integer pestOrganismId = -1;
+                Integer statusTypeId;
+                Integer pestOrganismId;
+                Set<Integer> organizationGroupId;
                 Boolean viewOthersObservations;
                 try 
                 {
                     statusTypeId = request.getParameter("statusTypeId") != null ? Integer.valueOf(request.getParameter("statusTypeId")) : -1;
                     pestOrganismId = request.getParameter("pestOrganismId") != null ? Integer.valueOf(request.getParameter("pestOrganismId")) : -1;
                     viewOthersObservations = request.getParameter("viewOthersObservations") != null;
+                    if(request.getParameterValues("organizationGroupId") != null && request.getParameterValues("organizationGroupId").length > 0)
+                    {
+                        organizationGroupId = new HashSet<>();
+                        for(String id:request.getParameterValues("organizationGroupId"))
+                        {
+                            organizationGroupId.add(Integer.valueOf(id));
+                        }
+                    }
+                    else
+                    {
+                        organizationGroupId = null;
+                    }
                 }
                 catch(NumberFormatException nfe) {
                     statusTypeId = null;
                     pestOrganismId = null;
                     viewOthersObservations = false;
+                    organizationGroupId = null;
                 }
 
                 // First: Get observations for organization or user
@@ -126,6 +158,29 @@ public class ObservationController extends HttpServlet {
                             .filter(obs->obs.getOrganismId().equals(p))
                             .collect(Collectors.toList());
                 }
+                // A bit hairy this one
+                // If the user wants to filter on organization groups
+                //      Loop through all observations
+                //          If the candidate obs has not specified groups, it's OUT
+                //          If the candiate obs has specified groups that intersect with filter, it's IN
+                //          Otherwise it's OUT
+                // If the user has no filter for organization groups, all observations are kept
+                if(organizationGroupId != null)
+                {
+                    final Set<Integer> ogi = organizationGroupId;
+                    observations = observations.stream()
+                            .filter((Observation obs) -> {
+                                List<Integer> availableOrganizationGroupIds = SessionControllerGetter.getObservationBean().getOrganizationGroupIds(obs);
+                                if(availableOrganizationGroupIds != null && ! availableOrganizationGroupIds.isEmpty())
+                                {
+                                    if (availableOrganizationGroupIds.stream().anyMatch((gId) -> (ogi.contains(gId)))) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            })
+                            .collect(Collectors.toList());
+                }
                 
                 // Check for form shortcuts
                 List<ObservationFormShortcut> shortcuts = SessionControllerGetter.getObservationBean().getObservationFormShortcuts(user.getOrganizationId());
@@ -139,6 +194,8 @@ public class ObservationController extends HttpServlet {
                 request.setAttribute("selectedPestOrganismId", pestOrganismId);
                 request.setAttribute("selectedStatusTypeId", statusTypeId);
                 request.setAttribute("viewOthersObservations",viewOthersObservations);
+                request.setAttribute("organizationGroups", organizationGroups);
+                request.setAttribute("organizationGroupId", organizationGroupId);
                 request.setAttribute("observations", observations);
                 request.setAttribute("userHasObserverPrivilege", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
                 request.setAttribute("userIsObservationAuthority", SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
@@ -189,9 +246,11 @@ public class ObservationController extends HttpServlet {
                         List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
                         request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                         request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
+                        request.setAttribute("selectedOrganizationGroupIds", new ArrayList<>());
                         // Hierarchy categories
                         request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                         request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                        request.setAttribute("organizationGroups", organizationGroups);
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                         {
                             request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
@@ -228,9 +287,11 @@ public class ObservationController extends HttpServlet {
                         request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                         List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
                         request.setAttribute("allCrops", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allCrops, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
+                        request.setAttribute("selectedOrganizationGroupIds", SessionControllerGetter.getObservationBean().getOrganizationGroupIds(observation));
                         // Hierarchy categories
                         request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                         request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
+                        request.setAttribute("organizationGroups", organizationGroups);
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                         {
                             request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
@@ -349,6 +410,7 @@ public class ObservationController extends HttpServlet {
                                 observation.setLocationPointOfInterestId(null);
                                 observation.setGeoinfo(formValidation.getFormField("geoInfo").getWebValue());
                             }
+                            
                             observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
 
                             // Image handling
@@ -370,7 +432,10 @@ public class ObservationController extends HttpServlet {
                                     }
                                 }
                             }
-
+                            
+                            // Checking for organization groups
+                            SessionControllerGetter.getObservationBean().storeOrganizationGroupObservationIds(observation, formValidation.getFormField("organizationGroupId").getWebValues());
+                            
                             // All transactions finished, we can send notifications
                             // if conditions are met
                             if(sendNotification)
