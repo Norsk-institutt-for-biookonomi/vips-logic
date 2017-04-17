@@ -21,6 +21,8 @@ package no.nibio.vips.logic.controller.servlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -105,6 +107,48 @@ public class ObservationController extends HttpServlet {
                 Integer pestOrganismId;
                 Set<Integer> organizationGroupId;
                 Boolean viewOthersObservations;
+                
+                // Default period is current season
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(SystemTime.getSystemTime());
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                Date timeOfObservationFrom;
+                Date timeOfObservationTo;
+                Boolean userDefinedFrom = false;
+                Boolean userDefinedTo = false;
+                try
+                {
+                    timeOfObservationFrom = format.parse(request.getParameter("timeOfObservationFrom"));
+                    userDefinedFrom = true;
+                }
+                catch(NullPointerException | ParseException ex)
+                {
+                    cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY, 1, 0, 0, 0);
+                    timeOfObservationFrom = cal.getTime();
+                }
+                try
+                {
+                    timeOfObservationTo = format.parse(request.getParameter("timeOfObservationTo"));
+                    userDefinedTo = true;
+                }
+                catch(NullPointerException | ParseException ex)
+                {
+                    cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER, 31, 23, 59, 59);
+                    timeOfObservationTo = cal.getTime();
+                }
+                
+                // If only one date is set, the unset date should not limit the data set
+                if(!userDefinedFrom && userDefinedTo)
+                {
+                    cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - 100);
+                    timeOfObservationFrom = cal.getTime();
+                }
+                if(userDefinedFrom && !userDefinedTo)
+                {
+                    cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 100);
+                    timeOfObservationTo = cal.getTime();
+                }
+                
                 try 
                 {
                     statusTypeId = request.getParameter("statusTypeId") != null ? Integer.valueOf(request.getParameter("statusTypeId")) : -1;
@@ -129,18 +173,18 @@ public class ObservationController extends HttpServlet {
                     viewOthersObservations = false;
                     organizationGroupId = null;
                 }
-
+                
                 // First: Get observations for organization or user
                 if(viewOthersObservations && SessionControllerGetter.getUserBean().authorizeUser(user, 
                         VipsLogicRole.OBSERVATION_AUTHORITY, 
                         VipsLogicRole.ORGANIZATION_ADMINISTRATOR, 
                         VipsLogicRole.SUPERUSER))
                 {
-                    observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId());
+                    observations = SessionControllerGetter.getObservationBean().getObservations(user.getOrganizationId().getOrganizationId(), timeOfObservationFrom, timeOfObservationTo);
                 }
                 else 
                 {
-                    observations = SessionControllerGetter.getObservationBean().getObservationsForUser(user);
+                    observations = SessionControllerGetter.getObservationBean().getObservationsForUser(user, timeOfObservationFrom, timeOfObservationTo);
                 }
                 
                 // Then: Filter on other criteria
@@ -191,6 +235,8 @@ public class ObservationController extends HttpServlet {
                 request.setAttribute("shortcuts", shortcuts);
                 request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                 request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                request.setAttribute("timeOfObservationFrom", userDefinedFrom ? timeOfObservationFrom : null);
+                request.setAttribute("timeOfObservationTo", userDefinedTo ? timeOfObservationTo : null);
                 request.setAttribute("selectedPestOrganismId", pestOrganismId);
                 request.setAttribute("selectedStatusTypeId", statusTypeId);
                 request.setAttribute("viewOthersObservations",viewOthersObservations);

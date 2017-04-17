@@ -21,20 +21,32 @@
 </#macro>
 <#macro custom_css>
 	<link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/>
 </#macro>
-        <#macro custom_js>
+<#macro custom_js>
 	<script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
+        <script type="text/javascript" src="/js/3rdparty/jquery.datetimepicker.js"></script>
+        <script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript">
 		$(document).ready( function() {
-			// Activating chosen plugin
-			$(".chosen-select").chosen();
+                    // Make sure that there is a date picker present for HTML5 
+                    // date input fields
+                    if (!Modernizr.inputtypes.date) {
+                        $('input[type=date]').datetimepicker({
+                                    timepicker: false,
+                                    lang:"no",
+                                    dayOfWeekStart: 1,
+                                    format: "Y-m-d"
+                            });
+                    }
+                    // Activating chosen plugin
+                    $(".chosen-select").chosen();
 		});
 	</script>
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
         <h1>${i18nBundle.observations}</h1>
-        <p>TODO: Add map and filter for time</p>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
@@ -67,10 +79,10 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <input type="date" class="form-control" name="timeOfObservationFrom" value="" placeholder="Dato fra"/>
+                    <input type="date" class="form-control" name="timeOfObservationFrom" value="${(timeOfObservationFrom?date)!""}" placeholder="${i18nBundle.dateStart}"/>
                 </div> &nbsp;&ndash;&nbsp;
                 <div class="form-group">
-                    <input type="date" class="form-control" name="timeOfObservationTo" value="" placeholder="Dato til"/>
+                    <input type="date" class="form-control" name="timeOfObservationTo" value="${(timeOfObservationTo?date)!""}" placeholder="${i18nBundle.dateEnd}"/>
                 </div>
             </div>
             <div class="form-inline">

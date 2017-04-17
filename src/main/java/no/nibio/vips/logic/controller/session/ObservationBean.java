@@ -78,6 +78,22 @@ public class ObservationBean {
         return observations;
     }
     
+    public List<Observation> getObservations(Integer organizationId, Date periodStart, Date periodEnd)
+    {
+        Organization organization = em.find(Organization.class,organizationId);
+        List<Observation> observations = em.createNamedQuery("Observation.findByOrganizationIdAndPeriod")
+                .setParameter("organizationId", organization)
+                .setParameter("start", periodStart)
+                .setParameter("end", periodEnd)
+                .getResultList();
+        
+        observations = this.getObservationsWithGeoInfo(observations);
+        observations = this.getObservationsWithLocations(observations);
+        observations = this.getObservationsWithObservers(observations);
+        
+        return observations;
+    }
+    
     public List<Observation> getObservations(Integer organizationId, Integer statusTypeId)
     {
         Organization organization= em.find(Organization.class, organizationId);
@@ -97,6 +113,20 @@ public class ObservationBean {
     {
         List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByUserId")
                 .setParameter("userId", user.getUserId())
+                .getResultList());
+        
+        retVal = this.getObservationsWithLocations(retVal);
+        retVal = this.getObservationsWithObservers(retVal);
+        
+        return retVal;
+    }
+    
+    public List<Observation> getObservationsForUser(VipsLogicUser user, Date periodStart, Date periodEnd)
+    {
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByUserIdAndPeriod")
+                .setParameter("userId", user.getUserId())
+                .setParameter("start", periodStart)
+                .setParameter("end", periodEnd)
                 .getResultList());
         
         retVal = this.getObservationsWithLocations(retVal);
