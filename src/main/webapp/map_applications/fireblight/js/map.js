@@ -1,6 +1,9 @@
 // The globally available map object
 var map, featureOverlay, newFeatureOverlay; 
 
+// Override localization settings for this particular web page
+var hardcodedLanguage = "nb";
+
 function initMap()
 {
     // OpenStreetMap background layer
@@ -11,7 +14,7 @@ function initMap()
         source: new ol.source.OSM({
           attributions: [
             new ol.Attribution({
-              html: mapConstants.MAP_ATTRIBUTION
+              html: "Kartgrunnlag: Statens kartverk (<a href='//creativecommons.org/licenses/by-sa/3.0/no/' target='new'>cc-by-sa-3.0</a>)"
             })
           ]
         })
@@ -43,6 +46,11 @@ function initMap()
     type: 'base',
     visible: true,
     source: new ol.source.TileWMS({
+         attributions: [
+            new ol.Attribution({
+              html: "Kartgrunnlag: Statens kartverk (<a href='//creativecommons.org/licenses/by/4.0/deed.no' target='new'>cc-by-sa-4.0</a>)"
+            })
+          ],
       url: "//opencache.statkart.no/gatekeeper/gk/gk.open?",
       params: {
         LAYERS: 'topo2',
@@ -155,9 +163,8 @@ var styles = {
         })
       });
     
-    // TODO pestId and from/to can't be hard coded
     // TODO feature properties must be synchronized
-    $.getJSON("/rest/observation/filter/1/geoJSON?from=2016-01-01&to=2017-01-01&pestId=" + paerebrann.organismId, function(geoData){
+    $.getJSON("/rest/observation/filter/1/geoJSON?from=2012-01-01&pestId=" + paerebrann.organismId, function(geoData){
         //console.info(geoData)
         var format = new ol.format.GeoJSON();
 
@@ -236,7 +243,7 @@ var displayFeature = function(feature)
         '<button type="button" onclick="deleteFeature(' + feature.getId() + ')">Delete</button>',
         '<h3>Registrering</h3>',
         '<table>',
-        '<tr><td>Type</td><td>',getLocalizedOrganismName(feature.get("cropOrganism")),'</td></tr>',
+        '<tr><td>Type</td><td>',getLocalizedOrganismName(feature.get("cropOrganism"),hardcodedLanguage),'</td></tr>',
         '<tr><td>Størrelse</td><td>',observationData["forekomststorrelse"],'</td></tr>',
         '<tr><td>Symptom</td><td>',observationData["symptom"],'</td></tr>',
         '<tr><td>Tiltak</td><td>',observationData["tiltak"],'</td></tr>',
@@ -455,7 +462,7 @@ var generateCropSelect = function(selectName, cropOrganisms, preselect)
     var retVal = '<select id="' + selectName + '" name="' + selectName + '">';
     for(var i=0; i< cropOrganisms.length; i++)
     {
-        retVal += '<option value="' + cropOrganisms[i].organismId + '"' + (cropOrganisms[i].organismId == preselect ? " selected=\"selected\"" : "") + '">' + getLocalizedOrganismName(cropOrganisms[i])  + '</option>';
+        retVal += '<option value="' + cropOrganisms[i].organismId + '"' + (cropOrganisms[i].organismId == preselect ? " selected=\"selected\"" : "") + '">' + getLocalizedOrganismName(cropOrganisms[i], hardcodedLanguage)  + '</option>';
     }
     retVal += '</select>';
     return retVal;

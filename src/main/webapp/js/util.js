@@ -38,43 +38,45 @@ var compareSelectListOptions = function(a,b)
 /**
  * Depends on the value of currentLanguage and defaultLanguage in /currentLanguage.js
  * @param organism
+ * @param language if you want to override system settings, specify language here
  * @returns {String}
  */
-function getLocalizedOrganismName(organism)
+function getLocalizedOrganismName(organism, language)
 {
-	// Fallback in case nothing works
-	if(organism === null)
-	{
-		return gettext("Unnamed");
-	}
-	// Attempting the following languages (in order): current language, default language, English
-	var languages = [environment.currentLanguage, environment.defaultLanguage, "en"];
-	for(var j in languages)
-	{
-		for(var i in organism.organismLocaleSet)
-		{
-			var localeSet = organism.organismLocaleSet[i];
-			//console.log(localeSet);
-			if(localeSet.organismLocalePK.locale == languages[j])
-			{
-				return localeSet.localName;
-			}
-		}
-	}
-	// Then we try the latin name
-	if(organism.latinName !== null 
-			&& organism.latinName !== "")
-	{
-		return organism.latinName;
-	}
-	// Then the trade name
-	if(organism.tradeName !== null
-			&& organism.tradeName !== "")
-	{
-		return organism.tradeName;
-	}
-	// Then we give up
-	return gettext("Unnamed");
+    var preferredLanguage = language || environment.currentLanguage;
+    // Fallback in case nothing works
+    if(organism === null)
+    {
+            return gettext("Unnamed");
+    }
+    // Attempting the following languages (in order): current language, default language, English
+    var languages = [preferredLanguage, environment.defaultLanguage, "en"];
+    for(var j in languages)
+    {
+            for(var i in organism.organismLocaleSet)
+            {
+                    var localeSet = organism.organismLocaleSet[i];
+                    //console.log(localeSet);
+                    if(localeSet.organismLocalePK.locale == languages[j])
+                    {
+                            return localeSet.localName;
+                    }
+            }
+    }
+    // Then we try the latin name
+    if(organism.latinName !== null 
+                    && organism.latinName !== "")
+    {
+            return organism.latinName;
+    }
+    // Then the trade name
+    if(organism.tradeName !== null
+                    && organism.tradeName !== "")
+    {
+            return organism.tradeName;
+    }
+    // Then we give up
+    return gettext("Unnamed");
 }
 
 /**
