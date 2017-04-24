@@ -239,8 +239,8 @@ var displayFeature = function(feature)
     var timeOfObservation = new moment(feature.get("timeOfObservation"));
     var html = [
         '<button type="button" onclick="unFocusForm()">X</button>',
-        '<button type="button" onclick="editFeature(\'', feature.getId() ,'\');">Edit</button>',
-        '<button type="button" onclick="deleteFeature(' + feature.getId() + ')">Delete</button>',
+        '<button type="button" onclick="editFeature(\'', feature.getId() ,'\');">Rediger</button>',
+        '<button type="button" onclick="deleteFeature(' + feature.getId() + ')">Slett</button>',
         '<h3>Registrering</h3>',
         '<table>',
         '<tr><td>Type</td><td>',getLocalizedOrganismName(feature.get("cropOrganism"),hardcodedLanguage),'</td></tr>',
