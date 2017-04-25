@@ -164,7 +164,8 @@ var styles = {
       });
     
     // TODO feature properties must be synchronized
-    $.getJSON("/rest/observation/filter/1/geoJSON?from=2012-01-01&pestId=" + paerebrann.organismId, function(geoData){
+    var lastYear = new Date().getFullYear() - 1;
+    $.getJSON("/rest/observation/filter/1/geoJSON?from=" + lastYear + "-01-01&pestId=" + paerebrann.organismId, function(geoData){
         //console.info(geoData)
         var format = new ol.format.GeoJSON();
 
