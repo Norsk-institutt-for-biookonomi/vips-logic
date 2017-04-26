@@ -4,6 +4,9 @@ var map, featureOverlay, newFeatureOverlay;
 // Override localization settings for this particular web page
 var hardcodedLanguage = "nb";
 
+// If false, touching map will not create a new item
+var registration = false;
+
 function initMap()
 {
     // OpenStreetMap background layer
@@ -194,7 +197,7 @@ var styles = {
             vectorSource.addFeature(fakeFeature);
             displayFeature(feature);   
         }
-        else
+        else if(registration)
         {
             var newFeature = createFeature(map.getCoordinateFromPixel(evt.pixel));
             vectorSource.addFeature(newFeature);
@@ -202,6 +205,21 @@ var styles = {
         }
     });
     
+}
+
+function toggleRegistration(theButton)
+{
+    if(registration)
+    {
+        theButton.title = "Registrering er AV";
+        theButton.style.color="white";
+    }
+    else
+    {
+        theButton.title = "Registrering er PÅ";
+        theButton.style.color="red";
+    }
+    registration = ! registration;
 }
 
 /**

@@ -15,7 +15,8 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <link href="/css/3rdparty/ol.css" rel="stylesheet" media="screen" />
+    <link rel="stylesheet" href="/css/3rdparty/font-awesome.min.css" media="screen" />
+    <link rel="stylesheet" href="/css/3rdparty/ol.css" media="screen" />
     <style type="text/css">
     html, body, #map {
                 margin: 0;
@@ -59,11 +60,29 @@
             {
                 top: auto;
                 right: 0.5em;
-                bottom: 8.0em;
+                bottom: 10.0em;
                 left: auto;
                 z-index: 1000;
             }
             
+            #registerButton {
+                top: auto;
+                bottom: 12.0em;
+                right: 0.5em;
+                left: auto;
+                z-index: 1000;
+            }
+            
+            #registerButton button {
+                width: 1.375em;
+                height: 1.375em;
+                background-size: 20px 20px;
+                background-repeat: no-repeat;
+                background-position: 2px 2px;
+                background-color: rgba(0,60,136,.5);
+                border: none;
+                color: white;
+            }
             
             
             .geo-location button {
@@ -135,6 +154,30 @@
                 #legend {
                     display: none;
                 }
+                
+               
+            }
+            
+            @media (pointer: coarse) {
+                 #registerButton button, .geo-location button {
+                width: 1.8em;
+                height: 1.8em;
+                }
+                
+                #registerButton {
+                    bottom: 13.0em;
+                }
+                .geo-location button {
+                    bottom: 8.0em;
+                    background-position: 6px;
+                }
+            }
+            
+            @media (max-height: 500px)
+            {
+                #legend {
+                    display: none;
+                }
             }
             
             ul.resultList
@@ -180,7 +223,12 @@
   <body>
       
       <div id="map" class="map">
-          <div class="geo-location ol-unselectable ol-control"><button onclick="navToLocation();" title="Finn min posisjon"></button></div>
+          <div class="geo-location ol-unselectable ol-control">
+              <button onclick="navToLocation();" title="Finn min posisjon"></button>
+          </div>
+          <div id="registerButton" class="ol-unselectable ol-control">
+          <button type="button" onclick="toggleRegistration(this);" title="Registrering er AV"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+      </div>
       </div>
       <div id="searchFieldContainer">
           <div id="searchFieldInnerContainer">
@@ -212,9 +260,9 @@
                 <li class="paere">Pære</li>
                 <li class="plante">Annet</li>
             </ul>
-        </div>
+      </div>
+      
     
-
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -243,8 +291,14 @@
             var phrase = inputField.value;
             if(phrase.trim().length > 2)
             {
-                console.log(phrase);
+                //console.log(phrase);
                 $.getJSON( "https://ws.geonorge.no/SKWS3Index/ssr/sok?navn=" + phrase + "*&maxAnt=5&tilSosiKoordSyst=4258&fylkeKommuneListe=&eksakteForst=true", renderResults);
+            }
+            else if(phrase.trim().length === 0)
+            {
+                var searchResultsEl = document.getElementById("searchResults");
+                searchResultsEl.innerHTML = "";
+                searchResultsEl.style.display="none";
             }
         }
         
