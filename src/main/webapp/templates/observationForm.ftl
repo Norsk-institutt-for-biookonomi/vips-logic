@@ -96,6 +96,9 @@
                         </#if>
                         // Activating chosen plugin
 			$(".chosen-select").chosen();
+                            
+                        // Show all available crops
+                        filterCrops(-1);
 		});
 		
 		// Adding selected file name to a box
@@ -342,32 +345,51 @@
                         cropCategoryIdList.options[cropCategoryIdList.options.length] = cOption;
                     }
                 }
-                    
+                
+                
                 function filterCrops(selectedCropCategoryId)
                 {
-                    // Searching for selected crop category
-                    for(var i in cropCategories)
+                    if(selectedCropCategoryId < 0)
                     {
-                        var cropCategory = cropCategories[i];
-                        if(cropCategory.cropCategoryId == parseInt(selectedCropCategoryId))
+                        var cropOptions = [];
+                        for(var j=0;j<cropList.length;j++)
                         {
-                            // Filter based on match
-                            var matchingCropOrganismOptions = [];
-                            var theRest = [];
-                            var cropOrganismIdList = document.getElementById("cropOrganismIdList");
-                            for(var j=0;j<cropOrganismIdList.length;j++)
+                            //var cropOption = cropOrganismIdList.options[j];
+                            var crop = cropList[j];
+                            var cropOption = new Option(crop.displayName, crop.organismId);
+                            cropOptions.push(cropOption);
+                            
+                        }
+                        renderCropList(cropOptions, []);
+                    }
+                    else
+                    {
+                        // Searching for selected crop category
+                        for(var i in cropCategories)
+                        {
+                            var cropCategory = cropCategories[i];
+                            if(cropCategory.cropCategoryId == parseInt(selectedCropCategoryId))
                             {
-                                var cropOption = cropOrganismIdList.options[j];
-                                if(cropCategory.cropOrganismIds.indexOf(parseInt(cropOption.value)) >= 0)
+                                // Filter based on match
+                                var matchingCropOrganismOptions = [];
+                                var theRest = [];
+                                //var cropOrganismIdList = document.getElementById("cropOrganismIdList");
+                                for(var j=0;j<cropList.length;j++)
                                 {
-                                    matchingCropOrganismOptions.push(cropOption);
+                                    //var cropOption = cropOrganismIdList.options[j];
+                                    var crop = cropList[j];
+                                    var cropOption = new Option(crop.displayName, crop.organismId);
+                                    if(cropCategory.cropOrganismIds.indexOf(crop.organismId) >= 0 && cropCategory.maxHierarchyCategoryId >= crop.hierarchyCategoryId)
+                                    {
+                                        matchingCropOrganismOptions.push(cropOption);
+                                    }
+                                    else if(crop.organismId > 0)
+                                    {
+                                        theRest.push(cropOption);
+                                    }
                                 }
-                                else if(parseInt(cropOption.value) > 0)
-                                {
-                                    theRest.push(cropOption);
-                                }
+                                renderCropList(matchingCropOrganismOptions, theRest);
                             }
-                            renderCropList(matchingCropOrganismOptions, theRest);
                         }
                     }
                 }
@@ -398,6 +420,19 @@
                     document.getElementById("observationText").value = registrationOfText;
                 }
                 </#if>
+                var cropList = [
+                    <#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
+                        <#list allCrops as cropOrganism>
+                        {organismId: ${cropOrganism.organismId}, displayName: "${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}", hierarchyCategoryId: ${cropOrganism.hierarchyCategoryId}}<#sep>,
+                        </#list>
+                    <#else>
+                        <#list allCrops as cropOrganism>
+                                <#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>
+                                        {organismId: ${cropOrganism.organismId}, displayName: "${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}", hierarchyCategoryId: ${cropOrganism.hierarchyCategoryId}}
+                                </#if>
+                        </#list>
+                    </#if>
+                ];
 	</script>
 </#macro>
 <#macro page_contents>
@@ -435,19 +470,6 @@
 				<#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
 					<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
 					<option value="-10"<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-                                        <#list allCrops as cropOrganism>
-                                                <#if cropOrganism.hierarchyCategoryId <= 121>
-						<option value="${cropOrganism.organismId}"
-							<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>selected="selected"</#if>
-						>${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
-                                                </#if>
-					</#list>                                        
-				<#else>
-					<#list allCrops as cropOrganism>
-						<#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == cropOrganism.organismId)>
-							<option value="${cropOrganism.organismId}" selected="selected">${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</option>
-						</#if>
-					</#list>
 				</#if>
 			    </select>
 			    <span class="help-block" id="${formId}_cropOrganismId_validation"></span>

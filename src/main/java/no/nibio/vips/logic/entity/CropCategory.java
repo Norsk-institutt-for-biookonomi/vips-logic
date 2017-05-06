@@ -76,6 +76,8 @@ public class CropCategory implements Serializable {
     private Integer[] cropOrganismIds;
     @Column(name = "organization_id")
     private Integer organizationId;
+    @Column(name = "max_hierarchy_category_id")
+    private Integer maxHierarchyCategoryId;
 
     public CropCategory() {
     }
@@ -215,5 +217,19 @@ public class CropCategory implements Serializable {
             cropSet.remove(organismId);
             this.setCropOrganismIds(cropSet.toArray(new Integer[cropSet.size()]));
         }
+    }
+
+    /**
+     * @return the maxHierarchyCategoryId
+     */
+    public Integer getMaxHierarchyCategoryId() {
+        return maxHierarchyCategoryId;
+    }
+
+    /**
+     * @param maxHierarchyCategoryId the maxHierarchyCategoryId to set
+     */
+    public void setMaxHierarchyCategoryId(Integer maxHierarchyCategoryId) {
+        this.maxHierarchyCategoryId = maxHierarchyCategoryId;
     }
 }
