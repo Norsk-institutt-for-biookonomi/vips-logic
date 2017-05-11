@@ -42,6 +42,7 @@
 	<script type="text/javascript" src="/js/poiFormMap.js"></script>
 	<script type="text/javascript">
 		var organizationId = ${user.organizationId.organizationId};
+                var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId}<#else>null</#if>;
 		
 		$(document).ready(function() {
 			// Make sure that there is a datetime picker present for HTML5 
@@ -114,6 +115,7 @@
 		// Global for observationData metawidgets
 		var mw = null;
 		var observationData = null;
+                var observationSchema = null;
 		function initObservationData(organismId, organizationId) {
 			$.getJSON( "/rest/observationdata/model/" + organizationId + "/" + organismId, function( json ) {
 				observationData = json;
@@ -128,21 +130,22 @@
 		
 		var buildForm = function(schemaProperties)
 		{
-			// Erasing whatever was there before
-			var metawidgetC = document.getElementById( 'metawidget' );
-			metawidgetC.innerHTML = "";
-			mw = new metawidget.Metawidget(metawidgetC , {
-					inspector: new metawidget.inspector.CompositeInspector( [ new metawidget.inspector.PropertyTypeInspector(),
-						function( toInspect, type, names ) {
-								return {
-									properties: schemaProperties
-								};
-							}
-					] )
-				}
-			);
-			mw.toInspect = observationData;
-			mw.buildWidgets();
+                    observationSchema = schemaProperties;
+                    // Erasing whatever was there before
+                    var metawidgetC = document.getElementById( 'metawidget' );
+                    metawidgetC.innerHTML = "";
+                    mw = new metawidget.Metawidget(metawidgetC , {
+                                    inspector: new metawidget.inspector.CompositeInspector( [ new metawidget.inspector.PropertyTypeInspector(),
+                                            function( toInspect, type, names ) {
+                                                            return {
+                                                                    properties: schemaProperties
+                                                            };
+                                                    }
+                                    ] )
+                            }
+                    );
+                    mw.toInspect = observationData;
+                    mw.buildWidgets();
 		};
 		
 		var updateCropPests = function(){
@@ -346,9 +349,13 @@
                     }
                 }
                 
-                
+                /**
+                 * Based on the selected crop category: Put the related crops
+                 * on top of the crops list   
+                 */
                 function filterCrops(selectedCropCategoryId)
                 {
+                    // Nothing has been selected, render all in one go
                     if(selectedCropCategoryId < 0)
                     {
                         var cropOptions = [];
@@ -357,6 +364,10 @@
                             //var cropOption = cropOrganismIdList.options[j];
                             var crop = cropList[j];
                             var cropOption = new Option(crop.displayName, crop.organismId);
+                            if(selectedCropId != null && selectedCropId == crop.organismId)
+                            {
+                                cropOption.selected = true;
+                            }
                             cropOptions.push(cropOption);
                             
                         }
@@ -379,6 +390,10 @@
                                     //var cropOption = cropOrganismIdList.options[j];
                                     var crop = cropList[j];
                                     var cropOption = new Option(crop.displayName, crop.organismId);
+                                    if(selectedCropId != null && selectedCropId == crop.organismId)
+                                    {
+                                        cropOption.selected = true;
+                                    }
                                     if(cropCategory.cropOrganismIds.indexOf(crop.organismId) >= 0 && cropCategory.maxHierarchyCategoryId >= crop.hierarchyCategoryId)
                                     {
                                         matchingCropOrganismOptions.push(cropOption);
@@ -433,6 +448,75 @@
                         </#list>
                     </#if>
                 ];
+                 
+                /**
+                 * Does all the ifs and buts before form can potentially be submitted
+                 */
+                function prepareFormSubmit(theForm)
+                {
+                    // Extract GIS info from OpenLayers
+                    theForm['geoInfo'].value=getFeatures();
+                    try
+                    {
+                        // If the form is qantified: Inspect the fields and write 
+                        // JSON string to the generic form field "observationData";
+                        if(theForm.isQuantified.checked)
+                        {
+                            // Process the pest specific form fields
+                            // Using MetaWidget to do this
+                            mw.save();
+                            // Make sure that all fields are represented in the
+                            // returned JSON
+                            //console.info(mw.toInspect);
+                            //console.info(observationSchema);
+                            for(prop in observationSchema)
+                            {
+                                var currentProperty = observationSchema[prop];
+                                mw.toInspect[prop]; // The property value in the MetaWidget object
+                                //console.info(prop + ":" + currentProperty);
+                                // Undefined found, must replace with default empty value
+                                if(mw.toInspect[prop] === undefined)
+                                {
+                                    // Check if field is required (defined in schema)
+                                    if(currentProperty.required)
+                                    {
+                                        alert("${i18nBundle.isRequiredField}: " + currentProperty.title);
+                                        return false;
+                                    }
+                                        
+                                    //console.info(prop + " is undefined!");
+                                    // Check for default value
+                                    if(currentProperty.defaultValue !== undefined)
+                                    {
+                                        mw.toInspect[prop] = currentProperty.defaultValue
+                                    }
+                                    else
+                                    {
+                                        if(currentProperty.type == "Number")
+                                        {
+                                            mw.toInspect[prop] = 0;
+                                        }
+                                        else
+                                        {
+                                            mw.toInspect[prop] = "";
+                                        }
+                                    }
+                                }
+                            }        
+                            theForm['observationData'].value=JSON.stringify(mw.toInspect);
+                        }
+                        validateGIS(theForm);
+                        //console.info('validateGIS = ' + (validateGIS(this)));
+                        //return false; // DEBUG setting
+                        return validateForm(theForm) && validateGIS(theForm); // PROD setting
+                    }
+                    catch(e)
+                    {
+                        console.log(e.message);
+                        console.log(e);
+                        return false;
+                    }
+                }
 	</script>
 </#macro>
 <#macro page_contents>
@@ -448,7 +532,7 @@
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationForm">
-			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="this['geoInfo'].value=getFeatures();try{mw.save();this['observationData'].value=JSON.stringify(mw.toInspect);console.info('validateGIS = ' + (validateGIS(this)));return validateForm(this) && validateGIS(this);}catch(e){console.log(e.message);console.log(e);return false;}">
+			<form id="${formId}" role="form" action="/observation?action=observationFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="return prepareFormSubmit(this);">
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
 			<!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
 			  <input type="hidden" name="geoInfo" value=""/>
