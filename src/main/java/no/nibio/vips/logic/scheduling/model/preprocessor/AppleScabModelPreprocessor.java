@@ -106,9 +106,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                         WeatherElements.TEMPERATURE_MEAN,
                         WeatherElements.PRECIPITATION,
                         WeatherElements.LEAF_WETNESS,
-                        WeatherElements.RELATIVE_HUMIDITY_MEAN,
-                        WeatherElements.GLOBAL_RADIATION,
-                        WeatherElements.WIND_SPEED_2M
+                        WeatherElements.RELATIVE_HUMIDITY_MEAN
                     },
                     startDateAscosporeMaturity,
                     dateEndWeatherData
@@ -116,6 +114,25 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         } catch (WeatherDataSourceException ex) {
             throw new PreprocessorException(ex.getMessage());
         }
+        
+        // These weather data are for leaf wetness calculation only. We could
+        // possibly do without them, using the simple LW algorithm
+        try {
+            List<WeatherObservation> calcObs = wdsUtil.getWeatherObservations(
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1H,
+                    new String[]{
+                        WeatherElements.GLOBAL_RADIATION,
+                        WeatherElements.WIND_SPEED_2M
+                    },
+                    startDateAscosporeMaturity,
+                    dateEndWeatherData
+            );
+            observations.addAll(calcObs);
+        } catch (WeatherDataSourceException ex) {
+            // We do nothing
+        }
+        
         
         if(DEBUG)
         {
