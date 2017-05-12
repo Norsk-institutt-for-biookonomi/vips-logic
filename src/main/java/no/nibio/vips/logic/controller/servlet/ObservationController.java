@@ -412,7 +412,11 @@ public class ObservationController extends HttpServlet {
 
                             observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
                             observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
-                            observation.setObservationData(formValidation.getFormField("observationData").getWebValue());
+                            observation.setObservationData(
+                                    formValidation.getFormField("observationData").getWebValue().isEmpty() ?
+                                            null
+                                            : formValidation.getFormField("observationData").getWebValue()
+                            );
                             observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
                             observation.setLocationIsPrivate(formValidation.getFormField("locationIsPrivate").getWebValue() != null);
                             observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
