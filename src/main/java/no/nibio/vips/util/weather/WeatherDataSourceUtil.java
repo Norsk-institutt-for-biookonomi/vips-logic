@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import org.apache.commons.io.IOUtils;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class WeatherDataSourceUtil {
@@ -72,13 +72,13 @@ public class WeatherDataSourceUtil {
                 List<WeatherObservation> forecasts = forecastProvider.getWeatherForecasts(station);
                 Map<String, List<WeatherObservation>> obsMap = new HashMap<>();
                 for (String elementMeasurementType : elementMeasurementTypes) {
-                    obsMap.put(elementMeasurementType, new ArrayList<WeatherObservation>());
+                    obsMap.put(elementMeasurementType, new ArrayList<>());
                 }
-                for (WeatherObservation obs : forecasts) {
-                    if (obs.getLogIntervalId().equals(logIntervalId) && obsMap.get(obs.getElementMeasurementTypeId()) != null) {
+                forecasts.stream().filter((obs) -> (
+                        obs.getLogIntervalId().equals(logIntervalId) && obsMap.get(obs.getElementMeasurementTypeId()) != null)
+                    ).forEachOrdered((obs) -> {
                         obsMap.get(obs.getElementMeasurementTypeId()).add(obs);
-                    }
-                }
+                    });
                 Date latestCommonDate = null;
                 for (String elementMeasurementType : elementMeasurementTypes) {
                     List<WeatherObservation> paramObs = obsMap.get(elementMeasurementType);
@@ -149,11 +149,11 @@ public class WeatherDataSourceUtil {
             URLOutput = IOUtils.toString(URLStream);
             List<WeatherObservation> preliminaryResult = this.getWeatherObservations(URLOutput);
             List<WeatherObservation> filteredObservations = new ArrayList<>();
-            for (WeatherObservation candidateObs : preliminaryResult) {
-                if (candidateObs.getLogIntervalId().equals(logIntervalId)) {
+            preliminaryResult.stream().filter((candidateObs) -> (
+                    candidateObs.getLogIntervalId().equals(logIntervalId))
+                ).forEachOrdered((candidateObs) -> {
                     filteredObservations.add(candidateObs);
-                }
-            }
+                });
             return filteredObservations;
         } catch (IOException ex) {
             StringBuilder errorMessage = new StringBuilder().append("Could not fetch weather observations from URI ").append(URL.toString()).append(".\n");
