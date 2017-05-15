@@ -49,12 +49,19 @@ import org.xml.sax.SAXException;
  */
 public class YrWeatherForecastProvider implements WeatherForecastProvider{
 
-    private final static String YR_API_URL = "http://api.yr.no/weatherapi/locationforecastlts/1.2/?lat={0};lon={1};msl={2}";
+    private final static String YR_API_URL = "http://api.yr.no/weatherapi/locationforecastlts/1.3/?lat={0};lon={1};msl={2}";
     
     @Override
     public List<WeatherObservation> getWeatherForecasts(PointOfInterest location) throws ParseWeatherDataException 
     {
-        return this.getWeatherForecasts(location.getGisGeom().getCoordinate().x, location.getGisGeom().getCoordinate().y, location.getGisGeom().getCoordinate().z);
+        if(location.getGisGeom() != null)
+        {
+            return this.getWeatherForecasts(location.getGisGeom().getCoordinate().x, location.getGisGeom().getCoordinate().y, location.getGisGeom().getCoordinate().z);
+        }
+        else
+        {
+            return this.getWeatherForecasts(location.getLongitude(), location.getLatitude(), location.getAltitude());
+        }
     }
     
     
@@ -68,6 +75,8 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     longitude,
                     altitude)
             );
+            
+            //System.out.println("yrURL=" + yrURL.toString());
             
             // TODO: Parse with DOM parser
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -113,9 +122,16 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     RR.setTimeMeasured(fromTime);
                     RR.setElementMeasurementTypeId(WeatherElements.PRECIPITATION);
                     RR.setValue(Double.parseDouble(DOMUtils.getNodeAttr("precipitation","value",node2.getChildNodes())));
+                    //System.out.println("Timediff=" + (toTime.getTime() - fromTime.getTime()));
+                    Date earliestHourlyObservation = null;
                     if(toTime.getTime() - fromTime.getTime() == hourDelta)
                     {
+                        //System.out.println("Found 1 hour record at " + fromTime);
                         RR.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
+                        if(earliestHourlyObservation == null)
+                        {
+                            earliestHourlyObservation = RR.getTimeMeasured();
+                        }
                     }
                     else if(toTime.getTime() - fromTime.getTime() == threeHoursDelta)
                     {
@@ -129,13 +145,25 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     {
                         continue;
                     }
+                    
+                    // The earliest observations may be with 6 or 3 hour resolution
+                    // In order to avoid overestimation of rain in the beginning,
+                    // We skip ahead until we find observations with 1 hour resolution
+                    if(!RR.getLogIntervalId().equals(WeatherObservation.LOG_INTERVAL_ID_1H)
+                            && (earliestHourlyObservation == null || earliestHourlyObservation.after(RR.getTimeMeasured()))
+                            )
+                    {
+                        continue;
+                    }
+                    
                     // We keep the rain observation with the highest resolution
                     WeatherObservation obsWithSameTimeStamp = RRMap.get(RR.getTimeMeasured());
-                    /*System.out.println("Timediff=" + (toTime.getTime() - fromTime.getTime()));
-                    System.out.println(RR.getTimeMeasured() + ": " + RR.getValue());
-                    System.out.println(RR.getLogIntervalId());*/
+                    //System.out.println("Timediff=" + (toTime.getTime() - fromTime.getTime()));
+                    //System.out.println(RR.getTimeMeasured() + ": " + RR.getValue());
+                    //System.out.println(RR.getLogIntervalId());
                     if(obsWithSameTimeStamp != null)
                     {
+                        // Replace if better resolution
                         if(
                                 (RR.getLogIntervalId().equals(WeatherObservation.LOG_INTERVAL_ID_3H) && obsWithSameTimeStamp.getLogIntervalId().equals(WeatherObservation.LOG_INTERVAL_ID_6H))
                                 || (RR.getLogIntervalId().equals(WeatherObservation.LOG_INTERVAL_ID_1H) && obsWithSameTimeStamp.getLogIntervalId().equals(WeatherObservation.LOG_INTERVAL_ID_3H))
@@ -143,9 +171,14 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                          )
                         {
                             RRMap.remove(RR.getTimeMeasured());
+                            RRMap.put(RR.getTimeMeasured(),RR);
                         }
                     }
-                    RRMap.put(RR.getTimeMeasured(),RR);
+                    else
+                    {
+                        // No duplicate, so safely store
+                        RRMap.put(RR.getTimeMeasured(),RR);
+                    }
                 }
             }
             yrValues.addAll(RRMap.values());
@@ -169,6 +202,8 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
         Calendar cal = Calendar.getInstance();
         for(WeatherObservation yrValue : yrValues)
         {
+            // Need to do this in order to make it work properly!
+            yrValue.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
             switch(yrValue.getElementMeasurementTypeId())
             {
                 case WeatherElements.TEMPERATURE_INSTANTANEOUS:
