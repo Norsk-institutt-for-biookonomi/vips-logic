@@ -24,11 +24,33 @@
         <h1>${i18nBundle.allCrops}</h1>
         <a href="/organism" class="btn btn-default" role="button">${i18nBundle.organisms}</a>
 	<a href="/organism?action=listPests" class="btn btn-default" role="button">${i18nBundle.listPests}</a>
-        <ul>
-        <#list allCrops as cropOrganism>
-        <li><a href="/organism?action=viewOrganism&organismId=${cropOrganism.organismId}">${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</a></li>
-        </#list>
-        </ul>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>${i18nBundle.crops}</th>
+                    <th>${i18nBundle.pestOrganismIds}</th>
+                </tr>
+            </thead>
+            <tbody> 
+            <#list allCrops as cropOrganism>
+                <tr>
+                    <td><a href="/organism?action=viewOrganism&organismId=${cropOrganism.organismId}">${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}</a></td>
+                    <td>
+                    
+                        <#if cropPestsMap[cropOrganism.organismId?string]?has_content>
+                            <#list cropPestsMap[cropOrganism.organismId?string].pestOrganismIds as pestOrganismId>
+                                <#if allPestsMapped[pestOrganismId?string]?has_content>
+                        <a href="/organism?action=viewOrganism&organismId=${pestOrganismId}">${allPestsMapped[pestOrganismId?string].getLocalName(currentLocale.language)}</a>,
+                                <#else>
+                                ${i18nBundle.unknownOrganismId}: ${pestOrganismId}
+                                </#if>
+                            </#list>
+                        </#if>
+                    </td>
+                </tr>
+            </#list>
+            </tbody>
+        </table>
 </div>
 </#macro>
 <@page_html/>

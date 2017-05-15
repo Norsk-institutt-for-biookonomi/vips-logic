@@ -269,6 +269,11 @@ public class OrganismBean {
         return em.createNamedQuery("Organism.findAllCrops").getResultList();
     }
     
+    public List<Organism> getAllPests()
+    {
+        return em.createNamedQuery("Organism.findAllPests").getResultList();
+    }
+    
     public Map<Integer, Organism> getAllCropsMapped()
     {
         List<Organism> cropList = this.getAllCrops();
@@ -277,6 +282,16 @@ public class OrganismBean {
             cropMap.put(crop.getOrganismId(), crop);
         });
         return cropMap;
+    }
+    
+    public Map<String, Organism> getAllPestsMapped()
+    {
+        List<Organism> pestList = this.getAllPests();
+        Map<String, Organism> pestMap = new HashMap<>();
+        pestList.forEach((pest) -> {
+            pestMap.put(String.valueOf(pest.getOrganismId()), pest);
+        });
+        return pestMap;
     }
 
     public CropPest getCropPest(Integer cropOrganismId) {
@@ -290,6 +305,16 @@ public class OrganismBean {
         {
             return null;
         }
+    }
+    
+    public Map<String, CropPest> getCropPestsMapped()
+    {
+        List<CropPest> cropPests = em.createNamedQuery("CropPest.findAll").getResultList();
+        Map<String, CropPest> retVal = new HashMap<>();
+        cropPests.forEach((cPest) -> {
+            retVal.put(String.valueOf(cPest.getCropOrganismId()), cPest);
+        });
+        return retVal;
     }
     
     /**

@@ -119,11 +119,15 @@ public class OrganismController extends HttpServlet {
         {
             
             List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
+            Map<String,Organism> allPestsMapped = SessionControllerGetter.getOrganismBean().getAllPestsMapped();
+            Map<String, CropPest> cropPestsMap = SessionControllerGetter.getOrganismBean().getCropPestsMapped();
             request.setAttribute("allCrops", 
                     SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(
                         allCrops, 
                         SessionLocaleUtil.getCurrentLocale(request).getLanguage())
             );
+            request.setAttribute("allPestsMapped", allPestsMapped);
+            request.setAttribute("cropPestsMap", cropPestsMap);
             request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
             request.getRequestDispatcher("/cropList.ftl").forward(request, response);
         }
