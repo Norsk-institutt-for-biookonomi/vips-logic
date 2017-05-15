@@ -27,6 +27,7 @@ import java.util.List;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.util.WeatherUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -69,9 +70,9 @@ public class YrWeatherForecastProviderTest {
         //Testing in Bosnia (Rodoc, Mostar)
         GISUtil gisUtil = new GISUtil();
         Point p = gisUtil.createPointWGS84(new Coordinate(17.8094, 43.301, 67.0));
-        /*weatherStation.setAltitude(67.0);
+        weatherStation.setAltitude(67.0);
         weatherStation.setLongitude(17.8094);
-        weatherStation.setLatitude(43.301);*/
+        weatherStation.setLatitude(43.301);
         weatherStation.setGisGeom(p);
         YrWeatherForecastProvider instance = new YrWeatherForecastProvider();
         try
@@ -85,11 +86,23 @@ public class YrWeatherForecastProviderTest {
             assertNotNull(result);
 
             // Testing in Norway
-            weatherStation.setAltitude(110.0);
-            weatherStation.setLongitude(10.83474668);
-            weatherStation.setLatitude(59.63851390);
+            //weatherStation.setAltitude(110.0);
+            //weatherStation.setLongitude(10.83474668);
+            //weatherStation.setLatitude(59.63851390);
+            weatherStation.setAltitude(19.0);
+            weatherStation.setLongitude(6.57052);
+            weatherStation.setLatitude(60.2542);
             result = instance.getWeatherForecasts(weatherStation);
             assertNotNull(result);
+            
+            /*for(WeatherObservation obs:result)
+            {
+                if(obs.getElementMeasurementTypeId().equals("RR"))
+                System.out.println(obs.toString());
+            }*/
+            
+            WeatherUtil wUtil = new WeatherUtil();
+            wUtil.checkForAndFixHourlyTimeSeriesHoles(result);
             
             // Testing Jablanica (Republika Srpska, Bosnia)
             weatherStation.setAltitude(219.0);
