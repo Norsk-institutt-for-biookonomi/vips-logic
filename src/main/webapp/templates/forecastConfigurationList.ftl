@@ -35,9 +35,9 @@
 						<#list modelInformation?values?sort_by("defaultName") as modelInformationItem>
 						<option value="${modelInformationItem.modelId}" ${selectedModelIds?seq_contains(modelInformationItem.modelId)?string(" selected=\"selected\"","")}>
 						<#if i18nBundle.containsKey(modelInformationItem.modelId)>
-							${i18nBundle[modelInformationItem.modelId][0..*25]}
+							${i18nBundle[modelInformationItem.modelId]}
 						<#else>
-							${modelInformation[modelInformationItem.modelId].defaultName[0..*25]}
+							${modelInformation[modelInformationItem.modelId].defaultName}
 						</#if>
 						</option>
 						</#list>
