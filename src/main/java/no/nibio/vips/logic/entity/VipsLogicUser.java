@@ -298,6 +298,17 @@ public class VipsLogicUser implements Serializable {
     
     @JsonIgnore
     @Transient
+    public boolean isOrganismEditor() {
+        for (VipsLogicRole role : this.getVipsLogicRoles()) {
+            if (role.getVipsLogicRoleId().equals(VipsLogicRole.ORGANISM_EDITOR)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    @JsonIgnore
+    @Transient
     public boolean isAppleFruitMothAdministrator(){
         for (VipsLogicRole role : this.getVipsLogicRoles()) {
             if (role.getVipsLogicRoleId().equals(VipsLogicRole.APPLE_FRUIT_MOTH_ADMINISTRATOR)) {

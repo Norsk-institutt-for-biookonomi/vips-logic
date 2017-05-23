@@ -28,7 +28,7 @@
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
-	<#if user.isSuperUser()>
+	<#if user.isSuperUser() || user.isOrganismEditor() >   
 	<a href="/organism?action=newOrganismForm&parentOrganismId=${organism.organismId!""}" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
 	</#if>
 	<a href="/organism?action=listCrops" class="btn btn-default" role="button">${i18nBundle.listCrops}</a>
@@ -56,7 +56,7 @@
 		    	<td>${childOrganism.tradeName!""}</td>
 		    	</#if>
 		    	<td>
-		    		<#if user.isSuperUser()>
+		    		<#if user.isSuperUser() || user.isOrganismEditor() >
 		    			<a href="/organism?action=editOrganismForm&organismId=${childOrganism.organismId}&parentOrganismId=${organism.organismId!""}" class="btn btn-default" role="button">${i18nBundle.edit}</a>
 		    			<#if ! childOrganism.childOrganisms?has_content || childOrganism.childOrganisms?size == 0>
 		    			<button type="button" class="btn btn-danger" onclick="if(confirm('${childOrganism.getLocalName(currentLocale.language)!""}/${childOrganism.tradeName!""}/${childOrganism.latinName!""}: ${i18nBundle.confirmDelete}')) {window.location.href='/organism?action=deleteOrganism&organismId=${childOrganism.organismId}';}">${i18nBundle.delete}</button>

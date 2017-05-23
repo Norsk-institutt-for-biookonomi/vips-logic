@@ -50,7 +50,7 @@
 	  </dd>
 	  
 	</dl>
-	<#if user.isSuperUser()>
+	<#if user.isSuperUser() || user.isOrganismEditor()>
 	<a href="/organism?action=editOrganismForm&organismId=${organism.organismId}" class="btn btn-default" role="button">${i18nBundle.edit}</a>
 	</#if>
 	<a href="/organism?action=listChildOrganisms&organismId=${organism.parentOrganismId!"null"}" class="btn btn-default" role="button">${i18nBundle.back}</a>
