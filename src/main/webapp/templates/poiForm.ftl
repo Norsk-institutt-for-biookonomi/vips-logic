@@ -41,6 +41,23 @@
 			initMap([${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},${user.organizationId.organizationId},${poi.pointOfInterestId!"null"});
 			</#if>
 		});
+                
+                // POI name must be unique
+                function checkPoiNameAvailability(poiNameField)
+                {
+                    var poiName = poiNameField.value;
+                    if(poiName.length > 0)
+                    {
+                        $.getJSON( "/rest/poi/name/" + poiName)
+                            .done(function(json, status, jx){
+                                if(jx.status==200)
+                                {
+                                    var theForm = document.getElementById("poiForm");
+                                    invalidizeField(poiNameField, theForm, "${i18nBundle.nameAlreadyExists}",null);
+                                }
+                            });
+                    }
+                }
 	</script>
 </#macro>
 <#macro page_contents>
@@ -61,7 +78,7 @@
 			  <input type="hidden" name="pointOfInterestId" value="${poi.pointOfInterestId!"-1"}"/>
 			  <div class="form-group">
 			    <label for="name">${i18nBundle.name}</label>
-			    <input type="text" class="form-control" name="name" placeholder="${i18nBundle.name}" value="${(poi.name)!""}" onblur="validateField(this);"/>
+			    <input type="text" class="form-control" name="name" placeholder="${i18nBundle.name}" value="${(poi.name)!""}" onblur="validateField(this); checkPoiNameAvailability(this);"/>
 			    <span class="help-block" id="${formId}_name_validation"></span>
 			  </div>
 			  <div class="form-group">

@@ -441,5 +441,19 @@ public class PointOfInterestBean {
                 .getResultList();
     }
 
+    public PointOfInterest getPointOfInterest(String poiName) {
+        try
+        {
+            return em.createNamedQuery("PointOfInterest.findByNameCaseInsensitive", PointOfInterest.class)
+                    .setParameter("name", poiName)
+                    .getSingleResult();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+                
+    }
+
     
 }

@@ -370,6 +370,15 @@ public class LogicService {
     }
     
     @GET
+    @Path("poi/name/{poiName}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getPoiByName(@PathParam("poiName") String poiName)
+    {
+        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(poiName);
+        return retVal != null ? Response.ok().entity(retVal).build() : Response.noContent().build();
+    }
+    
+    @GET
     @Path("poi/user/")
     @Produces("application/json;charset=UTF-8")
     public Response getPoisForCurrentUser()

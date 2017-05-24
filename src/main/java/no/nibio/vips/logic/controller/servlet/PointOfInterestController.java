@@ -47,6 +47,7 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.logic.entity.WeatherForecastProvider;
+import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.web.forms.FormField;
@@ -593,7 +594,8 @@ public class PointOfInterestController extends HttpServlet {
                             )
                         {
                             FormValidation formValidation = FormValidator.validateForm("poiForm", request, getServletContext());
-                            if(formValidation.isValid())
+                            Boolean poiNameAlreadyExists = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(formValidation.getFormField("name").getWebValue()) != null;
+                            if(formValidation.isValid() && ! poiNameAlreadyExists)
                             {
                                 // Set values
                                 poi.setName(formValidation.getFormField("name").getWebValue());
@@ -694,15 +696,25 @@ public class PointOfInterestController extends HttpServlet {
                             }
                             else
                             {
+                                if(poiNameAlreadyExists)
+                                {
+                                    FormField poiNameField = formValidation.getFormField("name");
+                                    poiNameField.setValid(false);
+                                    poiNameField.setValidationMessage(SessionLocaleUtil.getI18nBundle(request).getString("nameAlreadyExists"));
+                                }
                                 request.setAttribute("formValidation", formValidation);
                                 request.setAttribute("poi", poi);
                                 request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                                 request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                                request.setAttribute("returnURL","poi?organizationId=" + user.getOrganizationId().getOrganizationId());
+                                // Finding all external resources where entry is missing
+                                request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
                                 request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
                                 request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                                 request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                                 request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
                                 request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
+                                
                             }
                         }
                         else
