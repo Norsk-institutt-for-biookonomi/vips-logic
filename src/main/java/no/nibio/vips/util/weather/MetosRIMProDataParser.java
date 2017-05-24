@@ -40,7 +40,7 @@ import no.nibio.vips.entity.WeatherObservation;
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class MetosDataParser {
+public class MetosRIMProDataParser {
     public final static String METOS_URL_TEMPLATE = "http://www.fieldclimate.com/rimpro/all_sensors_csv.php?s={0}";
     // Metos parameters, including name and aggregation type
     private final static String[][] elementMeasurementTypes = {
@@ -94,7 +94,7 @@ public class MetosDataParser {
         String[] headers;
         Map<Integer, Integer> elementOrdering = new HashMap<>();
         try {
-            URL metosURL = new URL(MessageFormat.format(MetosDataParser.METOS_URL_TEMPLATE, stationID));
+            URL metosURL = new URL(MessageFormat.format(MetosRIMProDataParser.METOS_URL_TEMPLATE, stationID));
             BufferedReader in = new BufferedReader(
             new InputStreamReader(metosURL.openStream()));
 
@@ -198,8 +198,8 @@ public class MetosDataParser {
                     {
                         continue;
                     }
-                    //System.out.println("element " + i + "=" + MetosDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][1]);
-                    if(MetosDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][2].equals("AVG"))
+                    //System.out.println("element " + i + "=" + MetosRIMProDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][1]);
+                    if(MetosRIMProDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][2].equals("AVG"))
                     {
                         aggregateValue = (value00 + value30) / 2;
                     }
@@ -211,7 +211,7 @@ public class MetosDataParser {
                     WeatherObservation obs = new WeatherObservation();
                     obs.setTimeMeasured(timestamp);
                     obs.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
-                    obs.setElementMeasurementTypeId(MetosDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][1]);
+                    obs.setElementMeasurementTypeId(MetosRIMProDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][1]);
                     obs.setValue(aggregateValue);
                     retVal.add(obs);
                 }
@@ -248,7 +248,7 @@ public class MetosDataParser {
                     WeatherObservation obs = new WeatherObservation();
                     obs.setTimeMeasured(timestamp);
                     obs.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
-                    obs.setElementMeasurementTypeId(MetosDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][1]);
+                    obs.setElementMeasurementTypeId(MetosRIMProDataParser.elementMeasurementTypes[elementMeasurementTypeIndex][1]);
                     obs.setValue(value);
                     retVal.add(obs);
                 }

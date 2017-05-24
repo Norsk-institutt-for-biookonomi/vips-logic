@@ -72,7 +72,7 @@ import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
 import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
-import no.nibio.vips.util.weather.MetosDataParser;
+import no.nibio.vips.util.weather.MetosRIMProDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
 import org.jboss.resteasy.annotations.GZIP;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;

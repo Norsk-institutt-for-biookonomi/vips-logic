@@ -37,7 +37,7 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
-import no.nibio.vips.util.weather.MetosDataParser;
+import no.nibio.vips.util.weather.MetosRIMProDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
 import no.nibio.vips.util.weather.USPestDataParser;
 import org.jboss.resteasy.annotations.GZIP;
@@ -70,7 +70,7 @@ public class WeatherProxyService {
             format.setTimeZone(timeZone);
             String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
             Date startDate1 = format.parse(startDateParam);
-            observations = new MetosDataParser().getWeatherObservations(stationId, timeZone, startDate1);
+            observations = new MetosRIMProDataParser().getWeatherObservations(stationId, timeZone, startDate1);
         } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
             return Response.serverError().entity(ex).build();
         }
