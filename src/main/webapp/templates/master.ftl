@@ -52,7 +52,6 @@
                           <li><a href="/organizationgroup">${i18nBundle.organizationGroupList}</a></li>
 			  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>
 			  <li><a href="/weatherStation">${i18nBundle.weatherStations}</a></li>
-			  <li><a href="/organism">${i18nBundle.organisms}</a></li>
                           <li><a href="/organism/cropcategory">${i18nBundle.cropCategoryIds}</a></li>
 		  <#else>
 		  	<li><a href="/user?action=viewUser&userId=${user.userId}">${i18nBundle.myAccount}</a></li>
@@ -63,6 +62,9 @@
 		  </#if>
 		  <li><a href="/observation">${i18nBundle.observations}</a></li>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
+                  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isOrganismEditor()>
+		  	 <li><a href="/organism">${i18nBundle.organisms}</a></li>
+		  </#if>
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator()>
 		  	<li><a href="/applefruitmoth">${i18nBundle.appleFruitMoth}</a></li>
 		  </#if>
