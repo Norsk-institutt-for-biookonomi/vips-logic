@@ -37,7 +37,7 @@ import no.nibio.vips.observation.Observation;
 import no.nibio.vips.util.WeatherUtil;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class DeliaRadicumFloralisModelPreprocessor extends ModelRunPreprocessor{
@@ -72,7 +72,7 @@ public class DeliaRadicumFloralisModelPreprocessor extends ModelRunPreprocessor{
                 startDateGrowth = cal.getTime();
             }
             
-            config.setConfigParameter("startDateGrowth", configuration.getForecastModelConfigurationValue(this.getModelId() + "_" + START_DATE_GROWTH));
+            config.setConfigParameter("startDateGrowth", format.format(startDateGrowth));
             
             WeatherUtil wUtil = new WeatherUtil();
             Date endDateCalculation = wUtil.normalizeToExactDate(SystemTime.getSystemTime(),timeZone);
