@@ -68,7 +68,10 @@
 			var chooseFromMapLayers = {"chooseFromMapLayers":<#if mapLayers?has_content>${mapLayers}<#else>[]</#if>};
 			initGisInfoMap("observationFormMap",[${defaultMapCenter.x?c},${defaultMapCenter.y?c}],${defaultMapZoom},false, geoInfo, chooseFromMapLayers);
 			</#if>
-			
+                        <#if editAccess!="W">
+                            GISInfoMap.removeInteraction(draw);
+                            document.getElementById("drawOptions").innerHTML ="";
+                        </#if>
 			<#if observation.observationData?has_content>
 				observationData = ${observation.observationData};
 				getDataSchema(${observation.organism.organismId}, organizationId);
@@ -539,7 +542,12 @@
 			  <input type="hidden" name="observationData" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <!--button type="button" onclick="var theForm=document.getElementById('observationForm');theForm['geoInfo'].value=getFeatures();try{mw.save();theForm['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(theForm) && validateGIS(theForm);}catch(e){console.log(e.message);console.log(e);return false;}">Test</button-->
-			  <#if ! observation.organism?has_content>
+			  <#if observation.user?has_content>
+                          <div class="form-group">
+                            <label>${i18nBundle.observer}: ${observation.user.firstName} ${observation.user.lastName}</label>
+                          </div>
+                          </#if>
+                          <#if ! observation.organism?has_content>
                           <div class="form-group">
 			    <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
 			    <select class="form-control" id="cropCategoryIdList" name="cropCategoryId" onchange="filterCrops(this.options[this.options.selectedIndex].value);">
@@ -582,22 +590,23 @@
 			  </div>
 			   <div class="form-group">
                                <label for="locationPointOfInterestId">${i18nBundle.location}&nbsp;&nbsp;<button role="button" type="button" onclick="addNewLocationPopup();">${i18nBundle.addNew}</button></label>
-			    <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId" onchange="showCorrectMap();">
+			    <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId" onchange="showCorrectMap();" <#if editAccess!="W">readonly="readonly"</#if>>
 				<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
 			     </select>
 			     <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 			  </div>
                           <div class="form-group">
 			  	<div class="checkbox">
+                                        <#if editAccess!="W" && observation.locationIsPrivate?has_content && observation.locationIsPrivate == true><input type="hidden" name="locationIsPrivate" value="true"/></#if>
 					<label>
-						<input type="checkbox" name="locationIsPrivate"<#if !observation.locationIsPrivate?has_content || observation.locationIsPrivate == false><#else>checked="checked"</#if>/>
+						<input type="checkbox" name="locationIsPrivate"<#if !observation.locationIsPrivate?has_content || observation.locationIsPrivate == false><#else>checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
 					</label>
 					${i18nBundle.locationIsPrivate}
 			  	</div>
 			  </div>
                           <div class="form-group">
                                 <label for="organizationGroupId">${i18nBundle.availableFor} ${i18nBundle.organizationGroupList?lower_case}</label>
-                                <select class="form-control chosen-select" name="organizationGroupId" multiple="multiple" data-placeholder="${i18nBundle.all}">
+                                <select class="form-control chosen-select" name="organizationGroupId" multiple="multiple" data-placeholder="${i18nBundle.all}"  <#if editAccess!="W">readonly="readonly"</#if>>
                                     <#list organizationGroups as group>
                                     <option value="${group.organizationGroupId}" <#if selectedOrganizationGroupIds?seq_contains(group.organizationGroupId)> selected="selected"</#if>>${group.groupName}</option>
                                     </#list>
@@ -606,14 +615,15 @@
                           <#setting time_zone=user.organizationId.defaultTimeZone!"UTC">
 			  <div class="form-group">
 			    <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
-			    <input type="text" class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);" />
+			    <input type="text" class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);"  <#if editAccess!="W">readonly="readonly"</#if>/>
 			    <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
 			  </div>
 			  
 			  <div class="form-group">
 			  	<div class="checkbox">
+                                        <#if editAccess!="W" && observation.isQuantified?has_content && observation.isQuantified ==true><input type="hidden" name="isQuantified" value="true"/></#if>
 					<label>
-						<input type="checkbox" name="isQuantified"<#if observation.isQuantified?has_content && observation.isQuantified == false><#else>checked="checked"</#if>/>
+						<input type="checkbox" name="isQuantified"<#if observation.isQuantified?has_content && observation.isQuantified == false><#else> checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
 					</label>
 					${i18nBundle.isQuantified}
 			  	</div>
@@ -627,8 +637,9 @@
 			  <#if !noBroadcast>
 			  <div class="form-group">
 			  	<div class="checkbox">
+                                    <#if editAccess!="W" && observation.broadcastMessage?has_content && observation.broadcastMessage ==true><input type="hidden" name="isQuantified" value="true"/></#if>
 					<label>
-						<input type="checkbox" name="broadcastMessage"<#if (observation.broadcastMessage?has_content && observation.broadcastMessage == false) || noBroadcast><#else>checked="checked"</#if>/>
+						<input type="checkbox" name="broadcastMessage"<#if (observation.broadcastMessage?has_content && observation.broadcastMessage == false) || noBroadcast><#else>checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
 					</label>
 					${i18nBundle.broadcastMessage}
 			  	</div>
@@ -636,12 +647,12 @@
                           
                             <div class="form-group">
                               <label for="observationHeading">${i18nBundle.observationHeading}</label>
-                              <input type="text" class="form-control" name="observationHeading" placeholder="" value="${observation.observationHeading!""}" onblur="validateField(this);"/>
+                              <input type="text" class="form-control" name="observationHeading" placeholder="" value="${observation.observationHeading!""}" onblur="validateField(this);" <#if editAccess!="W">readonly="readonly"</#if>/>
                               <span class="help-block" id="${formId}_observationHeading_validation"></span>
                             </div>
                             <div class="form-group">
                               <label for="observationText">${i18nBundle.observationText}</label>
-                              <textarea class="form-control" name="observationText" placeholder="" >${observation.observationText!""}</textarea>
+                              <textarea class="form-control" name="observationText" placeholder=""  <#if editAccess!="W">readonly="readonly"</#if>>${observation.observationText!""}</textarea>
                               <span class="help-block" id="${formId}_observationText_validation"></span>
                             </div>
                             <#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>
@@ -649,7 +660,7 @@
                                   <img src="/static/images/observations/${observation.organismId}/${illustration.observationIllustrationPK.fileName}" alt="TODO: Add describing text" class="img-responsive"/>
                                   <div class="checkbox">
                                     <label>
-                                      <input type="checkbox" name="deleteIllustration" value="true">
+                                      <input type="checkbox" name="deleteIllustration" value="true"/>
                                       ${i18nBundle.deleteIllustration}
                                     </label>
                                   </div>
@@ -686,7 +697,7 @@
 				  </div>
 			  </#if>
 			  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
-			  <#if observation.observationId?has_content>
+			  <#if observation.observationId?has_content && editAccess == "W">
 			  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observation?action=deleteObservation&observationId=${observation.observationId}';}">${i18nBundle.delete}</button>
 			  </#if>
 			</form>

@@ -27,6 +27,7 @@
  */
 
 var featureOverlay, GISInfoMap;
+var draw; // global so we can remove it later
 var olMapDivId = "objectGISInfoMap";
 
 /**
@@ -68,7 +69,7 @@ function initGisInfoMap(containerId, center, zoomLevel, displayMarker, drawnObjs
   // Create the DOM structure
   var theContainer = el(containerId);
   theContainer.innerHTML = [
-      "<div class='form-group'>",
+      "<div class='form-group' id='drawOptions'>",
       "     <label>",getI18nMsg("mapDrawTypeLabel"),"</label>",
       "     <select class='form-control' id='type' style='width: auto; display: inline;'>",
       "         <option value='Point'>",getI18nMsg("point"),"</option>",
@@ -367,7 +368,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
   });
 
 
-  var draw; // global so we can remove it later
+  
   function addDrawInteraction() {
     draw = new ol.interaction.Draw({
       features: features,

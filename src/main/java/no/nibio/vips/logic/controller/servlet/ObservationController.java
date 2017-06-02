@@ -297,6 +297,7 @@ public class ObservationController extends HttpServlet {
                         request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                         request.setAttribute("observationMethods", em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
                         request.setAttribute("organizationGroups", organizationGroups);
+                        request.setAttribute("editAccess", "W"); // User always has edit access to new observation
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                         {
                             request.setAttribute("statusTypeIds", em.createNamedQuery("ObservationStatusType.findAll").getResultList());
@@ -346,6 +347,18 @@ public class ObservationController extends HttpServlet {
                         {
                             request.setAttribute("messageKey",request.getParameter("messageKey"));
                         }
+                        
+                        // Determine the edit access
+                        String editAccess = "R"; // Read access only
+                        if(observation.getUserId().equals(user.getUserId()) || user.isSuperUser() || user.isOrganizationAdmin())
+                        {
+                            editAccess = "W";
+                        }
+                        else if(user.isObservationAuthority())
+                        {
+                            editAccess = "A"; // Approve
+                        }
+                        request.setAttribute("editAccess", editAccess);
                         request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
                     }
                     catch(NullPointerException | NumberFormatException ex)
