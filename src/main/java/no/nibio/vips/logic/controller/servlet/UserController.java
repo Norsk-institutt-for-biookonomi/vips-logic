@@ -227,12 +227,16 @@ public class UserController extends HttpServlet {
                     // Standard form validation
                     FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
                     FormField usernameField = formValidation.getFormField("username");
-                    String username = null;
+                    FormField passwordField = formValidation.getFormField("pass1");
+                    String username = usernameField.getWebValue().trim();
+                    String password = (passwordField != null && passwordField.getWebValue() != null && !passwordField.getWebValue().trim().isEmpty()) ?
+                                        passwordField.getWebValue().trim()
+                                        : null;
                    
                     // If new user: check if username or email already exists
                     if(userId <= 0)
                     {
-                        username = usernameField.getWebValue().trim();
+                        
                         // Check for whitespace inside trimmed username
                         if(FormUtil.whitespaceFoundInString(username))
                         {
@@ -285,6 +289,7 @@ public class UserController extends HttpServlet {
                         {
                             Organization organization = em.find(Organization.class, formValidation.getFormField("organizationId").getValueAsInteger());
                             viewUser.setOrganizationId(organization);
+                            
                         }
                         else
                         {
@@ -310,6 +315,16 @@ public class UserController extends HttpServlet {
                         String messageKey = "";
                         if(userId > 0)
                         {
+                            // Superuser can change username and password
+                            if(user.isSuperUser())
+                            {
+                                UserAuthentication auth = viewUser.getPasswordAuthentication();
+                                auth.setUsername(username);
+                                if(password != null)
+                                {
+                                    auth.setPassword(userBean.getMD5EncryptedString(password));
+                                }
+                            }
                             userBean.storeUser(viewUser);
                             SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                             // Add confirmation message
@@ -321,7 +336,7 @@ public class UserController extends HttpServlet {
                             UserAuthentication authentication = new UserAuthentication();
                             authentication.setUserAuthenticationType(em.find(UserAuthenticationType.class, UserAuthenticationType.TYPE_PASSWORD));
                             authentication.setUsername(username);
-                            String password = userBean.generateValidPassword();
+                            password = userBean.generateValidPassword();
                             authentication.setPassword(userBean.getMD5EncryptedString(password));
                             // Store the user for the first time
                             viewUser = userBean.storeUserFirstTime(viewUser, authentication);

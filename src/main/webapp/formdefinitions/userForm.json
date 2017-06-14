@@ -92,6 +92,12 @@
             "dataType" : "STRING",
             "required" : false,
             "maxLength" : 2047
+        },
+        {
+            "name" : "pass1",
+            "dataType" : "STRING",
+            "required" : false,
+            "maxLength" : 2047
         }
         
     ]

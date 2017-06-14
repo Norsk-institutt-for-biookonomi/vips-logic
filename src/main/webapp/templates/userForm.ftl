@@ -85,6 +85,7 @@
 	  <#else>
 	  <input type="hidden" name="freeSms" value="<#if viewUser.freeSms?has_content && viewUser.freeSms == true>true<#else>false</#if>"/>
 	  </#if>
+          
 	  <div class="form-group">
 	    <label for="firstName">${i18nBundle.firstName}</label>
 	    <input type="text" class="form-control" name="firstName" placeholder="${i18nBundle.firstName}" value="${viewUser.firstName!""}" onblur="validateField(this);"/>
@@ -186,7 +187,20 @@
 		    <input type="text" class="form-control" name="username" placeholder="${i18nBundle.username}" value="${viewUser.firstName!""}" onblur="validateField(this);"/>
 		    <span class="help-block" id="${formId}_username_validation"></span>
 		  </div>
-		  </#if>
+		  <#else>
+                    <fieldset>
+                      <legend>${i18nBundle.loginCredentials}</legend>
+                      <div class="form-group">
+                        <label for="username">${i18nBundle.username}</label>
+                        <input type="text" class="form-control" name="username" placeholder="${i18nBundle.username}" value="<#if viewUser.passwordAuthentication?has_content>${viewUser.passwordAuthentication.username!""}</#if>"/>
+                      </div>
+                      <div class="form-group">
+                        <label for="pass1">${i18nBundle.password}</label>
+                        <input type="text" class="form-control" name="pass1" placeholder="${i18nBundle.password}" value=""/>
+                      </div>
+                    </fieldset>
+                  </#if>
+                  
 	  </#if>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 	  <#if viewUser.userId?has_content>

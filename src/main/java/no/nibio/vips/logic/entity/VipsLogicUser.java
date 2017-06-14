@@ -145,7 +145,7 @@ public class VipsLogicUser implements Serializable {
         this.lastName = lastName;
     }
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "vipsLogicUser")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "vipsLogicUser", fetch=FetchType.EAGER)
     @XmlTransient
     @JsonIgnore
     public Set<UserAuthentication> getUserAuthenticationSet() {
@@ -496,6 +496,7 @@ public class VipsLogicUser implements Serializable {
     public boolean isFreeSms() {
         return freeSms;
     }
+    
 
     /**
      * @param freeSms the freeSms to set
