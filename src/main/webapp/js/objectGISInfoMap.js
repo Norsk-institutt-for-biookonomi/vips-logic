@@ -343,7 +343,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
 
   
 
-  if (drawnObjs) { // Get drawn objs param from initMap
+  if (Object.keys(drawnObjs).length > 0) { // Get drawn objs param from initMap
     var format = new ol.format.GeoJSON();
     var drawnfeatures = format.readFeatures(drawnObjs, {
       dataProjection: 'EPSG:4326',
@@ -379,7 +379,8 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
 
   var pointerMoveId;
   function removeMouseOver(){
-    GISInfoMap.unByKey(pointerMoveId);
+    ol.Observable.unByKey(pointerMoveId);
+    //GISInfoMap.unByKey(pointerMoveId);
     mouseOverlay.getSource().clear(true);
   }
 

@@ -21,7 +21,7 @@
 <#macro custom_css>
         <link rel="stylesheet" href="/css/3rdparty/chosen.min.css"/>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css?t=20170623"/>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol3-layerswitcher.css"/>
 	<link rel="stylesheet" type="text/css" href="/css/map.css"/>
 </#macro>
@@ -31,14 +31,14 @@
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script src="/js/3rdparty/metawidget/core/metawidget-core.min.js" type="text/javascript"></script>
-	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol.js?t=20170623"></script>
         <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
         
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/validateForm.js"></script>
 	<script type="text/javascript" src="/js/util.js"></script>
-	<script type="text/javascript" src="/js/objectGISInfoMap.js"></script>
+	<script type="text/javascript" src="/js/objectGISInfoMap.js?t=20170623"></script>
 	<script type="text/javascript" src="/js/poiFormMap.js"></script>
 	<script type="text/javascript">
 		var organizationId = ${user.organizationId.organizationId};
