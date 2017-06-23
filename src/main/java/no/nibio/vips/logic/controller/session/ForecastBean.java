@@ -28,6 +28,7 @@ import de.micromata.opengis.kml.v_2_2_0.Document;
 import de.micromata.opengis.kml.v_2_2_0.ExtendedData;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
+import de.micromata.opengis.kml.v_2_2_0.LabelStyle;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Point;
 import de.micromata.opengis.kml.v_2_2_0.Units;
@@ -647,8 +648,11 @@ public class ForecastBean {
         final Document document = kml.createAndSetDocument()
         .withName("Forecast results - aggregates").withDescription("Worst forecasts for each POI");
 
+        LabelStyle noLabel = new LabelStyle().withScale(0.0);
+        
         document.createAndAddStyle()
             .withId("warning_type_0")
+            .withLabelStyle(noLabel)
         .createAndSetIconStyle()
                 .withScale(1)
                 .withHotSpot(hotspot)
@@ -657,6 +661,7 @@ public class ForecastBean {
         
         document.createAndAddStyle()
             .withId("warning_type_1")
+            .withLabelStyle(noLabel)
         .createAndSetIconStyle()
                 .withScale(1)
                 .withHotSpot(hotspot)
@@ -665,6 +670,7 @@ public class ForecastBean {
         
         document.createAndAddStyle()
             .withId("warning_type_2")
+            .withLabelStyle(noLabel)
         .createAndSetIconStyle()
                 .withScale(1)
                 .withHotSpot(hotspot)
@@ -673,6 +679,7 @@ public class ForecastBean {
         
         document.createAndAddStyle()
             .withId("warning_type_3")
+            .withLabelStyle(noLabel)
         .createAndSetIconStyle()
                 .withScale(1)
                 .withHotSpot(hotspot)
@@ -681,6 +688,7 @@ public class ForecastBean {
         
         document.createAndAddStyle()
             .withId("warning_type_4")
+            .withLabelStyle(noLabel)
         .createAndSetIconStyle()
                 .withScale(1)
                 .withHotSpot(hotspot)
@@ -717,11 +725,14 @@ public class ForecastBean {
             infoUri.setName("infoUri");
             List<Data> dataList = new ArrayList<>();
             dataList.add(infoUri);
+            Data stationName = new Data(poiWithAggregate.getName());
+            stationName.setName("stationName");
+            dataList.add(stationName);
             ExtendedData extendedData = document.createAndSetExtendedData()
                     .withData(dataList);
             
             final Placemark placemark = document.createAndAddPlacemark()
-            .withName(poiWithAggregate.getName())
+            //.withName(poiWithAggregate.getName())
             .withDescription("<![CDATA[Mangler informasjon om varsler for " + poiWithAggregate.getName() + "]]>")
             .withStyleUrl("#warning_type_" 
                     + (poiWithAggregate.getProperties().get("forecastsAggregate") != null ? poiWithAggregate.getProperties().get("forecastsAggregate") : "0")
