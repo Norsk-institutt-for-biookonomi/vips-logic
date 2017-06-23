@@ -162,12 +162,15 @@ public class AppleFruitMothBean {
             infoUri.setName("warningStatus");
             List<Data> dataList = new ArrayList<>();
             dataList.add(infoUri);
+            Data siteName = new Data(site.getObservationSiteName());
+            siteName.setName("siteName");
+            dataList.add(siteName);
             
             ExtendedData extendedData = document.createAndSetExtendedData()
                     .withData(dataList);
             
             final Placemark placemark = document.createAndAddPlacemark()
-                    .withName(site.getObservationSiteName())
+                    //.withName(site.getObservationSiteName())
                     .withDescription(remarks)
                     .withStyleUrl("#warning_type_" + warningStatus)
                     .withId(site.getObservationSiteId().toString())
