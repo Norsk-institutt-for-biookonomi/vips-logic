@@ -595,7 +595,8 @@ public class PointOfInterestController extends HttpServlet {
                         {
                             FormValidation formValidation = FormValidator.validateForm("poiForm", request, getServletContext());
                             Boolean poiNameAlreadyExists = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(formValidation.getFormField("name").getWebValue()) != null;
-                            if(formValidation.isValid() && ! poiNameAlreadyExists)
+                            // Only store if valid form data and NOT a new poi with an existing poiName
+                            if(formValidation.isValid() && !(poi.getPointOfInterestId() == null && poiNameAlreadyExists))
                             {
                                 // Set values
                                 poi.setName(formValidation.getFormField("name").getWebValue());
