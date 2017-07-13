@@ -37,6 +37,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.GISUtil;
 import no.nibio.vips.logic.util.Globals;
@@ -240,12 +241,27 @@ public class ObservationService {
     
     /**
      * Deletes a gis entity and its corresponding observation
-     * TODO Authentication
      */
     @DELETE
     @Path("gisobservation/{gisId}")
     public Response deleteGisObservation(@PathParam("gisId") Integer gisId)
     {
+        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        // If no user, send error message back to client
+        if(user == null)
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        if(!SessionControllerGetter.getUserBean().authorizeUser(user, 
+                    VipsLogicRole.OBSERVER, 
+                    VipsLogicRole.OBSERVATION_AUTHORITY, 
+                    VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
+                    VipsLogicRole.SUPERUSER
+                )
+            )
+        {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         SessionControllerGetter.getObservationBean().deleteGisObservationByGis(gisId);
         return Response.noContent().build();
     }
@@ -266,7 +282,21 @@ public class ObservationService {
             // Create the Observation
             Observation observation = SessionControllerGetter.getObservationBean().getObservationFromGeoJSON(geoJSON);
             VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-            //System.out.println("user exists?" + (user != null));
+            // If no user, send error message back to client
+            if(user == null)
+            {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
+            if(!SessionControllerGetter.getUserBean().authorizeUser(user, 
+                    VipsLogicRole.OBSERVER, 
+                    VipsLogicRole.OBSERVATION_AUTHORITY, 
+                    VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
+                    VipsLogicRole.SUPERUSER
+                )
+            )
+            {
+                return Response.status(Response.Status.FORBIDDEN).build();
+            }
             observation.setUserId(user.getUserId());
             observation.setStatusChangedByUserId(user.getUserId());
             observation.setStatusChangedTime(new Date());

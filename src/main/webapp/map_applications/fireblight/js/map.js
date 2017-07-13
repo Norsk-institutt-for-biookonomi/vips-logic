@@ -408,7 +408,6 @@ var storeFeature = function(featureId)
             var format = new ol.format.GeoJSON();
 
             var drawnfeatures = format.readFeatures(geoData, {
-              //dataProjection: "EPSG:32633",
               dataProjection: "EPSG:4326",
               featureProjection: map.getView().getProjection().getCode()
             });
@@ -423,8 +422,18 @@ var storeFeature = function(featureId)
             featureOverlay.getSource().addFeatures(drawnfeatures);
             unFocusForm();
         },
-        failure: function(errMsg) {
-            alert(errMsg);
+        error: function( jqXHR, textStatus, errorThrown) {
+            if(jqXHR.status == 401)
+            {
+                if(confirm("Kan ikke lagre fordi du er logget ut av applikasjonen. Klikk OK for å logge inn."))
+                {
+                    window.location.reload();
+                }
+            }
+            else
+            {
+                alert("Beklager, en feil oppsto. Status = " + jqXHR.status + ", eventuell feilmelding: " + textStatus);
+            }
         }
     });
     
@@ -459,8 +468,18 @@ var deleteFeature = function(featureId)
             }
             unFocusForm();
         },
-        failure: function(errMsg) {
-            alert(errMsg);
+        error: function( jqXHR, textStatus, errorThrown) {
+            if(jqXHR.status == 401)
+            {
+                if(confirm("Kan ikke slette fordi du er logget ut av applikasjonen. Klikk OK for å logge inn."))
+                {
+                    window.location.reload();
+                }
+            }
+            else
+            {
+                alert("Beklager, en feil oppsto. Status = " + jqXHR.status + ", eventuell feilmelding: " + textStatus);
+            }
         }
     });
 }
