@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -437,6 +438,19 @@ public class ForecastBean {
         {
             retVal.put(mi.getModelId(), mi);
         }
+        return retVal;
+    }
+    
+    /**
+     * 
+     * @return All registered models that has its own preprocessor accessible by ModelId as key
+     */
+    public Map<String,ModelInformation> getIndexedBatchableModelInformation()
+    {
+        Map<String, ModelInformation> retVal = new HashMap<>();
+        this.getBatchableModels().forEach((mi) -> {
+            retVal.put(mi.getModelId(), mi);
+        });
         return retVal;
     }
     
@@ -1081,4 +1095,15 @@ public class ForecastBean {
         return filteredConfigs;
     }
     
+    /**
+     * 
+     * @return only the models that have an existing preprocessor in VIPSLogic
+     */
+    public List<ModelInformation> getBatchableModels()
+    {
+        List<ModelInformation> modelInfos = em.createNamedQuery("ModelInformation.findAll").getResultList();
+        return modelInfos.stream()
+                .filter(modelInfo -> ModelRunPreprocessorFactory.getModelRunPreprocessor(modelInfo.getModelId()) != null)
+                .collect(Collectors.toList());
+    }
 }

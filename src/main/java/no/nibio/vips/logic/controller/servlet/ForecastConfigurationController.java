@@ -85,7 +85,7 @@ public class ForecastConfigurationController extends HttpServlet {
         // for SUPERUSERS and ORGANIZATION ADMINS
         if(action == null)
         {
-            Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedModelInformation();
+            Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedBatchableModelInformation();
             if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
             {
                 // Check filtering conditions
@@ -234,7 +234,7 @@ public class ForecastConfigurationController extends HttpServlet {
                         request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
                         // Hierarchy categories
                         request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
-                        request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
+                        request.setAttribute("modelInformations", SessionControllerGetter.getForecastBean().getBatchableModels());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
                        

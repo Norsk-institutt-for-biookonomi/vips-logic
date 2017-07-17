@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -22,6 +22,12 @@ function setFieldValue(theForm, fieldName, value)
     theForm[fieldName] = value;
 }
 
+/* An easy way to sort list options alphabetically
+ * 
+ * @param {type} a
+ * @param {type} b
+ * @returns {Number}
+ */
 var compareSelectListOptions = function(a,b)
 {
 	if(a.text < b.text)
@@ -33,7 +39,33 @@ var compareSelectListOptions = function(a,b)
 		return 1;
 	}
 	return 0;
-}
+};
+
+var sortListAlphabetically = function(theList, keepFirst)
+{
+    keepFirst = keepFirst | 0;
+    var allOptions = [];
+    for(var i=keepFirst;i<theList.options.length;i++)
+    {
+            allOptions.push(theList.options[i]);
+    }
+    allOptions.sort(function(a,b){
+        if(a.label < b.label)
+	{
+		return -1;
+	}
+	if(a.label > b.label)
+	{
+		return 1;
+	}
+	return 0;
+    });
+    theList.options.length=keepFirst; // Keeping the top items?
+    for(var i=0;i<allOptions.length;i++)
+    {
+            theList.options[theList.options.length] = allOptions[i];
+    }
+};
 
 /**
  * Depends on the value of currentLanguage and defaultLanguage in /currentLanguage.js

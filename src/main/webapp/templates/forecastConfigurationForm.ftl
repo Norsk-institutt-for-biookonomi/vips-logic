@@ -26,6 +26,7 @@
 	<link href="http://code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
+        <script type="text/javascript" src="/js/util.js"></script>
 	<script type="text/javascript">
             $(document).ready(function() {
 		// Make sure that there is a date picker present for HTML5 
@@ -45,6 +46,8 @@
 		}
                     
                 initCropCategories();
+                    
+                sortListAlphabetically(document.getElementById("modelId"),1);
             });
             
             var cropCategories = [];

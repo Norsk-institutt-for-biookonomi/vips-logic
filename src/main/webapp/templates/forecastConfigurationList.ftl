@@ -1,5 +1,5 @@
 <#-- 
-    Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+    Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
   VIPSLogic is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 			<form class="form-inline" role="form" action="/forecastConfiguration" method="GET">
 				<div class="form-group">
 					<label class="sr-only" for="modelId">Model</label>
-					<select name="modelId" multiple="multiple" size="3" class="form-control">
+					<select name="modelId" id="modelId" multiple="multiple" size="6" class="form-control">
 						<#list modelInformation?values?sort_by("defaultName") as modelInformationItem>
 						<option value="${modelInformationItem.modelId}" ${selectedModelIds?seq_contains(modelInformationItem.modelId)?string(" selected=\"selected\"","")}>
 						<#if i18nBundle.containsKey(modelInformationItem.modelId)>
@@ -46,7 +46,7 @@
 				<#if user.isSuperUser() >
 				<div class="form-group">
 					<label class="sr-only" for="organizationId">Organization</label>
-					<select name="organizationId" size="3" multiple="multiple" class="form-control">
+					<select name="organizationId" size="6" multiple="multiple" class="form-control">
 						<#list organizations?sort_by("organizationName") as organization>
 						<option value="${organization.organizationId}" ${selectedOrganizationIds?seq_contains(organization.organizationId)?string(" selected=\"selected\"","")}>
 						${organization.organizationName}
@@ -178,4 +178,12 @@
         </#if>
 </div>
 </#macro>
+<#macro custom_js>
+        <script type="text/javascript" src="/js/util.js"></script>
+	<script type="text/javascript">
+            $(document).ready(function() {
+               sortListAlphabetically(document.getElementById("modelId")); 
+            });
+        </script>
+</#macro>        
 <@page_html/>
