@@ -25,7 +25,8 @@
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
 	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1'">${i18nBundle.addNew}</button>
-	<#if user.isSuperUser() || user.isOrganizationAdmin()>
+        
+        <#if user.isSuperUser() || user.isOrganizationAdmin()>
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<form class="form-inline" role="form" action="/forecastConfiguration" method="GET">
@@ -67,9 +68,37 @@
 			</form>
 		</div>
 	</div>
-	
-	
 	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1&multipleNew=true'">${i18nBundle.addMultipleNew}</button>
+        <h2>${i18nBundle.privateForecasts}</h2>
+        <div class="table-responsive">
+	<table class="table table-striped">
+		<thead>
+			<th>${i18nBundle.modelId}</th>
+			<th>${i18nBundle.poi}</th>
+			<th>${i18nBundle.weatherStationPointOfInterestId}</th>
+			<th>${i18nBundle.dateStart}</th>
+			<th>${i18nBundle.dateEnd}</th>
+		</thead>
+		<tbody>
+		<#list privateForecastConfigurations as forecastConfiguration>
+		    <tr style="cursor: pointer;" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';">
+		    	<td>
+				<#if i18nBundle.containsKey(forecastConfiguration.modelId)>
+					${i18nBundle[forecastConfiguration.modelId]}
+				<#else>
+					${modelInformation[forecastConfiguration.modelId].defaultName}
+				</#if>
+		    	</td>
+		    	<td>${forecastConfiguration.locationPointOfInterestId.name}</td>
+		    	<td>${forecastConfiguration.weatherStationPointOfInterestId.name}</td>
+		    	<td>${forecastConfiguration.dateStart}</td>
+		    	<td>${forecastConfiguration.dateEnd}</td>
+		    </tr>
+		</#list>
+		</tbody>
+        </table>
+        </div>	
+	<h2>${i18nBundle.publicForecasts}</h2>
         <div class="table-responsive">
 	<table class="table table-striped">
 		<thead>
@@ -99,35 +128,7 @@
         </table>
         </div>
         </#if>
-        <h2>${i18nBundle.privateForecasts}</h2>
-        <div class="table-responsive">
-	<table class="table table-striped">
-		<thead>
-			<th>${i18nBundle.modelId}</th>
-			<th>${i18nBundle.poi}</th>
-			<th>${i18nBundle.weatherStationPointOfInterestId}</th>
-			<th>${i18nBundle.dateStart}</th>
-			<th>${i18nBundle.dateEnd}</th>
-		</thead>
-		<tbody>
-		<#list privateForecastConfigurations as forecastConfiguration>
-		    <tr style="cursor: pointer;" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';">
-		    	<td>
-				<#if i18nBundle.containsKey(forecastConfiguration.modelId)>
-					${i18nBundle[forecastConfiguration.modelId]}
-				<#else>
-					${modelInformation[forecastConfiguration.modelId].defaultName}
-				</#if>
-		    	</td>
-		    	<td>${forecastConfiguration.locationPointOfInterestId.name}</td>
-		    	<td>${forecastConfiguration.weatherStationPointOfInterestId.name}</td>
-		    	<td>${forecastConfiguration.dateStart}</td>
-		    	<td>${forecastConfiguration.dateEnd}</td>
-		    </tr>
-		</#list>
-		</tbody>
-        </table>
-        </div>
+        
         <#if user.isSuperUser() >
         <h2>${i18nBundle.privateForecastsForOtherUser}</h2>
         <div class="form-group">
