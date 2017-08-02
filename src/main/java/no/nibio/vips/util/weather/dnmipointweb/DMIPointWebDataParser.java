@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
+ * later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * NIBIO Open Source License for more details.
+ * 
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * 
+ */
+
+package no.nibio.vips.util.weather.dnmipointweb;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.util.WeatherElements;
+
+/**
+ * Gets data from the Danish Meteorological Institute's Point Web service
+ * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
+ */
+public class DMIPointWebDataParser {
+
+    private static final Map<String, WeatherDataParameter> PARAM_MAP;
+    static
+    {
+        PARAM_MAP = new HashMap<>();
+        PARAM_MAP.put(WeatherElements.TEMPERATURE_MEAN, WeatherDataParameter.AIRTEMP);
+        PARAM_MAP.put(WeatherElements.PRECIPITATION, WeatherDataParameter.PREC);
+        PARAM_MAP.put(WeatherElements.RELATIVE_HUMIDITY_MEAN, WeatherDataParameter.AIRRH);
+        PARAM_MAP.put(WeatherElements.WIND_SPEED_2M, WeatherDataParameter.WINDSPEED);
+        PARAM_MAP.put(WeatherElements.SOIL_TEMPERATURE_10CM_MEAN, WeatherDataParameter.SOILTEMP);
+        PARAM_MAP.put(WeatherElements.LEAF_WETNESS, WeatherDataParameter.LEAFWET);
+    }
+    
+    
+    public List<WeatherObservation> getData(Double longitude, Double latitude, Date dateFrom, Date dateTo)
+    {
+        List<WeatherObservation> retVal = new ArrayList<>();
+        try {
+            IWeatherService proxy = new WeatherService().getSslOffloadedBasicHttpBindingIWeatherService();
+            ArrayOfWeatherDataSource wdsource = new ArrayOfWeatherDataSource();
+            wdsource.add(WeatherDataSource.OBS);
+            wdsource.add(WeatherDataSource.FORECAST);
+            wdsource.add(WeatherDataSource.NORMAL);
+
+            GregorianCalendar gc = new GregorianCalendar(TimeZone.getTimeZone("Europe/Copenhagen"));
+            gc.setTime(dateFrom);
+            XMLGregorianCalendar calFrom = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
+            XMLGregorianCalendar calTo = null;
+            if(dateTo != null)
+            {
+               gc.setTime(dateTo);
+               calTo = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
+            }
+            
+            
+            ArrayOfWeatherDataParameter wdparam = new ArrayOfWeatherDataParameter();
+            DMIPointWebDataParser.PARAM_MAP.values().stream().forEach(
+                    listedParam -> wdparam.add(listedParam)
+            );
+            
+            WeatherResponse result = proxy.getWeatherData(
+                String.valueOf(latitude).replace(".", ","), // Latitude ("X") Decimal separator is comma!
+                String.valueOf(longitude).replace(".", ","), // Longitude ("Y") Decimal separator is comma!
+                false, // true if UTM, false if decimal degrees
+                null, // UTM Zone if using UTM
+                WeatherInterval.HOUR, // Hourly or Daily data
+                wdsource, // Set of data sources
+                calFrom, // Start of period with data
+                calTo, // End of period with data
+                wdparam, // Set of requested parameters
+                0.0, // Base temperature value
+                false // Use base temperature? (t/f)
+            );
+             
+            
+
+            ArrayOfWeatherDataModel value = result.getWeahterDataList().getValue();
+            value.getWeatherDataModel().stream().forEach(weatherDataModel -> {
+                    DMIPointWebDataParser.PARAM_MAP.keySet().stream().forEach(
+                            VIPSParam->{
+                                WeatherObservation obs = this.getWeatherObservation(VIPSParam, weatherDataModel);
+                                if(obs != null)
+                                    retVal.add(obs);
+                            }
+                    );
+                }
+            );
+             
+        } catch (Exception ex) {
+            Logger.getLogger(DMIPointWebDataParser.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("Number of extracted weather data = " + retVal.size());
+        return retVal;
+    }
+
+    private WeatherObservation getWeatherObservation(String VIPSParam, WeatherDataModel wDataModel) {
+        WeatherObservation obs = new WeatherObservation();
+        obs.setTimeMeasured(wDataModel.getDateDay().toGregorianCalendar().getTime());
+        obs.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
+        obs.setElementMeasurementTypeId(VIPSParam);
+        
+        try
+        {
+            switch(VIPSParam)
+            {
+                case WeatherElements.TEMPERATURE_MEAN:
+                    obs.setValue(wDataModel.getAirtemp().getValue());      break;
+                case WeatherElements.PRECIPITATION:
+                    obs.setValue(wDataModel.getPrec().getValue());         break;
+                case WeatherElements.RELATIVE_HUMIDITY_MEAN:
+                    obs.setValue(wDataModel.getAirrh().getValue());        break;
+                case WeatherElements.WIND_SPEED_2M:
+                    obs.setValue(wDataModel.getWindspeed().getValue());    break;
+                case WeatherElements.SOIL_TEMPERATURE_10CM_MEAN:
+                    obs.setValue(wDataModel.getSoiltemp().getValue());     break;// Not sure if it's 10 or 5 cm depth yet
+                case WeatherElements.SOIL_TEMPERATURE_5CM_MEAN:
+                    obs.setValue(wDataModel.getSoiltemp().getValue());     break;
+                case WeatherElements.LEAF_WETNESS:
+                    obs.setValue(wDataModel.getLeafwet().getValue());      break;
+                default: return null;
+            }
+        }
+        catch(NullPointerException ex) // The requested parameter didn't exist
+        {
+            return null;
+        }
+        
+        return obs;
+    }
+}

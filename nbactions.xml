@@ -25,4 +25,26 @@
                 <skipTests>true</skipTests>
             </properties>
         </action>
+        <action>
+            <actionName>test.single</actionName>
+            <packagings>
+                <packaging>*</packaging>
+            </packagings>
+            <goals>
+                <goal>test-compile</goal>
+                <goal>surefire:test</goal>
+            </goals>
+            <properties>
+                <test>${packageClassName}</test>
+                <com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump>true</com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump>
+                <com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump>true</com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump>
+                <com.sun.xml.ws.transport.http.HttpAdapter.dump>true</com.sun.xml.ws.transport.http.HttpAdapter.dump>
+                <com.sun.xml.internal.ws.transport.http.HttpAdapter.dump>true</com.sun.xml.internal.ws.transport.http.HttpAdapter.dump>
+                
+                
+                
+                
+                
+            </properties>
+        </action>
     </actions>

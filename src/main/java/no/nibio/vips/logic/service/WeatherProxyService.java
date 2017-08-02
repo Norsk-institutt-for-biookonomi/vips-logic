@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -35,11 +36,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
+import no.nibio.vips.util.weather.MetosAPIDataParser;
 import no.nibio.vips.util.weather.MetosRIMProDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
 import no.nibio.vips.util.weather.USPestDataParser;
+import no.nibio.vips.util.weather.dnmipointweb.DMIPointWebDataParser;
 import org.jboss.resteasy.annotations.GZIP;
 
 /**
@@ -50,10 +54,10 @@ import org.jboss.resteasy.annotations.GZIP;
 public class WeatherProxyService {
     @GET
     @POST
-    @Path("metos/{stationId}")
+    @Path("metosrimpro/{stationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
-    public Response getMetosWeatherData(
+    public Response getMetosRIMProWeatherData(
             @PathParam("stationId") String stationId, 
             @FormParam("timeZone") String timeZonePOST, 
             @QueryParam("timeZone") String timeZoneGET, 
@@ -71,6 +75,35 @@ public class WeatherProxyService {
             String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
             Date startDate1 = format.parse(startDateParam);
             observations = new MetosRIMProDataParser().getWeatherObservations(stationId, timeZone, startDate1);
+        } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
+            return Response.serverError().entity(ex).build();
+        }
+        return Response.ok().entity(observations).build();
+    }
+    
+    @GET
+    @POST
+    @Path("metosapi/{stationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getMetosAPIWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET
+            )
+    {
+        List<WeatherObservation> observations;
+        try 
+        {
+            String timeZoneParam = timeZonePOST != null ? timeZonePOST : timeZoneGET != null ? timeZoneGET : "UTC";
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneParam);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone);
+            String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
+            Date startDate1 = format.parse(startDateParam);
+            observations = new MetosAPIDataParser().getWeatherObservations(stationId, timeZone, startDate1);
         } catch (ParseException | ParseWeatherDataException | NullPointerException ex) {
             return Response.serverError().entity(ex).build();
         }
@@ -171,4 +204,64 @@ public class WeatherProxyService {
         return Response.ok().entity(observations).build();
     }
     
+    /**
+     * Getting data from the Danish Meteorological Institute's PointWeb weather service
+     * @param stationId
+     * @param timeZonePOST
+     * @param timeZoneGET
+     * @param startDatePOST
+     * @param startDateGET
+     * @param endDatePOST
+     * @param endDateGET
+     * @return 
+     */
+    @GET
+    @POST
+    @Path("dmipointweb/{stationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getDMIPointWebWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET,
+            @FormParam("endDate") String endDatePOST,
+            @QueryParam("endDate") String endDateGET
+    )
+    {
+        // Station is id'ed by decimal degrees position
+        // Format is &stationId=long,lat. E.g. &stationId=9.583,56.488 (sample is from Follum, Denmark)
+        List<WeatherObservation> observations;
+        try 
+        {
+            String timeZoneParam = timeZonePOST != null ? timeZonePOST : timeZoneGET != null ? timeZoneGET : "UTC";
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneParam);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone);
+            String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
+            Date startDate1 = format.parse(startDateParam);
+            String endDateParam = endDatePOST != null ? endDatePOST : endDateGET;
+            Date endDate1;
+            if(endDateParam != null)
+            {
+                endDate1 = format.parse(endDateParam);
+            }
+            else
+            {
+                // Expecting endDate to be 6 days after today if not specified
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(SystemTime.getSystemTime());
+                cal.add(Calendar.DATE, 6);
+                endDate1 = cal.getTime();
+            }
+            String[] coordinates = stationId.split(",");
+            Double longitude = Double.parseDouble(coordinates[0]);
+            Double latitude = Double.parseDouble(coordinates[1]);
+            observations = new DMIPointWebDataParser().getData(longitude, latitude, startDate1, endDate1);
+        } catch (ParseException | NullPointerException ex) {
+            return Response.serverError().entity(ex).build();
+        }
+        return Response.ok().entity(observations).build();
+    }
 }
