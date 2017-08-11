@@ -49,7 +49,7 @@ import javax.persistence.OneToMany;
 import no.nibio.vips.logic.util.GISUtil;
 
 /**
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -352,6 +352,4 @@ public class PointOfInterest implements Serializable, Comparable {
     public void setIsForecastLocation(Boolean isForecastLocation) {
         this.isForecastLocation = isForecastLocation;
     }
-
-    
 }
