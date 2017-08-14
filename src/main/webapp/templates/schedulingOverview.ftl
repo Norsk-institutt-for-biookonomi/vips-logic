@@ -7,8 +7,8 @@
 	<script src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
 	
-	<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
-	<link href="http://code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
+	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript">

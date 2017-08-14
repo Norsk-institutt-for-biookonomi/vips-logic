@@ -117,7 +117,7 @@
 	<@page_contents/>
 	<@page_contentwrap_end/>
 	<!-- jQuery (necessary for Bootstraps JavaScript plugins) -->
-	<script src="http://code.jquery.com/jquery.js"></script>
+	<script src="//code.jquery.com/jquery.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<script src="/js/3rdparty/bootstrap.min.js"></script>
 	<@custom_js/>

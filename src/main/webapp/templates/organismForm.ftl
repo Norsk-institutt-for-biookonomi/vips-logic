@@ -24,7 +24,7 @@
         </#if>
 </#macro>
 <#macro custom_js>
-        <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+        <script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
         <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
 	<script src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
