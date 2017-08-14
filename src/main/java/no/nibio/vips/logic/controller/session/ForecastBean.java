@@ -651,7 +651,8 @@ public class ForecastBean {
     
     public Kml getForecastsAggregateKml(Integer organizationId, List<Integer> cropOrganismIds, Date theDate, String serverName)
     {
-        String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
+        //String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
+        String iconPath = "//" + serverName + "/public/images/";
         // Initialization
         final Vec2 hotspot = new Vec2()
                 .withX(0.5)
