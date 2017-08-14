@@ -22,8 +22,6 @@ package no.nibio.vips.logic.service;
 import com.ibm.icu.util.ULocale;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,9 +34,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -70,10 +66,6 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
-import no.nibio.vips.util.weather.ALabDataParser;
-import no.nibio.vips.util.weather.FruitWebDavisDataParser;
-import no.nibio.vips.util.weather.MetosRIMProDataParser;
-import no.nibio.vips.util.weather.ParseWeatherDataException;
 import org.jboss.resteasy.annotations.GZIP;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
@@ -140,6 +132,12 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param organizationId
+     * @param cropOrganismIds
+     * @return 
+     */
     @GET
     @Path("forecastconfigurationsummaries/{organizationId}")
     @GZIP
@@ -153,6 +151,11 @@ public class LogicService {
         return Response.ok().entity(summaries).build();
     }
     
+    /**
+     * 
+     * @param userUUID
+     * @return 
+     */
     @GET
     @Path("forecastconfigurationsummaries/private/{userUUID}")
     @GZIP
@@ -196,6 +199,11 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param userUUID
+     * @return 
+     */
     @GET
     @Path("forecastconfigurations/private/{userUUID}")
     @Produces("application/json;charset=UTF-8")
@@ -272,7 +280,11 @@ public class LogicService {
     }
     
     
-    
+    /**
+     * 
+     * @param password
+     * @return 
+     */
     @GET
     @Path("evaluatepassword/{password}")
     @Produces("text/plain;charset=UTF-8")
@@ -300,6 +312,12 @@ public class LogicService {
         return Response.ok().entity(forecastModelConfigurations).build();
     }
     
+    /**
+     * 
+     * @param organizationId
+     * @param cropCategoryIds
+     * @return 
+     */
     @GET
     @Path("forecastresults/aggregate/{organizationId}")
     @GZIP
@@ -320,6 +338,11 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param poiId
+     * @return 
+     */
     @GET
     @Path("forecastresults/latest/poi/{poiId}")
     @GZIP
@@ -330,6 +353,13 @@ public class LogicService {
         return Response.ok().entity(latestResults).build();
     }
     
+    /**
+     * 
+     * @param excludeWeatherStationId
+     * @param highlightWeatherStationId
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("weatherstations/kml/{organizationId}")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
@@ -339,6 +369,13 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
+    /**
+     * 
+     * @param excludePoiId
+     * @param highlightPoiId
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("pois/kml/{organizationId}")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
@@ -349,7 +386,11 @@ public class LogicService {
     }
     
     
-    
+    /**
+     * 
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("poi/organization/{organizationId}")
     @Produces("application/json;charset=UTF-8")
@@ -360,6 +401,11 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
+    /**
+     * 
+     * @param pointOfInterestId
+     * @return 
+     */
     @GET
     @Path("poi/{pointOfInterestId}")
     @Produces("application/json;charset=UTF-8")
@@ -369,6 +415,11 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
+    /**
+     * 
+     * @param poiName
+     * @return 
+     */
     @GET
     @Path("poi/name/{poiName}")
     @Produces("application/json;charset=UTF-8")
@@ -378,6 +429,10 @@ public class LogicService {
         return retVal != null ? Response.ok().entity(retVal).build() : Response.noContent().build();
     }
     
+    /**
+     * 
+     * @return 
+     */
     @GET
     @Path("poi/user/")
     @Produces("application/json;charset=UTF-8")
@@ -388,6 +443,10 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
+    /**
+     * 
+     * @return 
+     */
     @GET
     @Path("organism/list")
     @Produces("application/json;charset=UTF-8")
@@ -397,6 +456,11 @@ public class LogicService {
         return Response.ok().entity(organismList).build();
     }
     
+    /**
+     * 
+     * @param keywords
+     * @return 
+     */
     @GET
     @Path("organism/search/latinnames")
     @Produces("application/json;charset=UTF-8")
@@ -407,6 +471,10 @@ public class LogicService {
         return Response.ok().entity(organismList).build();
     }
     
+    /**
+     * 
+     * @return 
+     */
     @GET
     @Path("organism/crop/list")
     @Produces("application/json;charset=UTF-8")
@@ -416,7 +484,11 @@ public class LogicService {
         return Response.ok().entity(organismList).build();
     }
     
-    
+    /**
+     * 
+     * @param messageId
+     * @return 
+     */
     @GET
     @Path("message/{messageId}")
     @Produces("application/json;charset=UTF-8")
@@ -427,6 +499,14 @@ public class LogicService {
         return Response.ok().entity(message).build();
     }
     
+    /**
+     * 
+     * @param publishedFrom
+     * @param publishedTo
+     * @param locale
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("message/list/{organizationId}")
     @GZIP
@@ -461,6 +541,12 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param tagIds
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("message/list/{organizationId}/tagfilter")
     @GZIP
@@ -471,8 +557,10 @@ public class LogicService {
         return Response.ok().entity(messageListWithTags).build();
     }
     
-    
-    
+    /**
+     * 
+     * @return 
+     */
     @GET
     @Path("messagetag/list")
     @Produces("application/json;charset=UTF-8")
@@ -482,6 +570,11 @@ public class LogicService {
         return Response.ok().entity(messageTags).build();
     }
     
+    /**
+     * 
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("observation")
     @GZIP
@@ -492,6 +585,16 @@ public class LogicService {
         return Response.ok().entity(observations).build();
     }
     
+    /**
+     * 
+     * @param latitude
+     * @param longitude
+     * @param startTimeStr
+     * @param endTimeStr
+     * @param timeZoneStr
+     * @param logIntervalId
+     * @return 
+     */
     @GET
     @Path("weather/calculation/solarradiation/json")
     @Produces("application/json;charset=UTF-8")
@@ -523,6 +626,16 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param latitude
+     * @param longitude
+     * @param startTimeStr
+     * @param endTimeStr
+     * @param timeZoneStr
+     * @param logIntervalId
+     * @return 
+     */
     @GET
     @Path("weather/calculation/solarradiation/csv")
     @Produces("text/csv;charset=UTF-8")
@@ -556,6 +669,17 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param latitude
+     * @param longitude
+     * @param startTimeStr
+     * @param endTimeStr
+     * @param timeZoneStr
+     * @param logIntervalId
+     * @return
+     * @throws ParseException 
+     */
     private List<WeatherObservation> getCalculatedSolarRadiationAtLocationAndTime (
             Double latitude,
             Double longitude,
@@ -574,7 +698,7 @@ public class LogicService {
             return srUtil.getCalculatedSolarRadiation(latitude, longitude, startTime, endTime, timeZone, logIntervalId);
     }
     
-    
+
     /**
      * Service available locally for cron jobs. Most useful on test servers
      * @return 
@@ -628,6 +752,11 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param userUUID
+     * @return 
+     */
     @DELETE
     @Path("user/uuid/{userUUID}")
     @Produces("application/json;charset=UTF-8")
@@ -645,6 +774,11 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param cropOrganismId
+     * @return 
+     */
     @GET
     @Path("organism/croppest/{cropOrganismId}")
     @Produces("application/json;charset=UTF-8")
@@ -661,6 +795,11 @@ public class LogicService {
         }
     }
     
+    /**
+     * 
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("organism/cropcategory/{organizationId}")
     @Produces("application/json;charset=UTF-8")
@@ -676,6 +815,10 @@ public class LogicService {
         }
     }
     
+    /**
+     * Get the client to use for calling VIPSCoreManager REST services programatically
+     * @return 
+     */
     private ManagerResource getManagerResource()
     {
         Client client = ClientBuilder.newClient();
