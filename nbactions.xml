@@ -40,6 +40,8 @@
                 <com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump>true</com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump>
                 <com.sun.xml.ws.transport.http.HttpAdapter.dump>true</com.sun.xml.ws.transport.http.HttpAdapter.dump>
                 <com.sun.xml.internal.ws.transport.http.HttpAdapter.dump>true</com.sun.xml.internal.ws.transport.http.HttpAdapter.dump>
+                <no.nibio.vips.logic.weather.FIELDCLIMATE_API_USERNAME>nibiovips</no.nibio.vips.logic.weather.FIELDCLIMATE_API_USERNAME>
+                <no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD>q22bspFVPwkaohImV21m</no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD>
                 
                 
                 
