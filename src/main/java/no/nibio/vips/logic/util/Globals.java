@@ -74,6 +74,7 @@ public class Globals {
         "Europe/Stockholm",
         "Europe/Helsinki",
         "Europe/Riga",
+        "Europe/Vilnius",
         "Europe/Sofia",
         "America/Los_Angeles"
         
