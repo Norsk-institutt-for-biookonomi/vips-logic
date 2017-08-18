@@ -25,16 +25,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -44,7 +38,6 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import no.nibio.vips.entity.WeatherObservation;
-import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.WeatherElements;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -55,7 +48,6 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -65,22 +57,22 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 
 /**
  * 
  * Gets data from the Pessl METOS fieldclimate API.
- * Read about the API here: http://www.fieldclimate.com/api/intro.html
+ * Read about the API here: 
  * 
  * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class MetosAPIDataParser {
-    public final static String METOS_API_URL_TEMPLATE = "http://www.fieldclimate.com/api/CIDIStationData3/GetFromDate?{0}&group_code=1&dt_from={1}&row_count={2}";
+    
 
     // Mappping VIPS parameters and Metos sensors
     // Fieldclimate codes should be in decreasing priority
@@ -95,35 +87,6 @@ public class MetosAPIDataParser {
         new ParamInfo(WeatherElements.TEMPERATURE_MINIMUM,  new Integer[] {16385},  "min")
     };
     
-    public List<WeatherObservation> getWeatherObservations_old(String stationId, TimeZone timeZone, Date startDate) throws ParseWeatherDataException
-    {
-        List<WeatherObservation> retVal = new ArrayList<>();
-        // TODO: Finn ut stasjonens egen timezone
-        // http://www.fieldclimate.com/api/CIDIStationConfig2/Get?user_name=XX&user_passw=XX&station_name=XXXXXXXX
-        // Antar at respons "f_timezone":"120" representerer minuttoffsett fra GMT (så GMT+2 i dette eksempelet)
-        // Denne settes så i begge SimpleDateFormat-klassene
-        SimpleDateFormat URLDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        SimpleDateFormat ResponseDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        
-        // Deduce how many rows of data need be returned. Default: From startDate until now
-        //Date now = SystemTime.getSystemTime();
-        // TODO: Fix the TimeZone here!!!
-        LocalDateTime now = LocalDateTime.ofInstant(SystemTime.getSystemTime().toInstant(), ZoneId.systemDefault());
-        LocalDateTime then = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault());
-        Long hoursBetween = ChronoUnit.HOURS.between(then, now);
-        try
-        {
-            URL metosAPIURL = new URL(MessageFormat.format(MetosAPIDataParser.METOS_API_URL_TEMPLATE, stationId, URLDateFormat.format(startDate), hoursBetween));
-            System.out.println(metosAPIURL.toString());
-        }
-        catch(MalformedURLException ex)
-        {
-            throw new ParseWeatherDataException(ex.getMessage());
-        }
-        
-        
-        return retVal;
-    }
     
     /**
      * 
@@ -150,7 +113,6 @@ public class MetosAPIDataParser {
         httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
         
         //Execute and get the response.
-        ResponseHandler<String> responseHandler=new BasicResponseHandler();
         HttpResponse response = httpclient.execute(httppost);
         /*for(Header h:response.getAllHeaders())
         {
@@ -172,6 +134,8 @@ public class MetosAPIDataParser {
             }
         }
         //System.out.println("accessCode=" + accessCode);
+        //String responseString = EntityUtils.toString(response.getEntity(), "UTF-8");
+        //System.out.println(responseString);
         return accessCode;
     }
     
@@ -185,9 +149,12 @@ public class MetosAPIDataParser {
         
         // Setting up HTTP BASIC authentication
         CredentialsProvider provider = new BasicCredentialsProvider();
-        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("MetosDemo", "aa8f4b62b72986bac7c84be78836c2c6");
+        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+                System.getProperty("no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID"),
+                System.getProperty("no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET")
+        );
         
-        HttpHost targetHost = new HttpHost("oauth.fieldclimate.com", 80, "https");
+        HttpHost targetHost = new HttpHost("oauth-stage.fieldclimate.com", 80, "https");
         AuthCache authCache = new BasicAuthCache();
         authCache.put(targetHost, new BasicScheme());
         BasicScheme basicScheme = new BasicScheme();
@@ -278,12 +245,34 @@ public class MetosAPIDataParser {
                 //System.out.println("Linje");
             }
             
-            return this.getParsedObservations(all, timeZone); // TODO TimeZone
+            return this.getParsedObservations(all, this.getWeatherStationTimeZone(accessToken)); // TODO TimeZone
         }
         catch(IOException | ParseException | AuthenticationException ex)
         {
             throw new ParseWeatherDataException(ex.getMessage());
         }
+    }
+    
+    private TimeZone getWeatherStationTimeZone(String accessToken) throws IOException
+    {
+        HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/station/000024A0");
+        httpget.addHeader("Accept", "application/json");
+        httpget.addHeader("Authorization", "Bearer " + accessToken);
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpResponse response = httpclient.execute(httpget);
+        BufferedReader s = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+        String all = "";
+        String line;
+        while((line = s.readLine()) != null)
+        {
+            all += line;
+            //System.out.println("Linje");
+        }
+        ObjectMapper oMapper = new ObjectMapper();
+        JsonNode jNode = oMapper.readTree(all);
+        Integer minutesOffset = jNode.get("config").get("timezone_offset").asInt();
+        Integer GMTOffset = minutesOffset/60;
+        return GMTOffset >= 0 ? TimeZone.getTimeZone("GMT+" + GMTOffset) : TimeZone.getTimeZone("GMT" + GMTOffset);
     }
     
     /**
@@ -312,11 +301,11 @@ public class MetosAPIDataParser {
     {
         
         String accessToken = this.getToken();
-        //HttpGet httpget = new HttpGet("https://api.fieldclimate.com/station/000024A0");
+        HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/station/000024A0");
         //HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/000024A0/hourly/last/5d");
         Calendar cal = Calendar.getInstance();
         cal.set(2017, Calendar.AUGUST, 1, 0, 0, 0);
-        HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/000024A0/hourly/from/" + (cal.getTime().getTime()/1000));
+        //HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/000024A0/hourly/from/" + (cal.getTime().getTime()/1000));
         //HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/system/group/sensors");
         httpget.addHeader("Accept", "application/json");
         httpget.addHeader("Authorization", "Bearer " + accessToken);
@@ -330,7 +319,7 @@ public class MetosAPIDataParser {
             all += line;
             //System.out.println("Linje");
         }
-        
+        //System.out.println(all);
         
         
         ObjectMapper oMapper = new ObjectMapper();
@@ -352,6 +341,6 @@ public class MetosAPIDataParser {
         } catch (ParseException ex) {
             Logger.getLogger(MetosAPIDataParser.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println(all);
+        //System.out.println(all);
     }
 }

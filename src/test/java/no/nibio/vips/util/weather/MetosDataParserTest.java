@@ -18,7 +18,7 @@
  */
 package no.nibio.vips.util.weather;
 
-import no.nibio.vips.util.weather.MetosDataParser;
+import no.nibio.vips.util.weather.MetosRIMProDataParser;
 import java.util.List;
 import java.util.TimeZone;
 import no.nibio.vips.entity.WeatherObservation;
@@ -56,7 +56,7 @@ public class MetosDataParserTest {
     }
 
     /**
-     * Test of getWeatherObservations method, of class MetosDataParser.
+     * Test of getWeatherObservations method, of class MetosRIMProDataParser.
      * Could be time consuming, so we test only when needed
      */
     @Ignore // It appears that the current metos stations do not deliver data (as of 2016-01-14)
@@ -64,7 +64,7 @@ public class MetosDataParserTest {
     public void testGetWeatherObservations() throws Exception {
         System.out.println("getWeatherObservations");
         String stationID = "00002085";
-        MetosDataParser instance = new MetosDataParser();
+        MetosRIMProDataParser instance = new MetosRIMProDataParser();
         //List<WeatherObservation> expResult = null;
         Integer expResult = 0;
         List<WeatherObservation> result = instance.getWeatherObservations(stationID, TimeZone.getTimeZone("Europe/Sofia"));

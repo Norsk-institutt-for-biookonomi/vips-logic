@@ -42,6 +42,8 @@
                 <com.sun.xml.internal.ws.transport.http.HttpAdapter.dump>true</com.sun.xml.internal.ws.transport.http.HttpAdapter.dump>
                 <no.nibio.vips.logic.weather.FIELDCLIMATE_API_USERNAME>nibiovips</no.nibio.vips.logic.weather.FIELDCLIMATE_API_USERNAME>
                 <no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD>q22bspFVPwkaohImV21m</no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD>
+                <no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID>MetosDemo</no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID>
+                <no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET>aa8f4b62b72986bac7c84be78836c2c6</no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET>
                 
                 
                 
