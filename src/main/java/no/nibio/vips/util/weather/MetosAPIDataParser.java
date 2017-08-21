@@ -78,13 +78,14 @@ public class MetosAPIDataParser {
     // Fieldclimate codes should be in decreasing priority
     // TODO; Separate parameter: Soil temperature. Search for name "Soil temperature", higher channel number = deeper sensor
     private final ParamInfo[] PARAM_MAP = {
-        new ParamInfo(WeatherElements.PRECIPITATION,        new Integer[] {6},      "sum"),
-        new ParamInfo(WeatherElements.LEAF_WETNESS,         new Integer[] {4},      "time"),
-        new ParamInfo(WeatherElements.GLOBAL_RADIATION,     new Integer[] {600},    "avg"),
-        new ParamInfo(WeatherElements.WIND_SPEED_2M,        new Integer[] {5},      "avg"),
-        new ParamInfo(WeatherElements.TEMPERATURE_MEAN,     new Integer[] {16385},  "avg"),
-        new ParamInfo(WeatherElements.TEMPERATURE_MAXIMUM,  new Integer[] {16385},  "max"),
-        new ParamInfo(WeatherElements.TEMPERATURE_MINIMUM,  new Integer[] {16385},  "min")
+        new ParamInfo(WeatherElements.PRECIPITATION,            new Integer[] {6},          "sum"),
+        new ParamInfo(WeatherElements.LEAF_WETNESS,             new Integer[] {4},          "time"),
+        new ParamInfo(WeatherElements.GLOBAL_RADIATION,         new Integer[] {600},        "avg"),
+        new ParamInfo(WeatherElements.WIND_SPEED_2M,            new Integer[] {5},          "avg"),
+        new ParamInfo(WeatherElements.TEMPERATURE_MEAN,         new Integer[] {16385},      "avg"),
+        new ParamInfo(WeatherElements.TEMPERATURE_MAXIMUM,      new Integer[] {16385},      "max"),
+        new ParamInfo(WeatherElements.TEMPERATURE_MINIMUM,      new Integer[] {16385},      "min"),
+        new ParamInfo(WeatherElements.RELATIVE_HUMIDITY_MEAN,   new Integer[] {1,21778},    "avg")
     };
     
     
@@ -301,8 +302,8 @@ public class MetosAPIDataParser {
     {
         
         String accessToken = this.getToken();
-        HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/station/000024A0");
-        //HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/000024A0/hourly/last/5d");
+        //HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/station/000024A0");
+        HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/000024A0/hourly/last/5d");
         Calendar cal = Calendar.getInstance();
         cal.set(2017, Calendar.AUGUST, 1, 0, 0, 0);
         //HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/000024A0/hourly/from/" + (cal.getTime().getTime()/1000));
