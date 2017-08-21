@@ -191,18 +191,21 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
         List<WeatherObservation> FM2 = new ArrayList<>();
         for(WeatherObservation o:observations)
         {
-            switch(o.getElementMeasurementTypeId())
+            if(o.getTimeMeasured().compareTo(firstTimestamp) >=0)
             {
-                case WeatherElements.LEAF_WETNESS:
-                    BT.add(o); 
-                    break;
-                
-                case WeatherElements.WIND_SPEED_2M:
-                    FM2.add(o);
-                    break;
-                default:
-                    // Let it pass in silence 
-                    break;
+                switch(o.getElementMeasurementTypeId())
+                {
+                    case WeatherElements.LEAF_WETNESS:
+                        BT.add(o); 
+                        break;
+
+                    case WeatherElements.WIND_SPEED_2M:
+                        FM2.add(o);
+                        break;
+                    default:
+                        // Let it pass in silence 
+                        break;
+                }
             }
         }
                 
@@ -253,7 +256,10 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             }
             else
             {
-                throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() );
+                throw new ConfigValidationException("Incorrect number of weather data. "
+                        + "TM.size() = " + TM.size() + " (first/last at " + TM.get(0).getTimeMeasured() + "/" + TM.get(TM.size()-1).getTimeMeasured() + "), "
+                        + "BT.size()=" + BT.size() +  " (first/last at " + BT.get(0).getTimeMeasured() + "/" +  BT.get(BT.size()-1).getTimeMeasured() + ", "
+                        + "RR.size()=" + RR.size() + " (first/last at " + RR.get(0).getTimeMeasured() + "/" + RR.get(RR.size()-1).getTimeMeasured() + ")");
             }
         }
         List<WeatherObservation> retVal = new ArrayList<>();
