@@ -334,9 +334,22 @@ public class SchedulingBean {
         
     }
     
-    public List<VipsLogicTask> getAllVipsLogicTasks()
+    public List<VipsLogicTask> getVipsLogicTasks(VipsLogicUser user)
     {
-        return VipsLogicTaskFactory.getAllVipsLogicTasks();
+        // Super User
+        if(user.isSuperUser())
+        {
+            return VipsLogicTaskFactory.getAllVipsLogicTasks();
+        }
+        // Organization admin
+        else if(user.isOrganizationAdmin())
+        {
+            return VipsLogicTaskFactory.getOrganizationAdminVipsLogicTasks();
+        }
+        else
+        {
+            return null;
+        }
     }
     
     public ManagerResource getManagerResource()

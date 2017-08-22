@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import no.nibio.vips.logic.scheduling.tasks.DeleteAllExpiredUserUuidsTask;
+import no.nibio.vips.logic.scheduling.tasks.RunAllForecastConfigurationsForOrganizationTask;
 import no.nibio.vips.logic.scheduling.tasks.RunAllForecastConfigurationsTask;
 import no.nibio.vips.logic.scheduling.tasks.SendForecastEventNotificationsTask;
 import no.nibio.vips.logic.scheduling.tasks.UpdateForecastResultCacheTableTask;
@@ -32,7 +33,7 @@ import no.nibio.vips.logic.scheduling.tasks.UpdateModelInformationTask;
 
 /**
  * Provides the requested VipsLogicTask
- * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class VipsLogicTaskFactory {
@@ -43,10 +44,14 @@ public class VipsLogicTaskFactory {
     public static final int UPDATE_FORECAST_SUMMARY_TABLE_TASK = 4;
     public static final int DELETE_ALL_EXPIRED_UUIDS_TASK = 5;
     public static final int SEND_FORECAST_EVENT_NOTIFICATIONS_TASK = 6;
+    public static final int RUN_ALL_FORECAST_CONFIGURATIONS_FOR_ORGANIZATION_TASK = 7;
     
-    private final static int[] ALL_TASK_IDS = {1,2,3,4,5,6};
+    private final static int[] ALL_TASK_IDS = {1,2,3,4,5,6,7};
+    
+    private final static int[] ORGANIZATION_ADMIN_TASK_IDS = {7};
     
     private static List<VipsLogicTask> allTasksList;
+    private static List<VipsLogicTask> organizationAdminTasksList;
     private static Map<String,VipsLogicTask> allTasksMap;
     
     /**
@@ -76,6 +81,9 @@ public class VipsLogicTaskFactory {
                 break;
             case SEND_FORECAST_EVENT_NOTIFICATIONS_TASK:
                 retVal =  new SendForecastEventNotificationsTask();
+                break;
+            case RUN_ALL_FORECAST_CONFIGURATIONS_FOR_ORGANIZATION_TASK:
+                retVal =  new RunAllForecastConfigurationsForOrganizationTask();
                 break;
             default:
                 return null;
@@ -115,5 +123,17 @@ public class VipsLogicTaskFactory {
             }
         }
         return allTasksMap;
+    }
+
+    public static List<VipsLogicTask> getOrganizationAdminVipsLogicTasks() {
+        if(organizationAdminTasksList == null)
+        {
+            organizationAdminTasksList = new ArrayList<>();
+            for(int i:ORGANIZATION_ADMIN_TASK_IDS)
+            {
+                organizationAdminTasksList.add(createVipsLogicTask(i));
+            }
+        }
+        return organizationAdminTasksList;
     }
 }

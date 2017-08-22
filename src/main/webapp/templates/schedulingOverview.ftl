@@ -27,7 +27,7 @@
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
 		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
 	</div>
-        <#if user.isSuperUser()>
+        <#if user.isSuperUser() || user.isOrganizationAdmin() >
         <p><a href="/scheduling?action=viewAllTasks">${i18nBundle.viewAllTasks}</a></p>
         </#if>
         <#if messageKey?has_content>

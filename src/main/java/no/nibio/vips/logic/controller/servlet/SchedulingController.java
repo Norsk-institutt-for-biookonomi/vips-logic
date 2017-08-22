@@ -129,9 +129,9 @@ public class SchedulingController extends HttpServlet {
         // Authorization: SUPERUSER ONLY
         else if(action.equals("viewAllTasks"))
         {
-            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER))
+            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR))
             {
-                List<VipsLogicTask> allTasks = schedulingBean.getAllVipsLogicTasks();
+                List<VipsLogicTask> allTasks = schedulingBean.getVipsLogicTasks(user);
                 request.setAttribute("tasks", allTasks);
                 // If this is a redirect from a controller, with a message to be passed on
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
@@ -147,12 +147,16 @@ public class SchedulingController extends HttpServlet {
         // Authorization: SUPERUSER ONLY
         else if(action.equals("runTaskManuallyForm"))
         {
-            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER))
+            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR))
             {
                 try
                 {
                     Integer factoryId = Integer.valueOf(request.getParameter("factoryId"));
                     VipsLogicTask task = VipsLogicTaskFactory.createVipsLogicTask(factoryId);
+                    if(!user.isSuperUser()) // Some tasks need organization id set to create a sensible form for an orgAdmin
+                    {
+                        task.setOrganization(user.getOrganizationId());
+                    }
                     request.setAttribute("vipsLogicTask", task);
                     //request.setAttribute("testJSON", task.getConfigFormDefinition());
                     String language = SessionLocaleUtil.getCurrentLocale(request).getLanguage();
@@ -176,7 +180,7 @@ public class SchedulingController extends HttpServlet {
         // Authorization: SUPERUSER ONLY
         else if(action.equals("runTaskManuallyFormSubmit"))
         {
-            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER))
+            if(userBean.authorizeUser(user, VipsLogicRole.SUPERUSER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR))
             {
                 try
                 {
@@ -189,6 +193,10 @@ public class SchedulingController extends HttpServlet {
                         // Need to copy the ParameterMap (not just pass it along), as the values get lost 
                         // after the servlet disconnects itself from the task
                         task.setConfiguration(new HashMap<>(request.getParameterMap()));
+                        if(user.isOrganizationAdmin())
+                        {
+                            task.setOrganization(user.getOrganizationId());
+                        }
                         // If system scheduler is running, launch task there
                         if(schedulingBean.getSystemScheduler().isStarted())
                         {
