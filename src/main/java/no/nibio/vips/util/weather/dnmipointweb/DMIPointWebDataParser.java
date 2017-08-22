@@ -58,7 +58,7 @@ public class DMIPointWebDataParser {
         List<WeatherObservation> retVal = new ArrayList<>();
         try {
             IWeatherService proxy = new WeatherService().getSslOffloadedBasicHttpBindingIWeatherService();
-            ArrayOfWeatherDataSource wdsource = new ArrayOfWeatherDataSource();
+            UseableArrayOfWeatherDataSource wdsource = new UseableArrayOfWeatherDataSource();
             wdsource.add(WeatherDataSource.OBS);
             wdsource.add(WeatherDataSource.FORECAST);
             wdsource.add(WeatherDataSource.NORMAL);
@@ -74,7 +74,7 @@ public class DMIPointWebDataParser {
             }
             
             
-            ArrayOfWeatherDataParameter wdparam = new ArrayOfWeatherDataParameter();
+            UseableArrayOfWeatherDataParameter wdparam = new UseableArrayOfWeatherDataParameter();
             DMIPointWebDataParser.PARAM_MAP.values().stream().forEach(
                     listedParam -> wdparam.add(listedParam)
             );

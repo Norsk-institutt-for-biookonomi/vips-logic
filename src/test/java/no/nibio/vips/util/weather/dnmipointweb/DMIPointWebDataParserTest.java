@@ -70,9 +70,7 @@ public class DMIPointWebDataParserTest {
         Double longitude = 10.0213;
         Double latitude = 56.0199;
         List<WeatherObservation> result = instance.getData(longitude, latitude, dateFrom, dateTo);
-        result.stream().forEach(r->System.out.println(r.toString()));
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        result.stream().forEach(r->System.out.println(r.toString()));       
     }
     
 }

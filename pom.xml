@@ -243,6 +243,7 @@
               </vmArgs>
               <wsdlLocation>https://dmiweatherservice-plant.dlbr.dk/DMIWeatherService.svc?wsdl</wsdlLocation>
               <staleFile>${project.build.directory}/jaxws/stale/DMIWeatherService.svc.stale</staleFile>
+              <keep>true</keep> 
             </configuration>
             <id>wsimport-generate-DMIWeatherService.svc</id>
             <phase>generate-sources</phase>

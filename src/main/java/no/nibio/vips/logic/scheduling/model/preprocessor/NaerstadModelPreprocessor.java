@@ -24,7 +24,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -85,7 +84,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             
             try {
                 observations = wdsUtil.getWeatherObservations(
-                        weatherStation.getDataFetchUri(),
+                        weatherStation,
                         WeatherObservation.LOG_INTERVAL_ID_1H,
                         new String[]{
                             WeatherElements.TEMPERATURE_MEAN,
@@ -96,8 +95,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                             WeatherElements.WIND_SPEED_2M
                         },
                         configuration.getDateStartInTimeZone(),
-                        dateEndWeatherData,
-                        timeZone);
+                        dateEndWeatherData);
                 observations = validateAndSanitizeObservations(observations, configuration.getDateStartInTimeZone());    
                 //System.out.println(configuration.getDateStartInTimeZone());
             } catch (ConfigValidationException | WeatherObservationListException | WeatherDataSourceException ex) {
@@ -271,5 +269,4 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
         retVal = wUtil.truncateToLastCommonObservation(retVal);
         return retVal;
     }
-
 }
