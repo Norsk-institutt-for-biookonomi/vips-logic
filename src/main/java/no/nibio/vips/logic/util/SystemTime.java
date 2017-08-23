@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
@@ -53,7 +53,9 @@ public final class SystemTime {
     
     private static Integer getOffsetMonths()
     {
-        return Integer.valueOf(System.getProperty("no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS"));
+        return System.getProperty("no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS") != null ? 
+                Integer.valueOf(System.getProperty("no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS"))
+                : 0;
     }
     
     private static Date getExactDate()
