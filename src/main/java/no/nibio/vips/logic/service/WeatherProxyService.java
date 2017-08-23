@@ -36,6 +36,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
@@ -43,6 +44,7 @@ import no.nibio.vips.util.weather.MetosAPIDataParser;
 import no.nibio.vips.util.weather.MetosRIMProDataParser;
 import no.nibio.vips.util.weather.ParseWeatherDataException;
 import no.nibio.vips.util.weather.USPestDataParser;
+import no.nibio.vips.util.weather.YrWeatherForecastProvider;
 import no.nibio.vips.util.weather.dnmipointweb.DMIPointWebDataParser;
 import org.jboss.resteasy.annotations.GZIP;
 
@@ -263,5 +265,26 @@ public class WeatherProxyService {
             return Response.serverError().entity(ex).build();
         }
         return Response.ok().entity(observations).build();
+    }
+    
+    @GET
+    @POST
+    @Path("forecasts/yr/")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getYRForecasts(
+                    @QueryParam("longitude") Double longitude,
+                    @QueryParam("latitude") Double latitude,
+                    @QueryParam("altitude") Double altitude
+    )
+    {
+        try
+        {
+            return Response.ok().entity(new YrWeatherForecastProvider().getWeatherForecasts(longitude, latitude, altitude)).build();
+        }
+        catch(ParseWeatherDataException ex)
+        {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+        }
     }
 }
