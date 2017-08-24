@@ -152,6 +152,10 @@ public class ObservationBean {
         {
             retVal.setGeoinfos(this.getGeoinfoForObservation(retVal));
             retVal.setUser(em.find(VipsLogicUser.class, retVal.getUserId()));
+            if(retVal.getLastEditedBy() != null)
+            {
+                retVal.setLastEditedByUser(em.find(VipsLogicUser.class, retVal.getLastEditedBy()));
+            }
             //ObservationDataSchema schema = 
         }
         return retVal;

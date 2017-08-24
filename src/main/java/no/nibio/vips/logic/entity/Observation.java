@@ -83,6 +83,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Organism organism;
     private Organism cropOrganism;
     private Integer userId;
+    private Integer lastEditedBy;
     private List<Gis> geoinfo;
     private Integer locationPointOfInterestId;
     //private Double observedValue;
@@ -102,6 +103,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private String observationDataSchema;
     
     private VipsLogicUser user; // Transient
+    private VipsLogicUser lastEditedByUser; //
     private PointOfInterest location; // Transient
     
     private Set<ObservationIllustration> observationIllustrationSet;
@@ -568,6 +570,36 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setLocationIsPrivate(Boolean locationIsPrivate) {
         this.locationIsPrivate = locationIsPrivate;
+    }
+
+    /**
+     * @return the lastEditedBy
+     */
+    @Column(name = "last_edited_by")
+    public Integer getLastEditedBy() {
+        return lastEditedBy;
+    }
+
+    /**
+     * @param lastEditedBy the lastEditedBy to set
+     */
+    public void setLastEditedBy(Integer lastEditedBy) {
+        this.lastEditedBy = lastEditedBy;
+    }
+
+    /**
+     * @return the lastEditedByUser
+     */
+    @Transient
+    public VipsLogicUser getLastEditedByUser() {
+        return lastEditedByUser;
+    }
+
+    /**
+     * @param lastEditedByUser the lastEditedByUser to set
+     */
+    public void setLastEditedByUser(VipsLogicUser lastEditedByUser) {
+        this.lastEditedByUser = lastEditedByUser;
     }
 
 }

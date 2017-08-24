@@ -421,7 +421,14 @@ public class ObservationController extends HttpServlet {
                             //observation.setObservationMethodId(em.find(ObservationMethod.class, formValidation.getFormField("observationMethodId").getWebValue()));
                             observation.setTimeOfObservation(formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
                             //observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
-                            observation.setUserId(user.getUserId());
+                            if(observationId <= 0)
+                            {
+                                observation.setUserId(user.getUserId());
+                            }
+                            else
+                            {
+                                observation.setLastEditedBy(user.getUserId());
+                            }
 
                             observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
                             observation.setObservationText(formValidation.getFormField("observationText").getWebValue());

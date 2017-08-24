@@ -547,6 +547,11 @@
                             <label>${i18nBundle.observer}: ${observation.user.firstName} ${observation.user.lastName}</label>
                           </div>
                           </#if>
+                          <#if observation.lastEditedByUser?has_content>
+                          <div class="form-group">
+                            <label>${i18nBundle.lastEditedBy}: ${observation.lastEditedByUser.firstName} ${observation.lastEditedByUser.lastName}</label>
+                          </div>
+                          </#if>
                           <#if ! observation.organism?has_content>
                           <div class="form-group">
 			    <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
