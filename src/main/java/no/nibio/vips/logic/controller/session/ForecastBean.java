@@ -139,10 +139,10 @@ public class ForecastBean {
             return null;
         }
         Calendar cal = Calendar.getInstance();
-        cal.setTime(mostRecentForecastResult.getResultValidTime());
+        cal.setTime(mostRecentForecastResult.getValidTimeStart());
         cal.add(Calendar.DATE, -latestDays);
         Date startDate = cal.getTime();
-        return this.getForecastResults(forecastConfigurationId, startDate, mostRecentForecastResult.getResultValidTime());
+        return this.getForecastResults(forecastConfigurationId, startDate, mostRecentForecastResult.getValidTimeStart());
         
     }
     
@@ -167,8 +167,8 @@ public class ForecastBean {
         Query q = em.createNativeQuery(
                 "SELECT * FROM forecast_result "
                 + "WHERE forecast_configuration_id=:forecastConfigurationId "
-                + "AND result_valid_time = ("
-                        + "SELECT MAX(result_valid_time) "
+                + "AND valid_time_start = ("
+                        + "SELECT MAX(valid_time_start) "
                         + "FROM forecast_result "
                         + "WHERE forecast_configuration_id=:forecastConfigurationId "
                 + ");", ForecastResult.class);
@@ -789,7 +789,7 @@ public class ForecastBean {
                 .append("   TRUNCATE forecast_result_cache;")
                 .append("   INSERT INTO forecast_result_cache ")
                 .append("       SELECT * FROM forecast_result ")
-                .append("       WHERE result_valid_time between :startTime and :endTime ")
+                .append("       WHERE valid_time_start between :startTime and :endTime ")
                 .append("       AND forecast_configuration_id IN (")
                 .append("           SELECT forecast_configuration_id ")
                 .append("           FROM public.forecast_configuration ")
@@ -862,7 +862,7 @@ public class ForecastBean {
             Map<String, Integer> resultDailyAggregate = new HashMap<>();
             for(ForecastResult result:results)
             {
-                String dayStamp = format.format(result.getResultValidTime());
+                String dayStamp = format.format(result.getValidTimeStart());
                 Integer currentWorstCode = resultDailyAggregate.get(dayStamp);
                 resultDailyAggregate.put(dayStamp, 
                     Math.max(
@@ -982,7 +982,7 @@ public class ForecastBean {
                         "       AND location_point_of_interest_id=:locationPointOfInterestId \n" +
                         (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                         ")\n" +
-                        "AND result_valid_time between :midnight AND :nextMidnight";
+                        "AND valid_time_start between :midnight AND :nextMidnight";
             //System.out.println(poi.getName() + " SQL=" + sql);
             Query q = em.createNativeQuery(sql);
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
@@ -1021,7 +1021,7 @@ public class ForecastBean {
             mappedForecastConfigurations.put(forecastConfiguration.getForecastConfigurationId(), forecastConfiguration);
             Query q = em.createNativeQuery(
                     "SELECT * FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId "
-                            + "AND result_valid_time = (SELECT max(result_valid_time) FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId)", 
+                            + "AND valid_time_start = (SELECT max(valid_time_start) FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId)", 
                     ForecastResult.class
             );
             q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());

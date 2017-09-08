@@ -204,7 +204,7 @@ public class MessagingBean {
         List<ForecastConfiguration> forecastConfigurations = em.createNativeQuery(
                 "SELECT * FROM public.forecast_configuration f "
                 + "WHERE f.forecast_configuration_id IN ("
-                + "     SELECT forecast_configuration_id FROM forecast_result WHERE result_valid_time between :dateStart AND :dateEnd"
+                + "     SELECT forecast_configuration_id FROM forecast_result WHERE valid_time_start between :dateStart AND :dateEnd"
                 + ")",
                 ForecastConfiguration.class
             )
@@ -229,7 +229,7 @@ public class MessagingBean {
             // If you find a NEW GREEN_TO_YELLOW event first, add it and search for a new TO_RED event
             for(ForecastResult result:results)
             {
-                if(result.getResultValidTime().before(systemTime) || result.getResultValidTime().after(in10Days))
+                if(result.getValidTimeStart().before(systemTime) || result.getValidTimeStart().after(in10Days))
                 {
                     continue;
                 }
@@ -260,7 +260,7 @@ public class MessagingBean {
                     ForecastNotificationLogPK pk = new ForecastNotificationLogPK(
                             conf.getForecastConfigurationId(), 
                             currentEvent.getForecastEventId(), 
-                            result.getResultValidTime()
+                            result.getValidTimeStart()
                     );
                     
                     // Could not find same event. We persist it so we won't

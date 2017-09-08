@@ -63,7 +63,7 @@ public class DMIPointWebDataParserTest {
         System.out.println("getData");
         DMIPointWebDataParser instance = new DMIPointWebDataParser();
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Copenhagen"));
-        cal.set(2017, Calendar.JULY, 5, 0, 0, 0);
+        cal.set(2000, Calendar.JULY, 5, 0, 0, 0);
         Date dateFrom = cal.getTime();
         cal.set(Calendar.DATE, 15);
         Date dateTo = cal.getTime();

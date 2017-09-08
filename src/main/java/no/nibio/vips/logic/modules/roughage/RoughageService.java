@@ -448,11 +448,11 @@ public class RoughageService {
                 Map<Date, Result> resultBucket = new HashMap<>();
                 for(Result result:results)
                 {
-                    resultBucket.put(result.getResultValidTime(), result);
+                    resultBucket.put(result.getValidTimeStart(), result);
                 }
                 for(Result normalDataResult:normalDataResults)
                 {
-                    Result result = resultBucket.get(normalDataResult.getResultValidTime());
+                    Result result = resultBucket.get(normalDataResult.getValidTimeStart());
                     if(result != null)
                     {
                         String[] resultKeys = {"Avling", "Beregnet MSC","NDF","INDF","R&aring;protein","FEm"};

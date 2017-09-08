@@ -45,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vividsolutions.jts.geom.Geometry;
 
 
 /**
@@ -55,12 +56,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Table(name = "forecast_result")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "ForecastResult.findAll", query = "SELECT f FROM ForecastResult f ORDER BY f.resultValidTime ASC"),
-    @NamedQuery(name = "ForecastResult.findByForecastResultId", query = "SELECT f FROM ForecastResult f WHERE f.forecastResultId = :forecastResultId ORDER BY f.resultValidTime ASC"),
-    @NamedQuery(name = "ForecastResult.findByForecastConfigurationId", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId ORDER BY f.resultValidTime ASC"),
-    @NamedQuery(name = "ForecastResult.findByForecastConfigurationIdAndPeriod", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId AND f.resultValidTime BETWEEN :timeStart AND :timeEnd ORDER BY f.resultValidTime ASC"),
-    @NamedQuery(name = "ForecastResult.findByResultValidTime", query = "SELECT f FROM ForecastResult f WHERE f.resultValidTime = :resultValidTime ORDER BY f.resultValidTime ASC"),
-    @NamedQuery(name = "ForecastResult.findByWarningStatus", query = "SELECT f FROM ForecastResult f WHERE f.warningStatus = :warningStatus ORDER BY f.resultValidTime ASC")})
+    @NamedQuery(name = "ForecastResult.findAll", query = "SELECT f FROM ForecastResult f ORDER BY f.validTimeStart ASC"),
+    @NamedQuery(name = "ForecastResult.findByForecastResultId", query = "SELECT f FROM ForecastResult f WHERE f.forecastResultId = :forecastResultId ORDER BY f.validTimeStart ASC"),
+    @NamedQuery(name = "ForecastResult.findByForecastConfigurationId", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId ORDER BY f.validTimeStart ASC"),
+    @NamedQuery(name = "ForecastResult.findByForecastConfigurationIdAndPeriod", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId AND f.validTimeStart BETWEEN :timeStart AND :timeEnd ORDER BY f.validTimeStart ASC"),
+    @NamedQuery(name = "ForecastResult.findByValidTimeStart", query = "SELECT f FROM ForecastResult f WHERE f.validTimeStart = :validTimeStart ORDER BY f.validTimeStart ASC"),
+    @NamedQuery(name = "ForecastResult.findByWarningStatus", query = "SELECT f FROM ForecastResult f WHERE f.warningStatus = :warningStatus ORDER BY f.validTimeStart ASC")})
 public class ForecastResult implements Serializable, Comparable{
     private static final long serialVersionUID = 1L;
     @Id
@@ -68,9 +69,12 @@ public class ForecastResult implements Serializable, Comparable{
     @Basic(optional = false)
     @Column(name = "forecast_result_id")
     private Long forecastResultId;
-    @Column(name = "result_valid_time")
+    @Column(name = "valid_time_start")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date resultValidTime;
+    private Date validTimeStart;
+    @Column(name = "valid_time_end")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date validTimeEnd;
     @Column(name = "warning_status")
     private Integer warningStatus;
     @Column(name = "all_values")
@@ -79,6 +83,8 @@ public class ForecastResult implements Serializable, Comparable{
     //@JoinColumn(name="forecast_configuration_id",referencedColumnName="forecast_configuration_id")    
     @Column(name = "forecast_configuration_id")
     private Long forecastConfigurationId;
+    @Column(name = "valid_geometry", columnDefinition = "Geometry")
+    private Geometry validGeometry;
 
     
     public ForecastResult() {
@@ -88,7 +94,7 @@ public class ForecastResult implements Serializable, Comparable{
         try {
             this.forecastConfigurationId = forecastConfigurationId;
             this.allValues = new ObjectMapper().writeValueAsString(result.getAllValues());
-            this.resultValidTime = result.getResultValidTime();
+            this.validTimeStart = result.getValidTimeStart();
             this.warningStatus = result.getWarningStatus();
         } catch (IOException ex) {
             Logger.getLogger(ForecastResult.class.getName()).log(Level.SEVERE, null, ex);
@@ -107,12 +113,12 @@ public class ForecastResult implements Serializable, Comparable{
         this.forecastResultId = forecastResultId;
     }
 
-    public Date getResultValidTime() {
-        return resultValidTime;
+    public Date getValidTimeStart() {
+        return validTimeStart;
     }
 
-    public void setResultValidTime(Date resultValidTime) {
-        this.resultValidTime = resultValidTime;
+    public void setValidTimeStart(Date validTimeStart) {
+        this.validTimeStart = validTimeStart;
     }
 
     public Integer getWarningStatus() {
@@ -196,7 +202,7 @@ public class ForecastResult implements Serializable, Comparable{
     
     public int compareTo(ForecastResult other)
     {
-        return this.getResultValidTime().compareTo(other.getResultValidTime());
+        return this.getValidTimeStart().compareTo(other.getValidTimeStart());
     }
 
     /**
@@ -217,6 +223,34 @@ public class ForecastResult implements Serializable, Comparable{
     @Transient
     public Set<String> getKeys() {
         return this.getAllValuesAsMap().keySet();
+    }
+
+    /**
+     * @return the validGeometry
+     */
+    public Geometry getValidGeometry() {
+        return validGeometry;
+    }
+
+    /**
+     * @param validGeometry the validGeometry to set
+     */
+    public void setValidGeometry(Geometry validGeometry) {
+        this.validGeometry = validGeometry;
+    }
+
+    /**
+     * @return the validTimeEnd
+     */
+    public Date getValidTimeEnd() {
+        return validTimeEnd;
+    }
+
+    /**
+     * @param validTimeEnd the validTimeEnd to set
+     */
+    public void setValidTimeEnd(Date validTimeEnd) {
+        this.validTimeEnd = validTimeEnd;
     }
     
 }
