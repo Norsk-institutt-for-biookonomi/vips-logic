@@ -537,13 +537,23 @@ var navigateTo = function(center)
 
 function navToLocation() {
     if (navigator.geolocation) {
+        if(window.location.protocol === "https")
+        {
             navigator.geolocation.getCurrentPosition(function(geopositionObj){
                 navigateTo([geopositionObj.coords.longitude, geopositionObj.coords.latitude]);
                 }
             );
-        } else {
-            alert( "Geolocation is not supported by this browser.");
         }
+        else
+        {
+            if(confirm("Lokalisering fungerer bare over https (sikker tilkobling mellom nettleser og tjener). Klikk OK for å gå til sikker tilkobling."))
+            {
+                window.location = "https:" + window.location.href.substring(window.location.protocol.length);
+            }
+        }
+    } else {
+        alert( "Lokaliseringsfunksjonen er ikke tilgjengelig i denne nettleseren.");
+    }
 }
         
         
