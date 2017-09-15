@@ -498,9 +498,18 @@ var generateSelect = function(selectName, options, preselect)
 var generateCropSelect = function(selectName, cropOrganisms, preselect)
 {
     var retVal = '<select id="' + selectName + '" name="' + selectName + '">';
-    for(var i=0; i< cropOrganisms.length; i++)
+    for(var c=0; c < forekomsttypeLatinskeNavn.length; c++)
     {
-        retVal += '<option value="' + cropOrganisms[i].organismId + '"' + (cropOrganisms[i].organismId == preselect ? " selected=\"selected\"" : "") + '">' + getLocalizedOrganismName(cropOrganisms[i], hardcodedLanguage)  + '</option>';
+        currentLatinName = forekomsttypeLatinskeNavn[c];
+        for(var i=0; i< cropOrganisms.length; i++)
+        {
+            if(cropOrganisms[i].latinName == currentLatinName)
+            {
+                retVal += '<option value="' + cropOrganisms[i].organismId + '"' + (cropOrganisms[i].organismId == preselect ? " selected=\"selected\"" : "") + '">' + 
+                        (currentLatinName == "Plantae" ? "Annet" : getLocalizedOrganismName(cropOrganisms[i], hardcodedLanguage))  
+                        + '</option>';
+            }
+        }
     }
     retVal += '</select>';
     return retVal;
