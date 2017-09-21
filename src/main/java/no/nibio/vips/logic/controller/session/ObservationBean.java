@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.entity.CropCategory;
@@ -690,6 +691,27 @@ public class ObservationBean {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the first time an observation of the given pest registered in the system was made
+     * @param organismId
+     * @return 
+     */
+    public Date getFirstObservationTime(Integer organismId) {
+        
+        try
+        {
+            List<Observation> obs =  em.createNamedQuery("Observation.findFirstByOrganism")
+                    .setParameter("organism", em.find(Organism.class, organismId))
+                    .getResultList();
+            return obs.get(0).getTimeOfObservation();
+        }
+        catch(NoResultException | IndexOutOfBoundsException ex)
+        {
+            return null;
+        }
+                
     }
     
 }

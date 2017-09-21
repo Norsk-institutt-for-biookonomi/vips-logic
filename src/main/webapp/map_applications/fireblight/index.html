@@ -112,6 +112,14 @@
                 opacity: 0.85;
             }
             
+            #seasons {
+                position: absolute;
+                bottom: 1em;
+                top: auto;
+                left: 10px;
+                z-index: 1999;
+            }
+            
             #legend {
                 position: absolute;
                 top: 3.0em;
@@ -123,6 +131,8 @@
                 padding: 10px;
                 opacity: 0.85;
             }
+            
+            
             
             #legend ul {
                 list-style: none;
@@ -250,7 +260,12 @@
       </div>
       
       <div id="featureForm"></div>
-      <div id="menu"></div>
+      <div id="seasons">
+          <select name="startSeason" id="startSeason" onchange="getAndRenderObservations(this.options[this.options.selectedIndex].value);">
+              
+          </select>
+          
+      </div>
       <div id="legend">
             <ul>
                 <li class="bulk">Bulkemispel</li>

@@ -168,6 +168,10 @@ var styles = {
     
     // TODO feature properties must be synchronized
     var lastYear = new Date().getFullYear() - 1;
+    // Population the season select list, setting last year as default selected
+    initSeasonSelectList(lastYear);
+    getAndRenderObservations(lastYear);
+    /*
     $.getJSON("/rest/observation/filter/1/geoJSON?from=" + lastYear + "-01-01&pestId=" + paerebrann.organismId, function(geoData){
         //console.info(geoData)
         var format = new ol.format.GeoJSON();
@@ -179,7 +183,7 @@ var styles = {
         });
         //featureOverlay.clear(true);
         featureOverlay.getSource().addFeatures(drawnfeatures);
-    });
+    });*/
     
     map.on('click', function(evt){
         //features = []
@@ -205,6 +209,28 @@ var styles = {
         }
     });
     
+}
+
+/**
+ * 
+ * @param {type} fromSeason
+ * @returns {undefined}
+ */
+function getAndRenderObservations(fromSeason)
+{
+    //console.info("getAndRenderObservations(" + season + ")");
+    $.getJSON("/rest/observation/filter/1/geoJSON?from=" + fromSeason + "-01-01&pestId=" + paerebrann.organismId, function(geoData){
+        //console.info(geoData)
+        var format = new ol.format.GeoJSON();
+
+        var drawnfeatures = format.readFeatures(geoData, {
+          //dataProjection: "EPSG:32633",
+          dataProjection: "EPSG:4326",
+          featureProjection: map.getView().getProjection().getCode()
+        });
+        featureOverlay.getSource().clear();
+        featureOverlay.getSource().addFeatures(drawnfeatures);
+    });
 }
 
 function toggleRegistration(theButton)
@@ -546,7 +572,7 @@ var navigateTo = function(center)
 
 function navToLocation() {
     if (navigator.geolocation) {
-        if(window.location.protocol === "https")
+        if(window.location.protocol === "https:")
         {
             navigator.geolocation.getCurrentPosition(function(geopositionObj){
                 navigateTo([geopositionObj.coords.longitude, geopositionObj.coords.latitude]);
@@ -564,6 +590,39 @@ function navToLocation() {
         alert( "Lokaliseringsfunksjonen er ikke tilgjengelig i denne nettleseren.");
     }
 }
-        
-        
 
+/**
+ * 
+ * @param {type} selectedSeason
+ * @returns {undefined}
+ */
+function initSeasonSelectList(selectedSeason)
+{
+    // What's the current year?
+    var thisYear = new Date().getFullYear();
+    // How many years do we go back?
+    $.ajax({
+        url: "/rest/observation/first/" + paerebrann.organismId
+        })
+    .done(function(data){
+       var time = moment(data);
+       var firstYear = time.toDate().getFullYear();
+       // Loop gjennom år, lag valgliste :-)
+       var startSeasonList = document.getElementById("startSeason");
+       for(var i=firstYear;i<=thisYear;i++)
+       {
+           var yearOpt = new Option("",i);
+           yearOpt.innerHTML = i + " &rarr;"
+           if(i==selectedSeason)
+           {
+               yearOpt.selected=true;
+           }
+           startSeasonList.options[startSeasonList.options.length] = yearOpt;
+       }
+    })
+    .fail(function(jqXHR, textStatus, errorThrown){
+        alert(textStatus);
+    });
+    
+}
+    

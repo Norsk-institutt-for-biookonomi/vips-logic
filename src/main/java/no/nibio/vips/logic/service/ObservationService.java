@@ -309,6 +309,19 @@ public class ObservationService {
         }
     }
 
-    
+    /**
+     * Returns the time of the first observation in the system of the pest with given Id
+     * @param organismId
+     * @return 
+     */
+    @GET
+    @Path("first/{organismId}")
+    @Produces("text/plain;charset=UTF-8")
+    public Response getFirstObservation(@PathParam("organismId") Integer organismId)
+    {
+        Date firstObsTime = SessionControllerGetter.getObservationBean().getFirstObservationTime(organismId);
+        return firstObsTime != null ? Response.ok().entity(firstObsTime).build()
+                : Response.status(404).entity("No observations of organism with id=" + organismId).build();
+    }
     
 }

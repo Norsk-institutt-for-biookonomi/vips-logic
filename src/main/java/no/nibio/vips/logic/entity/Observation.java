@@ -73,6 +73,7 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
     @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
     @NamedQuery(name = "Observation.findByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism"),
+    @NamedQuery(name = "Observation.findFirstByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism AND o.timeOfObservation = (SELECT MIN(ob.timeOfObservation) FROM Observation ob WHERE ob.organism = :organism)"),
     @NamedQuery(name = "Observation.findByTimeOfObservation", query = "SELECT o FROM Observation o WHERE o.timeOfObservation = :timeOfObservation")
 })
 public class Observation implements Serializable, no.nibio.vips.observation.Observation {
