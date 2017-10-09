@@ -44,6 +44,7 @@
                 <no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD>q22bspFVPwkaohImV21m</no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD>
                 <no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID>MetosDemo</no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID>
                 <no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET>aa8f4b62b72986bac7c84be78836c2c6</no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET>
+                <no.nibio.vips.logic.weather.METNOTHREDDS_TMP_FILE_PATH>/home/treinar/prosjekter/vips/projects/2017_SpotIT/Task 3.2/</no.nibio.vips.logic.weather.METNOTHREDDS_TMP_FILE_PATH>
                 
                 
                 

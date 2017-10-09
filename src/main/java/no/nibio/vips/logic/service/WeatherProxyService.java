@@ -19,11 +19,15 @@
 
 package no.nibio.vips.logic.service;
 
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -35,6 +39,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -46,6 +51,7 @@ import no.nibio.vips.util.weather.ParseWeatherDataException;
 import no.nibio.vips.util.weather.USPestDataParser;
 import no.nibio.vips.util.weather.YrWeatherForecastProvider;
 import no.nibio.vips.util.weather.dnmipointweb.DMIPointWebDataParser;
+import no.nibio.vips.util.weather.metnothredds.MetNoThreddsDataParser;
 import org.jboss.resteasy.annotations.GZIP;
 
 /**
@@ -285,6 +291,85 @@ public class WeatherProxyService {
         catch(ParseWeatherDataException ex)
         {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+        }
+    }
+    
+    @GET
+    @Path("metno/thredds/point/")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getMetNoThreddsPointData(
+            @QueryParam("longitude") Double longitude,
+            @QueryParam("latitude") Double latitude,
+            @QueryParam("timeZone") String timeZoneStr,
+            @QueryParam("startDate") String startDateStr,
+            @QueryParam("startTime") String startTimeStr,
+            @QueryParam("endDate") String endDateStr,
+            @QueryParam("endTime") String endTimeStr,
+            @QueryParam("elementMeasurementTypes") String[] elementMeasurementTypes 
+            
+    )
+    {
+        try
+        {
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH");
+            format.setTimeZone(timeZone);
+            startTimeStr = startTimeStr != null ? startTimeStr : "00";
+            endTimeStr = endTimeStr != null ? endTimeStr : "23";
+
+            Date startDate = format.parse(startDateStr + " " + startTimeStr);
+            Date endDate = format.parse(endDateStr + " " + endTimeStr);
+            MetNoThreddsDataParser dp = new MetNoThreddsDataParser();
+            List<WeatherObservation> retVal = dp.getPointData(longitude, latitude, startDate, endDate, Arrays.asList(elementMeasurementTypes));
+            Collections.sort(retVal);
+            return Response.ok().entity(retVal).build();
+        }
+        catch(ParseException pe)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).entity(pe.getMessage()).build();
+        }
+    }
+    
+    @GET
+    @Path("metno/thredds/grid/")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getMetNoThreddsGridData(
+            @QueryParam("north") Double north,
+            @QueryParam("south") Double south,
+            @QueryParam("east") Double east,
+            @QueryParam("west") Double west,
+            @QueryParam("timeZone") String timeZoneStr,
+            @QueryParam("startDate") String startDateStr,
+            @QueryParam("startTime") String startTimeStr,
+            @QueryParam("endDate") String endDateStr,
+            @QueryParam("endTime") String endTimeStr,
+            @QueryParam("elementMeasurementTypes") String[] elementMeasurementTypes 
+            
+    )
+    {
+        try
+        {
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH");
+            format.setTimeZone(timeZone);
+            startTimeStr = startTimeStr != null ? startTimeStr : "00";
+            endTimeStr = endTimeStr != null ? endTimeStr : "23";
+
+            Date startDate = format.parse(startDateStr + " " + startTimeStr);
+            Date endDate = format.parse(endDateStr + " " + endTimeStr);
+            MetNoThreddsDataParser dp = new MetNoThreddsDataParser();
+            
+            // Creating an envelope with the given bounds
+            Envelope envelope = new Envelope(west, east, south, north);
+            GeometryFactory gf = new GeometryFactory();
+            List<PointWeatherObservationList> retVal = dp.getGridData(gf.toGeometry(envelope), startDate, endDate, Arrays.asList(elementMeasurementTypes));
+            return Response.ok().entity(retVal).build();
+        }
+        catch(ParseException pe)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).entity(pe.getMessage()).build();
         }
     }
 }
