@@ -599,6 +599,7 @@ public class ForecastBean {
                 if(resp.getStatus() == Response.Status.OK.getStatusCode())
                 {
                     List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
+                    System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ", resultsize=" + results.size());
                     // We delete all former results before we store the new ones
                     SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
                 }

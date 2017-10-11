@@ -19,8 +19,11 @@
 
 package no.nibio.vips.logic.startup;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletContextEvent;
+import javax.sql.DataSource;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import org.flywaydb.core.Flyway;
 
 /**
  * This class is created and method contextInitialized called when the application
@@ -31,7 +34,8 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
  */
 public class StartupListener implements javax.servlet.ServletContextListener{
 
-    
+    @Resource(lookup="java:/jboss/datasources/vipslogic")
+    DataSource vipslogicDS;
     /**
      * Called when the application
      * is deployed (either at startup of application container or when redeploying the app)
@@ -40,13 +44,25 @@ public class StartupListener implements javax.servlet.ServletContextListener{
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("VIPSLogic system initializing");
+        System.out.println("VIPSLogic checking for database migrations");
+        // Migrate DB on startup using flywaydb.org
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(vipslogicDS);
+        flyway.migrate();
+        
         SessionControllerGetter.getSchedulingBean().initSystemScheduler();
         if(System.getProperty("no.nibio.vips.logic.START_SCHEDULING_ON_BOOT").equals("true"))
         {
+            System.out.println("VIPSLogic starting scheduling services");
             SessionControllerGetter.getSchedulingBean().startSystemScheduler();
+        }
+        else
+        {
+            System.out.println("VIPSLogic scheduling services configured NOT to start.");
         }
         
     }
+    
 
     /**
      * Called when the web app is closed
