@@ -331,6 +331,22 @@ public class WeatherProxyService {
         }
     }
     
+    /**
+     * This is a real memory hog, use only if you know how!!
+     * Sample test with wget:
+     * wget --header='Accept-Encoding: gzip' "http://logic.vips.nibio.no/rest/weather/proxy/metno/thredds/grid?elementMeasurementTypes=Q0&north=57.91&south=54.36&west=8.04&east=12.83&startDate=2017-03-01&endDate=2017-10-06&timeZone=Europe/Oslo" -O ./denmark_q0.gz
+     * @param north
+     * @param south
+     * @param east
+     * @param west
+     * @param timeZoneStr
+     * @param startDateStr
+     * @param startTimeStr
+     * @param endDateStr
+     * @param endTimeStr
+     * @param elementMeasurementTypes
+     * @return 
+     */
     @GET
     @Path("metno/thredds/grid/")
     @GZIP
@@ -364,7 +380,7 @@ public class WeatherProxyService {
             // Creating an envelope with the given bounds
             Envelope envelope = new Envelope(west, east, south, north);
             GeometryFactory gf = new GeometryFactory();
-            List<PointWeatherObservationList> retVal = dp.getGridData(gf.toGeometry(envelope), startDate, endDate, Arrays.asList(elementMeasurementTypes));
+            List<PointWeatherObservationList> retVal = dp.getGridData(gf.toGeometry(envelope), 10.0, startDate, endDate, Arrays.asList(elementMeasurementTypes));
             return Response.ok().entity(retVal).build();
         }
         catch(ParseException pe)

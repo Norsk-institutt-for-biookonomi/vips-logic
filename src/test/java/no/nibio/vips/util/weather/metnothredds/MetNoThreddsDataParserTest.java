@@ -89,7 +89,7 @@ public class MetNoThreddsDataParserTest {
         Date dateTo = cal.getTime();
         
         
-        List<PointWeatherObservationList> result = instance.getGridData(pol, dateFrom, dateTo, weatherParameters);
+        List<PointWeatherObservationList> result = instance.getGridData(pol, 10.0, dateFrom, dateTo, weatherParameters);
         assertNotNull(result);
         Long timeSpent = new Date().getTime() - start.getTime();
         System.out.println("Time spent=" + (new Double(timeSpent)/1000) + " seconds");

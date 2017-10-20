@@ -63,7 +63,7 @@ public class MetNoThreddsDataParser {
     
     private final String BASE_URL = "http://thredds.met.no/thredds/";
     private final String NCSS_URL = BASE_URL + "ncss/";
-    private final String MEPS25_PATH = "meps25detarchive/";
+    private final String MEPS25_PATH = "meps25epsarchive/";
     private final String MEPS25_FILEBASENAME = "meps_mbr0_extracted_2_5km_";
     private final String NETCDF_EXT = ".nc";
     private final String STANDARD_PARAMS = "?accept=netcdf&temporal=all&&horizStride=1&disableLLSubset=on&timeStride=1";
@@ -93,7 +93,7 @@ public class MetNoThreddsDataParser {
         this.fileTimeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
     
-    public List<PointWeatherObservationList> getGridData(Geometry geometry, Date dateFrom, Date dateTo, List<String> VIPSWeatherParameters)
+    public List<PointWeatherObservationList> getGridData(Geometry geometry, Double resolution, Date dateFrom, Date dateTo, List<String> VIPSWeatherParameters)
     {
         Set<String> metParamNames = VIPSWeatherParameters.stream().map(
                 param -> paramInfo.getProperty(param)
@@ -139,9 +139,12 @@ public class MetNoThreddsDataParser {
                 ArrayDouble.D2 latitude = (ArrayDouble.D2) ncFile.findVariable("lat").read();
                 int[] latLonShape = longitude.getShape(); // Assuming they're identical!
                 Coordinate[][] coords = new Coordinate[latLonShape[0]][latLonShape[1]];
-                for(int y=0;y<latLonShape[0];y++)
+                // Depending on the resolution, we determine the steps
+                int step = (int) Math.floor(resolution / 2.5 - resolution % 2.5);
+                //System.out.println("Step="+step);
+                for(int y=0;y<latLonShape[0];y=y+step)
                 {
-                    for(int x=0;x<latLonShape[1];x++)
+                    for(int x=0;x<latLonShape[1];x=x+step)
                     {
                         double lat = latitude.get(y, x);
                         double lon = longitude.get(y,x);
@@ -169,9 +172,9 @@ public class MetNoThreddsDataParser {
                         {
                             continue;
                         }
-                        for(int y=0;y<latLonShape[0];y++)
+                        for(int y=0;y<latLonShape[0];y=y+step)
                         {
-                            for(int x=0;x<latLonShape[1];x++)
+                            for(int x=0;x<latLonShape[1];x=x+step)
                             {
                                 Map<Long, WeatherObservation> obsMapForPoint = tempRetVal.get(coords[y][x]);
                                 if(obsMapForPoint == null)
