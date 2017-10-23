@@ -46,7 +46,7 @@ import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
-import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.gis.GISUtil;
 
 /**
  * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>

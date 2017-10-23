@@ -46,7 +46,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Size;
-import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.util.StringJsonUserType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -109,9 +110,11 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     
     private Set<ObservationIllustration> observationIllustrationSet;
     
+    private GISEntityUtil GISEntityUtil;
     private GISUtil GISUtil;
 
     public Observation() {
+        this.GISEntityUtil = new GISEntityUtil();
         this.GISUtil = new GISUtil();
     }
 
@@ -187,7 +190,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     
     public void setGeoinfo(String json)
     {
-        this.setGeoinfos(this.GISUtil.getGisFromGeoJSON(json));
+        this.setGeoinfos(this.GISEntityUtil.getGisFromGeoJSON(json));
     }
     
     @Transient
@@ -196,7 +199,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     {
         Map<String, Object> properties = new HashMap<>();
         properties.put("observationId", this.getObservationId());
-        return this.GISUtil.getGeoJSONFromGis(this.geoinfo, properties);
+        return this.GISEntityUtil.getGeoJSONFromGis(this.geoinfo, properties);
     }
     
     /*@Transient

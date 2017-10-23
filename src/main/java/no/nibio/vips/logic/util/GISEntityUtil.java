@@ -40,25 +40,29 @@ import org.wololo.jts2geojson.GeoJSONWriter;
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class GISUtil {
+public class GISEntityUtil {
 
+    public String getGeoJSONFromGis(List<Gis> geoinfo, Map<String, Object> properties)
+    {
+        if(geoinfo == null || geoinfo.isEmpty())
+        {
+            return "";
+        }
+        List<Feature> features = new ArrayList<>();
+        GeoJSONWriter writer = new GeoJSONWriter();
+        geoinfo.stream().forEach(
+                (gis)->features.add(new Feature(writer.write(gis.getGisGeom()), properties))
+        );
+       
+        FeatureCollection json = writer.write(features);
+        return json.toString();
+    }
+    
     /**
-     * Parses all features from GeoJSON string, returns as JTS Geometry objects
+     * Extract Gis objects from the provided GeoJSON
      * @param json
      * @return 
      */
-    public List<Geometry> getGeometriesFromGeoJSON(String json)
-    {
-        FeatureCollection featureCollection = (FeatureCollection) GeoJSONFactory.create(json);
-        GeoJSONReader reader = new GeoJSONReader();
-        List<Geometry> retVal = new ArrayList<>();
-        for(Feature feature: featureCollection.getFeatures())
-        {
-            retVal.add(reader.read(feature.getGeometry()));
-        }
-        return retVal;
-    }
-    
     public List<Gis> getGisFromGeoJSON(String json)
     {
         if(json == null)
@@ -81,22 +85,7 @@ public class GISUtil {
         }catch(NullPointerException ex) {};
         return retVal;
     }
-    
-    public String getGeoJSONFromGis(List<Gis> geoinfo, Map<String, Object> properties)
-    {
-        if(geoinfo == null || geoinfo.isEmpty())
-        {
-            return "";
-        }
-        List<Feature> features = new ArrayList<>();
-        GeoJSONWriter writer = new GeoJSONWriter();
-        geoinfo.stream().forEach(
-                (gis)->features.add(new Feature(writer.write(gis.getGisGeom()), properties))
-        );
-       
-        FeatureCollection json = writer.write(features);
-        return json.toString();
-    }
+
     
     /**
      * Converts a list of observations to a FeatureCollection
@@ -159,39 +148,7 @@ public class GISUtil {
         return features;
     }
     
-    public String getGeoJSONFromGeometries(List<Geometry> geometries, Map<String, Object> properties)
-    {
-        if(geometries == null || geometries.isEmpty())
-        {
-            return "";
-        }
-        List<Feature> features = new ArrayList<>();
-        GeoJSONWriter writer = new GeoJSONWriter();
-        geometries.stream().forEach((geometry)->features.add(new Feature(writer.write(geometry), properties)));
-        FeatureCollection json = writer.write(features);
-        return json.toString();
-    }
     
-    public String getGeoJSONFromGeometry(Geometry geometry,Map<String, Object> properties)
-    {
-        if(geometry == null)
-        {
-            return "";
-        }
-        List<Feature> features = new ArrayList<>();
-        GeoJSONWriter writer = new GeoJSONWriter();
-       
-        features.add(new Feature(writer.write(geometry), properties));
-        
-        FeatureCollection json = writer.write(features);
-        return json.toString();
-    }
-    
-    public Point createPointWGS84(Coordinate coordinate)
-    {
-        GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
-        return gf.createPoint(coordinate);
-    }
     
     public de.micromata.opengis.kml.v_2_2_0.Coordinate getKMLCoordinateFromJTSCoordinate(com.vividsolutions.jts.geom.Coordinate jtsCoordinate)
     {

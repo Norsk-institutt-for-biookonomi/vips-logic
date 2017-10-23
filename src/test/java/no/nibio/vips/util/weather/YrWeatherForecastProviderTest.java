@@ -20,13 +20,11 @@ package no.nibio.vips.util.weather;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
-import no.nibio.vips.util.weather.YrWeatherForecastProvider;
-import no.nibio.vips.util.weather.ParseWeatherDataException;
 import java.util.Collections;
 import java.util.List;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
-import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.util.WeatherUtil;
 import org.junit.After;
 import org.junit.AfterClass;

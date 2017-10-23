@@ -39,7 +39,7 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.annotations.GZIP;
@@ -139,7 +139,7 @@ public class ObservationService {
             to
         );
         
-        GISUtil gisUtil = new GISUtil();
+        GISEntityUtil gisUtil = new GISEntityUtil();
         return Response.ok().entity(gisUtil.getGeoJSONFromObservations(filteredObservations)).build();
     }
     
@@ -301,7 +301,7 @@ public class ObservationService {
             observation.setStatusChangedByUserId(user.getUserId());
             observation.setStatusChangedTime(new Date());
             observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
-            GISUtil gisUtil = new GISUtil();
+            GISEntityUtil gisUtil = new GISEntityUtil();
             return Response.created(URI.create("/observation/" + observation.getObservationId())).entity(gisUtil.getGeoJSONFromObservation(observation)).build();
         }catch (IOException ex)
         {

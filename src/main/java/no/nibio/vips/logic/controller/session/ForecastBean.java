@@ -74,7 +74,7 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
@@ -716,7 +716,7 @@ public class ForecastBean {
         List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
         //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
         
-        GISUtil gisUtil = new GISUtil();
+        GISEntityUtil gisUtil = new GISEntityUtil();
         for(PointOfInterest poiWithAggregate:poisWithAggregate)
         {
             // If it's an inactive weather station, we don't produce a placemark

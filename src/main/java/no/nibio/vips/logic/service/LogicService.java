@@ -255,7 +255,7 @@ public class LogicService {
             to = SystemTime.getSystemTime();
             Calendar cal = Calendar.getInstance();
             cal.setTime(to);
-            cal.add(Calendar.MONTH, -2);
+            cal.add(Calendar.MONTH, -4);
             from = cal.getTime();
         }
 

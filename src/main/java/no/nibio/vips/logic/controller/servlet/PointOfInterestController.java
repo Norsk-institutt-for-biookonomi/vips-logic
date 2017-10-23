@@ -48,7 +48,7 @@ import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.logic.entity.WeatherForecastProvider;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormValidation;

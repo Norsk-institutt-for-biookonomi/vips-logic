@@ -50,7 +50,7 @@ import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
-import no.nibio.vips.logic.util.GISUtil;
+import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.web.forms.FormField;
@@ -190,7 +190,7 @@ public class PointOfInterestBean {
         
         
         String description = "";
-        GISUtil gisUtil = new GISUtil();
+        GISEntityUtil gisUtil = new GISEntityUtil();
         for(PointOfInterest poi:pois)
         {
             if(excludePoiId != null && excludePoiId.equals(poi.getPointOfInterestId()))
