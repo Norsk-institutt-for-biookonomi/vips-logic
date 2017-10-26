@@ -20,7 +20,7 @@
 	<title>${observationSite.observationSiteName!i18nBundle.newObservationSite}</title>
 </#macro>
 <#macro custom_css>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/>
 </#macro>
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
@@ -29,20 +29,21 @@
 	<script type="text/javascript" src="/js/appleFruitMothObservationSiteMap.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
-			initMap([${(observationSite.siteCenterPoint.x?c)!"0"},${(observationSite.siteCenterPoint.y?c)!"0"}],${observationSite.observationSiteId});
+			initMap([${(observationSite.gisId.gisGeom.x?c)!"0"},${(observationSite.gisId.gisGeom.y?c)!"0"}],${observationSite.observationSiteId}, ${currentSeason});
 		});
 	</script>
 </#macro>
 <#macro page_contents>
 <h1>${observationSite.observationSiteName!i18nBundle.newObservationSite} ${currentSeason}</h1>
-<p><a href="/applefruitmoth" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
+<button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth';"><i class="fa fa-arrow-left" aria-hidden="true"></i> ${i18nBundle.back}</button>
+<button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth?action=registerCluster&observationSiteId=${observationSite.observationSiteId}&currentSeason=${currentSeason}';">Registrer klasetall</button>
 <div class="singleBlockContainer">
 	
 	<div class="row">
 		<div class="col-md-6">
 			<#assign formId = "observationSiteForm">
 			<#if messageKey?has_content>
-				<div class="alert alert-success">${i18nBundle(messageKey)}</div>
+				<div class="alert alert-success">${.now}: ${i18nBundle(messageKey)}</div>
 			</#if>
 			<form id="${formId}" role="form" action="/applefruitmoth?action=observationSiteSubmit" method="POST">
 				<input type="hidden" name="observationSiteId" value="${observationSite.observationSiteId}"/>
@@ -71,53 +72,21 @@
 					</select>
 					<span class="help-block" id="${formId}_warningStatus_validation"></span>
 				  </div>
-				  <div class="form-group">
-					<label for="remarks">${i18nBundle.remarks}</label>
-					<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.remarks!""}</#if></textarea>
-					<span class="help-block" id="${formId}_remarks_validation"></span>
-				  </div>
-				  <!--
 				<div class="form-group">
-				    <label for="degreeOfParasitation">${i18nBundle.degreeOfParasitation}</label>
+				    <label for="degreeOfParasitation">${i18nBundle.degreeOfParasitation} (${i18nBundle.internal})</label>
 				    <input type="number" class="form-control" name="degreeOfParasitation" placeholder="${i18nBundle.degreeOfParasitation}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.degreeOfParasitation!""}</#if>" onblur="validateField(this);" />
 				    <span class="help-block" id="${formId}_degreeOfParasitation_validation"></span>
 				</div>
 				<div class="form-group">
-				    <label for="thousandBerrySample">${i18nBundle.thousandBerrySample}</label>
+				    <label for="thousandBerrySample">${i18nBundle.thousandBerrySample} (${i18nBundle.internal})</label>
 				    <input type="number" class="form-control" name="thousandBerrySample" placeholder="${i18nBundle.thousandBerrySample}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.thousandBerrySample!""}</#if>" onblur="validateField(this);" />
 				    <span class="help-block" id="${formId}_thousandBerrySample_validation"></span>
 				</div>
-				<h2>${i18nBundle.observationSitePoints}</h2>
-				<#if observationSitePoints??>
-					<#list observationSitePoints as observationSitePoint>
-					<fieldset>
-						<legend>${observationSitePoint.pointName}</legend>
-						<div class="form-group">
-						    <label for="observationSitePointName_${observationSitePoint.observationSitePointId}">${i18nBundle.observationSitePointName}</label>
-						    <input type="text" class="form-control" name="observationSitePointName_${observationSitePoint.observationSitePointId}" placeholder="${i18nBundle.observationSitePointName}" value="${observationSitePoint.pointName!""}" />
-						  </div>
-						<div class="form-group">
-							<label for="observationSitePoint_description_${observationSitePoint.observationSitePointId}">${i18nBundle.description}</label>
-							<textarea class="form-control" placeholder="${i18nBundle.description}" name="observationSitePoint_description_${observationSitePoint.observationSitePointId}" rows="3"></textarea>
-						</div>
-					
-					</fieldset>
-					</#list>
-					
-				</#if>
-				<fieldset>
-					<legend>${i18nBundle.newObservationSitePoint}</legend>
-					<div class="form-group">
-						    <label for="observationSitePointName_new">${i18nBundle.observationSitePointName}</label>
-						    <input type="text" class="form-control" name="observationSitePointName_new" placeholder="${i18nBundle.observationSitePointName}" value="" />
-						  </div>
-					 <div class="form-group">
-						<label for="observationSitePoint_description_new">${i18nBundle.description}</label>
-						<textarea class="form-control" placeholder="${i18nBundle.description}" name="observationSitePoint_description_new" rows="3"></textarea>
-					</div>
-				
-				</fieldset>
-				-->
+                                <div class="form-group">
+					<label for="remarks">${i18nBundle.remarks} (${i18nBundle.internal})</label>
+					<textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5" onblur="validateField(this);"><#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.remarks!""}</#if></textarea>
+					<span class="help-block" id="${formId}_remarks_validation"></span>
+				  </div>
 				<button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			</form>
 		</div>

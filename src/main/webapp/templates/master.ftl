@@ -65,7 +65,7 @@
                   <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isOrganismEditor()>
 		  	 <li><a href="/organism">${i18nBundle.organisms}</a></li>
 		  </#if>
-		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator()>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator() || user.hasRole(8?int)>
 		  	<li><a href="/applefruitmoth">${i18nBundle.appleFruitMoth}</a></li>
 		  </#if>
 		</ul>

@@ -34,7 +34,6 @@ import de.micromata.opengis.kml.v_2_2_0.Vec2;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -44,7 +43,7 @@ import javax.persistence.Query;
 import no.nibio.vips.logic.util.Globals;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @LocalBean
@@ -53,33 +52,10 @@ public class AppleFruitMothBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
     
-    public Geometry getObservationSiteCenter(ObservationSite observationSite)
-    {
-        try
-        {
-            Query q = em.createNativeQuery("SELECT :observationSiteId as id, ST_Centroid(ST_Union(gis_geom)) AS geometry_value FROM public.gis WHERE gis_id IN ("
-                    + "     SELECT gis_id "
-                    + "     FROM applefruitmoth.observation_site_point "
-                    + "     WHERE observation_site_id = :observationSiteId"
-                    + ")", GeometryEntity.class);
-            GeometryEntity o = (GeometryEntity) q.setParameter("observationSiteId", observationSite.getObservationSiteId())
-                    .getSingleResult();
-
-            return o.getGeometryValue();
-        }
-        catch(NoResultException ex)
-        {
-            return null;
-        }
-    }
     
     public List<ObservationSite> getObservationSites()
     {
         List<ObservationSite> sites = em.createNamedQuery("ObservationSite.findAll").getResultList();
-        for(ObservationSite site:sites)
-        {
-            site.setSiteCenterPoint(this.getObservationSiteCenter(site));
-        }
         return sites;
     }
 
@@ -87,7 +63,7 @@ public class AppleFruitMothBean {
         return em.find(ObservationSite.class, observationSiteId);
     }
 
-    public Kml getObservationSitesKml(Integer season, String serverName) {
+    public Kml getObservationSitesKml(Integer season, Integer selectedObservationSiteId, String serverName) {
         String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         // Initialization
         final Vec2 hotspot = new Vec2()
@@ -109,12 +85,28 @@ public class AppleFruitMothBean {
                     .withHref(iconPath + "station_icon_status_0.png");
         
         document.createAndAddStyle()
+            .withId("selected_warning_type_0")
+        .createAndSetIconStyle()
+                .withScale(1)
+                .withHotSpot(hotspot)
+                .createAndSetIcon()
+                    .withHref(iconPath + "selectedstation_icon_status_0.png");
+        
+        document.createAndAddStyle()
             .withId("warning_type_1")
         .createAndSetIconStyle()
                 .withScale(1)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_1.png");
+        
+        document.createAndAddStyle()
+            .withId("selected_warning_type_1")
+        .createAndSetIconStyle()
+                .withScale(1)
+                .withHotSpot(hotspot)
+                .createAndSetIcon()
+                    .withHref(iconPath + "selectedstation_icon_status_1.png");
         
         document.createAndAddStyle()
             .withId("warning_type_2")
@@ -125,6 +117,14 @@ public class AppleFruitMothBean {
                     .withHref(iconPath + "station_icon_status_2.png");
         
         document.createAndAddStyle()
+            .withId("selected_warning_type_2")
+        .createAndSetIconStyle()
+                .withScale(1)
+                .withHotSpot(hotspot)
+                .createAndSetIcon()
+                    .withHref(iconPath + "selectedstation_icon_status_2.png");
+        
+        document.createAndAddStyle()
             .withId("warning_type_3")
         .createAndSetIconStyle()
                 .withScale(1)
@@ -133,12 +133,28 @@ public class AppleFruitMothBean {
                     .withHref(iconPath + "station_icon_status_3.png");
         
         document.createAndAddStyle()
+            .withId("selected_warning_type_3")
+        .createAndSetIconStyle()
+                .withScale(1)
+                .withHotSpot(hotspot)
+                .createAndSetIcon()
+                    .withHref(iconPath + "selectedstation_icon_status_3.png");
+        
+        document.createAndAddStyle()
             .withId("warning_type_4")
         .createAndSetIconStyle()
                 .withScale(1)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_4.png");
+        
+        document.createAndAddStyle()
+            .withId("selected_warning_type_4")
+        .createAndSetIconStyle()
+                .withScale(1)
+                .withHotSpot(hotspot)
+                .createAndSetIcon()
+                    .withHref(iconPath + "selectedstation_icon_status_4.png");
         
         List<ObservationSite> sites = this.getObservationSites();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -155,7 +171,7 @@ public class AppleFruitMothBean {
                 {
                     lastUpdatedStr = "[" + format.format(commonData.getLastUpdated()) + "] ";
                 }
-                remarks = lastUpdatedStr + (commonData.getRemarks() != null ? commonData.getRemarks() : "");
+                remarks = lastUpdatedStr;
             }
             
             Data infoUri = new Data(String.valueOf(warningStatus));
@@ -172,24 +188,26 @@ public class AppleFruitMothBean {
             final Placemark placemark = document.createAndAddPlacemark()
                     //.withName(site.getObservationSiteName())
                     .withDescription(remarks)
-                    .withStyleUrl("#warning_type_" + warningStatus)
+                    .withStyleUrl("#" + (site.getObservationSiteId().equals(selectedObservationSiteId) ? "selected_":"") + "warning_type_" + warningStatus)
                     .withId(site.getObservationSiteId().toString())
                     .withExtendedData(extendedData);
             
-            Geometry siteCenter = this.getObservationSiteCenter(site);
+            
             
             final Point point = placemark.createAndSetPoint();
             List<Coordinate> coord = point.createAndSetCoordinates();
             coord.add(new Coordinate(
-                    siteCenter.getCoordinate().x,
-                    siteCenter.getCoordinate().y,
+                    site.getGisId().getGisGeom().getCoordinate().x,
+                    site.getGisId().getGisGeom().getCoordinate().y,
                     0
-            ));
+                )
+            );
             
         }
         return kml;
     }
     
+    /*
     public Kml getObservationSitePointsKml(Integer observationSiteId, String serverName) {
         
         ObservationSite observationSite = em.find(ObservationSite.class, observationSiteId);
@@ -221,7 +239,6 @@ public class AppleFruitMothBean {
             
             final Placemark placemark = document.createAndAddPlacemark()
                     .withName(sitePoint.getPointName())
-                    .withDescription(sitePoint.getDescription())
                     .withStyleUrl("#observation_site_point_icon")
                     .withId(sitePoint.getObservationSitePointId().toString());
             
@@ -235,11 +252,19 @@ public class AppleFruitMothBean {
             
         }
         return kml;
-    }
+    }*/
 
     public ObservationSite storeObservationSite(ObservationSite observationSite) {
         return em.merge(observationSite);
     }
 
+    public ObservationSitePoint storeObservationSitePoint(ObservationSitePoint sitePoint)
+    {
+        return em.merge(sitePoint);
+    }
     
+    public ObservationSitePointSeasonData storeObservationSitePointSeasonData(ObservationSitePointSeasonData seasonData)
+    {
+        return em.merge(seasonData);
+    }
 }

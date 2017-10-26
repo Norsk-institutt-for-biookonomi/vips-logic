@@ -58,12 +58,12 @@ public class ObservationSitePointSeasonData implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date autumnDate;
     @Column(name = "autumn_value")
-    private BigDecimal autumnValue;
+    private Integer autumnValue;
     @Column(name = "spring_date")
     @Temporal(TemporalType.DATE)
     private Date springDate;
     @Column(name = "spring_value")
-    private BigDecimal springValue;
+    private Integer springValue;
     @JoinColumn(name = "observation_site_point_id", referencedColumnName = "observation_site_point_id", insertable = false, updatable = false)
     @ManyToOne(optional = false)
     private ObservationSitePoint observationSitePoint;
@@ -95,11 +95,11 @@ public class ObservationSitePointSeasonData implements Serializable {
         this.autumnDate = autumnDate;
     }
 
-    public BigDecimal getAutumnValue() {
+    public Integer getAutumnValue() {
         return autumnValue;
     }
 
-    public void setAutumnValue(BigDecimal autumnValue) {
+    public void setAutumnValue(Integer autumnValue) {
         this.autumnValue = autumnValue;
     }
 
@@ -111,11 +111,11 @@ public class ObservationSitePointSeasonData implements Serializable {
         this.springDate = springDate;
     }
 
-    public BigDecimal getSpringValue() {
+    public Integer getSpringValue() {
         return springValue;
     }
 
-    public void setSpringValue(BigDecimal springValue) {
+    public void setSpringValue(Integer springValue) {
         this.springValue = springValue;
     }
 

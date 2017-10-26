@@ -36,6 +36,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -51,9 +52,8 @@ import no.nibio.vips.logic.entity.Gis;
 @NamedQueries({
     @NamedQuery(name = "ObservationSitePoint.findAll", query = "SELECT o FROM ObservationSitePoint o"),
     @NamedQuery(name = "ObservationSitePoint.findByObservationSitePointId", query = "SELECT o FROM ObservationSitePoint o WHERE o.observationSitePointId = :observationSitePointId"),
-    @NamedQuery(name = "ObservationSitePoint.findByPointName", query = "SELECT o FROM ObservationSitePoint o WHERE o.pointName = :pointName"),
-    @NamedQuery(name = "ObservationSitePoint.findByDescription", query = "SELECT o FROM ObservationSitePoint o WHERE o.description = :description"),
-    @NamedQuery(name = "ObservationSitePoint.findByGisId", query = "SELECT o FROM ObservationSitePoint o WHERE o.gisId = :gisId")})
+    @NamedQuery(name = "ObservationSitePoint.findByPointName", query = "SELECT o FROM ObservationSitePoint o WHERE o.pointName = :pointName")
+})
 public class ObservationSitePoint implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -65,12 +65,7 @@ public class ObservationSitePoint implements Serializable {
     @Size(max = 63)
     @Column(name = "point_name")
     private String pointName;
-    @Size(max = 2147483647)
-    @Column(name = "description")
-    private String description;
-    @JoinColumn(name = "gis_id", referencedColumnName="gis_id")
-    @OneToOne
-    private Gis gisId;
+   
     @JoinColumn(name = "observation_site_id", referencedColumnName = "observation_site_id")
     @ManyToOne
     private ObservationSite observationSiteId;
@@ -82,6 +77,11 @@ public class ObservationSitePoint implements Serializable {
 
     public ObservationSitePoint(Integer observationSitePointId) {
         this.observationSitePointId = observationSitePointId;
+    }
+    
+    public ObservationSitePoint(ObservationSite observationSiteId, String pointName) {
+        this.observationSiteId = observationSiteId;
+        this.pointName = pointName;
     }
 
     public Integer getObservationSitePointId() {
@@ -100,21 +100,7 @@ public class ObservationSitePoint implements Serializable {
         this.pointName = pointName;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Gis getGisId() {
-        return gisId;
-    }
-
-    public void setGisId(Gis gisId) {
-        this.gisId = gisId;
-    }
+    
 
     public ObservationSite getObservationSiteId() {
         return observationSiteId;
@@ -131,6 +117,19 @@ public class ObservationSitePoint implements Serializable {
 
     public void setObservationSitePointSeasonDataSet(Set<ObservationSitePointSeasonData> observationSitePointSeasonDataSet) {
         this.observationSitePointSeasonDataSet = observationSitePointSeasonDataSet;
+    }
+    
+    @Transient
+    public ObservationSitePointSeasonData getSeasonData(Integer season)
+    {
+        for(ObservationSitePointSeasonData ospsData : this.getObservationSitePointSeasonDataSet())
+        {
+            if(ospsData.getObservationSitePointSeasonDataPK().getSeason() == season)
+            {
+                return ospsData;
+            }
+        }
+        return null;
     }
 
     @Override

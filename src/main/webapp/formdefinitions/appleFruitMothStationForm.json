@@ -43,6 +43,16 @@
             "nullValue" : "-1"
         },
         {
+            "name" : "degreeOfParasitation",
+            "dataType" : "DOUBLE",
+            "required" : false
+        },
+        {
+            "name" : "thousandBerrySample",
+            "dataType" : "DOUBLE",
+            "required" : false
+        },
+        {
             "name" : "remarks",
             "dataType" : "STRING",
             "required" : false

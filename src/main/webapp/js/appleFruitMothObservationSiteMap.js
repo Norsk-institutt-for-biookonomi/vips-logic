@@ -34,7 +34,7 @@ var stationMarker;
  * @param {int} currentWeatherStationId - the current weather station id
  * @returns {void}
  */
-function initMap(center, observationSiteId)
+function initMap(center, observationSiteId, currentSeason)
 {
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
@@ -54,7 +54,7 @@ function initMap(center, observationSiteId)
     
     var sitePointsLayer = new ol.layer.Vector({
             source: new ol.source.Vector({
-                    url: "/rest/applefruitmoth/observationsite/" + observationSiteId + "/sitepoints/kml/",
+                    url: "/rest/applefruitmoth/observationsites/kml/" + currentSeason + "/?selectedObservationSiteId=" + observationSiteId,
                     format: new ol.format.KML({"extractAttributes":true}),
                     projection: ol.proj.get('EPSG:3857')
             })

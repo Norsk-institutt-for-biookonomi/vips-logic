@@ -31,14 +31,17 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import no.nibio.vips.logic.entity.Gis;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -50,7 +53,10 @@ import javax.xml.bind.annotation.XmlTransient;
 @NamedQueries({
     @NamedQuery(name = "ObservationSite.findAll", query = "SELECT o FROM ObservationSite o ORDER BY o.observationSiteName ASC"),
     @NamedQuery(name = "ObservationSite.findByObservationSiteId", query = "SELECT o FROM ObservationSite o WHERE o.observationSiteId = :observationSiteId"),
-    @NamedQuery(name = "ObservationSite.findByObservationSiteName", query = "SELECT o FROM ObservationSite o WHERE o.observationSiteName = :observationSiteName")})
+    @NamedQuery(name = "ObservationSite.findByObservationSiteName", query = "SELECT o FROM ObservationSite o WHERE o.observationSiteName = :observationSiteName"),
+    @NamedQuery(name = "ObservationSitePoint.findByDescription", query = "SELECT o FROM ObservationSite o WHERE o.description = :description"),
+    @NamedQuery(name = "ObservationSitePoint.findByGisId", query = "SELECT o FROM ObservationSite o WHERE o.gisId = :gisId")
+})
 public class ObservationSite implements Serializable, Comparable {
 
     private static final long serialVersionUID = 1L;
@@ -66,8 +72,13 @@ public class ObservationSite implements Serializable, Comparable {
     private Set<ObservationSiteSeasonCommonData> observationSiteSeasonCommonDataSet;
     @OneToMany(mappedBy = "observationSiteId", fetch = FetchType.EAGER)
     private Set<ObservationSitePoint> observationSitePointSet;
-    @Transient
-    private Geometry siteCenterPoint;
+    @Size(max = 2147483647)
+    @Column(name = "description")
+    private String description;
+    @JoinColumn(name = "gis_id", referencedColumnName="gis_id")
+    @OneToOne
+    private Gis gisId;
+
 
     public ObservationSite() {
     }
@@ -139,20 +150,7 @@ public class ObservationSite implements Serializable, Comparable {
         return "no.nibio.vips.logic.modules.applefruitmoth.ObservationSite[ observationSiteId=" + observationSiteId + " ]";
     }
 
-    /**
-     * @return the siteCenterPoint
-     */
-    public Geometry getSiteCenterPoint() {
-        return siteCenterPoint;
-    }
-
-    /**
-     * @param siteCenterPoint the siteCenterPoint to set
-     */
-    public void setSiteCenterPoint(Geometry siteCenterPoint) {
-        this.siteCenterPoint = siteCenterPoint;
-    }
-    
+  
     @Transient
     public ObservationSiteSeasonCommonData getCommonDataForSeason(Integer season)
     {
@@ -171,4 +169,19 @@ public class ObservationSite implements Serializable, Comparable {
         return this.getObservationSiteName().compareTo(((ObservationSite)t).observationSiteName);
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Gis getGisId() {
+        return gisId;
+    }
+
+    public void setGisId(Gis gisId) {
+        this.gisId = gisId;
+    }
 }

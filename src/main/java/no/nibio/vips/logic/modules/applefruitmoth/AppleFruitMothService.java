@@ -26,6 +26,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.util.SessionControllerGetter;
@@ -50,25 +51,27 @@ public class AppleFruitMothService {
         Calendar cal = Calendar.getInstance();
         cal.setTime(SystemTime.getSystemTime());
         Integer season = cal.get(Calendar.YEAR);
-        return this.getObservationSitesKML(season);
+        return this.getObservationSitesKML(season, null);
     }
     
     @GET
-    @Path("observationsites/kml/{season}")
+    @Path("observationsites/kml/{season}/")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getObservationSitesKML(@PathParam("season") Integer season)
+    public Response getObservationSitesKML(
+            @PathParam("season") Integer season,
+            @QueryParam("selectedObservationSiteId") Integer selectedObservationSiteId
+    )
     {
-        
-        Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesKml(season, ServletUtil.getServerName(httpServletRequest));
+        Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesKml(season, selectedObservationSiteId, ServletUtil.getServerName(httpServletRequest));
         return Response.ok().entity(retVal).build();
     }
     
-    @GET
+    /*@GET
     @Path("observationsite/{observationSiteId}/sitepoints/kml/")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getObservationSitePointsKML(@PathParam("observationSiteId") Integer observationSiteId)
     {
         Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitePointsKml(observationSiteId, ServletUtil.getServerName(httpServletRequest));
         return Response.ok().entity(retVal).build();
-    }
+    }*/
 }

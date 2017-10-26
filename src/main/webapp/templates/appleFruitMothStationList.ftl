@@ -17,10 +17,10 @@
 	
 --><#include "master.ftl">
 <#macro page_head>
-	
+	<title>Rognebærmøllstasjoner</title>
 </#macro>
 <#macro custom_css>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/>
 </#macro>
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
@@ -38,11 +38,15 @@
 <div class="singleBlockContainer">
 	<div class="row">
 		<div class="col-md-6">
-			<ul>
-			<#list observationSites as observationSite>
-			<li><a href="/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}">${observationSite.observationSiteName}</a></li>
-			</#list>
-			</ul>
+			<table class="table table-striped">
+                            <#list observationSites as observationSite>
+                            <tr>
+                                <td>${observationSite.observationSiteName}</td>
+                                <td><#if user.isSuperUser() || user.isAppleFruitMothAdministrator() ><button class="btn btn-default" onclick="window.location='/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}';">Rediger</button></#if></td>
+                                <td><button class="btn btn-default" onclick="window.location='/applefruitmoth?action=registerCluster&observationSiteId=${observationSite.observationSiteId}';">Registrer klasetall</button></td>
+                            </tr>
+                            </#list>
+			</table>
 		</div>
 		<div class="col-md-6">
 			<div id="appleFruitMothForecastMap" class="map" style="height: 600px;">
