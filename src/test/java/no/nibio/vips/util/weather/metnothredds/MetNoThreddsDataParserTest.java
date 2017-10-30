@@ -18,9 +18,13 @@
  */
 package no.nibio.vips.util.weather.metnothredds;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -99,7 +103,7 @@ public class MetNoThreddsDataParserTest {
     /**
      * Test of getPointData method, of class MetNoThreddsDataParser.
      */
-    @Test
+    //@Test
     public void testGetPointData() {
         System.out.println("getPointData");
         
@@ -129,6 +133,82 @@ public class MetNoThreddsDataParserTest {
         result.stream().forEach(obs->System.out.println(obs));
         assertEquals(expResult, result.size());
         assertTrue(result.size() > 10);
+        
+    }
+    
+    /**
+     * Shorthand for getting weather data for a specific application
+     */
+    //@Test
+    public void testGetPointDataForAnneGrete() {
+        System.out.println("getPointData");
+        
+        String[] placeNames = {
+            "2016_59.3916307_10.424473",
+            "2017_59.3859_10.433975",
+            "As",
+            "Saerheim",
+            "Ullensvang",
+            "Apelsvoll",
+            "Ramnes",
+            "Tjoelling",
+            "Kvithamar",
+            "Holt",
+            "Favang",
+            "Landvik"
+        };
+        
+        Coordinate[] coords = {
+            new Coordinate(10.424473, 59.3916307),
+            new Coordinate(10.433975, 59.3859),
+            new Coordinate(10.781989, 59.660468), // Ås
+            new Coordinate(5.65078, 58.76053), // Særheim
+            new Coordinate(6.65381, 60.31853), // Ullensvang
+            new Coordinate(10.86952, 60.70024), // Apelsvoll
+            new Coordinate(10.23923, 59.38081), // Ramnes
+            new Coordinate(10.12513, 59.04641), // Tjølling
+            new Coordinate(10.87994, 63.48795), // Kvithamar
+            new Coordinate(18.90946, 69.65381), // Holt
+            new Coordinate(10.1872, 61.45822), // Fåvang
+            new Coordinate(8.522554, 58.340071) // Landvik
+        };
+        
+        
+
+        List<String> weatherParameters = Arrays.asList("TM","TX","TN");
+        MetNoThreddsDataParser instance = new MetNoThreddsDataParser();
+        
+        Date start = new Date();
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Oslo"));
+        cal.set(2016,Calendar.JANUARY,1, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date dateFrom = cal.getTime();
+        cal.set(2017,Calendar.DECEMBER,31,23,59,0);
+        Date dateTo = cal.getTime();
+        
+        List<WeatherObservation> result;
+        ObjectMapper mapper = new ObjectMapper();
+
+        for(int i=0;i<placeNames.length;i++)
+        {
+            System.out.println(placeNames[i]);
+            result = instance.getPointData(coords[i].x, coords[i].y, dateFrom, dateTo, weatherParameters);
+            Collections.sort(result);
+            File testOut = new File("/home/treinar/prosjekter/vips/projects/2017_gaardsvarsling/" + placeNames[i]  +  ".json");
+            try(FileOutputStream oStream = new FileOutputStream(testOut);)
+            {
+                
+                
+                mapper.writeValue(oStream, result);
+            }
+            catch(IOException ex)
+            {
+                ex.printStackTrace();
+            }
+            
+        }
+        Long timeSpent = new Date().getTime() - start.getTime();
+        System.out.println("Time spent=" + (new Double(timeSpent)/1000) + " seconds");
         
     }
     
