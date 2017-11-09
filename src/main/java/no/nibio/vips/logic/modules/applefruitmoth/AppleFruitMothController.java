@@ -228,6 +228,10 @@ public class AppleFruitMothController extends HttpServlet {
                 for(ObservationSitePoint osPoint:observationSite.getObservationSitePointSet())
                 {
                     ObservationSitePointSeasonData ospsData = osPoint.getSeasonData(currentSeason);
+                    if(ospsData == null)
+                    {
+                        continue;
+                    }
                     if(ospsData.getAutumnValue() != null && ospsData.getSpringValue() != null)
                     {
                         grossClusterAutumnSum += ospsData.getAutumnValue();
