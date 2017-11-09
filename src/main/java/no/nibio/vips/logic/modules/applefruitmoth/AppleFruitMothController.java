@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -29,10 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -96,6 +93,64 @@ public class AppleFruitMothController extends HttpServlet {
                     request.setAttribute("currentSeason", currentSeason);
                     request.setAttribute("lastSeason", lastSeason);
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    
+                    // Results data
+                    Integer netClusterAutumnSum = 0;
+                    Integer netClusterSpringSum = 0;
+                    Integer treesWithAutumnValues = 0;
+                    Integer treesWithSpringValues = 0;
+                    Integer treesWithIncreasingValues = 0;
+                    Integer treesWithDecreasingValues = 0;
+                    Integer treesWithUnchangedValues = 0;
+                    for(ObservationSitePoint osPoint:observationSite.getObservationSitePointSet())
+                    {
+                        ObservationSitePointSeasonData ospsData = osPoint.getSeasonData(currentSeason);
+                        if(ospsData == null)
+                        {
+                            continue;
+                        }
+                        if(ospsData.getAutumnValue() != null && ospsData.getSpringValue() != null)
+                        {
+                            netClusterAutumnSum += ospsData.getAutumnValue();
+                            netClusterSpringSum += ospsData.getSpringValue();
+                            treesWithAutumnValues++;
+                            treesWithSpringValues++;
+                            treesWithIncreasingValues += ospsData.getSpringValue() > ospsData.getAutumnValue() ? 1 : 0;
+                            treesWithDecreasingValues += ospsData.getSpringValue() < ospsData.getAutumnValue() ? 1 : 0;
+                            treesWithUnchangedValues += ospsData.getSpringValue().equals(ospsData.getAutumnValue()) ? 1 : 0;
+
+                        }
+                        else if(ospsData.getAutumnValue() != null && ospsData.getSpringValue() == null)
+                        {
+                            treesWithAutumnValues++;
+                        }
+                    }
+                    
+                    Double attackNumber = (
+                            observationSite.getCommonDataForSeason(currentSeason) != null 
+                            && observationSite.getCommonDataForSeason(currentSeason).getDegreeOfParasitation() != null 
+                            && observationSite.getCommonDataForSeason(currentSeason).getThousandBerrySample() != null) 
+                            ? observationSite.getCommonDataForSeason(currentSeason).getDegreeOfParasitation() * observationSite.getCommonDataForSeason(currentSeason).getThousandBerrySample() / 100
+                            : null;
+                    
+                    Double neededClusters = attackNumber != null ? attackNumber * netClusterAutumnSum / 20 : null;
+                    
+                    Double forecastNumber = neededClusters != null ? neededClusters / netClusterSpringSum : null;
+                    
+                    Double clusterFraction = treesWithSpringValues > 0 ? ((double) netClusterAutumnSum) / netClusterSpringSum : null;
+                    
+                    request.setAttribute("netClusterAutumnSum", netClusterAutumnSum);
+                    request.setAttribute("netClusterSpringSum", netClusterSpringSum);
+                    request.setAttribute("treesWithAutumnValues", treesWithAutumnValues);
+                    request.setAttribute("treesWithSpringValues", treesWithSpringValues);
+                    request.setAttribute("treesWithIncreasingValues", treesWithIncreasingValues);
+                    request.setAttribute("treesWithDecreasingValues", treesWithDecreasingValues);
+                    request.setAttribute("treesWithUnchangedValues", treesWithUnchangedValues);
+                    request.setAttribute("attackNumber", attackNumber);
+                    request.setAttribute("neededClusters",neededClusters);
+                    request.setAttribute("forecastNumber", forecastNumber);
+                    request.setAttribute("clusterFraction", clusterFraction);
+                    
                     request.getRequestDispatcher("/appleFruitMothStationForm.ftl").forward(request, response);
                 }
                 catch(NullPointerException | NumberFormatException ex)
@@ -166,14 +221,37 @@ public class AppleFruitMothController extends HttpServlet {
                 ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
                 Map<String, ObservationSitePointSeasonData> treeData = new HashMap<>();
 
+                Integer grossClusterAutumnSum = 0;
+                Integer netClusterAutumnSum = 0;
+                Integer grossClusterSpringSum = 0;
+                Integer netClusterSpringSum = 0;
                 for(ObservationSitePoint osPoint:observationSite.getObservationSitePointSet())
                 {
                     ObservationSitePointSeasonData ospsData = osPoint.getSeasonData(currentSeason);
-                    if(ospsData != null)
+                    if(ospsData.getAutumnValue() != null && ospsData.getSpringValue() != null)
+                    {
+                        grossClusterAutumnSum += ospsData.getAutumnValue();
+                        netClusterAutumnSum += ospsData.getAutumnValue();
+                        grossClusterSpringSum += ospsData.getSpringValue();
+                        netClusterSpringSum += ospsData.getSpringValue();
+                        
+                    }
+                    else if(ospsData.getAutumnValue() != null && ospsData.getSpringValue() == null)
+                    {
+                        grossClusterAutumnSum += ospsData.getAutumnValue();
+                        
+                    }
+                    if(ospsData.getAutumnValue() != null)
                     {
                         treeData.put(osPoint.getPointName(), ospsData);
                     }
                 }
+                
+                request.setAttribute("observationSiteSeasonCommonData", observationSite.getCommonDataForSeason(currentSeason));
+                request.setAttribute("grossClusterAutumnSum", grossClusterAutumnSum);
+                request.setAttribute("grossClusterSpringSum", grossClusterSpringSum);
+                request.setAttribute("netClusterAutumnSum", netClusterAutumnSum);
+                request.setAttribute("netClusterSpringSum", netClusterSpringSum);
                 request.setAttribute("treeData", treeData);
                 request.setAttribute("observationSite", observationSite);
                 request.setAttribute("lastSeason", lastSeason);
@@ -200,7 +278,12 @@ public class AppleFruitMothController extends HttpServlet {
 
                     Integer observationSiteId = Integer.valueOf(request.getParameter("observationSiteId"));
                     ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
-                    System.out.println("sitePointSetLength=" + observationSite.getObservationSitePointSet().size());
+                    
+                    ObservationSiteSeasonCommonData seasonCommonData = observationSite.getCommonDataForSeason(currentSeason);
+                    seasonCommonData.setRemarks(request.getParameter("remarks"));
+                    SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePointSeasonCommonData(seasonCommonData);
+                    
+                    //System.out.println("sitePointSetLength=" + observationSite.getObservationSitePointSet().size());
                     treeNames.stream().forEach(treeName->{
                         try {
                             ObservationSitePoint point = observationSite.getObservationSitePointSet().stream()
@@ -214,8 +297,10 @@ public class AppleFruitMothController extends HttpServlet {
                             //Set<ObservationSitePointSeasonData> dataSet = point.getObservationSitePointSeasonDataSet();
                             Integer autumnValue = Integer.valueOf(request.getParameter("autumnValue_" + treeName));
                             Date autumnDate = format.parse(request.getParameter("autumnDate_" + treeName));
-                            Integer springValue = Integer.valueOf(request.getParameter("springValue_" + treeName));
-                            Date springDate = format.parse(request.getParameter("springDate_" + treeName));
+                            // Spring value may be empty
+                            String springValueStr = request.getParameter("springValue_" + treeName);
+                            Integer springValue = springValueStr != null && ! springValueStr.isEmpty() ? Integer.valueOf(request.getParameter("springValue_" + treeName)) : null;
+                            Date springDate = springValue != null && request.getParameter("springDate_" + treeName) != null ? format.parse(request.getParameter("springDate_" + treeName)) : null;
                             
                             ObservationSitePointSeasonData newData = new ObservationSitePointSeasonData(point.getObservationSitePointId(), currentSeason);
                             newData.setAutumnValue(autumnValue);

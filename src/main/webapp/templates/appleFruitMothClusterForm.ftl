@@ -27,15 +27,16 @@
    <div class="singleBlockContainer">
 	
 	<div class="row">
+            <form role="form" action="/applefruitmoth?action=clusterSubmit" method="POST" onsubmit="return validateForm(this)">
 		<div class="col-md-8">
                     <button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth';"><i class="fa fa-arrow-left" aria-hidden="true"></i> Tilbake</button>
                     <p>
                     Man trenger ikke registrere informasjon for alle trær (A-T) i 
-                    lista, men har man lagt inn en verdi for et tre må alle felt for 
-                    det treet være utfylt.
+                    lista. Et tre kan ha bare høsttallet registrert, men ikke bare vårtallet
+                    (da må høsttallet også være registrert).
                     </p>
                     <#assign alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"]>
-                    <form role="form" action="/applefruitmoth?action=clusterSubmit" method="POST" onsubmit="return validateForm(this)">
+                    
                     <input type="hidden" name="observationSiteId" value="${observationSite.observationSiteId}" />
                     <button type="submit" class="btn btn-default">Lagre</button>
                     <div class="form-group">
@@ -63,21 +64,51 @@
                             <tr>
                                  <td>${stationName}</td>
                                  <td><input type="number" class="form-control" name="autumnValue_${stationName}" value="<#if treeData[stationName]?has_content>${treeData[stationName].autumnValue!"0"}</#if>"/></td>
-                                 <td><input type="date" class="form-control" name="autumnDate_${stationName}" value="<#if treeData[stationName]?has_content>${treeData[stationName].autumnDate!""}<#else>${currentSeason-1}-09-01</#if>"/></td>
-                                 <td><input type="number" class="form-control" name="springValue_${stationName}" value="<#if treeData[stationName]?has_content>${treeData[stationName].springValue!"0"}</#if>"/></td>
-                                 <td><input type="date" class="form-control" name="springDate_${stationName}" value="<#if treeData[stationName]?has_content>${treeData[stationName].springDate!""}<#else>${currentSeason}-04-01</#if>"/></td>
+                                 <td><input type="date" class="form-control" name="autumnDate_${stationName}" value="<#if treeData[stationName]?has_content>${treeData[stationName].autumnDate!""}<#else>${currentSeason-1}-08-01</#if>"/></td>
+                                 <td><input type="number" class="form-control" name="springValue_${stationName}" value="<#if treeData[stationName]?has_content>${treeData[stationName].springValue!""}</#if>"/></td>
+                                 <td><input type="date" class="form-control" name="springDate_${stationName}" value="<#if treeData[stationName]?has_content && treeData[stationName].springValue?has_content>${treeData[stationName].springDate!""}<#else>${currentSeason}-05-10</#if>"/></td>
                             </tr>
                         </#list>
+                            </tbody>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Høsttall</th>
+                                <th></th>
+                                <th>Vårtall</th>
+                                <th>Totalt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Bruttosum</td>
+                                 <td>${grossClusterAutumnSum}</td>
+                                 <td></td>
+                                 <td>${grossClusterSpringSum}</td>
+                                 <td>${grossClusterAutumnSum + grossClusterSpringSum}</td>
+                            </tr>
+                            <tr>
+                                <td>Nettosum</td>
+                                 <td>${netClusterAutumnSum}</td>
+                                 <td></td>
+                                 <td>${netClusterSpringSum}</td>
+                                 <td>${netClusterAutumnSum + netClusterSpringSum}</td>
+                            </tr>
                         </tbody>
                     </table>
                     <button type="submit" class="btn btn-default">Lagre</button>
-                    </form>
+                    
                 </div>
                 <div class="col-md-4">
 			<div id="appleFruitMothObservationSiteMap" class="map" style="height: 400px;">
 				<div id="popover"></div>
 			</div>
+                     <div class="form-group">
+                            <label for="remarks">${i18nBundle.remarks} (${i18nBundle.internal})</label>
+                            <textarea class="form-control" placeholder="${i18nBundle.remarks}" name="remarks" rows="5"><#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.remarks!""}</#if></textarea>
+                      </div>
 		</div>
+                </form>
 </#macro>
 <#macro custom_css>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/>
@@ -134,7 +165,8 @@
                         countedTrees = [...new Set(countedTrees)];
 
                         // Checking validity of each row with tree counts
-                        var fieldNames = ["autumnValue","autumnDate", "springValue", "springDate"];
+                        // You can have row with autumn values only, but not spring values only
+                        var fieldNames = ["autumnValue","autumnDate"];
                         for(var i=0;i<countedTrees.length;i++)
                         {
                             // If counted, all fields must contain values

@@ -267,4 +267,8 @@ public class AppleFruitMothBean {
     {
         return em.merge(seasonData);
     }
+
+    public void storeObservationSitePointSeasonCommonData(ObservationSiteSeasonCommonData seasonCommonData) {
+        em.merge(seasonCommonData);
+    }
 }

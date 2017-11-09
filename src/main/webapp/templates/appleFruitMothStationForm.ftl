@@ -94,6 +94,21 @@
 			<div id="appleFruitMothObservationSiteMap" class="map" style="height: 400px;">
 				<div id="popover"></div>
 			</div>
+                        <h2>Beregninger/resultater</h2>
+                        <table class="table table-striped">
+                        <tbody>
+                            <tr><td>Netto-klasetall</td><td>Høst: ${netClusterAutumnSum}, vår: ${netClusterSpringSum}</td></tr>
+                            <tr><td>Antall trær registrert</td><td>Høst: ${treesWithAutumnValues}, vår: ${treesWithSpringValues}</td></tr>
+                            <tr><td>Antall trær med økning i klasetall over vinteren</td><td>${treesWithIncreasingValues}</td></tr>
+                            <tr><td>Antall trær med nedgang i klasetall over vinteren</td><td>${treesWithDecreasingValues}</td></tr>
+                            <tr><td>Antall trær med uendret klasetall over vinteren</td><td>${treesWithUnchangedValues}</td></tr>
+                            <tr><td>Angrepstall</td><td>${attackNumber!"[Data mangler]"}%</td></tr>
+                            <tr><td>Nødvendig antall klaser ${currentSeason}</td><td>${neededClusters!"[Data mangler]"}</td></tr>
+                            <tr><td>Prognosetall ${currentSeason}</td><td>${forecastNumber!"[Data mangler]"}</td></tr>
+                            <tr><td>Klasebrøk</td><td>${clusterFraction!"[Data mangler]"}</td></tr>
+                            
+                        </tbody>
+                        </table>
 		</div>
 	</div>
 </div>	
