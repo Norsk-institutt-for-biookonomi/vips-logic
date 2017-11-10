@@ -666,58 +666,32 @@ public class ForecastBean {
 
         LabelStyle noLabel = new LabelStyle().withScale(0.0);
         
-        document.createAndAddStyle()
-            .withId("warning_type_0")
-            .withLabelStyle(noLabel)
-        .createAndSetIconStyle()
-                .withScale(1)
-                .withHotSpot(hotspot)
-                .createAndSetIcon()
-                    .withHref(iconPath + "station_icon_status_0.png");
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(SystemTime.getSystemTime());
         
-        document.createAndAddStyle()
-            .withId("warning_type_1")
-            .withLabelStyle(noLabel)
-        .createAndSetIconStyle()
-                .withScale(1)
-                .withHotSpot(hotspot)
-                .createAndSetIcon()
-                    .withHref(iconPath + "station_icon_status_1.png");
+        for(int i=0;i<=4;i++)
+        {
+            
+            document.createAndAddStyle()
+                .withId("warning_type_" + i)
+                .withLabelStyle(noLabel)
+            .createAndSetIconStyle()
+                    .withScale(1)
+                    .withHotSpot(hotspot)
+                    .createAndSetIcon()
+                        .withHref(iconPath + "station_icon_status_" + 
+                                (cal.get(Calendar.MONTH) <= 1 ? "winter" : 
+                                        cal.get(Calendar.MONTH) == Calendar.DECEMBER ? "xmas" : i)
+                                + ".png"); 
+        }
         
-        document.createAndAddStyle()
-            .withId("warning_type_2")
-            .withLabelStyle(noLabel)
-        .createAndSetIconStyle()
-                .withScale(1)
-                .withHotSpot(hotspot)
-                .createAndSetIcon()
-                    .withHref(iconPath + "station_icon_status_2.png");
-        
-        document.createAndAddStyle()
-            .withId("warning_type_3")
-            .withLabelStyle(noLabel)
-        .createAndSetIconStyle()
-                .withScale(1)
-                .withHotSpot(hotspot)
-                .createAndSetIcon()
-                    .withHref(iconPath + "station_icon_status_3.png");
-        
-        document.createAndAddStyle()
-            .withId("warning_type_4")
-            .withLabelStyle(noLabel)
-        .createAndSetIconStyle()
-                .withScale(1)
-                .withHotSpot(hotspot)
-                .createAndSetIcon()
-                    .withHref(iconPath + "station_icon_status_4.png");
-
-        // Run through forecast configurations
+        // Run through forecast configurations 
         //Date benchmark = new Date();
         List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
         //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
         
         GISEntityUtil gisUtil = new GISEntityUtil();
-        for(PointOfInterest poiWithAggregate:poisWithAggregate)
+        for(PointOfInterest poiWithAggregate:poisWithAggregate) 
         {
             // If it's an inactive weather station, we don't produce a placemark
             if(poiWithAggregate instanceof PointOfInterestWeatherStation
