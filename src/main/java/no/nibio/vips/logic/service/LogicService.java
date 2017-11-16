@@ -245,12 +245,17 @@ public class LogicService {
     public Response getForecastConfigurationsForOrganization(
             @PathParam("organizationId") Integer organizationId, 
             @QueryParam("cropOrganismId") List<Integer> cropOrganismIds,
-            @QueryParam("from") Date from,
-            @QueryParam("to") Date to
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr
             )
     {
-        
-        if(from == null || to == null)
+        Date from, to;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try{
+            from = format.parse(fromStr);
+            to = format.parse(toStr);
+        }
+        catch(ParseException | NullPointerException ex)
         {
             to = SystemTime.getSystemTime();
             Calendar cal = Calendar.getInstance();
@@ -258,6 +263,7 @@ public class LogicService {
             cal.add(Calendar.MONTH, -4);
             from = cal.getTime();
         }
+        
 
         // First: Get all users for organization
         List<VipsLogicUser> organizationUsers = SessionControllerGetter.getUserBean().getUsersByOrganization(organizationId);
