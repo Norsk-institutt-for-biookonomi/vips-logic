@@ -19,8 +19,6 @@
 
 package no.nibio.vips.logic.modules.applefruitmoth;
 
-import no.nibio.vips.logic.gis.GeometryEntity;
-import com.vividsolutions.jts.geom.Geometry;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 import de.micromata.opengis.kml.v_2_2_0.Data;
 import de.micromata.opengis.kml.v_2_2_0.Document;
@@ -37,9 +35,7 @@ import java.util.List;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import no.nibio.vips.logic.util.Globals;
 
 /**
