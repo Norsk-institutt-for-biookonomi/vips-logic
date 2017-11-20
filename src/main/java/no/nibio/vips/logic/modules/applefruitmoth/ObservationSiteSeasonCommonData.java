@@ -51,9 +51,9 @@ public class ObservationSiteSeasonCommonData implements Serializable {
     @EmbeddedId
     protected ObservationSiteSeasonCommonDataPK observationSiteSeasonCommonDataPK;
     @Column(name = "thousand_berry_sample")
-    private BigDecimal thousandBerrySample;
+    private Double thousandBerrySample;
     @Column(name = "degree_of_parasitation")
-    private BigDecimal degreeOfParasitation;
+    private Double degreeOfParasitation;
     @Column(name = "warning_status")
     private Integer warningStatus;
     @Column(name = "remarks")
@@ -83,19 +83,19 @@ public class ObservationSiteSeasonCommonData implements Serializable {
         this.observationSiteSeasonCommonDataPK = observationSiteSeasonCommonDataPK;
     }
 
-    public BigDecimal getThousandBerrySample() {
+    public Double getThousandBerrySample() {
         return thousandBerrySample;
     }
 
-    public void setThousandBerrySample(BigDecimal thousandBerrySample) {
+    public void setThousandBerrySample(Double thousandBerrySample) {
         this.thousandBerrySample = thousandBerrySample;
     }
 
-    public BigDecimal getDegreeOfParasitation() {
+    public Double getDegreeOfParasitation() {
         return degreeOfParasitation;
     }
 
-    public void setDegreeOfParasitation(BigDecimal degreeOfParasitation) {
+    public void setDegreeOfParasitation(Double degreeOfParasitation) {
         this.degreeOfParasitation = degreeOfParasitation;
     }
 

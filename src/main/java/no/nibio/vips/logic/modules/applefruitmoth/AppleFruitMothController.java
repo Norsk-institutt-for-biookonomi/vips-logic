@@ -181,8 +181,8 @@ public class AppleFruitMothController extends HttpServlet {
                             
                             ossc.setLastUpdated(SystemTime.getSystemTime());
                             ossc.setWarningStatus(formValidation.getFormField("warningStatus").getValueAsInteger());
-                            ossc.setDegreeOfParasitation(formValidation.getFormField("degreeOfParasitation") != null ? BigDecimal.valueOf(formValidation.getFormField("degreeOfParasitation").getValueAsDouble()): null);
-                            ossc.setThousandBerrySample(formValidation.getFormField("thousandBerrySample") != null ? BigDecimal.valueOf(formValidation.getFormField("thousandBerrySample").getValueAsDouble()): null);
+                            ossc.setDegreeOfParasitation(formValidation.getFormField("degreeOfParasitation") != null ? formValidation.getFormField("degreeOfParasitation").getValueAsDouble(): null);
+                            ossc.setThousandBerrySample(formValidation.getFormField("thousandBerrySample") != null ? formValidation.getFormField("thousandBerrySample").getValueAsDouble(): null);
                             ossc.setRemarks(formValidation.getFormField("remarks") != null ? formValidation.getFormField("remarks").getWebValue() : "");
                             observationSite.getObservationSiteSeasonCommonDataSet().add(ossc);
                             SessionControllerGetter.getAppleFruitMothBean().storeObservationSite(observationSite);
