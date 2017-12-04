@@ -868,11 +868,19 @@ public class ForecastBean {
                 
             }
         }
-        // Delete all summaries from not active forecasts
-        em.createNativeQuery("DELETE FROM forecast_summary "
-                + "WHERE forecast_configuration_id NOT IN :activeForecastIds")
-                .setParameter("activeForecastIds", activeForecastIds)
-                .executeUpdate();
+        
+        if(activeForecastIds != null && ! activeForecastIds.isEmpty())
+        {
+            // Delete all summaries from not active forecasts
+            em.createNativeQuery("DELETE FROM forecast_summary "
+                    + "WHERE forecast_configuration_id NOT IN :activeForecastIds")
+                    .setParameter("activeForecastIds", activeForecastIds)
+                    .executeUpdate();
+        }
+        else
+        {
+            em.createNativeQuery("TRUNCATE forecast_summary").executeUpdate();
+        }
     }
     
     public List<ForecastConfiguration> getForecastConfigurationWithSummaries(List<Long> forecastConfigurationIds)
