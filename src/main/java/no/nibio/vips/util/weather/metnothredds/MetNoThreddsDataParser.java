@@ -41,9 +41,15 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.measure.Measure;
+import javax.measure.quantity.Area;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.gis.SimpleWGS84Coordinate;
+import no.nibio.vips.util.SystemUtil;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherUtil;
 import org.apache.commons.io.FileUtils;
@@ -73,6 +79,9 @@ public class MetNoThreddsDataParser {
     private final SimpleDateFormat pathFormat;
     private final SimpleDateFormat fileTimeStampFormat;
     
+    // Approximate number of memory bytes per observation
+    // See the test class for more info
+    private final int AVERAGE_OBS_OBJ_SIZE = 40; 
     
     private final WeatherUtil weatherUtil;
     
@@ -93,8 +102,69 @@ public class MetNoThreddsDataParser {
         this.fileTimeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
     
-    public List<PointWeatherObservationList> getGridData(Geometry geometry, Double resolution, Date dateFrom, Date dateTo, List<String> VIPSWeatherParameters)
+    /**
+     * If you want a lot of data, split it into smaller, manageable parts
+     * @param geometry
+     * @param resolution
+     * @return 
+     */
+    public Geometry[] getManageableGeometries(Geometry geometry, Double resolution, Date dateFrom, Date dateTo, List<String> VIPSWeatherParameters)
     {
+        Long presumableFreeMemory = SystemUtil.getPresumableFreeMemory();
+        Integer divideBy = 1;
+        while(this.getMemoryNeededForRequest(this.getGeometryFraction(geometry, divideBy, 0, 0), resolution, dateFrom, dateTo, VIPSWeatherParameters) > presumableFreeMemory * 0.3)
+        {
+            divideBy++;
+        }
+        
+        Geometry[] retVal = new Geometry[divideBy * divideBy];
+        for(int x=0;x<divideBy;x++)
+        {
+            for(int y=0;y<divideBy;y++)
+            {
+                retVal[x*divideBy + y] = this.getGeometryFraction(geometry, divideBy, x,y);
+            }
+        }
+        //System.out.println("divideBy=" + divideBy);
+        return retVal;
+    }
+    
+    public Geometry getGeometryFraction(Geometry geometry, Integer divideBy, Integer x, Integer y)
+    {
+        Polygon p = (Polygon) geometry.getEnvelope();
+        Double lonLength = (this.getEast(p) - this.getWest(p)) / divideBy;
+        Double latLength = (this.getNorth(p) - this.getSouth(p)) / divideBy;
+        
+        //Double newNorth = ((this.getNorth(p) - this.getSouth(p))/divideBy) + this.getSouth(p);
+        //Double newEast = (this.getEast(p) - this.getWest(p)/divideBy) + this.getWest(p);
+        return new GISUtil().createRectangleFromBounds(
+                this.getSouth(p) + (latLength * (y +1)), 
+                this.getSouth(p) + (latLength * y), 
+                this.getWest(p) + (lonLength * (x +1)), 
+                this.getWest(p) + (lonLength * x)
+        );
+    }
+    
+    /**
+     * 
+     * @param geometry
+     * @param resolution
+     * @param dateFrom
+     * @param dateTo
+     * @param VIPSWeatherParameters
+     * @return
+     * @throws TooMuchDataToAskForException 
+     */
+    public List<PointWeatherObservationList> getGridData(Geometry geometry, Double resolution, Date dateFrom, Date dateTo, List<String> VIPSWeatherParameters) throws TooMuchDataToAskForException
+    {
+        Long memoryNeededForRequest = this.getMemoryNeededForRequest(geometry, resolution, dateFrom, dateTo, VIPSWeatherParameters);
+        Long presumableFreeMemory = SystemUtil.getPresumableFreeMemory();
+        //System.out.println("memoryNeeded=" + memoryNeededForRequest + ", free=" + presumableFreeMemory);
+        if(memoryNeededForRequest > presumableFreeMemory * 0.6)
+        {
+            throw new TooMuchDataToAskForException("The request is estimated to require " + memoryNeededForRequest + " bytes of memory, this is too much. Please ask for less!");
+        }
+        
         Set<String> metParamNames = VIPSWeatherParameters.stream().map(
                 param -> paramInfo.getProperty(param)
         ).collect(Collectors.toSet());
@@ -104,8 +174,8 @@ public class MetNoThreddsDataParser {
         Collections.sort(archiveDates);
         //new GeometryFactory().
         Polygon gridBounds =  (Polygon) geometry.getEnvelope();
-        System.out.println("geometryType=" + gridBounds.getGeometryType());
-        System.out.println("gridBounds=" + gridBounds);
+        //System.out.println("geometryType=" + gridBounds.getGeometryType());
+        //System.out.println("gridBounds=" + gridBounds);
          
         Map<Coordinate, Map<Long, WeatherObservation>> tempRetVal = new HashMap<>();
         archiveDates.stream().forEach(archiveDate -> {
@@ -121,7 +191,7 @@ public class MetNoThreddsDataParser {
                         "&north=" + this.getNorth(gridBounds) + "&west=" + this.getWest(gridBounds) + "&east=" + this.getEast(gridBounds) + "&south=" + this.getSouth(gridBounds) +
                         "&var=" + String.join(",", metParamNames) +
                         "&addLatLon=true");
-                System.out.println("URL: " + threddsURL.toString());
+                //System.out.println("URL: " + threddsURL.toString());
                 Long timestamp = new Date().getTime();
                 tmp = new File(this.TMP_FILE_PATH + timestamp + ".nc");
                 FileUtils.copyURLToFile(threddsURL, tmp);
@@ -156,14 +226,14 @@ public class MetNoThreddsDataParser {
                 for(String metParamName:metParamNames)
                 {
                     String VIPSParamName = this.findVIPSParamNameFromMetParamName(metParamName);
-
+                    //System.out.println("metParamName=" + metParamName);
                     Variable var = ncFile.findVariable(metParamName);
                     // All variables have the dims [time, height, y, x]. All 
                     // variables represent only one height, and can therefore be reduced 
                     // from 4 to three dimensions
                     // Assuming all weather parameters are of type "float"
 
-                    ArrayFloat.D3 varArray = (ArrayFloat.D3) var.read().reduce();
+                    ArrayFloat.D3 varArray = (ArrayFloat.D3) var.read().reduce(1); // 1 is the height parameter
                     // We always skip the two first timestamps, since the model needs 
                     // a couple of hours to spin up
                     for(int i=2;i<timeMeasured.length;i++)
@@ -203,9 +273,9 @@ public class MetNoThreddsDataParser {
                 }
                 
             }
-            catch(IOException ioe)
+            catch(IOException | ClassCastException ex)
             {
-                
+                ex.printStackTrace();
             }
             finally {
                 if(ncFile != null)
@@ -254,7 +324,7 @@ public class MetNoThreddsDataParser {
                         this.fileTimeStampFormat.format(archiveDate) +
                         NETCDF_EXT + STANDARD_PARAMS + "&longitude=" + longitude + "&latitude=" + latitude
                         + "&var=" + String.join(",", metParamNames));
-                System.out.println("URL: " + threddsURL.toString());
+                //System.out.println("URL: " + threddsURL.toString());
                 Long timestamp = new Date().getTime();
                 tmp = new File(this.TMP_FILE_PATH + timestamp + ".nc");
                 FileUtils.copyURLToFile(threddsURL, tmp);
@@ -454,5 +524,38 @@ public class MetNoThreddsDataParser {
     public double getEast(Polygon envelope)
     {
         return envelope.getCoordinates()[2].x;
+    }
+    
+    /**
+     * Calculating roughly the number of grid points within an envelope
+     * @param envelope
+     * @param resolution km-resolution of the grid points
+     * @return 
+     */
+    public Long getNumberOfGridPointsInEnvelope(Polygon envelope, Double resolution)
+    {
+        GISUtil gisUtil = new GISUtil();
+        
+        Measure<Double,Area> m = gisUtil.calcArea(envelope);
+        //System.out.println("measure m = " + m);
+        Unit<Area> sq_km = (Unit<Area>) SI.KILOMETER.pow(2);
+        //System.out.println("Area=" + m.to(sq_km).getValue());
+        Double side = Math.sqrt(m.to(sq_km).getValue());
+        
+        
+        return Math.round((1 + side / resolution) * (1 + side / resolution));
+    }
+    
+    public Long getNumberOfWeatherObservationsRequested(Geometry geometry, Double resolution, Date dateFrom, Date dateTo, List<String> VIPSWeatherParameters)
+    {
+        Polygon gridBounds =  (Polygon) geometry.getEnvelope();
+        Long gridPoints = this.getNumberOfGridPointsInEnvelope(gridBounds, resolution);
+        Long hoursInPeriod = Math.round((dateTo.getTime() - dateFrom.getTime()) / (3600.0 * 1000));        
+        return gridPoints * hoursInPeriod * VIPSWeatherParameters.size();
+    }
+    
+    public Long getMemoryNeededForRequest(Geometry geometry, Double resolution, Date dateFrom, Date dateTo, List<String> VIPSWeatherParameters)
+    {
+        return this.getNumberOfWeatherObservationsRequested(geometry, resolution, dateFrom, dateTo, VIPSWeatherParameters) * this.AVERAGE_OBS_OBJ_SIZE;
     }
 }

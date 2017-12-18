@@ -52,6 +52,7 @@ import no.nibio.vips.util.weather.USPestDataParser;
 import no.nibio.vips.util.weather.YrWeatherForecastProvider;
 import no.nibio.vips.util.weather.dnmipointweb.DMIPointWebDataParser;
 import no.nibio.vips.util.weather.metnothredds.MetNoThreddsDataParser;
+import no.nibio.vips.util.weather.metnothredds.TooMuchDataToAskForException;
 import org.jboss.resteasy.annotations.GZIP;
 
 /**
@@ -383,9 +384,9 @@ public class WeatherProxyService {
             List<PointWeatherObservationList> retVal = dp.getGridData(gf.toGeometry(envelope), 10.0, startDate, endDate, Arrays.asList(elementMeasurementTypes));
             return Response.ok().entity(retVal).build();
         }
-        catch(ParseException pe)
+        catch(ParseException | TooMuchDataToAskForException e)
         {
-            return Response.status(Response.Status.BAD_REQUEST).entity(pe.getMessage()).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
     }
 }
