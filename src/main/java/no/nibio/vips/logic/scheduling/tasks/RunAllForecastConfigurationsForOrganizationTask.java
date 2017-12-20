@@ -20,12 +20,12 @@
 package no.nibio.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import no.nibio.vips.i18n.I18nImpl;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
-import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.SchedulingUtil;
@@ -58,7 +58,8 @@ public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForec
         StringBuilder errorMessage = new StringBuilder();
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         boolean noForecastConfigurationsFound = true;
-
+        Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedBatchableModelInformation();
+        
         List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(this.getOrganization(), SystemTime.getSystemTime());
         //System.out.println("Current forecasts for " + organization.getOrganizationName() + ":" + currentForecastConfigurations.size());
         if(currentForecastConfigurations != null && !currentForecastConfigurations.isEmpty())
@@ -88,7 +89,7 @@ public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForec
                         errorMessage
                                 .append(
                                     SchedulingUtil.createSchedulingMessageHTML(
-                                        "Error with forecast #" + forecastConfiguration.getForecastConfigurationId(), 
+                                        "Error with forecast #" + forecastConfiguration.getForecastConfigurationId() + "(" + forecastConfiguration.getLocationPointOfInterestId().getName() + " - " + modelInformationMap.get(forecastConfiguration.getModelId()).getDefaultName() + ")", 
                                         ex.getMessage(), 
                                         SchedulingUtil.MESSAGE_STATUS_DANGER)
                                 );

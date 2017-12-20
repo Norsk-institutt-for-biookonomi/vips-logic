@@ -36,7 +36,6 @@ import de.micromata.opengis.kml.v_2_2_0.Vec2;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -75,7 +74,6 @@ import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.GISEntityUtil;
-import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -85,7 +83,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
- * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
