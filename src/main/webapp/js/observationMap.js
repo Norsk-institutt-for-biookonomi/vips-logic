@@ -19,6 +19,21 @@
 
 var allObservations = []; // Populated asynchronously
 var drawnFeatures = []; // Populated asynchronously
+var currentDate; // Initialized in initMap
+var map;
+var featureOverlay;
+
+/**
+ * Default coloring
+ * @type Array
+ */
+var ageColors = [
+    [7, 'rgba(255, 0, 0, 1.0)'], // Red
+    [30, 'rgba(244, 206, 66, 1.0)'], // Orange
+    [60, 'rgba(0, 0, 255, 1.0)'], // Blue
+];
+
+var ageStyles;
 
 /*
  * Observation map
@@ -32,9 +47,17 @@ var initMap = function(
             to,
             pestId,
             cropId,
-            cropCategoryId
+            cropCategoryId,
+            customAgeColors
         )
 {
+    if(typeof customAgeColors !== 'undefined')
+    {
+        ageColors = customAgeColors;
+    }
+    
+    initAgeStyles();
+    currentDateInMillis = moment(to).format("X") * 1000; // Reference for coloring the observations
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
                     source: new ol.source.OSM({
@@ -52,7 +75,7 @@ var initMap = function(
     });
     
     // Creating the map
-    var map = new ol.Map({
+    map = new ol.Map({
                     target: 'observationMap',
                     layers: [backgroundLayer],
                     overlays: [popOverlay],
@@ -104,10 +127,14 @@ var initMap = function(
             var obsFeatures = null;
             if(observation.location !== null && observation.location.geoJSON !== null)
             {
-
                 obsFeatures = JSON.parse(observation.location.geoJSON).features;
+                // Need to add observation id for these locations
+                for(var j=0; j<obsFeatures.length; j++)
+                {
+                    obsFeatures[j].properties["observationId"] = observation.observationId;
+                }
             }
-            else if(observation.geoinfo !== null && observation.geoinfo.trim() != "")
+            else if(observation.geoinfo !== null && observation.geoinfo.trim() !== "")
             {
                 obsFeatures = JSON.parse(observation.geoinfo).features;
             }
@@ -121,26 +148,12 @@ var initMap = function(
                 geoJSON.features.push(obsFeatures[j]);
             }
         }
-        var features = new ol.Collection();
-        var featureOverlay = new ol.layer.Vector({
+        var features = new ol.Collection();        
+        featureOverlay = new ol.layer.Vector({
 		    source: new ol.source.Vector({
 		      features: features
 		    }),
-		    style: new ol.style.Style({
-		      fill: new ol.style.Fill({
-		        color: 'rgba(255, 0, 255, 0.2)'
-		      }),
-		      stroke: new ol.style.Stroke({
-		        color: '#ff00ff',
-		        width: 2
-		      }),
-		      image: new ol.style.Circle({
-		        radius: 7,
-		        fill: new ol.style.Fill({
-		          color: '#ff00ff'
-		        })
-		      })
-		    })
+		    style: getCorrectStyle
 		  });
 	
 	
@@ -169,7 +182,11 @@ var initMap = function(
         });
 
         if (feature) {
-            
+            var relAge = getObservationRelativeAge(feature);
+            if(relAge == null || relAge < 0)
+            {
+                return;
+            }
             // Position the popup, and hiding it
             // Resetting information from (possible) former popups
             var geometry = feature.getGeometry();
@@ -211,7 +228,7 @@ var initMap = function(
     });
     
     
-}
+};
 
 var getObservation = function(observationId)
 {
@@ -223,7 +240,7 @@ var getObservation = function(observationId)
         }
     }
     return null;
-}
+};
 
 
 var renderObservationTable = function(data)
@@ -244,7 +261,7 @@ var renderObservationTable = function(data)
         tbodyHTML.push("</tr>");
     }
     tbody.innerHTML = tbodyHTML.join("\n");
-}
+};
 
 // TODO: Set selected if possible
 var renderOrganismField = function(organismList, fieldId, selectedId)
@@ -268,7 +285,7 @@ var renderOrganismField = function(organismList, fieldId, selectedId)
         }
         list.options[list.options.length] = newOption;
     }
-}
+};
 
 var renderCropCategoryField = function(cropCategoryList, selectedId)
 {
@@ -291,7 +308,7 @@ var renderCropCategoryField = function(cropCategoryList, selectedId)
         }
         list.options[list.options.length] = newOption;
     }
-}
+};
 
 var initForm = function(organizationId,
             pestId,
@@ -310,4 +327,93 @@ var initForm = function(organizationId,
             });
         });
     });
-}
+};
+
+// Global configs
+var styleOld = 
+          new ol.style.Style({
+                fill: new ol.style.Fill({
+                  color: 'rgba(0, 0, 0, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                  color: '#000000',
+                  width: 2
+                }),
+                image: new ol.style.Circle({
+                  radius: 7,
+                  fill: new ol.style.Fill({
+                    color: '#000000'
+                  })
+                })
+              });
+  var styleInvisible = new ol.style.Style({
+                fill: new ol.style.Fill({
+                  color: 'rgba(0, 0, 0, 0.0)'
+                }),
+                stroke: new ol.style.Stroke({
+                  color: 'rgba(0, 0, 0, 0.0)',
+                  width: 0
+                }),
+                image: new ol.style.Circle({
+                  radius: 0,
+                  fill: new ol.style.Fill({
+                    color: 'rgba(0, 0, 0, 0.0)'
+                  })
+                })
+              });
+
+var initAgeStyles = function(){
+    ageStyles = [];
+    for(var i in ageColors)
+    {
+        ageStyles.push([
+            ageColors[i][0],
+            new ol.style.Style({
+                fill: new ol.style.Fill({
+                  color: ageColors[i][1].replace("1.0","0.2")
+                }),
+                stroke: new ol.style.Stroke({
+                  color: ageColors[i][1],
+                  width: 2
+                }),
+                image: new ol.style.Circle({
+                  radius: 6,
+                  fill: new ol.style.Fill({
+                    color: ageColors[i][1]
+                  })
+                })
+              })
+          ]); 
+    }
+};
+
+var getCorrectStyle = function(feature){
+            var age = getObservationRelativeAge(feature);
+            if(age == null)
+            {
+                return;
+            }
+            if(age < 0)
+            {
+                return styleInvisible;
+            }
+            for(var i in ageStyles)
+            {
+                if(age < ageStyles[i][0])
+                {
+                    return ageStyles[i][1];
+                }
+            }
+            return styleOld;
+        };
+
+var getObservationRelativeAge = function(feature)
+{
+    var observation = getObservation(feature.get("observationId")); // TODO include observations timestamp in feature. Speeds things up
+    if(observation == null)
+    {
+        console.info("No obs with id=" + feature.get("observationId"));
+        return null; // Means invisible
+    }
+    return Math.floor((currentDateInMillis - observation.timeOfObservation) / (1000 * 60 * 60 * 24)) + 1;
+};

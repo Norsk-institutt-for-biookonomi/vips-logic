@@ -52,6 +52,8 @@ import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.util.DateUtil;
+import no.nibio.vips.util.DateUtilException;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormUtil;
@@ -638,6 +640,7 @@ public class ObservationController extends HttpServlet {
                         to = cal.getTime();
                     }
                     request.setAttribute("to", to);
+                    request.setAttribute("periodDays", new DateUtil().getDaysBetween(from, to));
                     // pestId
                     request.setAttribute("pestId", formValidation.getFormField("pestId").isEmpty() ? null : 
                             formValidation.getFormField("pestId").getValueAsInteger()
@@ -654,7 +657,7 @@ public class ObservationController extends HttpServlet {
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.getRequestDispatcher("/observationMap.ftl").forward(request, response);
                 }
-                catch(FormValidationException ex)
+                catch(FormValidationException | DateUtilException ex)
                 {
                     response.sendError(500, ExceptionUtil.getStackTrace(ex));
                 }

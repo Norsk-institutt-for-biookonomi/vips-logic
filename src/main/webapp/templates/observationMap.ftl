@@ -22,6 +22,31 @@
 <#macro custom_css>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/>
         <link rel="stylesheet" type="text/css" href="/css/3rdparty/chosen.min.css"/>
+        <style type="text/css">
+            #progressBar{
+                position: absolute;
+                bottom: 5px;
+                left: 10px;
+                z-index: 1000;
+                background-color: white;
+                border-radius: 10px;
+                padding: 10px;
+            }
+            #legend{
+                position: absolute;
+                bottom: 115px;
+                left: 10px;
+                z-index: 1000;
+                background-color: white;
+                border-radius: 10px;
+                padding: 10px;
+            }
+            #legend ul {
+                list-style: none;
+                padding:0;
+                margin:0;
+            }
+        </style>
 </#macro>
 <#macro custom_js>
         <script type="text/javascript" src="/js/3rdparty/ol.js"></script>
@@ -32,6 +57,11 @@
         <script type="text/javascript" src="/js/util.js"></script>
         <script type="text/javascript" src="/js/environment.js"></script>
         <script type="text/javascript">
+                var colors = [
+                                [7, 'rgba(255, 0, 0, 1.0)'], // Red
+                                [30, 'rgba(244, 206, 66, 1.0)'], // Orange
+                                [60, 'rgba(0, 0, 255, 1.0)'], // Blue
+                            ];
 		$(document).ready(function() {
 			initMap(
                             [${(defaultMapCenter.x?c)!"0"}, ${(defaultMapCenter.y?c)!"0"}],
@@ -41,10 +71,11 @@
                             "${to?date}",
                             ${pestId!"null"},
                             ${cropId!"null"},
-                            ${cropCategoryId!"null"}
+                            ${cropCategoryId!"null"},
+                            colors
                         );
                         
-                        
+                        initMapLegend();
                         
                         initForm(${organizationId!user.organizationId.organizationId},
                             ${pestId!"null"},
@@ -56,6 +87,66 @@
                         
                         
 		});
+                    
+                    
+                function initMapLegend()
+                {
+                    var lBox = document.getElementById("legend");
+                    var html = "<ul>";
+                    for(var i in colors)
+                    {
+                            html += '<li><i style="color: ' + colors[i][1] + ';" class="fa fa-square" aria-hidden="true"></i> ' + (i > 0 ? colors[i-1][0] + 1 : '0') + '-' + colors[i][0] + ' dager</li>';
+                    }
+                        html += '<li><i style="color: black;" class="fa fa-square" aria-hidden="true"></i> Eldre</li>';
+                    html += "</ul>";
+                    lBox.innerHTML = html;
+                }
+                    
+                var from = moment(document.getElementById("dateFrom").value);
+                
+                function updateCurrentDate(rangeBar){
+                    currentDate = from.clone();
+                    currentDate.add(parseInt(rangeBar.value)-1,"days");
+                    document.getElementById("dayInPeriodDate").innerHTML=currentDate.format('YYYY-MM-DD');    
+                    currentDateInMillis = currentDate.format("X") * 1000;
+                    featureOverlay.getSource().changed();
+                    //console.info(currentDate);
+                }
+                    
+                function updateMap(rangeBar){
+                    currentDate = from.clone();
+                    currentDate.add(parseInt(rangeBar.value)-1,"days");
+                    currentDateInMillis = currentDate.format("X") * 1000;
+                    featureOverlay.getSource().changed();
+                    /*featureOverlay.getSource().clear();
+                    featureOverlay.getSource().addFeatures(drawnfeatures);*/
+                }
+                
+                var moveCurrentDayForward = function(){
+                    theRange = document.getElementById("dayInPeriod");
+                    if(parseInt(theRange.value) < theRange.max)
+                    {
+                        theRange.value = parseInt(theRange.value) +1;
+                        theRange.oninput();
+                    }
+                    else{
+                        togglePlay(document.getElementById("playButton"));
+                    }
+                }
+                var intervalId = null;
+                function togglePlay(theButton){
+                    if(intervalId == null)
+                    {
+                        intervalId = setInterval(moveCurrentDayForward, 250);
+                        theButton.innerHTML = '<i class="fa fa-pause" aria-hidden="true"></i>';
+                    }
+                    else
+                    {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                        theButton.innerHTML = '<i class="fa fa-play" aria-hidden="true"></i>';
+                    }
+                }
         </script>
 </#macro>
 <#macro page_contents>
@@ -65,16 +156,23 @@
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
-        <div id="observationMap" class="map">
+        <div id="observationMap" class="map" style="position:relative;">
             <div id="popover"></div>
+            <div class="form-group" id="progressBar">
+                <label for="dayInPeriod">Gjeldende dato: <span id="dayInPeriodDate">${to?date}</span></label><br/>
+                <button type="button" id="playButton" class="btn" onclick="togglePlay(this);"><i class="fa fa-play" aria-hidden="true"></i></button>
+                <input type="range" id="dayInPeriod" name="dayInPeriod" min="1" max="${periodDays}" step="1" value="${periodDays}" oninput="updateCurrentDate(this);" onchange="updateMap(this)"/>
+                
+            </div>
+            <div id="legend"></div>
         </div>
         <form class="form-inline" method="get" action="/observation/map">
             <div class="form-group">
-                <input class="form-control" type="date" name="from" value="${from?date}"/>
+                <input class="form-control" type="date" id="dateFrom" name="from" value="${from?date}"/>
             </div>
             -
             <div class="form-group">
-                <input class="form-control" type="date" name="to" value="${to?date}"/>
+                <input class="form-control" type="date" id="dateTo" name="to" value="${to?date}"/>
             </div>
             <div class="form-group">
                     <select name="pestId" id="pestList" class="form-control chosen-select" data-placeholder="${i18nBundle.pestOrganismId}">
