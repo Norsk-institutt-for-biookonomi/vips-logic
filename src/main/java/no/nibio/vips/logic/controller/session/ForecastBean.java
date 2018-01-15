@@ -549,7 +549,8 @@ public class ForecastBean {
         Query q = em.createNativeQuery(
                         "SELECT * FROM public.forecast_configuration "
                         + "WHERE vips_logic_user_id IN (SELECT user_id FROM public.vips_logic_user WHERE organization_id=:organizationId) "
-                        + "AND :time BETWEEN date_start AND date_end"
+                        + "AND :time BETWEEN date_start AND date_end "
+                        + "ORDER BY weather_station_point_of_interest_id ASC "
         ,ForecastConfiguration.class);
         q.setParameter("organizationId", organization.getOrganizationId());
         q.setParameter("time", time);
