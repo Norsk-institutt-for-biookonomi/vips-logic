@@ -162,6 +162,11 @@ public class VipsLogicUser implements Serializable {
     public Organization getOrganizationId() {
         return organizationId;
     }
+    
+    @Transient
+    public Integer getOrganization_id(){
+        return organizationId.getOrganizationId();
+    }
 
     public void setOrganizationId(Organization organizationId) {
         this.organizationId = organizationId;
