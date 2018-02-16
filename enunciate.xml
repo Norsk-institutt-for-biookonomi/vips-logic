@@ -2,7 +2,7 @@
 
   <title>VIPSLogic API</title>
   <description>
-      The VIPSLogic service API gives access to stored pest predictions and observations
+      The VIPSLogic service API gives access to stored pest predictions and organisms
   </description>
   <copyright>NIBIO</copyright>
   <contact>Tor-Einar Skog</contact>
