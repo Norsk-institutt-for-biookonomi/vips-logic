@@ -19,11 +19,11 @@
 
 package no.nibio.vips.logic.messaging.sms;
 
+import com.webcohesion.enunciate.metadata.Facet;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 
@@ -32,6 +32,7 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/sms")
+@Facet("restricted")
 public class SMSHandlingService {
 
     /**

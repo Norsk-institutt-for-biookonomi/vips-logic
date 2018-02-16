@@ -22,9 +22,8 @@ package no.nibio.vips.observationdata;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ibm.icu.util.ULocale;
+import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,6 +44,7 @@ import no.nibio.vips.logic.i18n.SessionLocaleUtil;
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
+@Facet("restricted")
 @Path("rest/observationdata")
 public class ObservationDataService {
     @PersistenceContext(unitName="VIPSLogic-PU")

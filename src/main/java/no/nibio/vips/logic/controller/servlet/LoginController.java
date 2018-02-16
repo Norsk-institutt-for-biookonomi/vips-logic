@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -42,9 +43,11 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
 import no.nibio.vips.logic.entity.UserUuid;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
@@ -197,7 +200,7 @@ public class LoginController extends HttpServlet {
                         }
                         if(nextPage.indexOf(Globals.PROTOCOL) == 0)
                         {
-                            System.out.println("nextPage=" + nextPage);
+                            //System.out.println("nextPage=" + nextPage);
                             response.sendRedirect(nextPage);
                         }
                         else
@@ -261,6 +264,48 @@ public class LoginController extends HttpServlet {
             else
             {
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
+            }
+        }
+        // Login from a remote resource. Return UUID
+        else if(request.getServletPath().contains("remotelogin"))
+        {
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            
+
+            Map<String,String> creds = new HashMap();
+            creds.put("username", username);
+            creds.put("password", password);
+
+            VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
+            PrintWriter out = response.getWriter();
+            if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
+            {
+                request.getSession().setAttribute("user", user);
+                UUID uUUID = this.handleRememberUser(request, response, user);
+                // All is well, return object
+                ObjectMapper mapper = new ObjectMapper();
+                user.setUserUuid(uUUID);
+                mapper.writeValue(out,user);
+                out.close();
+            }
+            else
+            {
+                response.setStatus(Response.Status.UNAUTHORIZED.getStatusCode());
+                
+                if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
+                {
+                    out.print(SessionLocaleUtil.getI18nText(request, "emailNotVerified"));
+                }
+                else if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL))
+                {
+                    out.print(SessionLocaleUtil.getI18nText(request, "pleaseAwaitApproval"));
+                    request.getRequestDispatcher("/login.ftl").forward(request, response);
+                }
+                else
+                {
+                    out.print(SessionLocaleUtil.getI18nText(request, "invalidcredentials"));
+                }
             }
         }
         // No login attempt. Show form

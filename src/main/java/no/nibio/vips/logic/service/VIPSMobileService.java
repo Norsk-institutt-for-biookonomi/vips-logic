@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.service;
 
-import java.text.SimpleDateFormat;
+import com.webcohesion.enunciate.metadata.Facet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TimeZone;
-import javax.json.JsonObject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -70,6 +69,7 @@ import org.jboss.resteasy.spi.HttpRequest;
  * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
+@Facet("restricted")
 @Path("rest/vipsmobile")
 public class VIPSMobileService {
     

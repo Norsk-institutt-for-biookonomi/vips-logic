@@ -245,6 +245,17 @@
         <artifactId>gt-epsg-hsql</artifactId>
         <version>17.2</version>
     </dependency>
+    <dependency>
+        <groupId>com.webcohesion.enunciate</groupId>
+        <artifactId>enunciate-core-annotations</artifactId>
+        <version>2.10.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.webcohesion.enunciate</groupId>
+        <artifactId>enunciate-rt-util</artifactId>
+        <version>2.10.1</version>
+      </dependency>
   </dependencies>
 
   <build>
@@ -331,6 +342,23 @@
             <argLine>-Xmx6048m</argLine>
         </configuration>
     </plugin>
+    <plugin>
+    <groupId>com.webcohesion.enunciate</groupId>
+    <artifactId>enunciate-maven-plugin</artifactId>
+    <version>2.10.1</version>
+    <executions>
+      <execution>
+        <goals>
+          <!--goal>assemble</goal-->
+          <goal>docs</goal>
+        </goals>
+        <configuration>
+            <docsDir>${project.build.directory}/${project.build.finalName}/public/RESTdocs</docsDir>
+        </configuration>
+      </execution>
+    </executions>
+    
+  </plugin>
     </plugins>
   </build>
   

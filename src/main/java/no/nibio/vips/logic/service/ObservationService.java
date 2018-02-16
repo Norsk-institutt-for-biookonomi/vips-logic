@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.service;
 
+import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
@@ -49,6 +50,7 @@ import org.jboss.resteasy.annotations.GZIP;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/observation")
+@Facet("restricted")
 public class ObservationService {
     
     @Context

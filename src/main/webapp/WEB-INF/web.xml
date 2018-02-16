@@ -98,6 +98,7 @@
         <url-pattern>/login</url-pattern>
         <url-pattern>/logout</url-pattern>
         <url-pattern>/loginsubmit</url-pattern>
+        <url-pattern>/remotelogin</url-pattern>
         <url-pattern>/oauth2callback</url-pattern>
         <url-pattern>/closeAndReloadParentAfterLogin</url-pattern>
     </servlet-mapping>

@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.modules.roughage;
 
+import com.webcohesion.enunciate.metadata.Facet;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -26,7 +27,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -60,6 +60,7 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/roughage")
+@Facet("restricted")
 public class RoughageService {
     private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
 

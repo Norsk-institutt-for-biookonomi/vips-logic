@@ -1,0 +1,29 @@
+<enunciate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://enunciate.webcohesion.com/schemas/enunciate-2.0.0-M.4.xsd">
+
+  <title>VIPSLogic API</title>
+  <description>
+      The VIPSLogic service API gives access to stored pest predictions and observations
+  </description>
+  <copyright>NIBIO</copyright>
+  <contact>Tor-Einar Skog</contact>
+
+  <application root="/"/>
+
+
+  <modules>
+    <docs>
+      <download file="LICENSE.txt" name="NIBIO" description="The license governing this API" showLink="true"/>
+    </docs>
+    <java-xml-client>
+        <facet name="restricted" pattern="**"/>
+    </java-xml-client>
+  </modules>
+
+  <api-classes>
+      <exclude pattern="no.nibio.vips.logic.messaging.UniversalMessagingServiceClient"/>
+      <exclude pattern="no.nibio.vips.util.weather.dnmipointweb.**"/>
+  </api-classes>
+  <facets>
+        <exclude name="restricted"/>
+  </facets>
+</enunciate>

@@ -21,6 +21,7 @@ package no.nibio.vips.logic.service;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.webcohesion.enunciate.metadata.Facet;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.ParseException;
@@ -41,7 +42,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.WeatherObservation;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
@@ -224,6 +224,7 @@ public class WeatherProxyService {
      * @param endDateGET
      * @return 
      */
+    @Facet("restricted")
     @GET
     @POST
     @Path("dmipointweb/{stationId}")
@@ -295,6 +296,7 @@ public class WeatherProxyService {
         }
     }
     
+    @Facet("restricted")
     @GET
     @Path("metno/thredds/point/")
     @GZIP
@@ -348,6 +350,7 @@ public class WeatherProxyService {
      * @param elementMeasurementTypes
      * @return 
      */
+    @Facet("restricted")
     @GET
     @Path("metno/thredds/grid/")
     @GZIP

@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.modules.applefruitmoth;
 
+import com.webcohesion.enunciate.metadata.Facet;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.util.Calendar;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ import no.nibio.vips.util.ServletUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/applefruitmoth")
+@Facet("restricted")
 public class AppleFruitMothService {
     
     @Context

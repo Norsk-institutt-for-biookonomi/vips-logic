@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.modules.barleynetblotch;
 
+import com.webcohesion.enunciate.metadata.Facet;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -55,6 +56,7 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/barleynetblotchmodel")
+@Facet("restricted")
 public class BarleyNetBlotchModelService {
     private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
     
