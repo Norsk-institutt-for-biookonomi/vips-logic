@@ -79,6 +79,7 @@
 				</thead>
 				<tbody>
 				<#list pois?sort_by("name") as poi>
+                                    <#if poi.pointOfInterestTypeId != 4>
 				    <tr>
 					<td>
 						<a href="weatherStation?pointOfInterestId=${poi.pointOfInterestId}">${poi.name!""}</a>
@@ -92,6 +93,7 @@
                                             </#if>
 					</td>
 				    </tr>
+                                    </#if>
 				</#list>
 				</tbody>
 			</table>
