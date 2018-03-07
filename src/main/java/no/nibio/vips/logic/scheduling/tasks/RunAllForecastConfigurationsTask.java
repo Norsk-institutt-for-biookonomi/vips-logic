@@ -96,6 +96,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                         try 
                         {
                             totalNumberofForecastConfigurations++;
+                            //System.out.println("Running forecast #" + forecastConfiguration.getForecastConfigurationId());
                             SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
                             /*
                             if(DEBUG && totalNumberofForecastConfigurations == 2)
@@ -119,9 +120,15 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                         }
 
                     }
-
-                    double completeness = (double) numberOfCompletedForecastConfigurations/totalNumberofForecastConfigurations;
-                    tec.setCompleteness(completeness);
+                    if(totalNumberofForecastConfigurations > 0)
+                    {
+                        double completeness = (double) numberOfCompletedForecastConfigurations/totalNumberofForecastConfigurations;
+                        tec.setCompleteness(completeness);
+                    }
+                    else
+                    {
+                        noForecastConfigurationsFound = true;
+                    }
                 }
             }
             
