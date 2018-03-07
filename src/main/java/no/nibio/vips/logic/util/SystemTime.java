@@ -58,6 +58,12 @@ public final class SystemTime {
                 : 0;
     }
     
+    /**
+     * To override the month offset, enter an element like this in the system config
+     * (standalone.xml on WildFly):
+     * <property name="no.nibio.vips.logic.SYSTEM_TIME_EXACT_DATE" value="2017-09-30"/>
+     * @return 
+     */
     private static Date getExactDate()
     {
         String dateStr = System.getProperty("no.nibio.vips.logic.SYSTEM_TIME_EXACT_DATE");
