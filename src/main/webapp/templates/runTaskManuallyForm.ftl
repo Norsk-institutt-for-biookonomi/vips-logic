@@ -43,6 +43,7 @@
         <h1>${i18nBundle.configureAndRunManually}</h1>
         <h2>${vipsLogicTask.getName(currentLocale)}</h2>
         <form id="runTaskManuallyForm" role="form" action="/scheduling?action=runTaskManuallyFormSubmit" method="POST" onsubmit2="return false;" onsubmit="try{ return validateForm(this);}catch(err){alert(err);return false;}">
+        <input type="hidden" id="factoryId" name="factoryId" value="${vipsLogicTask.factoryId}"/>
         ${vipsLogicTaskFormFields!""}
         <!--button type="button" onclick="console.log(validateForm(document.getElementById('runTaskManuallyForm')));">Validate</button-->
         <button type="submit" class="btn btn-default">${i18nBundle.runTask}</button>
