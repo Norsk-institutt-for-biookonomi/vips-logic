@@ -207,7 +207,8 @@ public class RoughageService {
                             TMel, 
                             firstLongTermForecastTime, 
                             dateOfLastWeatherData, 
-                            timeZone
+                            timeZone,
+                            false
                     );
                     Collections.sort(TMLongTime);
                     TMLongTime = wUtil.fillHourlyHolesBruteForce(TMLongTime, WeatherUtil.AGGREGATION_TYPE_AVERAGE, firstLongTermForecastTime, dateOfLastWeatherData);
@@ -232,7 +233,8 @@ public class RoughageService {
                             RRel, 
                             firstLongTermForecastTime, 
                             dateOfLastWeatherData, 
-                            timeZone
+                            timeZone,
+                            false
                     );
 
                     RRLongTime = wUtil.fillHourlyHolesBruteForce(RRLongTime, WeatherUtil.AGGREGATION_TYPE_SUM, firstLongTermForecastTime, dateOfLastWeatherData);

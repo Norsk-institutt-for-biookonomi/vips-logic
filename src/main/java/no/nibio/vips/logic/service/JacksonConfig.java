@@ -19,18 +19,24 @@
 
 package no.nibio.vips.logic.service;
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 
 /**
  * Add this to no.nibio.vips.logic.VIPSLogicApplication if you want all
  * dates to be serialized as ISO formatted date strings
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2018 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Provider
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class JacksonConfig implements ContextResolver<ObjectMapper>
 {
     private final ObjectMapper objectMapper;
@@ -39,6 +45,7 @@ public class JacksonConfig implements ContextResolver<ObjectMapper>
     {
         objectMapper = new ObjectMapper().configure(
                            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.registerModule(new JtsModule());
     }
 
     @Override
