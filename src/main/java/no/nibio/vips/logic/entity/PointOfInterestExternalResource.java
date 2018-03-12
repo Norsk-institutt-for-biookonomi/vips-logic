@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
@@ -35,6 +36,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
+ * TODO: SOMETHING FISHY HERE? SHOULD BE EITHER MANY TO MANY OR PK?? NOT BOTH??
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
@@ -53,6 +55,7 @@ public class PointOfInterestExternalResource implements Serializable {
     @Size(max = 255)
     @Column(name = "resource_identifier")
     private String resourceIdentifier;
+    
     @JoinColumn(name = "point_of_interest_id", referencedColumnName = "point_of_interest_id", insertable = false, updatable = false)
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private PointOfInterest pointOfInterest;
@@ -88,6 +91,7 @@ public class PointOfInterestExternalResource implements Serializable {
     }
 
     @XmlTransient
+    @JsonIgnore
     public PointOfInterest getPointOfInterest() {
         return pointOfInterest;
     }
