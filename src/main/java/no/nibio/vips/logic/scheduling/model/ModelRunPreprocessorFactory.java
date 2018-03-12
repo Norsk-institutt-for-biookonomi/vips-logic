@@ -59,17 +59,16 @@ public class ModelRunPreprocessorFactory {
             Set<Class<? extends ModelRunPreprocessor>> subTypes = new HashSet();
             reflections = new Reflections("no.nibio.vips.logic");
             subTypes.addAll(reflections.getSubTypesOf(ModelRunPreprocessor.class));
-            for(Class<? extends ModelRunPreprocessor> subType : subTypes)
-            {
+            subTypes.forEach((subType) -> {
                 try 
                 {
                     modelRunPreprocessors.put(subType.newInstance().getModelId(), subType);
-                } 
+                }
                 catch ( InstantiationException | IllegalAccessException ex) 
                 {
                     Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            }
+            });
         }
         return modelRunPreprocessors;
     }
