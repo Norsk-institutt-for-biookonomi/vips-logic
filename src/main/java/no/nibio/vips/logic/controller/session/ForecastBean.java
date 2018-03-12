@@ -609,6 +609,10 @@ public class ForecastBean {
                 //System.out.println("Finished runModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
             
         }
+        else
+        {
+            throw new PreprocessorException("Could not find model with id=" + forecastConfiguration.getModelId());
+        }
     }
     
     public List<Result> runForecast(ModelConfiguration config, Integer VIPSCoreUserId) throws RunModelException
