@@ -611,7 +611,7 @@ public class ForecastBean {
         }
         else
         {
-            throw new PreprocessorException("Could not find model with id=" + forecastConfiguration.getModelId());
+            throw new PreprocessorException("Could not find model with id=|" + forecastConfiguration.getModelId() + "|");
         }
     }
     
