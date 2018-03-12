@@ -33,16 +33,7 @@ public class SendForecastEventNotificationsTask extends VipsLogicTask {
 
     @Override
     public String getConfigFormDefinition(String language) {
-        String retVal = "{"
-                        + "   \"fields\":["
-                        + "       {"
-                        + "           \"name\":\"factoryId\","
-                        + "           \"dataType\":\"" + FormField.DATA_TYPE_INTEGER + "\","
-                        + "           \"fieldType\":\"" + FormField.FIELD_TYPE_HIDDEN + "\","
-                        + "           \"webValue\":[\"" + VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK + "\"]"
-                        + "       }"
-                        + "    ]}";
-         return retVal;
+       return "{\"fields\":[]}";
     }
 
     @Override

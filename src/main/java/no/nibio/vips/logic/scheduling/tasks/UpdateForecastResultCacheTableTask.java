@@ -33,18 +33,7 @@ public class UpdateForecastResultCacheTableTask  extends VipsLogicTask{
 
     @Override
     public String getConfigFormDefinition(String language) {
-        StringBuilder retVal = new StringBuilder()
-                .append("{")
-                .append("   \"fields\":[")
-                .append("       {")
-                .append("           \"name\":\"factoryId\",")
-                .append("           \"dataType\":\"").append(FormField.DATA_TYPE_INTEGER).append("\",")
-                .append("           \"fieldType\":\"").append(FormField.FIELD_TYPE_HIDDEN).append("\",")
-                .append("           \"webValue\":[\"").append(VipsLogicTaskFactory.UPDATE_FORECAST_RESULT_CACHE_TABLE_TASK).append("\"]")
-                .append("       }")
-                .append("    ]")
-                .append("}");
-         return retVal.toString();
+        return "{\"fields\":[]}";
     }
 
     @Override

@@ -34,16 +34,7 @@ public class UpdateForecastSummaryTableTask  extends VipsLogicTask{
 
     @Override
     public String getConfigFormDefinition(String language) {
-        String retVal = "{"
-                        + "   \"fields\":["
-                        + "       {"
-                        + "           \"name\":\"factoryId\","
-                        + "           \"dataType\":\"" + FormField.DATA_TYPE_INTEGER + "\","
-                        + "           \"fieldType\":\"" + FormField.FIELD_TYPE_HIDDEN + "\","
-                        + "           \"webValue\":[\"" + VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK + "\"]"
-                        + "       }"
-                        + "    ]}";
-         return retVal;
+        return "{\"fields\":[]}";
     }
 
     @Override

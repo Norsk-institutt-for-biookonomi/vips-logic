@@ -33,16 +33,7 @@ public class DeleteAllExpiredUserUuidsTask extends VipsLogicTask{
 
     @Override
     public String getConfigFormDefinition(String language) {
-        String retVal = "{"
-                        + "   \"fields\":["
-                        + "       {"
-                        + "           \"name\":\"factoryId\","
-                        + "           \"dataType\":\"" + FormField.DATA_TYPE_INTEGER + "\","
-                        + "           \"fieldType\":\"" + FormField.FIELD_TYPE_HIDDEN + "\","
-                        + "           \"webValue\":[\"" + VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK + "\"]"
-                        + "       }"
-                        + "    ]}";
-         return retVal;
+        return "{\"fields\":[]}";
     }
 
     @Override
