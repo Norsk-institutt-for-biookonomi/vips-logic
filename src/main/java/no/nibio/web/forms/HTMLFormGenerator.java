@@ -80,11 +80,13 @@ public class HTMLFormGenerator {
     {
         StringBuilder HTMLFormFields = new StringBuilder();
         List<FormField> fields =  new ObjectMapper().convertValue(formDefinition.findValue("fields"), new TypeReference<List<FormField>>(){});
-        for(FormField field : fields)
+        if(fields != null)
         {
-            HTMLFormFields.append(this.createFieldHTML(field, formId, language));
+            for(FormField field : fields)
+            {
+                HTMLFormFields.append(this.createFieldHTML(field, formId, language));
+            }
         }
-        
         return HTMLFormFields.toString();
     }
 
