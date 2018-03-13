@@ -90,7 +90,7 @@
 				</#if>
 		    	</td>
 		    	<td>${forecastConfiguration.locationPointOfInterestId.name}</td>
-		    	<td>${forecastConfiguration.weatherStationPointOfInterestId.name}</td>
+		    	<td><#if forecastConfiguration.weatherStationPointOfInterestId?has_content>${forecastConfiguration.weatherStationPointOfInterestId.name}</#if></td>
 		    	<td>${forecastConfiguration.dateStart}</td>
 		    	<td>${forecastConfiguration.dateEnd}</td>
 		    </tr>
@@ -119,7 +119,7 @@
 				</#if>
 		    	</td>
 		    	<td>${forecastConfiguration.locationPointOfInterestId.name}</td>
-		    	<td>${forecastConfiguration.weatherStationPointOfInterestId.name}</td>
+		    	<td><#if forecastConfiguration.weatherStationPointOfInterestId?has_content>${forecastConfiguration.weatherStationPointOfInterestId.name}</#if></td>
 		    	<td>${forecastConfiguration.dateStart}</td>
 		    	<td>${forecastConfiguration.dateEnd}</td>
 		    </tr>
