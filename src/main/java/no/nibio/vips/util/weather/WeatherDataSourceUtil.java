@@ -59,11 +59,12 @@ public class WeatherDataSourceUtil {
      * @param elementMeasurementTypes Which parameters should be fetched
      * @param startTime When to start
      * @param endTime When to stop
+     * @param ignoreErrors if true, accepts errors and missing data from source
      * @return
      * @throws PreprocessorException
      */
-    public List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime) throws WeatherDataSourceException {
-        List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()));
+    public List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, Boolean ignoreErrors) throws WeatherDataSourceException {
+        List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()), ignoreErrors);
         Collections.sort(observations);
         Date latestTimeOfMeasuredObservations = observations.isEmpty() ? null : observations.get(observations.size() - 1).getTimeMeasured();
         if (station.getWeatherForecastProviderId() != null) {
@@ -113,6 +114,30 @@ public class WeatherDataSourceUtil {
         return observations;
     }
 
+    /**
+     * Fetches measured data from the stations weather data source, and optionally
+     * a weather forecast provider (if so specified in the weather station configuration).
+     * Regarding weather forecast parameters: All requested parameters need be present in the
+     * forecast in order for any parameters to be fetched. So if you request e.g. TJM5 and TM,
+     * you won't get forecast values for any of them, because TJM5 is not present. Solve this
+     * by calling this method twice: Once for the parameters with forecasts, and one for the
+     * remaining.
+     * 
+     * Requires the source to provide a complete data set (still, no guarantee)
+     *
+     * @param station The WeatherStation to fetch data from
+     * @param logIntervalId hourly/daily etc.
+     * @param elementMeasurementTypes Which parameters should be fetched
+     * @param startTime When to start
+     * @param endTime When to stop
+     * @return
+     * @throws PreprocessorException
+     */
+    public List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime) throws WeatherDataSourceException
+    {
+        return this.getWeatherObservations(station, logIntervalId, elementMeasurementTypes, startTime, endTime, Boolean.FALSE);
+    }
+    
     public List<WeatherObservation> getWeatherObservations(String JSONtext) throws IOException {
         return new ObjectMapper().readValue(JSONtext, new TypeReference<List<WeatherObservation>>() {
         });
@@ -128,14 +153,25 @@ public class WeatherDataSourceUtil {
      * @param timeZone
      * @return
      */
-    public List<WeatherObservation> getWeatherObservations(String fetchURI, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, TimeZone timeZone) throws WeatherDataSourceException {
+    public List<WeatherObservation> getWeatherObservations(String fetchURI, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, TimeZone timeZone, Boolean ignoreErrors) throws WeatherDataSourceException {
         SimpleDateFormat dateOutput = new SimpleDateFormat("yyyy-MM-dd");
         dateOutput.setTimeZone(timeZone);
         SimpleDateFormat hourOutput = new SimpleDateFormat("H");
         hourOutput.setTimeZone(timeZone);
-        StringBuilder URL = new StringBuilder(fetchURI).append(fetchURI.contains("?") ? "&" : "?").append("logIntervalId=").append(logIntervalId).append("&timeZone=").append(timeZone.getID()).append("&startDate=").append(dateOutput.format(startTime)).append("&startTime=").append(hourOutput.format(startTime)).append("&endDate=").append(dateOutput.format(endTime)).append("&endTime=").append(hourOutput.format(endTime));
+        StringBuilder URL = new StringBuilder(fetchURI)
+                .append(fetchURI.contains("?") ? "&" : "?")
+                .append("logIntervalId=").append(logIntervalId)
+                .append("&timeZone=").append(timeZone.getID())
+                .append("&startDate=").append(dateOutput.format(startTime))
+                .append("&startTime=").append(hourOutput.format(startTime))
+                .append("&endDate=").append(dateOutput.format(endTime))
+                .append("&endTime=").append(hourOutput.format(endTime));
         for (String type : elementMeasurementTypes) {
             URL.append("&elementMeasurementTypes[]=").append(type);
+        }
+        if(ignoreErrors)
+        {
+            URL.append("&ignoreErrors=true");
         }
         URLConnection URLConn = null;
         InputStream URLStream = null;

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
 import org.wololo.geojson.Feature;
@@ -79,7 +80,7 @@ public class GISEntityUtil {
             {
                 Gis gis = new Gis();
                 gis.setGisGeom(reader.read(feature.getGeometry()));
-                gis.getGisGeom().setSRID(4326);
+                gis.getGisGeom().setSRID(GISUtil.DEFAULT_SRID);
                 retVal.add(gis);
             }
         }catch(NullPointerException ex) {};

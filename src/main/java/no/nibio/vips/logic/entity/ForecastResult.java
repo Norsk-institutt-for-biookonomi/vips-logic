@@ -96,6 +96,7 @@ public class ForecastResult implements Serializable, Comparable{
             this.allValues = new ObjectMapper().writeValueAsString(result.getAllValues());
             this.validTimeStart = result.getValidTimeStart();
             this.warningStatus = result.getWarningStatus();
+            this.validGeometry = result.getValidGeometry();
         } catch (IOException ex) {
             Logger.getLogger(ForecastResult.class.getName()).log(Level.SEVERE, null, ex);
         }
