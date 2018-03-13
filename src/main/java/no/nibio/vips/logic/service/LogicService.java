@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -298,6 +299,9 @@ public class LogicService {
             else
                 forecasts.addAll(result);
         }
+        
+        // We filter out all specialized forecasts (id < 0)
+        forecasts = forecasts.stream().filter(forecast->forecast.getForecastConfigurationId() > 0).collect(Collectors.toList());
         
         return Response.ok().entity(forecasts).build();
     }
