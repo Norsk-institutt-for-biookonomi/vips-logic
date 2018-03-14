@@ -910,6 +910,10 @@ public class ForecastBean {
         Query q = em.createNamedQuery("ForecastSummary.findByForecastConfigurationId");
         for(ForecastConfiguration config: forecastConfigurations)
         {
+            if(config.getForecastConfigurationId() < 0)
+            {
+                continue;
+            }
             config.setForecastSummaries(
                     
                     q.setParameter("forecastConfigurationId", config.getForecastConfigurationId())
@@ -965,6 +969,7 @@ public class ForecastBean {
                         "	SELECT forecast_configuration_id \n" +
                         "	FROM forecast_configuration \n" +
                         "	WHERE is_private IS FALSE \n" +
+                        "       AND forecast_configuration_id > 0 \n" +
                         "       AND location_point_of_interest_id=:locationPointOfInterestId \n" +
                         (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                         ")\n" +
