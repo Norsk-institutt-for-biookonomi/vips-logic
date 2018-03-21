@@ -32,7 +32,6 @@ import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.SchedulingUtil;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
-import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
@@ -40,7 +39,7 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
 
 /**
- * @copyright 2013-2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2018 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class RunAllForecastConfigurationsTask extends VipsLogicTask{
@@ -78,7 +77,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
         boolean noForecastConfigurationsFound = true;
         
         Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedBatchableModelInformation();
-        
+
         for(Organization organization : organizations)
         {
             List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(organization, SystemTime.getSystemTime());
@@ -91,7 +90,8 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     if(
                             weatherStationPointOfInterestId == null
                             || weatherStationPointOfInterestId <= 0
-                            || forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                            || (forecastConfiguration.getWeatherStationPointOfInterestId() != null && forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                            )
                     {
                         try 
                         {
@@ -133,13 +133,11 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
             }
             
         }
-        
         if(noForecastConfigurationsFound)
         {
                tec.setCompleteness(1.0);
                tec.setStatusMessage("No current forecast configurations were found");
         }
-        
         if(tec.getTaskExecutor().getCompleteness() != 1.0)
         {
             //System.out.println("Error detected");

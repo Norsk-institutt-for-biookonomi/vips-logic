@@ -28,6 +28,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import java.util.TimeZone;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
+import no.nibio.vips.logic.util.SystemTime;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -67,7 +69,9 @@ public class WeatherDataSourceUtil {
         List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()), ignoreErrors);
         Collections.sort(observations);
         Date latestTimeOfMeasuredObservations = observations.isEmpty() ? null : observations.get(observations.size() - 1).getTimeMeasured();
-        if (station.getWeatherForecastProviderId() != null) {
+        //System.out.println("latestTimeOfMeasuredObservations = " + latestTimeOfMeasuredObservations);
+        // Todo: We don't collect forecast data when the endTime is before the actual, current date (not systemdate)
+        if (station.getWeatherForecastProviderId() != null && ! SystemTime.isSystemTimeOffsetFromNow()) {
             try {
                 WeatherForecastProvider forecastProvider = WeatherStationProviderFactory.getWeatherForecastProvider(station.getWeatherForecastProviderId().getWeatherForecastProviderId());
                 List<WeatherObservation> forecasts = forecastProvider.getWeatherForecasts(station);
@@ -186,7 +190,9 @@ public class WeatherDataSourceUtil {
             List<WeatherObservation> preliminaryResult = this.getWeatherObservations(URLOutput);
             List<WeatherObservation> filteredObservations = new ArrayList<>();
             preliminaryResult.stream().filter((candidateObs) -> (
-                    candidateObs.getLogIntervalId().equals(logIntervalId))
+                    candidateObs.getLogIntervalId().equals(logIntervalId)
+                    && Arrays.asList(elementMeasurementTypes).contains(candidateObs.getElementMeasurementTypeId())
+                    )
                 ).forEachOrdered((candidateObs) -> {
                     filteredObservations.add(candidateObs);
                 });

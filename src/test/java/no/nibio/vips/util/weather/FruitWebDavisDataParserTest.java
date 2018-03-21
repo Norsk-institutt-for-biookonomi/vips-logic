@@ -61,18 +61,20 @@ public class FruitWebDavisDataParserTest {
     @Test
     public void testGetWeatherObservations() throws Exception {
         System.out.println("getWeatherObservations");
-        String stationID = "id=283&pw=Kghr528Ub5";
+        //String stationID = "id=283&pw=Kghr528Ub5";
+        String stationID = "id=537&pw=Kgsf72k388";
         TimeZone timeZone = TimeZone.getTimeZone("UTC");
         Calendar cal = Calendar.getInstance(timeZone);
-        cal.set(2016, Calendar.JANUARY, 1, 0, 0, 0);
+        cal.set(2017, Calendar.JANUARY, 1, 0, 0, 0);
         Date startDate = cal.getTime();
         FruitWebDavisDataParser instance = new FruitWebDavisDataParser();
+        cal.set(Calendar.MONTH, Calendar.AUGUST);
+        Date endDate = cal.getTime();
         
-        List<WeatherObservation> result = instance.getWeatherObservations(stationID, timeZone, startDate);
-        for(WeatherObservation obs:result)
-        {
+        List<WeatherObservation> result = instance.getWeatherObservations(stationID, timeZone, startDate, endDate);
+        result.forEach((obs) -> {
             System.out.println(obs);
-        }
+        });
         assertNotNull( result);
         
     }

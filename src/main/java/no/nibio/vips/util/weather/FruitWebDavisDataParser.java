@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 import no.nibio.vips.entity.WeatherObservation;
 
 /**
@@ -41,9 +42,10 @@ import no.nibio.vips.entity.WeatherObservation;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class FruitWebDavisDataParser {
-    // Sample: http://wds.fruitweb.info/sc/getFile.php?id=283&date=2016-01-01&pw=Kghr528Ub5
+    // Sample: https://www.fruitweb.info/sc/getFile.php?id=283&date=2016-01-01&pw=Kghr528Ub5
     // id and password combined must be the "remote ID" in VIPSLogic form
-    public final static String FRUITWEB_URL_TEMPLATE = "http://wds.fruitweb.info/sc/getFile.php?{0}&date={1}";
+    //public final static String FRUITWEB_URL_TEMPLATE = "http://wds.fruitweb.info/sc/getFile.php?{0}&date={1}";
+    public final static String FRUITWEB_URL_TEMPLATE = "https://www.fruitweb.info/sc/getFile.php?{0}&date={1}";
     // Metos parameters, including name and aggregation type
     private final static String[][] ELEMENT_MEASUREMENT_TYPES = {
         {"RAIN","RR","SUM"},
@@ -61,7 +63,7 @@ public class FruitWebDavisDataParser {
      * @param startDate
      * @return 
      */
-    public List<WeatherObservation> getWeatherObservations(String stationID, TimeZone timeZone, Date startDate) throws ParseWeatherDataException 
+    public List<WeatherObservation> getWeatherObservations(String stationID, TimeZone timeZone, Date startDate, Date endDate) throws ParseWeatherDataException 
     {
         List<WeatherObservation> retVal = new ArrayList<>();
         SimpleDateFormat urlDFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -81,7 +83,6 @@ public class FruitWebDavisDataParser {
 
             String inputLine;
             Date testTimestamp;
-
             // We need to collect all the lines first, because we need to analyze
             // If the resolution is 30 minutes or 1 hour
             while ((inputLine = in.readLine()) != null)
@@ -192,12 +193,12 @@ public class FruitWebDavisDataParser {
                         aggregateValue = (value00 + value30);
                     }
 
-                    WeatherObservation obs = new WeatherObservation();
-                    obs.setTimeMeasured(timestamp);
-                    obs.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
-                    obs.setElementMeasurementTypeId(FruitWebDavisDataParser.ELEMENT_MEASUREMENT_TYPES[elementMeasurementTypeIndex][1]);
-                    obs.setValue(aggregateValue);
-                    retVal.add(obs);
+                        WeatherObservation obs = new WeatherObservation();
+                        obs.setTimeMeasured(timestamp);
+                        obs.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
+                        obs.setElementMeasurementTypeId(FruitWebDavisDataParser.ELEMENT_MEASUREMENT_TYPES[elementMeasurementTypeIndex][1]);
+                        obs.setValue(aggregateValue);
+                        retVal.add(obs);
                 }
             }
         }
@@ -238,9 +239,9 @@ public class FruitWebDavisDataParser {
                 }
             }
         }
-                
-            
         
-        return retVal;
+        return retVal.stream().filter(obs -> 
+                (obs.getTimeMeasured().compareTo(startDate) >= 0 && (endDate == null || obs.getTimeMeasured().compareTo(endDate) <= 0))
+        ).collect(Collectors.toList());
     }
 }

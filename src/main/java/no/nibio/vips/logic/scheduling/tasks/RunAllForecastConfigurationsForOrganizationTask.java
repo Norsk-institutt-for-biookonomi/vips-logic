@@ -29,7 +29,6 @@ import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.SchedulingUtil;
-import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
@@ -37,7 +36,7 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
 
 /**
- * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2018 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForecastConfigurationsTask{
@@ -70,7 +69,8 @@ public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForec
                 if(
                         weatherStationPointOfInterestId == null
                         || weatherStationPointOfInterestId <= 0
-                        || forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                        || (forecastConfiguration.getWeatherStationPointOfInterestId() != null && forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                        )
                 {
                     try 
                     {

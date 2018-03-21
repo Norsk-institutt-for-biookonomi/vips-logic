@@ -19,7 +19,10 @@
 
 package no.nibio.vips.util.weather;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -49,7 +52,7 @@ import org.xml.sax.SAXException;
  */
 public class YrWeatherForecastProvider implements WeatherForecastProvider{
 
-    private final static String YR_API_URL = "http://api.yr.no/weatherapi/locationforecastlts/1.3/?lat={0};lon={1};msl={2}";
+    private final static String YR_API_URL = "https://api.met.no/weatherapi/locationforecastlts/1.3/?lat={0};lon={1};msl={2}";
     
     @Override
     public List<WeatherObservation> getWeatherForecasts(PointOfInterest location) throws ParseWeatherDataException 
@@ -68,8 +71,9 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
     public List<WeatherObservation> getWeatherForecasts(Double longitude, Double latitude, Double altitude) throws ParseWeatherDataException 
     {
         List<WeatherObservation> yrValues = new ArrayList<>();
+        URL yrURL;
         try {
-            URL yrURL = new URL(MessageFormat.format(
+            yrURL = new URL(MessageFormat.format(
                     YrWeatherForecastProvider.YR_API_URL, 
                     latitude,
                     longitude,
@@ -77,6 +81,8 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
             );
             
             //System.out.println("yrURL=" + yrURL.toString());
+            //System.out.println(getStringFromInputStream(yrURL.openStream()));
+            
             
             // TODO: Parse with DOM parser
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -274,6 +280,33 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
             cal.add(Calendar.HOUR_OF_DAY, 1);
         }
         return retVal;
+    }
+
+    private String getStringFromInputStream(InputStream is) {
+        BufferedReader br = null;
+		StringBuilder sb = new StringBuilder();
+
+		String line;
+		try {
+
+			br = new BufferedReader(new InputStreamReader(is));
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return sb.toString();
     }
     
 }

@@ -129,7 +129,9 @@ public class WeatherProxyService {
             @FormParam("timeZone") String timeZonePOST, 
             @QueryParam("timeZone") String timeZoneGET, 
             @FormParam("startDate") String startDatePOST,
-            @QueryParam("startDate") String startDateGET
+            @QueryParam("startDate") String startDateGET,
+            @FormParam("endDate") String endDatePOST,
+            @QueryParam("endDate") String endDateGET
             )
     {
         List<WeatherObservation> observations;
@@ -141,7 +143,9 @@ public class WeatherProxyService {
             format.setTimeZone(timeZone);
             String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
             Date startDate1 = format.parse(startDateParam);
-            observations = new FruitWebDavisDataParser().getWeatherObservations(URLDecoder.decode(stationId, "UTF-8"), timeZone, startDate1);
+            String endDateParam = endDatePOST != null ? endDatePOST : endDateGET != null ? endDateGET : null;
+            Date endDate1 = endDateParam != null ? format.parse(endDateParam) : null;
+            observations = new FruitWebDavisDataParser().getWeatherObservations(URLDecoder.decode(stationId, "UTF-8"), timeZone, startDate1, endDate1);
         } catch (ParseException | ParseWeatherDataException | NullPointerException | UnsupportedEncodingException ex) {
             return Response.serverError().entity(ex).build();
         }

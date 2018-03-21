@@ -51,6 +51,17 @@ public final class SystemTime {
         return getExactDate() != null ? getExactDate(): cal.getTime();
     }
     
+    /**
+     * Simple check to see if the system time is offset from now. The threshold
+     * is 5 seconds
+     * @return 
+     */
+    public static boolean isSystemTimeOffsetFromNow(){
+        Date systemTime = SystemTime.getSystemTime();
+        Date now = new Date();
+        return Math.abs(now.getTime() - systemTime.getTime()) > 5000;
+    }
+    
     private static Integer getOffsetMonths()
     {
         return System.getProperty("no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS") != null ? 
