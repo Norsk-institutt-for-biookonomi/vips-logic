@@ -315,8 +315,11 @@ public class UserController extends HttpServlet {
                         String messageKey = "";
                         if(userId > 0)
                         {
-                            // Superuser can change username and password
-                            if(user.isSuperUser())
+                            // Superuser can change username and password for everyone
+                            // Organization admin can change username and password for members of on organization
+                            if(user.isSuperUser() ||
+                                    (user.isOrganizationAdmin() && viewUser.getOrganization_id().equals(user.getOrganization_id()))
+                            )
                             {
                                 UserAuthentication auth = viewUser.getPasswordAuthentication();
                                 auth.setUsername(username);
