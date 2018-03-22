@@ -72,8 +72,8 @@ var initMap = function ()
             })
           });
     }
-    //ajax(hostName + "/rest/forecastresults/-1000", function(e){
-    ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
+    ajax(hostName + "/rest/forecastresults/-1000", function(e){
+    //ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
         results = JSON.parse(e.target.responseText);
         var currentDay = todayAtMidnight;
         for(var mapName in maps)
