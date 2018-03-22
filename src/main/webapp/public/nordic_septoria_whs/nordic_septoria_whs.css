@@ -60,6 +60,7 @@ along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
     top: 10px;
     right: 10px;
     background-color: white;
+    font-weight: bold;
 }
 
 #subMap1 .ol-attribution, #subMap2 .ol-attribution, #subMap3 .ol-attribution, #subMap4 .ol-attribution  ,

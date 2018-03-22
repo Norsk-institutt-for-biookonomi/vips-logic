@@ -27,12 +27,25 @@ var maps = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: 
 var initMap = function ()
 {
     var zymoGridMapContainer = document.getElementById("zymoGridMapContainer");
-    zymoGridMapContainer.innerHTML = "<div id='mainMap'><div id='mainMapDateField' class='dateField'></div><div id='VIPSAttribution'>Powered by <a href='https://www.vips-landbruk.no/' target='new'><img id='VIPSLogo' src='" + hostName + "/public/nordic_septoria_whs/logo_vips.png'/></a></div></div>"
+    zymoGridMapContainer.innerHTML = "<div id='mainMap'>"
+                                    + " <div class='dateField'>"
+                                    + "     <div id='mainMapDateField'></div>" 
+                                    + "     <div id='legend'>"
+                                    + "         <table>"
+                                    + "             <tr><td>0</td><td style='color: #777777; font-weight: bold;'>Ingen risiko</td></tr>"
+                                    + "             <tr><td>0-20</td><td style='color: green; font-weight: bold;'>Lav risiko</td></tr>"
+                                    + "             <tr><td>20-40</td><td style='color: orange; font-weight: bold;'>Middels risiko</td></tr>"
+                                    + "             <tr><td>Over 40</td><td style='color: red; font-weight: bold;'>Høy risiko</td></tr>"
+                                    + "         </table>"
+                                    + "     </div>"
+                                    + " </div>"
+                                    + " <div id='VIPSAttribution'>Powered by <a href='https://www.vips-landbruk.no/' target='new'><img id='VIPSLogo' src='" + hostName + "/public/nordic_septoria_whs/logo_vips.png'/></a></div>"
+                                    + "</div>"
                                     + "<div id='subMap1'><div id='subMap1DateField' class='dateField'></div></div>"
                                     + "<div id='subMap2'><div id='subMap2DateField' class='dateField'></div></div>"
                                     + "<div id='subMap3'><div id='subMap3DateField' class='dateField'></div></div>"
                                     + "<div id='subMap4'><div id='subMap4DateField' class='dateField'></div></div>";
-    
+                            
     for(var mapName in featureOverlays)
     {
         featureOverlays[mapName] = new ol.layer.Vector({
@@ -59,8 +72,8 @@ var initMap = function ()
             })
           });
     }
-    ajax(hostName + "/rest/forecastresults/-1000", function(e){
-    //ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
+    //ajax(hostName + "/rest/forecastresults/-1000", function(e){
+    ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
         results = JSON.parse(e.target.responseText);
         var currentDay = todayAtMidnight;
         for(var mapName in maps)
@@ -78,16 +91,22 @@ var featureZIndex = 10;
 
 var getFeatureStyle = function(feature)
 {
+    var WHS = parseInt(feature.get("WHS"));
+    var color = WHS === 0 ? "#777777" 
+                : WHS < 20 ? "yellow"
+                : WHS < 40 ? "orange"
+                : "red";
     return [
             new ol.style.Style({
                 image: new ol.style.Circle({
-                    fill: new ol.style.Fill({ color: [parseInt(feature.get("WHS")) * 255/72, 255 - parseInt(feature.get("WHS")) * 255/72,0,1] }),
-                    stroke: new ol.style.Stroke({ color: [0,0,0,1], width: 3, lineDash: [2,2] }),
-                    radius: 20
+                    fill: new ol.style.Fill({ color: color }),
+                    stroke: new ol.style.Stroke({ color: [0,0,0,0], width: 0 }),
+                    radius: 11
                 }),
                 text: new ol.style.Text({
                     text: feature.get("WHS"),
-                    font: 'bold 15px Times New Roman',
+                    font: 'bold 12px sans-serif',
+                    fill: new ol.style.Fill({ color: "white" })
                 }),
                 zIndex: featureZIndex++
             })
@@ -128,8 +147,23 @@ var ajax = function(url, callback)
 
 function parseJSONDate(theDateString)
 {
-    // This actually does the trick pretty well
-    return new Date(theDateString);
+    // The format is "2017-09-09T22:00:00.000+0000"
+    var dateParts = theDateString.split("T")[0].split("-");
+    var timeParts = theDateString.split("T")[1].split(".")[0].split(":");
+    var timeZoneOffset = parseInt(theDateString.substring(24,26));
+
+    var retVal = new Date(Date.UTC(
+            parseInt(dateParts[0]),  // Year
+            parseInt(dateParts[1])-1, // Month
+            parseInt(dateParts[2]), // Date
+            parseInt(timeParts[0]) - parseInt(timeZoneOffset), // Hour taking timezone into account
+            parseInt(timeParts[1]), // Minutes
+            0,0) // Seconds and milliseconds
+            );
+    //console.info(retVal);
+    return retVal;
+    // This actually does the trick pretty well (on Chrome and Firefox...)
+    //return new Date(theDateString);
 }
 
 function getTodayAtMidnight()
@@ -142,7 +176,10 @@ function getTodayAtMidnight()
     
     //return retVal;
     // OR RETURN A FIXED DATE FOR TESTING
-     return new Date("2017-09-09T22:00:00.000+0000");
+    retVal.setFullYear(2017);
+    retVal.setMonth(8); // September
+    retVal.setDate(9);
+    return retVal;//new Date("2017-09-09T22:00:00.000+0000");
 }
 
 
