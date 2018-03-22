@@ -49,7 +49,7 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
         ModelConfiguration modelConfig = new ModelConfiguration();
         // Which weather stations??
         // Ilseng and Apelsvoll to start with ;-)
-        List<PointOfInterestWeatherStation> stations = Stream.of(new Integer[]{50,91}).map(
+        List<PointOfInterestWeatherStation> stations = Stream.of(new Integer[]{50,91,87}).map(
                 stationId -> (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(stationId)
             ).collect(Collectors.toList());
         
