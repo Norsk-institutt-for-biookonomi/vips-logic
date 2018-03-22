@@ -18,8 +18,8 @@ along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
 */
 /* 
     Created on : Mar 15, 2018, 3:50:00 PM
-    Author     : treinar
-    Possible workaround for MS browsers: https://rachelandrew.co.uk/css/cheatsheets/grid-fallbacks 
+    Author     : Tor-Einar Skog <tor-einar.skog@nibio.no>
+    Using CSS grid layout with fallback for MS browsers
 */
 #mainMap { grid-area: mainMap; height: 450px;}
 #subMap1 { grid-area: subMap1; height: 250px;}
@@ -41,6 +41,27 @@ along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
 #zymoGridMapContainer > div {
     position: relative;
     padding: 0px 0;
+    
+}
+
+/* For the MS browsers that do not support CSS Grid */
+#subMap1, #subMap2, #subMap3, #subMap4 {
+    display: inline-block;
+    width: 24%; 
+    border-top: 10px solid white;
+    border-bottom: 0px none;
+}
+
+#subMap1, #subMap2, #subMap3 {
+    border-right: 10px solid white;
+}
+
+/* Make sure the MS specific stuff doesn't affect the modern browsers */
+@supports (display: grid) {
+        #subMap1, #subMap2, #subMap3, #subMap4 {
+        width: auto;
+        border: 0px none;
+    }
 }
 
 #VIPSAttribution, .dateField {

@@ -17,29 +17,37 @@
  * 
  */
 
+/**
+ * Self contained application for displaying several maps with risk assesments
+ * @copyright 2018 NIBIO https://www.nibio.no/
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
+ */
+
 var hostName;
 var results;
 //var localTimeZoneOffset = 120;
 var todayAtMidnight = getTodayAtMidnight();
 var featureOverlays = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null}; 
 var maps = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null};
+var language = "en";
 
 var initMap = function ()
 {
     var zymoGridMapContainer = document.getElementById("zymoGridMapContainer");
+    language = zymoGridMapContainer.getAttribute("data-language") != null ? zymoGridMapContainer.getAttribute("data-language") : language;
     zymoGridMapContainer.innerHTML = "<div id='mainMap'>"
                                     + " <div class='dateField'>"
                                     + "     <div id='mainMapDateField'></div>" 
                                     + "     <div id='legend'>"
                                     + "         <table>"
-                                    + "             <tr><td>0</td><td style='color: #777777; font-weight: bold;'>Ingen risiko</td></tr>"
-                                    + "             <tr><td>0-20</td><td style='color: green; font-weight: bold;'>Lav risiko</td></tr>"
-                                    + "             <tr><td>20-40</td><td style='color: orange; font-weight: bold;'>Middels risiko</td></tr>"
-                                    + "             <tr><td>Over 40</td><td style='color: red; font-weight: bold;'>Høy risiko</td></tr>"
+                                    + "             <tr><td>0</td><td style='color: #777777; font-weight: bold;'>" + geti18nText("risk_no") + "</td></tr>"
+                                    + "             <tr><td>0-20</td><td style='color: yellow; font-weight: bold;'>" + geti18nText("risk_low") + "</td></tr>"
+                                    + "             <tr><td>20-40</td><td style='color: orange; font-weight: bold;'>" + geti18nText("risk_medium") + "</td></tr>"
+                                    + "             <tr><td>" + geti18nText("over") + " 40</td><td style='color: red; font-weight: bold;'>" + geti18nText("risk_high") + "</td></tr>"
                                     + "         </table>"
                                     + "     </div>"
                                     + " </div>"
-                                    + " <div id='VIPSAttribution'>Powered by <a href='https://www.vips-landbruk.no/' target='new'><img id='VIPSLogo' src='" + hostName + "/public/nordic_septoria_whs/logo_vips.png'/></a></div>"
+                                    + " <div id='VIPSAttribution'>" + geti18nText("poweredBy") + " <a href='https://www.vips-landbruk.no/' target='new'><img id='VIPSLogo' src='" + hostName + "/public/nordic_septoria_whs/logo_vips.png'/></a></div>"
                                     + "</div>"
                                     + "<div id='subMap1'><div id='subMap1DateField' class='dateField'></div></div>"
                                     + "<div id='subMap2'><div id='subMap2DateField' class='dateField'></div></div>"
@@ -96,6 +104,7 @@ var getFeatureStyle = function(feature)
                 : WHS < 20 ? "yellow"
                 : WHS < 40 ? "orange"
                 : "red";
+
     return [
             new ol.style.Style({
                 image: new ol.style.Circle({
@@ -106,7 +115,8 @@ var getFeatureStyle = function(feature)
                 text: new ol.style.Text({
                     text: feature.get("WHS"),
                     font: 'bold 12px sans-serif',
-                    fill: new ol.style.Fill({ color: "white" })
+                    fill: new ol.style.Fill({ color: "white" }),
+                    stroke: new ol.style.Stroke({ color: [90,90,90,1], width: 1 })
                 }),
                 zIndex: featureZIndex++
             })
@@ -263,3 +273,18 @@ var failGracefully = function() {
     alert("ERROR: Your current browser does not support the map application.");
 };
 
+
+var dict = {
+    "risk_no"           : {     "no": "Ingen risiko",       "dk": "Ingen risiko",       "en": "No risk"},
+    "risk_low"          : {     "no": "Lav risiko",         "dk": "Lav risiko",         "en": "Low risk"},
+    "risk_medium"       : {     "no": "Middels risiko",     "dk": "Middel risiko",      "en": "Medium risk"},
+    "risk_high"         : {     "no": "Høy risiko",         "dk": "Høj risiko",         "en": "High risk"},
+    "over"              : {     "no": "Over",               "dk": "Over",               "en": "Over"},
+    
+    "poweredBy"         : {     "no": "Drevet av",          "dk": "Drevet af",          "en": "Powered by"}
+};
+
+var geti18nText = function(keyword)
+{
+    return dict[keyword][language];
+};
