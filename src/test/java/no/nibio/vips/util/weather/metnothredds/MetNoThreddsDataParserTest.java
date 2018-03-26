@@ -86,7 +86,7 @@ public class MetNoThreddsDataParserTest {
     public void tearDown() {
     }
     
-    @Test
+    //@Test
     public void testGetGridDataInPractice()
     {
         System.out.println("testGetGridDataInPractice");
