@@ -415,5 +415,5 @@ var getObservationRelativeAge = function(feature)
         console.info("No obs with id=" + feature.get("observationId"));
         return null; // Means invisible
     }
-    return Math.floor((currentDateInMillis - observation.timeOfObservation) / (1000 * 60 * 60 * 24)) + 1;
+    return Math.floor((currentDateInMillis - getUnixTimestampFromJSON(observation.timeOfObservation)) / (1000 * 60 * 60 * 24)) + 1;
 };

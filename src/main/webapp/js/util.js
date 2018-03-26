@@ -146,3 +146,20 @@ function getLocalizedCropCategoryName(cropCategory)
 	return "Unnamed";
 }
 
+/** Ensure that we're able to handle both a unix timestamp and an ISO timestamp
+ * 
+ * @param {type} ambiguousValue
+ * @returns {Number}
+ */
+function getUnixTimestampFromJSON(ambiguousValue)
+{
+	var possibleDateObject = new Date(ambiguousValue);
+	if(possibleDateObject.getTime() === NaN && typeof parseInt(ambiguousValue) === "number")
+	{
+		return parseInt(ambiguousValue);
+	}
+	else
+	{
+		return possibleDateObject.getTime();
+	}
+}

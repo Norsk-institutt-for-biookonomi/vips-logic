@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
@@ -54,6 +55,7 @@ public class OrganismExternalResource implements Serializable {
     private String resourceIdentifier;
     @JoinColumn(name = "organism_id", referencedColumnName = "organism_id", insertable = false, updatable = false)
     @ManyToOne(optional = false)
+    @JsonIgnore
     private Organism organism;
     @JoinColumn(name = "external_resource_id", referencedColumnName = "external_resource_id", insertable = false, updatable = false)
     @ManyToOne(optional = false)
