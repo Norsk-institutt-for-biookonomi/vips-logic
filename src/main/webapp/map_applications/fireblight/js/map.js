@@ -9,61 +9,8 @@ var registration = false;
 
 function initMap()
 {
-    // OpenStreetMap background layer
-    var osm = new ol.layer.Tile({
-        'title': 'OSM',
-        type: 'base',
-        visible: true,
-        source: new ol.source.OSM({
-          attributions: [
-            new ol.Attribution({
-              html: "Kartgrunnlag: Statens kartverk (<a href='//creativecommons.org/licenses/by-sa/3.0/no/' target='new'>cc-by-sa-3.0</a>)"
-            })
-          ]
-        })
-      });
     
-    // Detailed map of Norway in shades of grey
-  var topo2graatone = new ol.layer.Tile({
-    title: "Gråtone",
-    type: 'base',
-    visible: true,
-    source: new ol.source.TileWMS({
-        attributions: [
-            new ol.Attribution({
-              html: "Kartgrunnlag: Statens kartverk (<a href='//creativecommons.org/licenses/by-sa/3.0/no/' target='new'>cc-by-sa-3.0</a>)"
-            })
-          ],
-      url: "//opencache.statkart.no/gatekeeper/gk/gk.open?",
-      params: {
-        LAYERS: 'topo2graatone',
-        VERSION: '1.1.1'
-      }
-    })
-  });
-  
-  // Detailed Norway map in colours
-  var topo2 = 
-          new ol.layer.Tile({
-    title: "Farger",
-    type: 'base',
-    visible: true,
-    source: new ol.source.TileWMS({
-         attributions: [
-            new ol.Attribution({
-              html: "Kartgrunnlag: Statens kartverk (<a href='//creativecommons.org/licenses/by/4.0/deed.no' target='new'>cc-by-sa-4.0</a>)"
-            })
-          ],
-      url: "//opencache.statkart.no/gatekeeper/gk/gk.open?",
-      params: {
-        LAYERS: 'topo2',
-        VERSION: '1.1.1'
-      }
-    })
-  });
-  
-  // The layer for putting the data
-  var features = new ol.Collection();
+    var features = new ol.Collection();
 
 var iconRadius = 10;
     
@@ -150,64 +97,69 @@ var styles = {
   });
   
   
-  
-  map = new ol.Map({
-        target: 'map',
-        layers: [
-          //topo2graatone, 
-          topo2,
-          //osm,
-          featureOverlay,
-          newFeatureOverlay
-        ],
-        view: new ol.View({
-          center: ol.proj.fromLonLat([8.5, 60.8]),
-          zoom: 6
-        })
-      });
-    
-    // TODO feature properties must be synchronized
-    var lastYear = new Date().getFullYear() - 1;
-    // Population the season select list, setting last year as default selected
-    initSeasonSelectList(lastYear);
-    getAndRenderObservations(lastYear);
-    /*
-    $.getJSON("/rest/observation/filter/1/geoJSON?from=" + lastYear + "-01-01&pestId=" + paerebrann.organismId, function(geoData){
-        //console.info(geoData)
-        var format = new ol.format.GeoJSON();
-
-        var drawnfeatures = format.readFeatures(geoData, {
-          //dataProjection: "EPSG:32633",
-          dataProjection: "EPSG:4326",
-          featureProjection: map.getView().getProjection().getCode()
+  var parser = new ol.format.WMTSCapabilities();
+  fetch('https://opencache.statkart.no/gatekeeper/gk/gk.open_wmts?Version=1.0.0&service=wmts&request=getcapabilities').then(function(response) {
+        return response.text();
+      }).then(function(text) {
+        var result = parser.read(text);
+        var options = ol.source.WMTS.optionsFromCapabilities(result, {
+          layer: 'topo4',
+          matrixSet: 'EPSG:3857'
         });
-        //featureOverlay.clear(true);
-        featureOverlay.getSource().addFeatures(drawnfeatures);
-    });*/
+        var topo4 = 
+          new ol.layer.Tile({
+            opacity: 1,
+            source: new ol.source.WMTS(/** @type {!olx.source.WMTSOptions} */ (options))
+          });
+          
+  
+        map = new ol.Map({
+              target: 'map',
+              layers: [
+                //topo2graatone, 
+                topo4,
+                //osm,
+                featureOverlay,
+                newFeatureOverlay
+              ],
+              view: new ol.View({
+                center: ol.proj.fromLonLat([8.5, 60.8]),
+                zoom: 6
+              })
+            });
+
+        // TODO feature properties must be synchronized
+        var lastYear = new Date().getFullYear() - 1;
+        // Population the season select list, setting last year as default selected
+        initSeasonSelectList(lastYear);
+        getAndRenderObservations(lastYear);
+
+
+        map.on('click', function(evt){
+                //features = []
+                var feature = map.forEachFeatureAtPixel(
+                    evt.pixel, function(ft, l) { return ft; }
+                );
+
+                var vectorSource = newFeatureOverlay.getSource();
+                // Remove any new features already created
+                vectorSource.clear();
+
+                if (feature) {
+                    // Create a fake icon for highlighting
+                    var fakeFeature = createFeature(feature.getGeometry().getCoordinates());
+                    vectorSource.addFeature(fakeFeature);
+                    displayFeature(feature);   
+                }
+                else if(registration)
+                {
+                    var newFeature = createFeature(map.getCoordinateFromPixel(evt.pixel));
+                    vectorSource.addFeature(newFeature);
+                    editFeature(newFeature.getId());
+                }
+        });
     
-    map.on('click', function(evt){
-        //features = []
-        var feature = map.forEachFeatureAtPixel(
-            evt.pixel, function(ft, l) { return ft; }
-        );
-
-        var vectorSource = newFeatureOverlay.getSource();
-        // Remove any new features already created
-        vectorSource.clear();
-
-        if (feature) {
-            // Create a fake icon for highlighting
-            var fakeFeature = createFeature(feature.getGeometry().getCoordinates());
-            vectorSource.addFeature(fakeFeature);
-            displayFeature(feature);   
-        }
-        else if(registration)
-        {
-            var newFeature = createFeature(map.getCoordinateFromPixel(evt.pixel));
-            vectorSource.addFeature(newFeature);
-            editFeature(newFeature.getId());
-        }
-    });
+    }); // END FETCH
     
 }
 
