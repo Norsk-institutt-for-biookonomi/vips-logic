@@ -1,0 +1,77 @@
+{
+    "_licensenbte": [
+        "Copyright (c) 2014 NIBIO <http://www.nibio.nb/>. ",
+        "",
+        "This file is part of VIPSLogic. ",
+        "VIPSLogic is free software: you can redistribute it and/or modify ",
+        "it under the terms of the NIBIO Open Source License as published by ",
+        "NIBIO, either version 1 of the License, or (at your option) any ",
+        "later version. ",
+        "",
+        "VIPSLogic is distributed in the hope that it will be useful, ",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of ",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the ",
+        "NIBIO Open Source License for more details. ",
+        "",
+        "You should have received a copy of the NIBIO Open Source License ",
+        "along with VIPSLogic.  If nbt, see <http://www.nibio.nb/licenses/>. "
+    ],
+    "_comment" : "Sowing date, previous crop, tillage method, and current crop disease susceptibility for the specific field",
+    "fields": [
+         {
+            "name" : "modelName",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+			"options": [
+				{"value":"PyrenophoraTeres", "label":{"en":"Net Blotch","nb":"?","fi":"Verkkolaikku"}, "selected":"true"},
+				{"value":"DrechsleraTriticiRepentis", "label":{"en":"Tan Spot","nb":"","fi":"Ruskolaikku"}},
+				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonspora spot", "nb":"?", "fi":"Pistelaikku"}}
+			]
+        },
+        {
+            "name" : "fieldSowingDate",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "previousCrop",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+			"options": [
+				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehnä"}, "selected":"true"},
+				{"value":"Barley", "label":{"en":"Barley","nb":"Barley","fi":"Kaura"}},
+				{"value":"Oats", "label":{"en" : "Oats", "nb":"?", "fi":"Ohra"}},
+				{"value":"Grass", "label":{"en" : "Grass", "nb":"?","fi":"Heinä"}},
+				{"value":"Rapeseed", "label":{"en" : "Turnip rape", "nb":"?","fi":"Rypsi"}},
+				{"value":"SugarBeet", "label":{"en" : "Sugar beet", "nb":"?","fi":"Sokerijuurikas"}},
+				{"value":"Legumes", "label":{"en" : "Legumes", "nb":"?","fi":"Herneet"}}
+			]
+        },
+        {
+            "name" : "tillageMethod",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+			"options": [
+				{"value":"Intensive", "label":{"en":"Ploughing","nb":"?","fi":"Kyntö"}, "selected":"true"},
+				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"?","fi":"Kevytmuokkaus"}},
+				{"value":"nbne", "label":{"en" : "Direct seeding", "nb":"?","fi":"Suorakylvö"}}
+			]
+        },
+        {
+            "name" : "cropSusceptibility",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+			"options": [
+				{"value":"nbrmal", "label":{"en":"nbrmal","nb":"?", "fi":"normaali"}, "selected":"true"},
+				{"value":"Resistant", "label":{"en":"Resistant","nb":"?","fi":"Resistentti"}},
+				{"value":"Sensitive", "label":{"en" : "Susceptible", "nb":"?", "fi":"Haavoittuva"}}
+			]
+        }
+                
+    ]
+}
