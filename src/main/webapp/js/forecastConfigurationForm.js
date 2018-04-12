@@ -120,7 +120,7 @@ function fetchModelSpecificFieldValuesCallback(fieldValues)
         //console.log(fieldValues[i].forecastModelConfigurationPK.modelConfigParameter + ": " + fieldName);
         if(theForm[fieldName] !== null && theForm[fieldName] !== undefined)
         {
-            theForm[fieldName].value=fieldValues[i].parameterValue;
+                theForm[fieldName].value=fieldValues[i].parameterValue;
         }
     }
 }
@@ -163,6 +163,12 @@ function createFieldHTML(modelId, formId, fieldDefinition)
     {
         var inputType = getHTMLInputType(fieldDefinition.dataType);
         fieldHTML = '<input type="' + inputType + '" class="form-control" name="' + fieldDefinition.name + '" placeholder="' + getI18nMsg(fieldDefinition.name) + '" onblur="validateField(this,\'' + modelId + '\');" />';
+    }
+    else if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE || fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_MULTIPLE)
+    {
+        fieldHTML = '<select class="form-control" name="' + fieldDefinition.name + '"onblur="validateField(this,\'' + modelId + '\')" ' + (fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_MULTIPLE ? ' multiple="multiple"' : '') + '>';
+        fieldHTML += getLocalizedOptionsHTML(fieldDefinition.options);
+        fieldHTML += '</select>';
     }
 
     return [

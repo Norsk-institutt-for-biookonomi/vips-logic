@@ -112,7 +112,7 @@ function getLocalizedOrganismName(organism, language)
 }
 
 /**
- * Depends on the value of currentLanguage and defaultLanguage in /currentLanguage.js
+ * Depends on the value of currentLanguage and defaultLanguage in /js/environment.js
  * @param cropCategory
  * @returns {String}
  */
@@ -144,6 +144,35 @@ function getLocalizedCropCategoryName(cropCategory)
 	}
 	// Then we give up
 	return "Unnamed";
+}
+
+function getLocalizedOptionsHTML(optionsList) {
+    var translatedOptionsHTML = "";
+    var languages = [environment.currentLanguage, environment.defaultLanguage, "en"];
+    
+    for(var i in optionsList){
+        var option = optionsList[i];
+        var label = null;
+        var labelList = option.label;
+	for(var j in languages)
+	{
+		for(var k in labelList)
+		{
+                    if(k === languages[j])
+                    {
+                        label = labelList[k];
+                        break;
+                    }
+		}
+            if(label !== null)
+            {
+                break;
+            }
+	}
+        translatedOptionsHTML += '<option value="' + option.value + '"' + (option.selected === "true" ? ' selected="selected"' : '') + ">" + label + "</option>";
+    }
+    
+    return translatedOptionsHTML;
 }
 
 /** Ensure that we're able to handle both a unix timestamp and an ISO timestamp

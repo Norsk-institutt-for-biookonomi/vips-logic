@@ -26,6 +26,7 @@
 	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
+        <script type="text/javascript" src="/js/environment.js"></script>
         <script type="text/javascript" src="/js/util.js"></script>
 	<script type="text/javascript">
             $(document).ready(function() {
@@ -44,8 +45,11 @@
 			renderModelSpecificFields("${formId}");
                         
 		}
-                    
-                initCropCategories();
+                
+                if(document.getElementById("cropCategoryIdList") != null)
+                {
+                    initCropCategories();
+                }
                     
                 sortListAlphabetically(document.getElementById("modelId"),1);
             });
@@ -60,7 +64,7 @@
             }
 
             function renderCropCategories() {
-                var cropCategoryIdList = document.getElementById("cropCategoryIdList");
+                var cropCategoryIdList = document.getElementById("cropCategoryIdList");                    
                 for(var i in cropCategories)
                 {
                     var cropCategory = cropCategories[i];
