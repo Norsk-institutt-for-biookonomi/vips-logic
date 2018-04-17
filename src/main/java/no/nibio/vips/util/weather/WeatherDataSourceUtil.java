@@ -189,6 +189,7 @@ public class WeatherDataSourceUtil {
             URLOutput = IOUtils.toString(URLStream);
             List<WeatherObservation> preliminaryResult = this.getWeatherObservations(URLOutput);
             List<WeatherObservation> filteredObservations = new ArrayList<>();
+            //System.out.println(this.getClass().getName() + "/preliminaryResult.size()=" + preliminaryResult.size());
             preliminaryResult.stream().filter((candidateObs) -> (
                     candidateObs.getLogIntervalId().equals(logIntervalId)
                     && Arrays.asList(elementMeasurementTypes).contains(candidateObs.getElementMeasurementTypeId())
@@ -196,6 +197,7 @@ public class WeatherDataSourceUtil {
                 ).forEachOrdered((candidateObs) -> {
                     filteredObservations.add(candidateObs);
                 });
+            //System.out.println(this.getClass().getName() + "/filteredObservations.size()=" + filteredObservations.size());
             return filteredObservations;
         } catch (IOException ex) {
             StringBuilder errorMessage = new StringBuilder().append("Could not fetch weather observations from URI ").append(URL.toString()).append(".\n");

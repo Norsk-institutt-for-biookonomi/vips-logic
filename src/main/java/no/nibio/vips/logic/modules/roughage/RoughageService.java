@@ -369,6 +369,12 @@ public class RoughageService {
         Organization org = em.find(Organization.class, organizationId);
         Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
         
+        /*System.out.println("Antall ordinære værdata: " + observations.size());
+        for(WeatherObservation obs:observations)
+        {
+            System.out.println(obs.toString());
+        }*/
+        
         List<Result> results;
         try
         {
@@ -376,6 +382,7 @@ public class RoughageService {
         }
         catch(RunModelException ex)
         {
+            //System.out.println("Feilen skjer med ordinære værdata");
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
         }
         // NORMALDATA
@@ -402,6 +409,10 @@ public class RoughageService {
                     latestObsDate
                 );
 
+                // The observations are tainted with the _NORMAL prefix, must clean up 
+                // before sending to model
+                observations.stream().forEach(obs->obs.setElementMeasurementTypeId(obs.getElementMeasurementTypeId().substring(0, obs.getElementMeasurementTypeId().indexOf("_NORMAL"))));
+                
                 // Add waterings to normal data precipitation?
                 if(
                         wateringAffectsNormalData != null && wateringAffectsNormalData.equals("true")
@@ -418,6 +429,7 @@ public class RoughageService {
                             //System.out.println("Old: " + obs.getValue() + ", new: " + (obs.getValue() + wateringMap.get(obs.getTimeMeasured())));
                             obs.setValue(obs.getValue() + wateringMap.get(obs.getTimeMeasured()));
                         }
+                        
                     }
                 }
                 /*System.out.println("Antall normaldata: " + observations.size());
