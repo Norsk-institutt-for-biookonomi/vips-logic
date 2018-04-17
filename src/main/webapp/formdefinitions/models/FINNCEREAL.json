@@ -1,6 +1,6 @@
 {
-    "_licensenbte": [
-        "Copyright (c) 2014 NIBIO <http://www.nibio.nb/>. ",
+    "_licensenote": [
+        "Copyright (c) 2018 NIBIO <http://www.nibio.nb/>. ",
         "",
         "This file is part of VIPSLogic. ",
         "VIPSLogic is free software: you can redistribute it and/or modify ",
@@ -14,7 +14,7 @@
         "NIBIO Open Source License for more details. ",
         "",
         "You should have received a copy of the NIBIO Open Source License ",
-        "along with VIPSLogic.  If nbt, see <http://www.nibio.nb/licenses/>. "
+        "along with VIPSLogic.  If not, see <http://www.nibio.nb/licenses/>. "
     ],
     "_comment" : "Sowing date, previous crop, tillage method, and current crop disease susceptibility for the specific field",
     "fields": [
@@ -24,9 +24,9 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"options": [
-				{"value":"PyrenophoraTeres", "label":{"en":"Net Blotch","nb":"?","fi":"Verkkolaikku"}, "selected":"true"},
-				{"value":"DrechsleraTriticiRepentis", "label":{"en":"Tan Spot","nb":"","fi":"Ruskolaikku"}},
-				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonspora spot", "nb":"?", "fi":"Pistelaikku"}}
+				{"value":"PyrenophoraTeres", "label":{"en":"Net Blotch","nb":"Bladflekk","fi":"Verkkolaikku"}, "selected":"true"},
+				{"value":"DrechsleraTriticiRepentis", "label":{"en":"Tan Spot","nb":"Tan Spot","fi":"Ruskolaikku"}},
+				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonspora spot", "nb":"Stagonspora spot", "fi":"Pistelaikku"}}
 			]
         },
         {
@@ -41,13 +41,13 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"options": [
-				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehn�"}, "selected":"true"},
+				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehnä"}, "selected":"true"},
 				{"value":"Barley", "label":{"en":"Barley","nb":"Barley","fi":"Kaura"}},
-				{"value":"Oats", "label":{"en" : "Oats", "nb":"?", "fi":"Ohra"}},
-				{"value":"Grass", "label":{"en" : "Grass", "nb":"?","fi":"Hein�"}},
-				{"value":"Rapeseed", "label":{"en" : "Turnip rape", "nb":"?","fi":"Rypsi"}},
-				{"value":"SugarBeet", "label":{"en" : "Sugar beet", "nb":"?","fi":"Sokerijuurikas"}},
-				{"value":"Legumes", "label":{"en" : "Legumes", "nb":"?","fi":"Herneet"}}
+				{"value":"Oats", "label":{"en" : "Oats", "nb":"Havre", "fi":"Ohra"}},
+				{"value":"Grass", "label":{"en" : "Grass", "nb":"Gras","fi":"Heinä"}},
+				{"value":"Rapeseed", "label":{"en" : "Turnip rape", "nb":"Raps","fi":"Rypsi"}},
+				{"value":"SugarBeet", "label":{"en" : "Sugar beet", "nb":"Bete","fi":"Sokerijuurikas"}},
+				{"value":"Legumes", "label":{"en" : "Legumes", "nb":"Belgfrukter","fi":"Herneet"}}
 			]
         },
         {
@@ -56,9 +56,9 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"options": [
-				{"value":"Intensive", "label":{"en":"Ploughing","nb":"?","fi":"Kynt�"}, "selected":"true"},
-				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"?","fi":"Kevytmuokkaus"}},
-				{"value":"nbne", "label":{"en" : "Direct seeding", "nb":"?","fi":"Suorakylv�"}}
+				{"value":"Intensive", "label":{"en":"Ploughing","nb":"Pløying","fi":"Kyntö"}, "selected":"true"},
+				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"Redusert pløying","fi":"Kevytmuokkaus"}},
+				{"value":"nbne", "label":{"en" : "Direct seeding", "nb":"Direktesåing","fi":"Suorakylvö"}}
 			]
         },
         {
@@ -67,9 +67,9 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"options": [
-				{"value":"nbrmal", "label":{"en":"nbrmal","nb":"?", "fi":"normaali"}, "selected":"true"},
-				{"value":"Resistant", "label":{"en":"Resistant","nb":"?","fi":"Resistentti"}},
-				{"value":"Sensitive", "label":{"en" : "Susceptible", "nb":"?", "fi":"Haavoittuva"}}
+				{"value":"nbrmal", "label":{"en":"Normal","nb":"Normal", "fi":"normaali"}, "selected":"true"},
+				{"value":"Resistant", "label":{"en":"Resistant","nb":"Resistent","fi":"Resistentti"}},
+				{"value":"Sensitive", "label":{"en" : "Susceptible", "nb":"Sårbar", "fi":"Haavoittuva"}}
 			]
         }
                 
