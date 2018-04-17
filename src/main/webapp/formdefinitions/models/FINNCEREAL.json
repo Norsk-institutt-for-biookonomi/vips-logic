@@ -23,7 +23,7 @@
             "dataType" : "STRING",
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
-			"options": [
+			"selectOptions": [
 				{"value":"PyrenophoraTeres", "label":{"en":"Net Blotch","nb":"Bladflekk","fi":"Verkkolaikku"}, "selected":"true"},
 				{"value":"DrechsleraTriticiRepentis", "label":{"en":"Tan Spot","nb":"Tan Spot","fi":"Ruskolaikku"}},
 				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonspora spot", "nb":"Stagonspora spot", "fi":"Pistelaikku"}}
@@ -40,7 +40,7 @@
             "dataType" : "STRING",
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
-			"options": [
+			"selectOptions": [
 				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehnä"}, "selected":"true"},
 				{"value":"Barley", "label":{"en":"Barley","nb":"Barley","fi":"Kaura"}},
 				{"value":"Oats", "label":{"en" : "Oats", "nb":"Havre", "fi":"Ohra"}},
@@ -55,7 +55,7 @@
             "dataType" : "STRING",
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
-			"options": [
+			"selectOptions": [
 				{"value":"Intensive", "label":{"en":"Ploughing","nb":"Pløying","fi":"Kyntö"}, "selected":"true"},
 				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"Redusert pløying","fi":"Kevytmuokkaus"}},
 				{"value":"nbne", "label":{"en" : "Direct seeding", "nb":"Direktesåing","fi":"Suorakylvö"}}
@@ -66,7 +66,7 @@
             "dataType" : "STRING",
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
-			"options": [
+			"selectOptions": [
 				{"value":"nbrmal", "label":{"en":"Normal","nb":"Normal", "fi":"normaali"}, "selected":"true"},
 				{"value":"Resistant", "label":{"en":"Resistant","nb":"Resistent","fi":"Resistentti"}},
 				{"value":"Sensitive", "label":{"en" : "Susceptible", "nb":"Sårbar", "fi":"Haavoittuva"}}
