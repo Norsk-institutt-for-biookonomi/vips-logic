@@ -252,8 +252,14 @@ public class PointOfInterestBean {
      * @return 
      */
     public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization, Boolean active) {
+        
+        if(organization == null)
+        {
+            return new ArrayList<>();
+        }
         // Avoid nulls
         active = active == null ? true : active;
+        
         List<PointOfInterestWeatherStation> retVal = em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId", PointOfInterestWeatherStation.class)
                                                 .setParameter("organizationId", organization)
                                                 .setParameter("active", active)
