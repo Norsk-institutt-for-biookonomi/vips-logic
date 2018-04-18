@@ -20,6 +20,7 @@
 package no.nibio.web.forms;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
@@ -42,6 +43,7 @@ import java.util.TimeZone;
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FormField {
     public final static String DATA_TYPE_STRING = "STRING";
     public final static String DATA_TYPE_INTEGER = "INTEGER";

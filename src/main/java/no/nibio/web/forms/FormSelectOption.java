@@ -48,7 +48,6 @@ public class FormSelectOption {
     /**
      * @return the label
      */
-    @JsonIgnore
     public String getLabel() {
         return label;
     }
@@ -56,7 +55,6 @@ public class FormSelectOption {
     /**
      * @param label the label to set
      */
-    @JsonIgnore
     public void setLabel(String label) {
         this.label = label;
     }

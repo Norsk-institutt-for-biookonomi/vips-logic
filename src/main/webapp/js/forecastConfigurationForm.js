@@ -167,7 +167,7 @@ function createFieldHTML(modelId, formId, fieldDefinition)
     else if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE || fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_MULTIPLE)
     {
         fieldHTML = '<select class="form-control" name="' + fieldDefinition.name + '"onblur="validateField(this,\'' + modelId + '\')" ' + (fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_MULTIPLE ? ' multiple="multiple"' : '') + '>';
-        fieldHTML += getLocalizedOptionsHTML(fieldDefinition.options);
+        fieldHTML += getLocalizedOptionsHTML(fieldDefinition.selectOptions);
         fieldHTML += '</select>';
     }
 
