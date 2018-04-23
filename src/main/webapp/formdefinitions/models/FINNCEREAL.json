@@ -58,7 +58,7 @@
 			"options": [
 				{"value":"Intensive", "label":{"en":"Ploughing","nb":"?","fi":"Kyntö"}, "selected":"true"},
 				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"?","fi":"Kevytmuokkaus"}},
-				{"value":"nbne", "label":{"en" : "Direct seeding", "nb":"?","fi":"Suorakylvö"}}
+				{"value":"None", "label":{"en" : "Direct seeding", "nb":"?","fi":"Suorakylvö"}}
 			]
         },
         {
@@ -67,7 +67,7 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"options": [
-				{"value":"nbrmal", "label":{"en":"nbrmal","nb":"?", "fi":"normaali"}, "selected":"true"},
+				{"value":"Normal", "label":{"en":"Normal","nb":"?", "fi":"normaali"}, "selected":"true"},
 				{"value":"Resistant", "label":{"en":"Resistant","nb":"?","fi":"Resistentti"}},
 				{"value":"Sensitive", "label":{"en" : "Susceptible", "nb":"?", "fi":"Haavoittuva"}}
 			]
