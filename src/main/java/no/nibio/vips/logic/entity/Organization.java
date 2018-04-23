@@ -83,6 +83,7 @@ public class Organization implements Serializable {
     private Integer defaultMapZoom;
     @Column(name = "default_time_zone")
     private String defaultTimeZone;
+    @JsonIgnore
     @Column(name = "default_vips_core_user_id")
     private Integer defaultVipsCoreUserId;
     @JsonIgnore

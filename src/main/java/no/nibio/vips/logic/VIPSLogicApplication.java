@@ -54,6 +54,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothService.class);
         resources.add(no.nibio.vips.logic.service.ObservationService.class);
         resources.add(no.nibio.vips.logic.service.WeatherProxyService.class);
+        resources.add(no.nibio.vips.logic.service.ModelFormService.class);
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         //resources.add(no.nibio.vips.coremanager.service.ManagerResourceImpl.class);
     }
@@ -70,6 +71,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.modules.roughage.RoughageService.class);
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         resources.add(no.nibio.vips.logic.service.LogicService.class);
+        resources.add(no.nibio.vips.logic.service.ModelFormService.class);
         resources.add(no.nibio.vips.logic.service.ObservationService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.logic.service.WeatherProxyService.class);

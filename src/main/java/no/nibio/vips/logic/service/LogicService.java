@@ -859,6 +859,14 @@ public class LogicService {
         }
     }
     
+    @GET
+    @Path("organization")
+    @Produces("application/json;charset=UTF-8")
+    public Response getOrganizations()
+    {
+        return Response.ok().entity(SessionControllerGetter.getUserBean().getOrganizations()).build();
+    }
+    
     /**
      * Get the client to use for calling VIPSCoreManager REST services programmatically
      * @return 

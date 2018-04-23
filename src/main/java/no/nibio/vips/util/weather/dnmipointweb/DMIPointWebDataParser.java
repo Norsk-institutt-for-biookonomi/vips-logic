@@ -110,7 +110,7 @@ public class DMIPointWebDataParser {
         } catch (Exception ex) {
             Logger.getLogger(DMIPointWebDataParser.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Number of extracted weather data = " + retVal.size());
+        //System.out.println("Number of extracted weather data = " + retVal.size());
         return retVal;
     }
 
