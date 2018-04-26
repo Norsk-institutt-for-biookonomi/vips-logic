@@ -721,14 +721,18 @@ public class UserBean {
         }
     }
     
-    // TODO: Put in config file?
-    private final static String[] USER_COUNTRY_CODES = {"NO","SE","BA","LV","US"};
-    
     public List<Country> getUserCountries()
     {
-        return em.createNamedQuery("Country.findByCountryCodes")
-                .setParameter("countryCodes",Arrays.asList(UserBean.USER_COUNTRY_CODES))
-                .getResultList();
+        try
+        {
+            return em.createNamedQuery("Country.findByCountryCodes")
+                    .setParameter("countryCodes",Arrays.asList(System.getProperty("no.nibio.vips.logic.USER_COUNTRY_CODES").split(",")))
+                    .getResultList();
+        }
+        catch(NullPointerException ex)
+        {
+            return new ArrayList<>();
+        }
     }
 
     public List<OrganizationGroup> getOrganizationGroups(Organization organization) {
