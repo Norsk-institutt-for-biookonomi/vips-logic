@@ -297,7 +297,7 @@ public class MetNoThreddsDataParser {
             Map<Long, WeatherObservation> hashedObsForPoint = tempRetVal.get(c);
             List<WeatherObservation> obsList = new ArrayList(hashedObsForPoint.values());
             Collections.sort(obsList);
-            PointWeatherObservationList obsForPoint = new PointWeatherObservationList(c,obsList);
+            PointWeatherObservationList obsForPoint = new PointWeatherObservationList(c,obsList,"UTC");
             retVal.add(obsForPoint);
         }
         return retVal;

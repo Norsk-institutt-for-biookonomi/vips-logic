@@ -46,26 +46,35 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
 
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
+        
         ModelConfiguration modelConfig = new ModelConfiguration();
         // Which weather stations??
         // Ilseng and Apelsvoll to start with ;-)
-        List<PointOfInterestWeatherStation> stations = Stream.of(new Integer[]{50,91,87}).map(
+        List<PointOfInterestWeatherStation> stations = Stream.of(configuration.getGridWeatherStationPointOfInterestIds()).map(
                 stationId -> (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(stationId)
             ).collect(Collectors.toList());
         
         List<PointWeatherObservationList> allObs = new ArrayList<>();
-        
+        WeatherUtil wUtil = new WeatherUtil();
         for(PointOfInterestWeatherStation station:stations)
         {
             Coordinate coordinate = new Coordinate(station.getPointOfInterest().getLongitude(), station.getPointOfInterest().getLatitude());
             List<WeatherObservation> stationObs = getStationObs(station, configuration);
-            PointWeatherObservationList pointObs = new PointWeatherObservationList(coordinate, stationObs);
+            try
+            {
+                stationObs = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(stationObs, 6);
+            }
+            catch(WeatherObservationListException ex)
+            {
+                throw new PreprocessorException(ex.getMessage());
+            }
+            PointWeatherObservationList pointObs = new PointWeatherObservationList(coordinate, stationObs, station.getTimeZone());
             allObs.add(pointObs);
         }
         
         modelConfig.setConfigParameter("multiPointWeatherObservations", allObs);
         modelConfig.setModelId(this.getModelId());
-        modelConfig.setConfigParameter("timeZone", stations.get(0).getTimeZone());
+        modelConfig.setConfigParameter("timeZone", configuration.getTimeZone());
         return modelConfig;
     }
 

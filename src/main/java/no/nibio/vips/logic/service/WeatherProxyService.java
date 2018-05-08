@@ -23,7 +23,9 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -40,9 +42,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.util.XDate;
 import no.nibio.vips.util.weather.ALabDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
 import no.nibio.vips.util.weather.MetosAPIDataParser;
@@ -88,6 +92,41 @@ public class WeatherProxyService {
             return Response.serverError().entity(ex).build();
         }
         return Response.ok().entity(observations).build();
+    }
+    
+    @GET
+    @POST
+    @Path("fmi/{stationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getMetosRIMProWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET,
+            @FormParam("endDate") String endDatePOST,
+            @QueryParam("endDate") String endDateGET
+            )
+    {
+        String FMI_URL_TEMPLATE="http://www.cropinfra.com:8080/weather/resources/fmi/temporal/vips/{0}/{1}/{2}";
+        List<WeatherObservation> observations;
+        try 
+        {
+            String timeZoneParam = timeZonePOST != null ? timeZonePOST : timeZoneGET != null ? timeZoneGET : "UTC";
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneParam);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setTimeZone(timeZone);
+            String startDateParam = startDatePOST != null ? startDatePOST : startDateGET;
+            XDate startDate1 = new XDate(format.parse(startDateParam));
+            String endDateParam = endDatePOST != null ? endDatePOST : endDateGET;
+            XDate endDate1 = new XDate(format.parse(endDateParam));
+            URI uri = UriBuilder.fromUri(MessageFormat.format(FMI_URL_TEMPLATE, stationId, startDate1.getISOUTCFormat(), endDate1.getISOUTCFormat())).build();
+            //observations = new MetosRIMProDataParser().getWeatherObservations(stationId, timeZone, startDate1);
+            return Response.temporaryRedirect(uri).build();
+        } catch (ParseException | NullPointerException ex) {
+            return Response.serverError().entity(ex).build();
+        }
     }
     
     @GET

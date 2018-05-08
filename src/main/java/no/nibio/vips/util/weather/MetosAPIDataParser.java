@@ -230,7 +230,7 @@ public class MetosAPIDataParser {
         try
         {
             String accessToken = this.getToken();
-            HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/000024A0/hourly/from/" + (startDate.getTime() / 1000)); 
+            HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/data/optimized/" + stationId + "/hourly/from/" + (startDate.getTime() / 1000)); 
 
             httpget.addHeader("Accept", "application/json");
             httpget.addHeader("Authorization", "Bearer " + accessToken);

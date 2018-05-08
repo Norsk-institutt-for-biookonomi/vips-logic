@@ -44,7 +44,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.util.TimeZone;
 import javax.persistence.Transient;
+import no.nibio.vips.logic.util.IntegerArrayUserType;
 import no.nibio.vips.util.WeatherUtil;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2014-2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -53,6 +57,7 @@ import no.nibio.vips.util.WeatherUtil;
 @Entity
 @Table(name = "forecast_configuration")
 @XmlRootElement
+@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "ForecastConfiguration.findAll", query = "SELECT f FROM ForecastConfiguration f WHERE f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationId", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId = :forecastConfigurationId"),
@@ -116,6 +121,10 @@ public class ForecastConfiguration implements Serializable, Comparable {
     private Organism pestOrganismId;
     @Column(name = "is_private")
     private Boolean isPrivate;
+    
+    @Type(type = "IntegerArray")
+    @Column(name = "grid_weather_station_point_of_interest_ids")
+    private Integer[] gridWeatherStationPointOfInterestIds;
     
     @Transient
     private WeatherUtil weatherUtil;
@@ -390,5 +399,19 @@ public class ForecastConfiguration implements Serializable, Comparable {
      */
     public void setIsPrivate(Boolean isPrivate) {
         this.isPrivate = isPrivate;
+    }
+
+    /**
+     * @return the gridWeatherStationPointOfInterestIds
+     */
+    public Integer[] getGridWeatherStationPointOfInterestIds() {
+        return gridWeatherStationPointOfInterestIds;
+    }
+
+    /**
+     * @param gridWeatherStationPointOfInterestIds the gridWeatherStationPointOfInterestIds to set
+     */
+    public void setGridWeatherStationPointOfInterestIds(Integer[] gridWeatherStationPointOfInterestIds) {
+        this.gridWeatherStationPointOfInterestIds = gridWeatherStationPointOfInterestIds;
     }
 }
