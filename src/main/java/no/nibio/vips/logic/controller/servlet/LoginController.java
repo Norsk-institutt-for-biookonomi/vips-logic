@@ -120,7 +120,7 @@ public class LoginController extends HttpServlet {
                 if(user != null)
                 {
                     request.getSession().setAttribute("user", user);
-                    UUID uUUID = this.handleRememberUser(request, response, user);
+                    UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
                     if(returnUUID)
                     {
                         nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
@@ -193,7 +193,7 @@ public class LoginController extends HttpServlet {
                     if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
                     {
                         request.getSession().setAttribute("user", user);
-                        UUID uUUID = this.handleRememberUser(request, response, user);
+                        UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
                         if(returnUUID)
                         {
                             nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
@@ -282,7 +282,7 @@ public class LoginController extends HttpServlet {
             if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
             {
                 request.getSession().setAttribute("user", user);
-                UUID uUUID = this.handleRememberUser(request, response, user);
+                UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
                 // All is well, return object
                 ObjectMapper mapper = new ObjectMapper();
                 user.setUserUuid(uUUID);
@@ -362,20 +362,23 @@ public class LoginController extends HttpServlet {
      * @param response
      * @param user 
      */
-    private UUID handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user)
+    private UUID handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user, Boolean returnUUID)
     {
         
         String rememberUser = request.getParameter("rememberUser") != null ? 
                 request.getParameter("rememberUser") 
                 : (String) request.getSession().getAttribute("rememberUser");
         request.getSession().removeAttribute("rememberUser");
-        if(rememberUser != null && rememberUser.equals("on"))
+        if(returnUUID || (rememberUser != null && rememberUser.equals("on")))
         {
             UserUuid uUUID = SessionControllerGetter.getUserBean().createAndPersistUserUuid(user);
-            Cookie rememberedUser = new Cookie("rememberedUser", uUUID.getUserUuidPK().getUserUuid().toString());
-            rememberedUser.setPath("/");
-            rememberedUser.setMaxAge(Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS * 24 * 60 * 60);
-            response.addCookie(rememberedUser);
+            if(rememberUser != null && rememberUser.equals("on"))
+            {
+                Cookie rememberedUser = new Cookie("rememberedUser", uUUID.getUserUuidPK().getUserUuid().toString());
+                rememberedUser.setPath("/");
+                rememberedUser.setMaxAge(Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS * 24 * 60 * 60);
+                response.addCookie(rememberedUser);
+            }
             return uUUID.getUserUuidPK().getUserUuid();
         }
         else
