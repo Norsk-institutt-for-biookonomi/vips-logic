@@ -21,6 +21,8 @@ package no.nibio.vips.logic.scheduling.model.grid.preprocessor;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,12 +64,25 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
             List<WeatherObservation> stationObs = getStationObs(station, configuration);
             try
             {
-                stationObs = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(stationObs, 6);
+                // We need TM, UM and RR. BT is optional
+                List<WeatherObservation> mandatory = wUtil.filterWeatherObservationsByParameter(stationObs, new HashSet<>(Arrays.asList("TM","UM","RR")));
+                stationObs = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(mandatory, 6);
             }
             catch(WeatherObservationListException ex)
             {
-                throw new PreprocessorException(ex.getMessage());
+                throw new PreprocessorException("Problem with station #" + station.getPointOfInterestId() + ": " + ex.getMessage());
             }
+            // Checking for BT
+            try
+            {
+                List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(stationObs, new HashSet<>(Arrays.asList("BT")));
+                stationObs.addAll(wUtil.checkForAndFixHourlyTimeSeriesHoles(BT, 6));
+            }
+            catch(WeatherObservationListException ex)
+            {
+                
+            }
+            
             PointWeatherObservationList pointObs = new PointWeatherObservationList(coordinate, stationObs, station.getTimeZone());
             allObs.add(pointObs);
         }
