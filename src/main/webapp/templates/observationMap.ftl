@@ -95,9 +95,9 @@
                     var html = "<ul>";
                     for(var i in colors)
                     {
-                            html += '<li><i style="color: ' + colors[i][1] + ';" class="fa fa-square" aria-hidden="true"></i> ' + (i > 0 ? colors[i-1][0] + 1 : '0') + '-' + colors[i][0] + ' dager</li>';
+                            html += '<li><i style="color: ' + colors[i][1] + ';" class="fa fa-square" aria-hidden="true"></i> ' + (i > 0 ? colors[i-1][0] + 1 : '0') + '-' + colors[i][0] + ' ${i18nBundle.days?lower_case}</li>';
                     }
-                        html += '<li><i style="color: black;" class="fa fa-square" aria-hidden="true"></i> Eldre</li>';
+                        html += '<li><i style="color: black;" class="fa fa-square" aria-hidden="true"></i> ${i18nBundle.older}</li>';
                     html += "</ul>";
                     lBox.innerHTML = html;
                 }
@@ -159,7 +159,7 @@
         <div id="observationMap" class="map" style="position:relative;">
             <div id="popover"></div>
             <div class="form-group" id="progressBar">
-                <label for="dayInPeriod">Gjeldende dato: <span id="dayInPeriodDate">${to?date}</span></label><br/>
+                <label for="dayInPeriod">${i18nBundle.currentDate}: <span id="dayInPeriodDate">${to?date}</span></label><br/>
                 <button type="button" id="playButton" class="btn" onclick="togglePlay(this);"><i class="fa fa-play" aria-hidden="true"></i></button>
                 <input type="range" id="dayInPeriod" name="dayInPeriod" min="1" max="${periodDays}" step="1" value="${periodDays}" oninput="updateCurrentDate(this);" onchange="updateMap(this)"/>
                 

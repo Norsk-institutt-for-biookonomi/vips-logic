@@ -60,7 +60,7 @@ public class MessagingBean {
     
     public void sendUniversalMessage(Message message)
     {
-        String msgDownloadUrlTpl = "https://www.vips-landbruk.no/";
+        String msgDownloadUrlTpl = "https://www.vips-landbruk.no/messages/" + message.getMessageId() + "/";
         // Create a universal message from the message
         // TODO: When UniversalMessage has changed, pick
         UniversalMessage uMessage = new UniversalMessage();
@@ -401,7 +401,7 @@ public class MessagingBean {
         {
             return;
         }
-        String msgDownloadUrlTpl = "https://www.vips-landbruk.no/";
+        String msgDownloadUrlTpl = "https://www.vips-landbruk.no/observations/" + observation.getObservationId() + "/";
         // Create a universal message from the message
         // TODO: When UniversalMessage has changed, pick
         UniversalMessage uMessage = new UniversalMessage();
@@ -412,7 +412,9 @@ public class MessagingBean {
         uMessage.setExpiresAt(cal.getTime());
         // For locale, we assume observer's language
         VipsLogicUser observer = em.find(VipsLogicUser.class, observation.getUserId());
-        uMessage.addMessageLocalVersion(observer.getPreferredLocale(), observation.getObservationHeading(), "", observation.getObservationText(), msgDownloadUrlTpl);
+        uMessage.addMessageLocalVersion(observer.getPreferredLocale(), observation.getObservationHeading(), "", 
+                observation.getObservationText()
+                , msgDownloadUrlTpl);
         
         // Find the suscribers, create distribution list
         uMessage.setDistributionList(this.getObservationNotificationSubscribers(observation));
