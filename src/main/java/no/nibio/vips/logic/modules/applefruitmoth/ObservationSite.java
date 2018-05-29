@@ -21,6 +21,7 @@ package no.nibio.vips.logic.modules.applefruitmoth;
 
 import com.vividsolutions.jts.geom.Geometry;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -78,6 +79,8 @@ public class ObservationSite implements Serializable, Comparable {
     @JoinColumn(name = "gis_id", referencedColumnName="gis_id")
     @OneToOne
     private Gis gisId;
+    @Transient
+    private Date lastUpdatedClusterCount;
 
 
     public ObservationSite() {
@@ -183,5 +186,19 @@ public class ObservationSite implements Serializable, Comparable {
 
     public void setGisId(Gis gisId) {
         this.gisId = gisId;
+    }
+
+    /**
+     * @return the lastUpdatedClusterCount
+     */
+    public Date getLastUpdatedClusterCount() {
+        return lastUpdatedClusterCount;
+    }
+
+    /**
+     * @param lastUpdatedClusterCount the lastUpdatedClusterCount to set
+     */
+    public void setLastUpdatedClusterCount(Date lastUpdatedClusterCount) {
+        this.lastUpdatedClusterCount = lastUpdatedClusterCount;
     }
 }

@@ -24,12 +24,14 @@
    <#if messageKey?has_content>
             <div class="alert alert-success">${.now}: ${i18nBundle(messageKey)}</div>
     </#if>
+    <button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth';"><i class="fa fa-arrow-left" aria-hidden="true"></i> Tilbake til stasjonsliste</button>
+    <#if user.isSuperUser() || user.isAppleFruitMothAdministrator() ><button class="btn btn-default" type="button" onclick="window.location='/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}';">Rediger ${observationSite.observationSiteName}</button></#if>
+                   
    <div class="singleBlockContainer">
 	
 	<div class="row">
             <form role="form" action="/applefruitmoth?action=clusterSubmit" method="POST" onsubmit="return validateForm(this)">
 		<div class="col-md-8">
-                    <button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth';"><i class="fa fa-arrow-left" aria-hidden="true"></i> Tilbake</button>
                     <p>
                     Man trenger ikke registrere informasjon for alle trær (A-T) i 
                     lista. Et tre kan ha bare høsttallet registrert, men ikke bare vårtallet

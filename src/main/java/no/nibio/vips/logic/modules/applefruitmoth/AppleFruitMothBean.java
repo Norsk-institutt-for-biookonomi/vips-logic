@@ -31,11 +31,14 @@ import de.micromata.opengis.kml.v_2_2_0.Units;
 import de.micromata.opengis.kml.v_2_2_0.Vec2;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import no.nibio.vips.logic.util.Globals;
 
 /**
@@ -52,6 +55,22 @@ public class AppleFruitMothBean {
     public List<ObservationSite> getObservationSites()
     {
         List<ObservationSite> sites = em.createNamedQuery("ObservationSite.findAll").getResultList();
+        return sites;
+    }
+    
+    public List<ObservationSite> getObservationSitesWithClusterCountLastUpdate(){
+        List<ObservationSite> sites = this.getObservationSites();
+        Query qu = em.createNativeQuery("SELECT max(last_updated) FROM applefruitmoth.observation_site_point_season_data osd WHERE osd.observation_site_point_id IN (SELECT observation_site_point_id FROM applefruitmoth.observation_site_point WHERE observation_site_id = :observationSiteId)");
+        sites.stream().forEach(site->{
+            qu.setParameter("observationSiteId", site.getObservationSiteId());
+            try
+            {
+                Date lastUpdated = (Date) qu.getSingleResult();
+                site.setLastUpdatedClusterCount(lastUpdated);
+            }
+            catch(NoResultException ex){}
+        });
+        
         return sites;
     }
 
