@@ -81,10 +81,10 @@ public class MetosAPIDataParser {
         new ParamInfo(WeatherElements.LEAF_WETNESS,             new Integer[] {4},          "time"),
         new ParamInfo(WeatherElements.GLOBAL_RADIATION,         new Integer[] {600},        "avg"),
         new ParamInfo(WeatherElements.WIND_SPEED_2M,            new Integer[] {5},          "avg"),
-        new ParamInfo(WeatherElements.TEMPERATURE_MEAN,         new Integer[] {16385},      "avg"),
+        new ParamInfo(WeatherElements.TEMPERATURE_MEAN,         new Integer[] {0,16385},      "avg"),
         new ParamInfo(WeatherElements.TEMPERATURE_MAXIMUM,      new Integer[] {16385},      "max"),
         new ParamInfo(WeatherElements.TEMPERATURE_MINIMUM,      new Integer[] {16385},      "min"),
-        new ParamInfo(WeatherElements.RELATIVE_HUMIDITY_MEAN,   new Integer[] {1,21778},    "avg")
+        new ParamInfo(WeatherElements.RELATIVE_HUMIDITY_MEAN,   new Integer[] {1,507,21778},    "avg")
     };
     
     
@@ -245,7 +245,7 @@ public class MetosAPIDataParser {
                 //System.out.println("Linje");
             }
             
-            return this.getParsedObservations(all, this.getWeatherStationTimeZone(accessToken)); // TODO TimeZone
+            return this.getParsedObservations(all, this.getWeatherStationTimeZone(stationId, accessToken)); // TODO TimeZone
         }
         catch(IOException | ParseException | AuthenticationException ex)
         {
@@ -253,9 +253,9 @@ public class MetosAPIDataParser {
         }
     }
     
-    private TimeZone getWeatherStationTimeZone(String accessToken) throws IOException
+    private TimeZone getWeatherStationTimeZone(String stationId,String accessToken) throws IOException
     {
-        HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/station/000024A0");
+        HttpGet httpget = new HttpGet("https://api.fieldclimate.com/v1/station/" + stationId);
         httpget.addHeader("Accept", "application/json");
         httpget.addHeader("Authorization", "Bearer " + accessToken);
         CloseableHttpClient httpclient = HttpClients.createDefault();

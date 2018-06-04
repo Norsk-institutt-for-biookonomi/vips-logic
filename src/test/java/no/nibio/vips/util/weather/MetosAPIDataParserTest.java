@@ -70,7 +70,7 @@ public class MetosAPIDataParserTest {
     @Test
     public void testGetWeatherObservations() throws Exception {
         System.out.println("getWeatherObservations");
-        String stationId = "000024A0";
+        String stationId = "000012DE";
         TimeZone timeZone = TimeZone.getTimeZone("Europe/Vilnius");
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(timeZone);
