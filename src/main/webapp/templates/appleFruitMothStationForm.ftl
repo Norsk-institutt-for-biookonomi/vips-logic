@@ -76,12 +76,12 @@
 				  </div>
 				<div class="form-group">
 				    <label for="degreeOfParasitation">${i18nBundle.degreeOfParasitation} (${i18nBundle.internal})</label>
-				    <input type="number" step="any" class="form-control" name="degreeOfParasitation" placeholder="${i18nBundle.degreeOfParasitation}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.degreeOfParasitation?c!""}</#if>" onblur="validateField(this);" />
+				    <input type="number" step="any" class="form-control" name="degreeOfParasitation" placeholder="${i18nBundle.degreeOfParasitation}" value="<#if observationSiteSeasonCommonData?? && observationSiteSeasonCommonData.degreeOfParasitation??>${observationSiteSeasonCommonData.degreeOfParasitation?c!""}</#if>" onblur="validateField(this);" />
 				    <span class="help-block" id="${formId}_degreeOfParasitation_validation"></span>
 				</div>
 				<div class="form-group">
 				    <label for="thousandBerrySample">${i18nBundle.thousandBerrySample} (${i18nBundle.internal})</label>
-				    <input type="number" step="any" class="form-control" name="thousandBerrySample" placeholder="${i18nBundle.thousandBerrySample}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.thousandBerrySample?c!""}</#if>" onblur="validateField(this);" />
+				    <input type="number" step="any" class="form-control" name="thousandBerrySample" placeholder="${i18nBundle.thousandBerrySample}" value="<#if observationSiteSeasonCommonData?? && observationSiteSeasonCommonData.thousandBerrySample??>${observationSiteSeasonCommonData.thousandBerrySample?c!""}</#if>" onblur="validateField(this);" />
 				    <span class="help-block" id="${formId}_thousandBerrySample_validation"></span>
 				</div>
                                 <div class="form-group">
