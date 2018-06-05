@@ -67,6 +67,11 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
 				windSpeedAll = observations.stream().filter(t -> t.getElementMeasurementTypeId().equals(WeatherElements.WIND_SPEED_10MIN_2M))
 						.collect(Collectors.toList());
 			}
+                        /*System.out.println("Observations size = " + observations.size());
+                        System.out.println("temperature size=" + temperature.size());
+                        System.out.println("rainfall size=" + rainfall.size());
+                        System.out.println("rh size =" + rh.size());
+                        System.out.println("windSpeedAll=" + windSpeedAll.size());*/
 	        config.setModelId(this.getModelId());
 	        config.setConfigParameter("timeZone", weatherStation.getTimeZone());
 	        config.setConfigParameter("temperature", temperature);
