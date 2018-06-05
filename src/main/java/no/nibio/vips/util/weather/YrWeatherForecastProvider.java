@@ -121,6 +121,15 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     UU.setValue(Double.parseDouble(DOMUtils.getNodeAttr("humidity","value",node2.getChildNodes())));
                     yrValues.add(UU);
                 }
+                if(fromTime.compareTo(toTime) == 0 && DOMUtils.getNode("windSpeed", node2.getChildNodes()) != null)
+                {
+                    WeatherObservation FF = new WeatherObservation();
+                    FF.setTimeMeasured(fromTime);
+                    FF.setElementMeasurementTypeId(WeatherElements.WIND_SPEED_10MIN_10M);
+                    FF.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
+                    FF.setValue(Double.parseDouble(DOMUtils.getNodeAttr("windSpeed","mps",node2.getChildNodes())));
+                    yrValues.add(FF);
+                }
                 // The aggregated values (duration known, but comes in parallel)
                 if(fromTime.compareTo(toTime) != 0 && DOMUtils.getNode("precipitation", node2.getChildNodes()) != null)
                 {
@@ -203,7 +212,9 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
         List<WeatherObservation> hourlyData = new ArrayList<>();
         List<WeatherObservation> TM = new ArrayList<>();
         List<WeatherObservation> UM = new ArrayList<>();
+        List<WeatherObservation> FF2 = new ArrayList<>();
         List<WeatherObservation> RR = new ArrayList<>();
+        
         Collections.sort(yrValues);
         Calendar cal = Calendar.getInstance();
         for(WeatherObservation yrValue : yrValues)
@@ -229,6 +240,15 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     }
                     yrValue.setElementMeasurementTypeId(WeatherElements.RELATIVE_HUMIDITY_MEAN);
                     UM.add(yrValue);
+                    break;
+                case WeatherElements.WIND_SPEED_10MIN_10M:
+                    if(!FF2.isEmpty())
+                    {
+                        WeatherObservation previousObs = FF2.get(FF2.size()-1);
+                        FF2.addAll(this.getInterpolatedObservations(previousObs, yrValue, WeatherElements.WIND_SPEED_10MIN_2M));
+                    }
+                        yrValue.setElementMeasurementTypeId(WeatherElements.WIND_SPEED_10MIN_2M);
+                    FF2.add(yrValue);
                     break;
                 case WeatherElements.PRECIPITATION:
                     if(!RR.isEmpty())
@@ -256,6 +276,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
         hourlyData.addAll(TM);
         hourlyData.addAll(UM);
         hourlyData.addAll(RR);
+        hourlyData.addAll(FF2);
         return hourlyData;
     }
     
