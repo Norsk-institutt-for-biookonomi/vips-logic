@@ -253,20 +253,23 @@ public class OrganismController extends HttpServlet {
                     SessionControllerGetter.getOrganismBean().storeOrganismCropCategories(user.getOrganizationId().getOrganizationId(), organism, cropCategoryIds);
                     
                     //System.out.println(formValidation.getFormFields().toString());
-                    Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
-                    for(String key:externalResourceIdentifiers.keySet())
+                    if(formValidation.getMultipleMapFormFields().get("externalResourceIdentifier") != null)
                     {
-                        FormField identifierField = externalResourceIdentifiers.get(key);
-                        if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
+                        Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
+                        for(String key:externalResourceIdentifiers.keySet())
                         {
-                            continue;
+                            FormField identifierField = externalResourceIdentifiers.get(key);
+                            if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
+                            {
+                                continue;
+                            }
+                            Integer externalResourceId = Integer.valueOf(key);
+                            OrganismExternalResource organismExternalResource = new OrganismExternalResource();
+                            OrganismExternalResourcePK pk = new OrganismExternalResourcePK(organism.getOrganismId(), externalResourceId);
+                            organismExternalResource.setOrganismExternalResourcePK(pk);
+                            organismExternalResource.setResourceIdentifier(identifierField.getWebValue());
+                            SessionControllerGetter.getOrganismBean().storeOrganismExternalResource(organismExternalResource);
                         }
-                        Integer externalResourceId = Integer.valueOf(key);
-                        OrganismExternalResource organismExternalResource = new OrganismExternalResource();
-                        OrganismExternalResourcePK pk = new OrganismExternalResourcePK(organism.getOrganismId(), externalResourceId);
-                        organismExternalResource.setOrganismExternalResourcePK(pk);
-                        organismExternalResource.setResourceIdentifier(identifierField.getWebValue());
-                        SessionControllerGetter.getOrganismBean().storeOrganismExternalResource(organismExternalResource);
                     }
                     // Need to refresh organism after storing the external resources
                     Organism refreshedOrganism = em.find(Organism.class, organism.getOrganismId());
