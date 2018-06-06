@@ -113,6 +113,10 @@ public class ForecastBean {
     {
         // Authentication
         ForecastConfiguration fc = em.find(ForecastConfiguration.class, forecastConfigurationId);
+        if(fc == null)
+        {
+            return true;
+        }
         if(fc.getIsPrivate())
         {
             if(userUUID == null)

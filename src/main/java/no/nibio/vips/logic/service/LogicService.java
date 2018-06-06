@@ -116,6 +116,60 @@ public class LogicService {
     }
     
     /**
+     * Get all results for one pest prediction
+     * @param forecastConfigurationId
+     * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
+     * @return 
+     */
+    @GET
+    @Path("forecastresults/{forecastConfigurationId}/csv")
+    @GZIP
+    @Produces("text/plain;charset=UTF-8")
+    public Response getForecastResultsCSV(
+            @PathParam("forecastConfigurationId") Long forecastConfigurationId,
+            @QueryParam("userUUID") String userUUID
+    )
+    {
+        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
+        {
+            String CSVOutput = "";
+            List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId);
+            if(results != null && ! results.isEmpty())
+            {
+                List<String> parameters = new ArrayList<>();//new String[results.get(0).getKeys().size() + 3];
+                parameters.add("Valid time start");
+                parameters.add("Valid time end");
+                parameters.add("Warning status");
+                results.get(0).getKeys().stream().forEach(key->{
+                    parameters.add(key);
+                });
+                
+                CSVOutput += String.join(",", parameters) + "\n";
+                
+                CSVOutput += results.stream().map(result->{
+                    String line = result.getValidTimeStart() + "," + result.getValidTimeEnd() + "," + result.getWarningStatus();
+                    Map<String, String> valueMap = result.getAllValuesAsMap();
+                    for(int i=3;i<parameters.size();i++)
+                    {
+                        line += "," + valueMap.get(parameters.get(i));
+                    }
+                    line += "\n";
+                    return line;
+                }).collect(Collectors.joining("\n"));
+                
+                return Response.ok().entity(CSVOutput).build();
+                
+            }
+            
+            return Response.ok().entity("").build();
+        }
+        else
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+    
+    /**
      * Get the latestDays results for one pest prediction
      * @param forecastConfigurationId
      * @param latestDays
