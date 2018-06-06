@@ -124,7 +124,7 @@ public class LogicService {
     @GET
     @Path("forecastresults/{forecastConfigurationId}/csv")
     @GZIP
-    @Produces("text/plain;charset=UTF-8")
+    @Produces("text/csv;charset=UTF-8")
     public Response getForecastResultsCSV(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
             @QueryParam("userUUID") String userUUID
@@ -153,7 +153,6 @@ public class LogicService {
                     {
                         line += "," + valueMap.get(parameters.get(i));
                     }
-                    line += "\n";
                     return line;
                 }).collect(Collectors.joining("\n"));
                 
