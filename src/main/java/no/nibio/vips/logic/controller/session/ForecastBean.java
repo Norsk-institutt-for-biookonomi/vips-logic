@@ -873,6 +873,7 @@ public class ForecastBean {
                 }
                 
             }
+            em.flush();
         }
         
         if(activeForecastIds != null && ! activeForecastIds.isEmpty())
