@@ -41,13 +41,13 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"options": [
-				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehnä"}, "selected":"true"},
+				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehn"}, "selected":"true"},
 				{"value":"Barley", "label":{"en":"Barley","nb":"Barley","fi":"Kaura"}},
-				{"value":"Oats", "label":{"en" : "Oats", "nb":"?", "fi":"Ohra"}},
-				{"value":"Grass", "label":{"en" : "Grass", "nb":"?","fi":"Heinä"}},
+				{"value":"Oat", "label":{"en" : "Oats", "nb":"?", "fi":"Ohra"}},
+				{"value":"Grass", "label":{"en" : "Grass", "nb":"?","fi":"Hein"}},
 				{"value":"Rapeseed", "label":{"en" : "Turnip rape", "nb":"?","fi":"Rypsi"}},
 				{"value":"SugarBeet", "label":{"en" : "Sugar beet", "nb":"?","fi":"Sokerijuurikas"}},
-				{"value":"Legumes", "label":{"en" : "Legumes", "nb":"?","fi":"Herneet"}}
+				{"value":"Pulse", "label":{"en" : "Legumes", "nb":"?","fi":"Herneet"}}
 			]
         },
         {
@@ -56,9 +56,9 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"options": [
-				{"value":"Intensive", "label":{"en":"Ploughing","nb":"?","fi":"Kyntö"}, "selected":"true"},
+				{"value":"Intensive", "label":{"en":"Ploughing","nb":"?","fi":"Kynt"}, "selected":"true"},
 				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"?","fi":"Kevytmuokkaus"}},
-				{"value":"None", "label":{"en" : "Direct seeding", "nb":"?","fi":"Suorakylvö"}}
+				{"value":"None", "label":{"en" : "Direct seeding", "nb":"?","fi":"Suorakylv"}}
 			]
         },
         {
