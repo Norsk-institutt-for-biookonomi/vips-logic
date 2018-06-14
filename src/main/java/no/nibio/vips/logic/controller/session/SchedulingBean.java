@@ -198,17 +198,22 @@ public class SchedulingBean {
         SchedulingPattern everyNightPattern = new SchedulingPattern("0 6 * * *");
         deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK));
         
-        // Sendt forecast notifications
+        // Send forecast notifications
         VIPSLogicTaskCollector sendForecastNotificationsCollector = new VIPSLogicTaskCollector(-1);
         SchedulingPattern morningAndAfternoonPattern = new SchedulingPattern("45 6,12 * * *");
         sendForecastNotificationsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
+        
+        // Run grid models
+        VIPSLogicTaskCollector runGridModelsCollector = new VIPSLogicTaskCollector(-1);
+        runGridModelsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_GRID_MODELS_TASK));
         
         List<TaskCollector> definedTasks = new ArrayList<>();
         definedTasks.add(modelRunCollector);
         definedTasks.add(cacheHandlerCollector);
         definedTasks.add(summariesCollector);
         definedTasks.add(deleteAllExpiredUserUuidsCollector);
-        definedTasks.add((sendForecastNotificationsCollector));
+        definedTasks.add(sendForecastNotificationsCollector);
+        definedTasks.add(runGridModelsCollector);
         return definedTasks;
     }
     

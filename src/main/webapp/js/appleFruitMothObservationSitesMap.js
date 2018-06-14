@@ -83,7 +83,7 @@ var initMap = function(container, mapAttribution)
 	          		trigger: 'manual',
 	          		html: true,
 	          		placement: "auto top",
-	          		title: "<a href='/applefruitmoth?action=viewObservationSite&observationSiteId=" + feature.getId() + "'>" + feature.get("name") + "</a>",
+	          		title: "<a href='/applefruitmoth?action=viewObservationSite&observationSiteId=" + feature.getId() + "'>" + feature.get("siteName") + "</a>",
 	          		content: generatePopupContents(feature.get("warningStatus"), feature.get("description"))
 	          	});
 	          	

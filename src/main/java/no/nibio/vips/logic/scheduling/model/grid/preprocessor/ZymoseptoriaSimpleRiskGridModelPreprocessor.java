@@ -21,6 +21,8 @@ package no.nibio.vips.logic.scheduling.model.grid.preprocessor;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,26 +48,48 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
 
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
+        
         ModelConfiguration modelConfig = new ModelConfiguration();
         // Which weather stations??
         // Ilseng and Apelsvoll to start with ;-)
-        List<PointOfInterestWeatherStation> stations = Stream.of(new Integer[]{50,91,87}).map(
+        List<PointOfInterestWeatherStation> stations = Stream.of(configuration.getGridWeatherStationPointOfInterestIds()).map(
                 stationId -> (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(stationId)
             ).collect(Collectors.toList());
         
         List<PointWeatherObservationList> allObs = new ArrayList<>();
-        
+        WeatherUtil wUtil = new WeatherUtil();
         for(PointOfInterestWeatherStation station:stations)
         {
             Coordinate coordinate = new Coordinate(station.getPointOfInterest().getLongitude(), station.getPointOfInterest().getLatitude());
             List<WeatherObservation> stationObs = getStationObs(station, configuration);
-            PointWeatherObservationList pointObs = new PointWeatherObservationList(coordinate, stationObs);
+            try
+            {
+                // We need TM, UM and RR. BT is optional
+                List<WeatherObservation> mandatory = wUtil.filterWeatherObservationsByParameter(stationObs, new HashSet<>(Arrays.asList("TM","UM","RR")));
+                stationObs = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(mandatory, 6);
+            }
+            catch(WeatherObservationListException ex)
+            {
+                throw new PreprocessorException("Problem with station #" + station.getPointOfInterestId() + ": " + ex.getMessage());
+            }
+            // Checking for BT
+            try
+            {
+                List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(stationObs, new HashSet<>(Arrays.asList("BT")));
+                stationObs.addAll(wUtil.checkForAndFixHourlyTimeSeriesHoles(BT, 6));
+            }
+            catch(WeatherObservationListException ex)
+            {
+                
+            }
+            
+            PointWeatherObservationList pointObs = new PointWeatherObservationList(coordinate, stationObs, station.getTimeZone());
             allObs.add(pointObs);
         }
         
         modelConfig.setConfigParameter("multiPointWeatherObservations", allObs);
         modelConfig.setModelId(this.getModelId());
-        modelConfig.setConfigParameter("timeZone", stations.get(0).getTimeZone());
+        modelConfig.setConfigParameter("timeZone", configuration.getTimeZone());
         return modelConfig;
     }
 

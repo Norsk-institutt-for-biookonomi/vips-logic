@@ -1,6 +1,6 @@
 {
     "_licenseNote": [
-        "Copyright (c) 2014-2015 NIBIO <http://www.nibio.no/>. ",
+        "Copyright (c) 2014-2018 NIBIO <http://www.nibio.no/>. ",
         "",
         "This file is part of VIPSLogic. ",
         "VIPSLogic is free software: you can redistribute it and/or modify ",
@@ -16,7 +16,7 @@
         "You should have received a copy of the NIBIO Open Source License ",
         "along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>. "
     ],
-    "_comment" : "Structure of the weatherStationForm and how to validate it",
+    "_comment" : "Structure of the appleFruitMothStationForm and how to validate it",
     "fields": [
         {
             "name" : "observationSiteId",

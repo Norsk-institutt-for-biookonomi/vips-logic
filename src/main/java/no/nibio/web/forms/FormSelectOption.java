@@ -19,6 +19,8 @@
 
 package no.nibio.web.forms;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Represents an option in a select field
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>

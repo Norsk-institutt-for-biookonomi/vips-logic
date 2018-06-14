@@ -324,7 +324,7 @@ public class ForecastBean {
                 .setParameter("organizationIds", organizationIds)
                 .getResultList();
         
-        if(!organizationUsers.isEmpty())
+        if(!organizationUsers.isEmpty() && ! modelIds.isEmpty())
         {
             return em
                     .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate")

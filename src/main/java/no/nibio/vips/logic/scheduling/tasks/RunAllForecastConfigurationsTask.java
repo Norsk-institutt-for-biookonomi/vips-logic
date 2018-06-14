@@ -115,20 +115,25 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                                             ex.getMessage(), 
                                             SchedulingUtil.MESSAGE_STATUS_DANGER)
                                     );
-                            //System.out.println("Error caught");
-                            continue;
+                            //System.out.println("###########################   Error caught: " + errorMessage);
+                            //System.out.println("numberOfCompletedForecastConfigurations=" + numberOfCompletedForecastConfigurations);
+                            //System.out.println("totalNumberofForecastConfigurations=" + totalNumberofForecastConfigurations);
+                            //continue;
                         }
 
                     }
                     if(totalNumberofForecastConfigurations > 0)
                     {
+                        noForecastConfigurationsFound = false;
                         double completeness = (double) numberOfCompletedForecastConfigurations/totalNumberofForecastConfigurations;
                         tec.setCompleteness(completeness);
                     }
                     else
                     {
                         noForecastConfigurationsFound = true;
+                        //System.out.println("noForecastConfigurationsFound == true!!");
                     }
+                    //System.out.println("Current completeness=" + tec.getTaskExecutor().getCompleteness());
                 }
             }
             
@@ -138,9 +143,12 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                tec.setCompleteness(1.0);
                tec.setStatusMessage("No current forecast configurations were found");
         }
+        
+        //System.out.println("Total completeness=" + tec.getTaskExecutor().getCompleteness());
+        
         if(tec.getTaskExecutor().getCompleteness() != 1.0)
         {
-            //System.out.println("Error detected");
+            //System.out.println("Error detected, RuntimeException thrown just after this");
             tec.setStatusMessage(errorMessage.toString());
             throw new RuntimeException();
         }

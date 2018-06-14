@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.util.Collection;
 import javax.persistence.Basic;
@@ -55,6 +56,7 @@ public class PreparationType implements Serializable {
     @Size(max = 255)
     @Column(name = "preparation_type_name")
     private String preparationTypeName;
+    @JsonIgnore
     @OneToMany(mappedBy = "preparationTypeId")
     private Collection<Preparation> preparationCollection;
 

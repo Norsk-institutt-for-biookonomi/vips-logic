@@ -178,18 +178,15 @@ function parseJSONDate(theDateString)
 
 function getTodayAtMidnight()
 {
-    var retVal = new Date();
-    retVal.setHours(0);
-    retVal.setMinutes(0);
-    retVal.setSeconds(0);
-    retVal.setMilliseconds(0);
+    var now = new Date();
     
-    //return retVal;
+    var midnightString = now.getFullYear() + "-" + 
+                            ('0' + (now.getMonth()+1)).slice(-2) + "-" +
+                            ('0' + (now.getDate()-1)).slice(-2) + 
+                            "T22:00:00.000+0000";
+    return new Date(midnightString);
     // OR RETURN A FIXED DATE FOR TESTING
-    retVal.setFullYear(2017);
-    retVal.setMonth(8); // September
-    retVal.setDate(9);
-    return retVal;//new Date("2017-09-09T22:00:00.000+0000");
+    return new Date("2017-09-07T22:00:00.000+0000");
 }
 
 

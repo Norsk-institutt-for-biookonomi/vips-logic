@@ -311,26 +311,28 @@ public class PointOfInterestController extends HttpServlet {
                             weatherStation = SessionControllerGetter.getPointOfInterestBean().storeWeatherStation(weatherStation);
                             
                             Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
-                            for(String key:externalResourceIdentifiers.keySet())
+                            if(externalResourceIdentifiers != null)
                             {
-                                Integer externalResourceId = Integer.valueOf(key);
-                                FormField identifierField = externalResourceIdentifiers.get(key);
-                                if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
+                                for(String key:externalResourceIdentifiers.keySet())
                                 {
-                                    // We delete existing if unset
-                                    SessionControllerGetter.getPointOfInterestBean().deletePointOfInterestExternalResource(weatherStation.getPointOfInterestId(), externalResourceId);
-                                }
-                                else
-                                {
-                                    
-                                    PointOfInterestExternalResource poiExternalResource = new PointOfInterestExternalResource();
-                                    PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(weatherStation.getPointOfInterestId(), externalResourceId);
-                                    poiExternalResource.setPointOfInterestExternalResourcePK(pk);
-                                    poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
-                                    SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                                    Integer externalResourceId = Integer.valueOf(key);
+                                    FormField identifierField = externalResourceIdentifiers.get(key);
+                                    if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
+                                    {
+                                        // We delete existing if unset
+                                        SessionControllerGetter.getPointOfInterestBean().deletePointOfInterestExternalResource(weatherStation.getPointOfInterestId(), externalResourceId);
+                                    }
+                                    else
+                                    {
+
+                                        PointOfInterestExternalResource poiExternalResource = new PointOfInterestExternalResource();
+                                        PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(weatherStation.getPointOfInterestId(), externalResourceId);
+                                        poiExternalResource.setPointOfInterestExternalResourcePK(pk);
+                                        poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
+                                        SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                                    }
                                 }
                             }
-                            
                             // Redirect to form
                             response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))

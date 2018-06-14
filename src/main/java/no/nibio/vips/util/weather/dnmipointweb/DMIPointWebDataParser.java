@@ -19,7 +19,10 @@
 
 package no.nibio.vips.util.weather.dnmipointweb;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -55,15 +58,16 @@ public class DMIPointWebDataParser {
     
     public List<WeatherObservation> getData(Double longitude, Double latitude, Date dateFrom, Date dateTo)
     {
-        List<WeatherObservation> retVal = new ArrayList<>();
+        List<WeatherObservation> allObservations = new ArrayList<>();
+        TimeZone danishTZ = TimeZone.getTimeZone("Europe/Copenhagen");
         try {
             IWeatherService proxy = new WeatherService().getSslOffloadedBasicHttpBindingIWeatherService();
             UseableArrayOfWeatherDataSource wdsource = new UseableArrayOfWeatherDataSource();
             wdsource.add(WeatherDataSource.OBS);
             wdsource.add(WeatherDataSource.FORECAST);
-            wdsource.add(WeatherDataSource.NORMAL);
-
-            GregorianCalendar gc = new GregorianCalendar(TimeZone.getTimeZone("Europe/Copenhagen"));
+            //wdsource.add(WeatherDataSource.NORMAL);
+            
+            GregorianCalendar gc = new GregorianCalendar(danishTZ);
             gc.setTime(dateFrom);
             XMLGregorianCalendar calFrom = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
             XMLGregorianCalendar calTo = null;
@@ -79,7 +83,8 @@ public class DMIPointWebDataParser {
                     listedParam -> wdparam.add(listedParam)
             );
             
-            WeatherResponse result = proxy.getWeatherData(
+            //WeatherResponse result = proxy.getWeatherData(
+            WeatherResponse result = proxy.getWeatherDataExtended(
                 String.valueOf(latitude).replace(".", ","), // Latitude ("X") Decimal separator is comma!
                 String.valueOf(longitude).replace(".", ","), // Longitude ("Y") Decimal separator is comma!
                 false, // true if UTM, false if decimal degrees
@@ -90,18 +95,19 @@ public class DMIPointWebDataParser {
                 calTo, // End of period with data
                 wdparam, // Set of requested parameters
                 0.0, // Base temperature value
-                false // Use base temperature? (t/f)
+                false, // Use base temperature? (t/f)
+                true // Get 6 days of forecasts (only for the proxy.getWeatherDataExtended method)
             );
-             
             
-
             ArrayOfWeatherDataModel value = result.getWeahterDataList().getValue();
             value.getWeatherDataModel().stream().forEach(weatherDataModel -> {
                     DMIPointWebDataParser.PARAM_MAP.keySet().stream().forEach(
                             VIPSParam->{
                                 WeatherObservation obs = this.getWeatherObservation(VIPSParam, weatherDataModel);
                                 if(obs != null)
-                                    retVal.add(obs);
+                                {
+                                    allObservations.add(obs);
+                                }
                             }
                     );
                 }
@@ -110,8 +116,24 @@ public class DMIPointWebDataParser {
         } catch (Exception ex) {
             Logger.getLogger(DMIPointWebDataParser.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Number of extracted weather data = " + retVal.size());
-        return retVal;
+        //System.out.println("Number of extracted weather data = " + retVal.size());
+        // After "now", the DMI service provides forecast values seamlessly. After approx 48 hours these
+        // values turn into 6 hour intervals, which we can't use. We need to weed them out
+        Collections.sort(allObservations);
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime lastValidObsTime = null;
+        ZoneId danishZ = ZoneId.of("Europe/Copenhagen");
+        List<WeatherObservation> filteredObservations = new ArrayList<>();
+        for(WeatherObservation obs:allObservations)
+        {
+            ZonedDateTime obsTime = ZonedDateTime.ofInstant(obs.getTimeMeasured().toInstant(),danishZ);
+            if(lastValidObsTime == null || obsTime.isBefore(now) || obsTime.minusHours(6).isBefore(lastValidObsTime))
+            {
+                filteredObservations.add(obs);
+                lastValidObsTime = obsTime;
+            }            
+        }
+        return allObservations;
     }
 
     private WeatherObservation getWeatherObservation(String VIPSParam, WeatherDataModel wDataModel) {

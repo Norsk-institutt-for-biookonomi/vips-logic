@@ -67,6 +67,9 @@ public class ObservationSitePointSeasonData implements Serializable {
     @JoinColumn(name = "observation_site_point_id", referencedColumnName = "observation_site_point_id", insertable = false, updatable = false)
     @ManyToOne(optional = false)
     private ObservationSitePoint observationSitePoint;
+    @Column(name = "last_updated")
+    @Temporal(TemporalType.DATE)
+    private Date lastUpdated;
 
     public ObservationSitePointSeasonData() {
     }
@@ -150,6 +153,20 @@ public class ObservationSitePointSeasonData implements Serializable {
     @Override
     public String toString() {
         return "no.nibio.vips.logic.modules.applefruitmoth.ObservationSitePointSeasonData[ observationSitePointSeasonDataPK=" + observationSitePointSeasonDataPK + " ]";
+    }
+
+    /**
+     * @return the lastUpdated
+     */
+    public Date getLastUpdated() {
+        return lastUpdated;
+    }
+
+    /**
+     * @param lastUpdated the lastUpdated to set
+     */
+    public void setLastUpdated(Date lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
 }

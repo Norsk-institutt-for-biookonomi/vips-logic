@@ -30,7 +30,6 @@ import de.micromata.opengis.kml.v_2_2_0.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -252,8 +251,14 @@ public class PointOfInterestBean {
      * @return 
      */
     public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization, Boolean active) {
+        
+        if(organization == null)
+        {
+            return new ArrayList<>();
+        }
         // Avoid nulls
         active = active == null ? true : active;
+        
         List<PointOfInterestWeatherStation> retVal = em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId", PointOfInterestWeatherStation.class)
                                                 .setParameter("organizationId", organization)
                                                 .setParameter("active", active)
@@ -455,5 +460,10 @@ public class PointOfInterestBean {
                 
     }
 
+    public WeatherStationDataSource getWeatherStationDataSource(String dataSourceName){
+        return em.createNamedQuery("WeatherStationDataSource.findByName", WeatherStationDataSource.class)
+                .setParameter("name", dataSourceName)
+                .getSingleResult();
+    }
     
 }

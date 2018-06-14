@@ -26,6 +26,7 @@
 	<script src="/js/resourcebundle.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
 	<script type="text/javascript" src="/js/constants.js"></script>
+        <script type="text/javascript" src="/js/validateForm.js"></script>
 	<script type="text/javascript" src="/js/appleFruitMothObservationSiteMap.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
@@ -35,16 +36,17 @@
 </#macro>
 <#macro page_contents>
 <h1>${observationSite.observationSiteName!i18nBundle.newObservationSite} ${currentSeason}</h1>
-<button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth';"><i class="fa fa-arrow-left" aria-hidden="true"></i> ${i18nBundle.back}</button>
+<button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth';"><i class="fa fa-arrow-left" aria-hidden="true"></i> Tilbake til stasjonsliste</button>
 <button type="button" class="btn btn-default" onclick="window.location='/applefruitmoth?action=registerCluster&observationSiteId=${observationSite.observationSiteId}&currentSeason=${currentSeason}';">Registrer klasetall</button>
 <div class="singleBlockContainer">
 	
 	<div class="row">
 		<div class="col-md-6">
-			<#assign formId = "observationSiteForm">
+			<#assign formId = "appleFruitMothStationForm">
 			<#if messageKey?has_content>
 				<div class="alert alert-success">${.now}: ${i18nBundle(messageKey)}</div>
 			</#if>
+                        <#if observationSiteSeasonCommonData??><div class="alert alert-info">${i18nBundle.lastUpdated}: ${observationSiteSeasonCommonData.lastUpdated}</div></#if>
 			<form id="${formId}" role="form" action="/applefruitmoth?action=observationSiteSubmit" method="POST">
 				<input type="hidden" name="observationSiteId" value="${observationSite.observationSiteId}"/>
 				<div class="form-group">
@@ -74,12 +76,12 @@
 				  </div>
 				<div class="form-group">
 				    <label for="degreeOfParasitation">${i18nBundle.degreeOfParasitation} (${i18nBundle.internal})</label>
-				    <input type="number" class="form-control" name="degreeOfParasitation" placeholder="${i18nBundle.degreeOfParasitation}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.degreeOfParasitation!""}</#if>" onblur="validateField(this);" />
+				    <input type="number" step="any" class="form-control" name="degreeOfParasitation" placeholder="${i18nBundle.degreeOfParasitation}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.degreeOfParasitation?c!""}</#if>" onblur="validateField(this);" />
 				    <span class="help-block" id="${formId}_degreeOfParasitation_validation"></span>
 				</div>
 				<div class="form-group">
 				    <label for="thousandBerrySample">${i18nBundle.thousandBerrySample} (${i18nBundle.internal})</label>
-				    <input type="number" class="form-control" name="thousandBerrySample" placeholder="${i18nBundle.thousandBerrySample}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.thousandBerrySample!""}</#if>" onblur="validateField(this);" />
+				    <input type="number" step="any" class="form-control" name="thousandBerrySample" placeholder="${i18nBundle.thousandBerrySample}" value="<#if observationSiteSeasonCommonData??>${observationSiteSeasonCommonData.thousandBerrySample?c!""}</#if>" onblur="validateField(this);" />
 				    <span class="help-block" id="${formId}_thousandBerrySample_validation"></span>
 				</div>
                                 <div class="form-group">
@@ -102,10 +104,10 @@
                             <tr><td>Antall trær med økning i klasetall over vinteren</td><td>${treesWithIncreasingValues}</td></tr>
                             <tr><td>Antall trær med nedgang i klasetall over vinteren</td><td>${treesWithDecreasingValues}</td></tr>
                             <tr><td>Antall trær med uendret klasetall over vinteren</td><td>${treesWithUnchangedValues}</td></tr>
-                            <tr><td>Angrepstall</td><td>${attackNumber!"[Data mangler]"}%</td></tr>
+                            <tr><td>Angrepstall</td><td><#if attackNumber??>${attackNumber?c}<#else>[Data mangler]</#if></td></tr>
                             <tr><td>Nødvendig antall klaser ${currentSeason}</td><td>${neededClusters!"[Data mangler]"}</td></tr>
-                            <tr><td>Prognosetall ${currentSeason}</td><td>${forecastNumber!"[Data mangler]"}</td></tr>
-                            <tr><td>Klasebrøk</td><td>${clusterFraction!"[Data mangler]"}</td></tr>
+                            <tr><td>Prognosetall ${currentSeason}</td><td><#if forecastNumber??>${forecastNumber}<#else>[Data mangler]</#if></td></tr>
+                            <tr><td>Klasebrøk</td><td><#if clusterFraction??>${clusterFraction?c}<#else>[Data mangler]</#if></td></tr>
                             
                         </tbody>
                         </table>

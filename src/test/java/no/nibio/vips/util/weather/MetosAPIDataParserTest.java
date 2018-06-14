@@ -79,7 +79,7 @@ public class MetosAPIDataParserTest {
         MetosAPIDataParser instance = new MetosAPIDataParser();
         List<WeatherObservation> result = instance.getWeatherObservations(stationId, timeZone, startDate);
         assertNotNull( result);
-        //result.stream().forEach(obs -> System.out.println(obs.toString()));
+        result.stream().forEach(obs -> System.out.println(obs.toString()));
         
     }
 

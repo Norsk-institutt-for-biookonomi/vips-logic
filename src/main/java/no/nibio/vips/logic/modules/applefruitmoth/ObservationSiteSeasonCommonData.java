@@ -30,6 +30,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -59,6 +61,7 @@ public class ObservationSiteSeasonCommonData implements Serializable {
     @Column(name = "remarks")
     private String remarks;
     @Column(name = "last_updated")
+    @Temporal(TemporalType.DATE)
     private Date lastUpdated;
     @JoinColumn(name = "observation_site_id", referencedColumnName = "observation_site_id", insertable = false, updatable = false)
     @ManyToOne(optional = false)

@@ -70,6 +70,7 @@ public class Globals {
     public static String[] availableTimeZones = {
         "UTC",
         "Etc/GMT-1",
+        "Europe/Copenhagen",
         "Europe/Oslo",
         "Europe/Sarajevo",
         "Europe/Stockholm",

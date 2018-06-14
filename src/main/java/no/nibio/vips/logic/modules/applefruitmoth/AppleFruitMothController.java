@@ -70,7 +70,7 @@ public class AppleFruitMothController extends HttpServlet {
             if(action == null)
             {
                 // Show map and list of existing stations
-                List<ObservationSite> observationSites = SessionControllerGetter.getAppleFruitMothBean().getObservationSites();
+                List<ObservationSite> observationSites = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesWithClusterCountLastUpdate();
                 request.setAttribute("observationSites", observationSites);
                 request.getRequestDispatcher("/appleFruitMothStationList.ftl").forward(request, response);
             }
@@ -284,9 +284,11 @@ public class AppleFruitMothController extends HttpServlet {
                     ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
                     
                     ObservationSiteSeasonCommonData seasonCommonData = observationSite.getCommonDataForSeason(currentSeason);
-                    seasonCommonData.setRemarks(request.getParameter("remarks"));
-                    SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePointSeasonCommonData(seasonCommonData);
-                    
+                    if(seasonCommonData != null)
+                    {
+                        seasonCommonData.setRemarks(request.getParameter("remarks") != null ? request.getParameter("remarks") : "");
+                        SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePointSeasonCommonData(seasonCommonData);
+                    }
                     //System.out.println("sitePointSetLength=" + observationSite.getObservationSitePointSet().size());
                     treeNames.stream().forEach(treeName->{
                         try {
@@ -311,6 +313,7 @@ public class AppleFruitMothController extends HttpServlet {
                             newData.setAutumnDate(autumnDate);
                             newData.setSpringValue(springValue);
                             newData.setSpringDate(springDate);
+                            newData.setLastUpdated(new Date());
                             
                             SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePointSeasonData(newData);
                             //dataSet.add(newData);

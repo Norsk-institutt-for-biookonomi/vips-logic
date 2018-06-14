@@ -39,11 +39,16 @@
 	<div class="row">
 		<div class="col-md-6">
 			<table class="table table-striped">
+                            <tr>
+                                <td colspan="3"></td>
+                                <th>Klasetall sist oppdatert</th>
+                            </tr>
                             <#list observationSites as observationSite>
                             <tr>
                                 <td>${observationSite.observationSiteName}</td>
                                 <td><#if user.isSuperUser() || user.isAppleFruitMothAdministrator() ><button class="btn btn-default" onclick="window.location='/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}';">Rediger</button></#if></td>
                                 <td><button class="btn btn-default" onclick="window.location='/applefruitmoth?action=registerCluster&observationSiteId=${observationSite.observationSiteId}';">Registrer klasetall</button></td>
+                                <td>${observationSite.lastUpdatedClusterCount!"Ukjent"}</td>
                             </tr>
                             </#list>
 			</table>
