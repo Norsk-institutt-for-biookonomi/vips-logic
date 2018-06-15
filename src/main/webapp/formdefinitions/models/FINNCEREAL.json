@@ -43,11 +43,11 @@
 			"selectOptions": [
 				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehnä"}, "selected":"true"},
 				{"value":"Barley", "label":{"en":"Barley","nb":"Barley","fi":"Kaura"}},
-				{"value":"Oats", "label":{"en" : "Oat", "nb":"Havre", "fi":"Ohra"}},
+				{"value":"Oat", "label":{"en" : "Oats", "nb":"Havre", "fi":"Ohra"}},
 				{"value":"Grass", "label":{"en" : "Grass", "nb":"Gras","fi":"Heinä"}},
 				{"value":"Rapeseed", "label":{"en" : "Turnip rape", "nb":"Raps","fi":"Rypsi"}},
 				{"value":"SugarBeet", "label":{"en" : "Sugar beet", "nb":"Bete","fi":"Sokerijuurikas"}},
-				{"value":"Legumes", "label":{"en" : "Pulse", "nb":"Belgfrukter","fi":"Herneet"}}
+				{"value":"Pulse", "label":{"en" : "Legumes", "nb":"Belgfrukter","fi":"Herneet"}}
 			]
         },
         {
