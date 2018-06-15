@@ -26,7 +26,7 @@
 			"selectOptions": [
 				{"value":"PyrenophoraTeres", "label":{"en":"Net Blotch","nb":"Bladflekk","fi":"Verkkolaikku"}, "selected":"true"},
 				{"value":"DrechsleraTriticiRepentis", "label":{"en":"Tan Spot","nb":"Tan Spot","fi":"Ruskolaikku"}},
-				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonspora spot", "nb":"Stagonspora spot", "fi":"Pistelaikku"}}
+				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonospora spot", "nb":"Stagonospora spot", "fi":"Pistelaikku"}}
 			]
         },
         {
@@ -43,11 +43,11 @@
 			"selectOptions": [
 				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehnä"}, "selected":"true"},
 				{"value":"Barley", "label":{"en":"Barley","nb":"Barley","fi":"Kaura"}},
-				{"value":"Oats", "label":{"en" : "Oats", "nb":"Havre", "fi":"Ohra"}},
+				{"value":"Oats", "label":{"en" : "Oat", "nb":"Havre", "fi":"Ohra"}},
 				{"value":"Grass", "label":{"en" : "Grass", "nb":"Gras","fi":"Heinä"}},
 				{"value":"Rapeseed", "label":{"en" : "Turnip rape", "nb":"Raps","fi":"Rypsi"}},
 				{"value":"SugarBeet", "label":{"en" : "Sugar beet", "nb":"Bete","fi":"Sokerijuurikas"}},
-				{"value":"Legumes", "label":{"en" : "Legumes", "nb":"Belgfrukter","fi":"Herneet"}}
+				{"value":"Legumes", "label":{"en" : "Pulse", "nb":"Belgfrukter","fi":"Herneet"}}
 			]
         },
         {
