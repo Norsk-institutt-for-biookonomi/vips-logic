@@ -162,9 +162,17 @@ public class SchedulingBean {
         // Also: the Task may be configured _here_ (since we use the Tasks constructor), 
         // at creation time.
         
+        // The different scheduling patterns. See http://www.adminschoice.com/crontab-quick-reference 
+        SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
+        SchedulingPattern onTheHourPattern = new SchedulingPattern("0 * * * *");
+        SchedulingPattern every10MinsPattern = new SchedulingPattern("*/10 * * * *");
+        SchedulingPattern every20MinsPattern = new SchedulingPattern("*/20 * * * *");
+        SchedulingPattern everyNightPattern = new SchedulingPattern("0 6 * * *");
+        SchedulingPattern morningAndAfternoonPattern = new SchedulingPattern("15 6,12 * * *");
+        
         // Running all forecasts every hour:30
         VIPSLogicTaskCollector modelRunCollector = new VIPSLogicTaskCollector(-1);
-        SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
+        
         // Separating the forecasts for each organization
         List<Organization> organizations = SessionControllerGetter.getUserBean().getOrganizationsWithActiveForecastConfigurations(SystemTime.getSystemTime());
         if(organizations != null && !organizations.isEmpty())
@@ -183,24 +191,25 @@ public class SchedulingBean {
         }
         modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
         
+        
         // Update forecast cache
         VIPSLogicTaskCollector cacheHandlerCollector = new VIPSLogicTaskCollector(-1);
-        SchedulingPattern every10MinsPattern = new SchedulingPattern("*/10 * * * *");
-        cacheHandlerCollector.getTasks().add(every10MinsPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_RESULT_CACHE_TABLE_TASK));
+        
+        cacheHandlerCollector.getTasks().add(onTheHourPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_RESULT_CACHE_TABLE_TASK));
         
         // Update forecast summaries every 20 minutes
         VIPSLogicTaskCollector summariesCollector = new VIPSLogicTaskCollector(-1);
-        SchedulingPattern every20MinsPattern = new SchedulingPattern("*/20 * * * *");
-        summariesCollector.getTasks().add(every20MinsPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK));
+        
+        summariesCollector.getTasks().add(onTheHourPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK));
         
         // Clean up UUIDs (for cookies/remembering client logins) once a day
         VIPSLogicTaskCollector deleteAllExpiredUserUuidsCollector = new VIPSLogicTaskCollector(-1);
-        SchedulingPattern everyNightPattern = new SchedulingPattern("0 6 * * *");
+        
         deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK));
         
         // Send forecast notifications
         VIPSLogicTaskCollector sendForecastNotificationsCollector = new VIPSLogicTaskCollector(-1);
-        SchedulingPattern morningAndAfternoonPattern = new SchedulingPattern("45 6,12 * * *");
+        
         sendForecastNotificationsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
         
         // Run grid models
