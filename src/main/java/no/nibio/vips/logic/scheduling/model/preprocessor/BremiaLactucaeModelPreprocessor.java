@@ -100,6 +100,8 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
         
         config.setModelId(this.getModelId());
         config.setConfigParameter("timeZone", weatherStation.getTimeZone());
+        config.setConfigParameter("longitude", weatherStation.getPointOfInterest().getLongitude());
+        config.setConfigParameter("latitude", weatherStation.getPointOfInterest().getLatitude());
         config.setConfigParameter("observations", observations);
         return config;
     }
