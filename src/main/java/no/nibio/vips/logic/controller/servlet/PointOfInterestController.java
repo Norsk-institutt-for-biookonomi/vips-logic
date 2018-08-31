@@ -23,6 +23,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -54,6 +55,8 @@ import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URIBuilder;
 
 /**
  * Handles transactions for POIs
@@ -155,6 +158,12 @@ public class PointOfInterestController extends HttpServlet {
                     {
                         PointOfInterestWeatherStation stationWithDataSource = (PointOfInterestWeatherStation) weatherStation;
                         request.getSession().setAttribute("weatherStation", stationWithDataSource);
+                        try
+                        {
+                            // Find query parameters in datasource query, add to template (due to GET form submission)
+                            URIBuilder uriBuilder = new URIBuilder(stationWithDataSource.getDataFetchUri());
+                            request.getSession().setAttribute("queryParams", uriBuilder.getQueryParams());
+                        }catch(URISyntaxException ex) {ex.printStackTrace();}
                     }
                     else
                     {
