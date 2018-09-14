@@ -95,11 +95,12 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                             WeatherElements.WIND_SPEED_2M
                         },
                         configuration.getDateStartInTimeZone(),
-                        dateEndWeatherData);
+                        dateEndWeatherData,
+                        false);
                 observations = validateAndSanitizeObservations(observations, configuration.getDateStartInTimeZone());    
                 //System.out.println(configuration.getDateStartInTimeZone());
             } catch (ConfigValidationException | WeatherObservationListException | WeatherDataSourceException ex) {
-                ex.printStackTrace();
+                //ex.printStackTrace();
                 throw new PreprocessorException(ex.getMessage());
             } 
             
