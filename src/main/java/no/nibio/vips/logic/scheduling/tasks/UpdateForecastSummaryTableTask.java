@@ -21,10 +21,8 @@ package no.nibio.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
-import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
-import no.nibio.web.forms.FormField;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
