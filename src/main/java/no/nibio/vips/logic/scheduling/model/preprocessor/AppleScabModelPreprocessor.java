@@ -144,7 +144,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         try {
             observations = validateAndSanitizeObservations(observations, startDateAscosporeMaturity);
         } catch (ConfigValidationException | WeatherObservationListException ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
             throw new PreprocessorException(ex.getMessage());
         } 
         if(DEBUG)
