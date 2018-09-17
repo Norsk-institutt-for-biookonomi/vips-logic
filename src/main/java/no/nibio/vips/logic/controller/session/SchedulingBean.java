@@ -164,6 +164,7 @@ public class SchedulingBean {
         
         // The different scheduling patterns. See http://www.adminschoice.com/crontab-quick-reference 
         SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
+        SchedulingPattern halfPastEveryThreeHoursPattern = new SchedulingPattern("30 */3 * * *");
         SchedulingPattern onTheHourPattern = new SchedulingPattern("0 * * * *");
         SchedulingPattern every10MinsPattern = new SchedulingPattern("*/10 * * * *");
         SchedulingPattern every20MinsPattern = new SchedulingPattern("*/20 * * * *");
@@ -181,15 +182,15 @@ public class SchedulingBean {
             {
                 VipsLogicTask runAllForecastsTask = VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK);
                 runAllForecastsTask.setOrganization(org);
-                modelRunCollector.getTasks().add(halfPastPattern, runAllForecastsTask);
+                modelRunCollector.getTasks().add(halfPastEveryThreeHoursPattern, runAllForecastsTask);
             }
         }
         else // We run an empty job for all VIPS systems just to show that we've tried, but there's nothing to do
         {
             VipsLogicTask runAllForecastsTask = VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK);
-            modelRunCollector.getTasks().add(halfPastPattern, runAllForecastsTask);
+            modelRunCollector.getTasks().add(halfPastEveryThreeHoursPattern, runAllForecastsTask);
         }
-        modelRunCollector.getTasks().add(halfPastPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
+        modelRunCollector.getTasks().add(halfPastEveryThreeHoursPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
         
         
         // Update forecast cache
@@ -448,7 +449,7 @@ public class SchedulingBean {
                 " failed at + " + taskExecutor.getStartTime() + 
                 ", finished at " + new Date() + 
                 ". Status is " + taskHistory.getTaskHistoryStatusId() + 
-                ". Error was " + taskHistory.getMessage()  +
+                ". Error was " + taskHistory.getMessage().substring(0,400)  + "[...]" +
                 " ############");
     }
     
