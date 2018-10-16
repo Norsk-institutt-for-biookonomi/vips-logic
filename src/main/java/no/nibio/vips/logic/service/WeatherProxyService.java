@@ -99,7 +99,7 @@ public class WeatherProxyService {
     @Path("fmi/{stationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
-    public Response getMetosRIMProWeatherData(
+    public Response getFMIVIPSWeatherData(
             @PathParam("stationId") String stationId, 
             @FormParam("timeZone") String timeZonePOST, 
             @QueryParam("timeZone") String timeZoneGET, 
@@ -109,7 +109,7 @@ public class WeatherProxyService {
             @QueryParam("endDate") String endDateGET
             )
     {
-        String FMI_URL_TEMPLATE="http://www.cropinfra.com:8080/weather/resources/fmi/temporal/vips/{0}/{1}/{2}";
+        String FMI_URL_TEMPLATE="http://192.194.211.203/weather/resources/fmi/temporal/vips/{0}/{1}/{2}";
         List<WeatherObservation> observations;
         try 
         {

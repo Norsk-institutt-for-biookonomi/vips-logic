@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
@@ -181,10 +182,15 @@ public class WeatherDataSourceUtil {
         InputStream URLStream = null;
         InputStream error = null;
         String URLOutput;
+        int connectTimeout = 30;
+            int readTimeout = 120;
         try {
             URL weatherURL = new URL(URL.toString());
             //System.out.println("URL=" + weatherURL);
             URLConn = weatherURL.openConnection();
+            
+            URLConn.setConnectTimeout(1000 * connectTimeout); // If weather data server does not reply in 30 seconds, abort
+            URLConn.setReadTimeout(1000 * readTimeout); // If weather data server is not done delivering the data in two minutes, abort
             URLStream = URLConn.getInputStream();
             URLOutput = IOUtils.toString(URLStream);
             List<WeatherObservation> preliminaryResult = this.getWeatherObservations(URLOutput);
@@ -206,6 +212,10 @@ public class WeatherDataSourceUtil {
                 error = ((HttpURLConnection) URLConn).getErrorStream();
                 errorOutput = IOUtils.toString(error);
             } catch (IOException | NullPointerException ex2) {
+            }
+            if(ex instanceof SocketTimeoutException)
+            {
+                errorMessage.append("The weather data server is deemed unresponsive. The connection times out after " + connectTimeout + " seconds of no reply and " + readTimeout + " seconds of no data received after established connection.\n");
             }
             if (errorOutput.isEmpty()) {
                 errorMessage.append("There was no output from weather data server to explain this.");

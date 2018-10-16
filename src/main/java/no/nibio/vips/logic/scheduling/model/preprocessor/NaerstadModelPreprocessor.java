@@ -210,7 +210,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                 
         // Problems with weather observations
         //System.out.println("BT=" + BT.size() + " [First=," + BT.get(0).getTimeMeasured() + " last=" + BT.get(BT.size()-1).getTimeMeasured() + "]");
-        BT = wUtil.checkForAndFixHourlyTimeSeriesHoles(BT);
+        //BT = wUtil.checkForAndFixHourlyTimeSeriesHoles(BT);
         
         // Unequal length of lists
         if  (        

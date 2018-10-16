@@ -249,7 +249,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             //System.out.println(wUtil.dumpWeatherObservationList(RR));
         }
 
-        BT = wUtil.checkForAndFixHourlyTimeSeriesHoles(BT);
+        
         
         // Unequal length of lists
         if  (        
@@ -267,25 +267,6 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             // Fallback if missing leaf wetness: If we have relative humidity. leaf wetness may be calculated
             if(BT.size() != TM.size() && UM.size() == TM.size())
             {
-                Q0 = wUtil.fixHourlyValuesForParameters(
-                        Q0, 
-                        new HashSet(Arrays.asList("Q0")), 
-                        firstTimeStamp, 
-                        null
-                );
-                FM2 = wUtil.fixHourlyValuesForParameters(
-                        FM2, 
-                        new HashSet(Arrays.asList("FM2")), 
-                        firstTimeStamp, 
-                        null
-                );
-                
-                BT = wUtil.fixHourlyValuesForParameters(
-                        BT, 
-                        new HashSet(Arrays.asList("BT")), 
-                        firstTimeStamp, 
-                        null
-                );
                 BT = wUtil.calculateLeafWetnessHourSeriesBestEffort(BT,TM, RR, Q0, FM2, UM);
                 
                 if(BT.size() != TM.size())

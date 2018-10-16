@@ -449,7 +449,7 @@ public class SchedulingBean {
                 " failed at + " + taskExecutor.getStartTime() + 
                 ", finished at " + new Date() + 
                 ". Status is " + taskHistory.getTaskHistoryStatusId() + 
-                ". Error was " + taskHistory.getMessage().substring(0,400)  + "[...]" +
+                ". Error was " + taskHistory.getMessage().substring(0, Math.min(400, taskHistory.getMessage().length()))  + "[...]" +
                 " ############");
     }
     
