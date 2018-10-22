@@ -20,18 +20,12 @@
 package no.nibio.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
-import java.util.Calendar;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
-import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.scheduling.SchedulingUtil;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
-import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.scheduling.model.grid.preprocessor.ZymoseptoriaSimpleRiskGridModelPreprocessor;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
-import no.nibio.vips.logic.util.SystemTime;
-import no.nibio.web.forms.FormField;
 
 /**
  * @copyright 2018 <a href="http://www.nibio.no/">NIBIO</a>
