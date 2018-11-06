@@ -70,7 +70,9 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
             }
             catch(WeatherObservationListException ex)
             {
-                throw new PreprocessorException("Problem with station #" + station.getPointOfInterestId() + ": " + ex.getMessage());
+                //throw new PreprocessorException();
+                System.out.println("Problem with station " + station.getPointOfInterest().getName() + " (#" + station.getPointOfInterestId() + "): " + ex.getMessage());
+                continue;
             }
             // Checking for BT
             try

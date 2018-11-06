@@ -167,6 +167,7 @@ public class RoughageService {
             // We must do some special adjustmens to get weather forecasts from 3-9 days in 
             // the future
             // For EPP and Q0 we simply add the last value
+            //System.out.println("observations.size=" + observations.size());
             WeatherObservation lastEPP = wUtil.getLastObservations(observations, "EPP", 1).get(0);
             Date lastEPPDate = lastEPP.getTimeMeasured();
             while(lastEPPDate.before(dateOfLastWeatherData))
@@ -192,7 +193,7 @@ public class RoughageService {
 
             // For TM and RR we get long time forecasts from LMT (Norwegian service only)
             try {
-                //System.out.println("Last TM dated " + wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured());
+                //System.out.println("dateOfLastWeatherData=" + dateOfLastWeatherData + ", last TM dated " + wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured());
                 cal.setTime(wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured());
                 cal.add(Calendar.DATE, 1);
                 Date firstLongTermForecastTime = cal.getTime();
@@ -222,7 +223,10 @@ public class RoughageService {
                     }*/
 
                     List<WeatherObservation> TMDLongTime = wUtil.getAggregatedDailyValues(TMLongTime, timeZone, 15, WeatherUtil.AGGREGATION_TYPE_AVERAGE);
-                    observations.addAll(TMDLongTime);
+                    if(TMDLongTime != null)
+                    {
+                        observations.addAll(TMDLongTime);
+                    }
 
 
 
@@ -240,7 +244,10 @@ public class RoughageService {
                     RRLongTime = wUtil.fillHourlyHolesBruteForce(RRLongTime, WeatherUtil.AGGREGATION_TYPE_SUM, firstLongTermForecastTime, dateOfLastWeatherData);
 
                     List<WeatherObservation> RRDLongTime = wUtil.getAggregatedDailyValues(RRLongTime, timeZone, 15, WeatherUtil.AGGREGATION_TYPE_SUM);
-                    observations.addAll(RRDLongTime);
+                    if(RRDLongTime != null)
+                    {
+                        observations.addAll(RRDLongTime);
+                    }
                 }
             }
             catch(WeatherDataSourceException | InvalidAggregationTypeException | WeatherObservationListException ex)
@@ -394,15 +401,18 @@ public class RoughageService {
                 // Last date to fetch data 
                 Date latestObsDate = wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured();
                 weatherStation = em.find(PointOfInterestWeatherStation.class, normalDataWeatherStationId);
+                weatherStation.getWeatherStationDataSourceId().setDatafetchUriExpression(
+                        weatherStation.getWeatherStationDataSourceId().getDatafetchUriExpression().replaceFirst("forecastfallback", "grovfornormal")
+                );
                 observations = wsdUtil.getWeatherObservations(
                     weatherStation,
                     WeatherObservation.LOG_INTERVAL_ID_1D,
                     new String[]{
-                        WeatherElements.getNormalDataParameter(WeatherElements.TEMPERATURE_MEAN),
-                        WeatherElements.getNormalDataParameter(WeatherElements.PRECIPITATION),
-                        WeatherElements.getNormalDataParameter(WeatherElements.GLOBAL_RADIATION),
-                        WeatherElements.getNormalDataParameter(WeatherElements.SOIL_TEMPERATURE_10CM_MEAN),
-                        WeatherElements.getNormalDataParameter(WeatherElements.POTENTIAL_EVAPORATION)
+                        WeatherElements.TEMPERATURE_MEAN,
+                        WeatherElements.PRECIPITATION,
+                        WeatherElements.GLOBAL_RADIATION,
+                        WeatherElements.SOIL_TEMPERATURE_10CM_MEAN,
+                        WeatherElements.POTENTIAL_EVAPORATION
                     },
                     aprilFirst, 
                     //dateOfLastWeatherData
@@ -411,7 +421,7 @@ public class RoughageService {
 
                 // The observations are tainted with the _NORMAL prefix, must clean up 
                 // before sending to model
-                observations.stream().forEach(obs->obs.setElementMeasurementTypeId(obs.getElementMeasurementTypeId().substring(0, obs.getElementMeasurementTypeId().indexOf("_NORMAL"))));
+                //observations.stream().forEach(obs->obs.setElementMeasurementTypeId(obs.getElementMeasurementTypeId().substring(0, obs.getElementMeasurementTypeId().indexOf("_NORMAL"))));
                 
                 // Add waterings to normal data precipitation?
                 if(

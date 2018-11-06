@@ -47,6 +47,8 @@ import org.apache.commons.io.IOUtils;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class WeatherDataSourceUtil {
+    
+    private final boolean DEBUG = false;
 
     /**
      * Fetches measured data from the stations weather data source, and optionally
@@ -186,7 +188,7 @@ public class WeatherDataSourceUtil {
             int readTimeout = 120;
         try {
             URL weatherURL = new URL(URL.toString());
-            //System.out.println("URL=" + weatherURL);
+            if(this.DEBUG) { System.out.println("URL=" + weatherURL); }
             URLConn = weatherURL.openConnection();
             
             URLConn.setConnectTimeout(1000 * connectTimeout); // If weather data server does not reply in 30 seconds, abort
