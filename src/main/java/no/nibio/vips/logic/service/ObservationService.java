@@ -26,6 +26,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -56,20 +58,24 @@ public class ObservationService {
     @Context
     private HttpServletRequest httpServletRequest;
     
-    /**
+    /*
      * NOTE TO SELF
      * How to query for observations within a bounding box
      * Select * from gis where ST_Intersects(
      *   ST_SetSRID(ST_MakeBox2D(ST_MakePoint(2.9004, 57.7511), ST_MakePoint(32.4316, 71.3851)),4326),
      *   gis_geom);
      * First point is SW, last is NE (but could be anything?)
+    */
+    
+    /**
+     * 
      * @param organizationId
      * @param pestId
      * @param cropId
      * @param cropCategoryId
      * @param from
      * @param to
-     * @return 
+     * @return Observation objects with all data (full tree)
      */
     @GET
     @Path("filter/{organizationId}")
@@ -79,10 +85,73 @@ public class ObservationService {
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("pestId") Integer pestId,
             @QueryParam("cropId") Integer cropId,
-            @QueryParam("cropCategoryId") Integer cropCategoryId,
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr
             
+    )
+    {
+        return Response.ok().entity(getFilteredObservationsFromBackend(
+                organizationId,
+                pestId,
+                cropId,
+                cropCategoryId,
+                fromStr,
+                toStr
+        )).build();
+    }
+    
+    /**
+     * 
+     * @param organizationId
+     * @param pestId
+     * @param cropId
+     * @param cropCategoryId
+     * @param from
+     * @param to
+     * @return Observation objects for which the user is authorized to observe with properties relevant for lists
+     */
+    @GET
+    @Path("list/filter/{organizationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getFilteredObservationListItems(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("pestId") Integer pestId,
+            @QueryParam("cropId") Integer cropId,
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr,
+            @QueryParam("userUUID") String userUUID
+            
+    )
+    {
+        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        if(user == null && userUUID != null)
+        {
+            user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(userUUID));
+        }
+        return Response.ok().entity(
+                getFilteredObservationsFromBackend(
+                        organizationId,
+                        pestId,
+                        cropId,
+                        cropCategoryId,
+                        fromStr,
+                        toStr,
+                        user
+                ).stream().map(obs -> obs.getListItem("nb")).collect(Collectors.toList())
+        ).build();
+    }
+            
+            
+    private List<Observation> getFilteredObservationsFromBackend(
+            Integer organizationId,
+            Integer pestId,
+            Integer cropId,
+            List<Integer> cropCategoryId,
+            String fromStr,
+            String toStr
     )
     {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
@@ -96,7 +165,7 @@ public class ObservationService {
         }
         catch(ParseException ex){ System.out.println("ERROR");}
                 
-        List<Observation> filteredObservations = SessionControllerGetter.getObservationBean().getFilteredObservations(
+        return SessionControllerGetter.getObservationBean().getFilteredObservations(
             organizationId,
             pestId,
             cropId,
@@ -104,7 +173,7 @@ public class ObservationService {
             from,
             to
         );
-        return Response.ok().entity(filteredObservations).build();
+        
     }
     
     @GET
@@ -115,7 +184,7 @@ public class ObservationService {
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("pestId") Integer pestId,
             @QueryParam("cropId") Integer cropId,
-            @QueryParam("cropCategoryId") Integer cropCategoryId,
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr
             
@@ -324,6 +393,24 @@ public class ObservationService {
         Date firstObsTime = SessionControllerGetter.getObservationBean().getFirstObservationTime(organismId);
         return firstObsTime != null ? Response.ok().entity(firstObsTime).build()
                 : Response.status(404).entity("No observations of organism with id=" + organismId).build();
+    }
+
+    private List<Observation> getFilteredObservationsFromBackend(Integer organizationId, Integer pestId, Integer cropId, List<Integer> cropCategoryId, String fromStr, String toStr, VipsLogicUser user) {
+        List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
+        // If user is not logged in, return only the publicly available observations
+        if(user == null)
+        {
+            return filteredObservations.stream().filter(obs->obs.getBroadcastMessage()).collect(Collectors.toList());
+        }
+        // Else: If superuser: Return everything
+        if(user.isSuperUser() || user.isOrganizationAdmin())
+        {
+            return filteredObservations;
+        }
+        // Else: This is a registered user without special privileges. Show public observations + user's own
+        List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage()).collect(Collectors.toList());
+        retVal.addAll(SessionControllerGetter.getObservationBean().getObservationsForUser(user));
+        return retVal;
     }
     
 }

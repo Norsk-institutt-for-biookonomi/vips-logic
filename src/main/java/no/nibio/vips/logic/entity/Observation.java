@@ -48,6 +48,7 @@ import javax.persistence.OneToMany;
 import javax.validation.constraints.Size;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.util.StringJsonUserType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -606,4 +607,25 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.lastEditedByUser = lastEditedByUser;
     }
 
+    public ObservationListItem getListItem(String locale)
+    {
+        // If geoInfo is from POI, need to add observationId
+        if(this.location != null)
+        {
+            this.location.addProperty("observationId", this.getObservationId());
+        }
+        return new ObservationListItem(
+                this.getObservationId(),
+                this.getTimeOfObservation(),
+                this.getOrganismId(),
+                this.getOrganism().getLocalName(locale),
+                this.getCropOrganismId(),
+                this.getCropOrganism().getLocalName(locale),
+                this.location != null ? this.location.getGeoJSON() : this.getGeoinfo(),
+                this.getObservationHeading(),
+                this.getBroadcastMessage(),
+                this.getLocationIsPrivate()
+        );
+    }
+    
 }

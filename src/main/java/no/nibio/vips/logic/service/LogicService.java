@@ -56,7 +56,6 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageTag;
-import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;

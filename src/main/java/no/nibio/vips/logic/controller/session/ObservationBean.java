@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -509,7 +510,7 @@ public class ObservationBean {
             Integer organizationId, 
             Integer pestId, 
             Integer cropId, 
-            Integer cropCategoryId,
+            List<Integer> cropCategoryId,
             Date from, 
             Date to
     ) 
@@ -535,12 +536,12 @@ public class ObservationBean {
             sql += "AND crop_organism_id = :cropOrganismId \n";
             parameters.put("cropOrganismId", cropId);
         }
-        else if(cropCategoryId != null && cropCategoryId > 0)
+        else if(cropCategoryId != null && ! cropCategoryId.isEmpty())
         {
-            CropCategory cropCategory = em.createNamedQuery("CropCategory.findByCropCategoryId", CropCategory.class)
-                    .setParameter("cropCategoryId", cropCategoryId)
-                    .getSingleResult();
-            List<Integer> cropIds = Arrays.asList(cropCategory.getCropOrganismIds());
+            List<CropCategory> cropCategories = em.createNamedQuery("CropCategory.findByCropCategoryIds", CropCategory.class)
+                    .setParameter("cropCategoryIds", cropCategoryId)
+                    .getResultList();
+            List<Integer> cropIds = new ArrayList(cropCategories.stream().flatMap(cC->Arrays.asList(cC.getCropOrganismIds()).stream()).collect(Collectors.toSet()));
                     
             sql += "AND crop_organism_id IN (:cropOrganismIds) \n";
             parameters.put("cropOrganismIds", cropIds);
