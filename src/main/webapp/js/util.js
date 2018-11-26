@@ -175,14 +175,25 @@ function getLocalizedOptionsHTML(optionsList) {
     return translatedOptionsHTML;
 }
 
-/** Ensure that we're able to handle both a unix timestamp and an ISO timestamp
+/** 
+ * Ensure that we're able to handle both a unix timestamp and an ISO timestamp
+ * Unfortunately, this method depends on momentjs, since date parsing directly in JavaScript is...hard
  * 
  * @param {type} ambiguousValue
  * @returns {Number}
  */
 function getUnixTimestampFromJSON(ambiguousValue)
 {
-	var possibleDateObject = new Date(ambiguousValue);
+	var possibleDateObject;
+	if(!isMomentJSAvailable())
+	{
+		possibleDateObject = new Date(ambiguousValue);
+		console.info("Warning: Parsing date without MomentJS. Can't guarantee correct result.");
+	}
+	else
+	{
+		possibleDateObject = moment(ambiguousValue).toDate();
+	}
 	if(possibleDateObject.getTime() === NaN && typeof parseInt(ambiguousValue) === "number")
 	{
 		return parseInt(ambiguousValue);
@@ -191,4 +202,22 @@ function getUnixTimestampFromJSON(ambiguousValue)
 	{
 		return possibleDateObject.getTime();
 	}
+}
+
+/**
+ * Does what it says
+ * 
+ * @return {Boolean}
+ */
+function isMomentJSAvailable()
+{
+	try {
+		moment();
+		return true;
+	}
+	catch (err)
+	{
+		return false;
+	}
+
 }
