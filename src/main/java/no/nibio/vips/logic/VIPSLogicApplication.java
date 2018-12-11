@@ -48,6 +48,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.service.LogicService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
+        resources.add(no.nibio.vips.logic.modules.wheatleafblotch.WheatLeafBlotchModelService.class);
         resources.add(no.nibio.vips.logic.modules.roughage.RoughageService.class);
         resources.add(no.nibio.vips.observationdata.ObservationDataService.class);
         resources.add(no.nibio.vips.logic.messaging.sms.SMSHandlingService.class);
@@ -69,6 +70,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothService.class);
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
         resources.add(no.nibio.vips.logic.modules.roughage.RoughageService.class);
+        resources.add(no.nibio.vips.logic.modules.wheatleafblotch.WheatLeafBlotchModelService.class);
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         resources.add(no.nibio.vips.logic.service.LogicService.class);
         resources.add(no.nibio.vips.logic.service.ModelFormService.class);
