@@ -198,8 +198,8 @@ var initMap = function(
             var illustrationElm = "";
             if(observation.observationIllustrationSet.length == 1)
             {
-                    var illustration = observation.observationIllustrationSet[0]; 
-                    illustrationElm = "<img src='/static/images/observations/" + observation.organismId + "/" + illustration.observationIllustrationPK.fileName + "' class='img-responsive'/>";
+                var illustration = observation.observationIllustrationSet[0]; 
+                illustrationElm = "<img src='/static/images/observations/" + observation.organismId + "/" + illustration.observationIllustrationPK.fileName + "' class='img-responsive'/>";
             }
             // Create the popup, showing it
             poiDetails.popover({

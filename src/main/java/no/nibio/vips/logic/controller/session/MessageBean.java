@@ -434,6 +434,6 @@ public class MessageBean {
             return new ArrayList<>();
         }
     }
-    
+
     
 }
