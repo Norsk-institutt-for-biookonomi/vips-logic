@@ -26,13 +26,14 @@
 var hostName;
 var results;
 //var localTimeZoneOffset = 120;
-var todayAtMidnight = getTodayAtMidnight();
+var todayAtMidnight; 
 var featureOverlays = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null}; 
 var maps = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null};
 var language = "en";
 
 var initMap = function ()
 {
+    todayAtMidnight = getTodayAtMidnight();
     var zymoGridMapContainer = document.getElementById("zymoGridMapContainer");
     language = zymoGridMapContainer.getAttribute("data-language") != null ? zymoGridMapContainer.getAttribute("data-language") : language;
     zymoGridMapContainer.innerHTML = "<div id='mainMap'>"
@@ -83,6 +84,7 @@ var initMap = function ()
     ajax(hostName + "/rest/forecastresults/-1000", function(e){
     //ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
         results = JSON.parse(e.target.responseText);
+        console.info(todayAtMidnight);
         var currentDay = todayAtMidnight;
         for(var mapName in maps)
         {
@@ -178,15 +180,19 @@ function parseJSONDate(theDateString)
 
 function getTodayAtMidnight()
 {
+    //return moment("");
+    // TODO:Add momentjs support here!!!
     var now = new Date();
-    
     var midnightString = now.getFullYear() + "-" + 
                             ('0' + (now.getMonth()+1)).slice(-2) + "-" +
                             ('0' + (now.getDate()-1)).slice(-2) + 
-                            "T22:00:00.000+0000";
+                            "T23:00:00.000+0000";
+    
+   
     return new Date(midnightString);
+    
     // OR RETURN A FIXED DATE FOR TESTING
-    return new Date("2017-09-07T22:00:00.000+0000");
+    //return new Date("2017-09-07T22:00:00.000+0000");
 }
 
 
@@ -209,8 +215,8 @@ document.addEventListener("DOMContentLoaded", function() {
       }
   }
   hostName = me.src.substring(0,me.src.indexOf("/public"));
-  // Creating a chain here: First we load ol.css, then nordic_septoria_whs.css 
-  // and finally ol.js. Then we initialize the Map
+  // Creating a chain here: First we load ol.css, then nordic_septoria_whs.css, 
+  // ol.js and finally moment.min.js. Then we initialize the Map
   loadHeadElement("link", 
     {
         href: hostName + "/public/nordic_septoria_whs/ol.css",
@@ -224,7 +230,21 @@ document.addEventListener("DOMContentLoaded", function() {
                 rel: "stylesheet",
                 media: "screen"
             },
-            function(){ loadHeadElement("script", { src: hostName + "/public/nordic_septoria_whs/ol.js" }, initMap); }
+            function(){ 
+                loadHeadElement("script", 
+                    { 
+                        src: hostName + "/public/nordic_septoria_whs/ol.js" 
+                    }, 
+                    function() {
+                        loadHeadElement("script", 
+                            { 
+                                src: hostName + "/public/nordic_septoria_whs/moment.min.js" 
+                            }, 
+                            initMap
+                        ); 
+                    }
+                );
+            }
         );
     }
     );
