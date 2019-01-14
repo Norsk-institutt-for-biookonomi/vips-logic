@@ -536,6 +536,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      * @return the user
      */
     @Transient
+    @JsonIgnore
     public VipsLogicUser getUser() {
         return user;
     }
