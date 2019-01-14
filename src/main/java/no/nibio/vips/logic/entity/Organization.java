@@ -39,7 +39,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.FetchType;
-import org.hibernate.annotations.Type;
 
 /**
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>

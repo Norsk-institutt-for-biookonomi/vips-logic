@@ -215,6 +215,13 @@ public class UserBean {
         user = em.find(VipsLogicUser.class, user.getUserId());
         // Remove all notification subscriptions
         SessionControllerGetter.getMessagingBean().deleteAllNotificationSubscriptions(user);
+        // TODO: Move these objects from user to be deleted to the organization's archive user
+        // * All observations
+        // * All messages
+        // * All POIs
+        // * All non-private forecast configurations
+        //
+        // TODO: Delete all of the user's private forecast configurations and results
         em.remove(user);
     }
     
