@@ -1102,4 +1102,27 @@ public class ForecastBean {
                 .filter(modelInfo -> ModelRunPreprocessorFactory.getModelRunPreprocessor(modelInfo.getModelId()) != null)
                 .collect(Collectors.toList());
     }
+
+    public void deleteAllPrivateForecastConfigurationsForUser(VipsLogicUser user) {
+        
+        em.createNativeQuery(
+                "DELETE FROM public.forecast_result WHERE forecast_configuration_id IN "
+                + "("
+                + "     SELECT forecast_configuration_id "
+                + "     FROM public.forecast_configuration "
+                + "     WHERE is_private IS TRUE "
+                + "     AND vips_logic_user_id = :userId "
+                + ")"
+        )
+        .setParameter("userId", user.getUserId())
+        .executeUpdate();
+        
+        em.createNativeQuery(
+                "DELETE FROM public.forecast_configuration "
+                + "     WHERE is_private IS TRUE "
+                + "     AND vips_logic_user_id = :userId"
+        )
+        .setParameter("userId", user.getUserId())
+        .executeUpdate();
+    }
 }

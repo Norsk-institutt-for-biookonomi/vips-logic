@@ -93,6 +93,24 @@ public class PointOfInterestBean {
         }
     }
     
+    /**
+     * Returns POIs of all types for a given user
+     * @param user
+     * @return 
+     */
+    public List<PointOfInterest> getPoisForUser(VipsLogicUser user) {
+        Query q = em.createNamedQuery("PointOfInterest.findByUserId");
+        q.setParameter("userId", user);
+        try
+        {
+            return q.getResultList();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
+    
     public List<PointOfInterestWeatherStation> getWeatherstationsForUserOrganization(VipsLogicUser user)
     {
         Query q = em.createNamedQuery("PointOfInterestWeatherStation.findByOrganizationId");
@@ -465,5 +483,7 @@ public class PointOfInterestBean {
                 .setParameter("name", dataSourceName)
                 .getSingleResult();
     }
+
+    
     
 }
