@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -23,40 +23,43 @@ import java.util.ArrayList;
 import java.util.List;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.MessageLocale;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.PointOfInterest;
 
 /**
  * Utility class for collecting user's resources in a uniform way
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class UserResources {
-    private List<PointOfInterestWeatherStation> weatherStations;
+    private List<PointOfInterest> pois;
     private List<MessageLocale> messageLocales;
     private List<ForecastConfiguration> forecastConfigurations;
+    private List<Observation> observations;
     
     public boolean isEmpty(){
-        return (this.getWeatherStations() == null || this.getWeatherStations().isEmpty())
+        return (this.getPois() == null || this.getPois().isEmpty())
                 && (this.getMessageLocales() == null || this.getMessageLocales().isEmpty())
-                && (this.getForecastConfigurations() == null || this.getForecastConfigurations().isEmpty());
+                && (this.getForecastConfigurations() == null || this.getForecastConfigurations().isEmpty())
+                && (this.getObservations() == null || this.getObservations().isEmpty());
     }
 
     /**
      * @return the weatherStations
      */
-    public List<PointOfInterestWeatherStation> getWeatherStations() {
-        if(this.weatherStations == null)
+    public List<PointOfInterest> getPois() {
+        if(this.pois == null)
         {
-            this.weatherStations = new ArrayList<>();
+            this.pois = new ArrayList<>();
         }
-        return weatherStations;
+        return pois;
     }
 
     /**
-     * @param weatherStations the weatherStations to set
+     * @param pois the weatherStations to set
      */
-    public void setWeatherStations(List<PointOfInterestWeatherStation> weatherStations) {
-        this.weatherStations = weatherStations;
+    public void setPois(List<PointOfInterest> pois) {
+        this.pois = pois;
     }
 
     /**
@@ -93,6 +96,20 @@ public class UserResources {
      */
     public void setForecastConfigurations(List<ForecastConfiguration> forecastConfigurations) {
         this.forecastConfigurations = forecastConfigurations;
+    }
+
+    /**
+     * @return the observations
+     */
+    public List<Observation> getObservations() {
+        return observations;
+    }
+
+    /**
+     * @param observations the observations to set
+     */
+    public void setObservations(List<Observation> observations) {
+        this.observations = observations;
     }
     
 
