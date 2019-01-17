@@ -40,14 +40,14 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
 @Table(name = "country")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Country.findAll", query = "SELECT c FROM Country c"),
+    @NamedQuery(name = "Country.findAll", query = "SELECT c FROM Country c ORDER BY c.countryCode ASC"),
     @NamedQuery(name = "Country.findByCountryCode", query = "SELECT c FROM Country c WHERE c.countryCode = :countryCode"),
     @NamedQuery(name = "Country.findByCountryCodes", query = "SELECT c FROM Country c WHERE c.countryCode IN(:countryCodes)")
 })
@@ -133,7 +133,8 @@ public class Country implements Serializable {
     public String getCountryName(String language)
     {
         Locale locale = new Locale(language, this.countryCode);
-        return locale.getDisplayCountry();
+        Locale langLocale = new Locale(language);
+        return locale.getDisplayCountry(langLocale);
     }
 
     /**

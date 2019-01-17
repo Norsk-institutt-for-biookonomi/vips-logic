@@ -48,6 +48,9 @@
 		<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 		<ul class="dropdown-menu">
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() >
+                        <#if user.isSuperUser() >
+                        <li><a href="/organization">${i18nBundle.organizations}</a></li>
+                        </#if>
 			  <li><a href="/user">${i18nBundle.users}</a></li>
                           <li><a href="/organizationgroup">${i18nBundle.organizationGroupList}</a></li>
 			  <li><a href="/scheduling">${i18nBundle.scheduling}</a></li>

@@ -19,11 +19,6 @@
 
 package no.nibio.vips.logic.util;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.PrecisionModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
