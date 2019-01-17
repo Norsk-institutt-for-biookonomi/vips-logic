@@ -83,6 +83,10 @@
         <servlet-name>JSEnvironment</servlet-name>
         <servlet-class>no.nibio.vips.logic.web.js.JSEnvironment</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>OrganizationController</servlet-name>
+        <servlet-class>no.nibio.vips.logic.controller.servlet.OrganizationController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -153,6 +157,10 @@
         <servlet-name>JSEnvironment</servlet-name>
         <url-pattern>/js/environment.js</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OrganizationController</servlet-name>
+        <url-pattern>/organization</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
@@ -189,7 +197,7 @@
         <filter-name>AuthenticationFilter</filter-name>
         <filter-class>no.nibio.vips.logic.authenticate.AuthenticationFilter</filter-class>
     </filter>
-     <filter>
+    <filter>
         <description>Sets config values for FreeMarker</description>
         <filter-name>TemplateConfigFilter</filter-name>
         <filter-class>no.nibio.vips.logic.web.TemplateConfigFilter</filter-class>

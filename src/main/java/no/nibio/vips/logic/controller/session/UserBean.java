@@ -787,6 +787,11 @@ public class UserBean {
             return new ArrayList<>();
         }
     }
+    
+    public List<Country> getCountries()
+    {
+        return em.createNamedQuery("Country.findAll").getResultList();
+    }
 
     public List<OrganizationGroup> getOrganizationGroups(Organization organization) {
         try
@@ -911,5 +916,13 @@ public class UserBean {
 
     public List<OrganizationGroup> getOrganizationGroups() {
         return em.createNamedQuery("OrganizationGroup.findAll").getResultList();
+    }
+
+    public Country getCountry(String webValue) {
+        return em.find(Country.class, webValue);
+    }
+
+    public Organization storeOrganization(Organization organization) {
+        return em.merge(organization);
     }
 }
