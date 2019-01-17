@@ -201,7 +201,9 @@ public class PointOfInterestController extends HttpServlet {
                 
                         if(user.isSuperUser())
                         {
-                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                            List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList();
+                            Collections.sort(users);
+                            request.getSession().setAttribute("users", users);
                         }
                         Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
                         request.setAttribute("returnURL","weatherStation?organizationId=" + organizationId);
