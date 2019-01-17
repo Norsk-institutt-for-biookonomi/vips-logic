@@ -134,7 +134,7 @@ public class OrganizationController extends HttpServlet {
                     organization.setDefaultMapZoom(
                             formValidation.getFormField("defaultMapZoom").isEmpty() ?
                                     null
-                                    : formValidation.getFormField("defaultVipsCoreUserId").getValueAsInteger()
+                                    : formValidation.getFormField("defaultMapZoom").getValueAsInteger()
                     );
                     organization.setDefaultMapCenter(
                             formValidation.getFormField("defaultMapCenter").isEmpty() || formValidation.getFormField("defaultMapCenter").getWebValue().trim().equals(",") ?

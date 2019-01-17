@@ -24,6 +24,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -200,7 +201,9 @@ public class PointOfInterestController extends HttpServlet {
                 
                         if(user.isSuperUser())
                         {
-                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                            List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList();
+                            Collections.sort(users);
+                            request.getSession().setAttribute("users", users);
                         }
                         Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
                         request.setAttribute("returnURL","weatherStation?organizationId=" + organizationId);
@@ -239,7 +242,9 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         if(user.isSuperUser())
                         {
-                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                            List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList();
+                            Collections.sort(users);
+                            request.getSession().setAttribute("users", users);
                         }
                         request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUserId().getOrganizationId().getOrganizationId());
                         request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
