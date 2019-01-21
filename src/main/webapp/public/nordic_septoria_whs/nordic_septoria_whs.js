@@ -192,7 +192,7 @@ function getTodayAtMidnight()
     return new Date(midnightString);
     
     // OR RETURN A FIXED DATE FOR TESTING
-    //return new Date("2017-09-07T22:00:00.000+0000");
+    //return new Date("2018-08-16T22:00:00.000+0000");
 }
 
 
