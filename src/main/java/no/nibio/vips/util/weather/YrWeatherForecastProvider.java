@@ -77,7 +77,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     YrWeatherForecastProvider.YR_API_URL, 
                     latitude,
                     longitude,
-                    altitude)
+                    altitude.intValue())
             );
             
             //System.out.println("yrURL=" + yrURL.toString());
@@ -94,6 +94,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
             Long sixHoursDelta = 6 * hourDelta;
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
             Map<Date, WeatherObservation> RRMap = new HashMap<>();
+            Date earliestHourlyPrecipitationObservation = null;
             for(int i=0;i<nodes.getLength();i++)
             {
                 Node node = nodes.item(i);
@@ -138,14 +139,14 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     RR.setElementMeasurementTypeId(WeatherElements.PRECIPITATION);
                     RR.setValue(Double.parseDouble(DOMUtils.getNodeAttr("precipitation","value",node2.getChildNodes())));
                     //System.out.println("Timediff=" + (toTime.getTime() - fromTime.getTime()));
-                    Date earliestHourlyObservation = null;
+                    
                     if(toTime.getTime() - fromTime.getTime() == hourDelta)
                     {
                         //System.out.println("Found 1 hour record at " + fromTime);
                         RR.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
-                        if(earliestHourlyObservation == null)
+                        if(earliestHourlyPrecipitationObservation == null)
                         {
-                            earliestHourlyObservation = RR.getTimeMeasured();
+                            earliestHourlyPrecipitationObservation = RR.getTimeMeasured();
                         }
                     }
                     else if(toTime.getTime() - fromTime.getTime() == threeHoursDelta)
@@ -165,7 +166,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
                     // In order to avoid overestimation of rain in the beginning,
                     // We skip ahead until we find observations with 1 hour resolution
                     if(!RR.getLogIntervalId().equals(WeatherObservation.LOG_INTERVAL_ID_1H)
-                            && (earliestHourlyObservation == null || earliestHourlyObservation.after(RR.getTimeMeasured()))
+                            && (earliestHourlyPrecipitationObservation == null || earliestHourlyPrecipitationObservation.after(RR.getTimeMeasured()))
                             )
                     {
                         continue;

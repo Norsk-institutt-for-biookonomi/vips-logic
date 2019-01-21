@@ -22,19 +22,23 @@ package no.nibio.vips.util.weather.dnmipointweb;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.util.WeatherElements;
+import no.nibio.vips.util.WeatherUtil;
 
 /**
  * Gets data from the Danish Meteorological Institute's Point Web service
@@ -58,7 +62,7 @@ public class DMIPointWebDataParser {
     
     public List<WeatherObservation> getData(Double longitude, Double latitude, Date dateFrom, Date dateTo)
     {
-        List<WeatherObservation> allObservations = new ArrayList<>();
+        List<WeatherObservation> rawObservations = new ArrayList<>();
         TimeZone danishTZ = TimeZone.getTimeZone("Europe/Copenhagen");
         try {
             IWeatherService proxy = new WeatherService().getSslOffloadedBasicHttpBindingIWeatherService();
@@ -106,7 +110,7 @@ public class DMIPointWebDataParser {
                                 WeatherObservation obs = this.getWeatherObservation(VIPSParam, weatherDataModel);
                                 if(obs != null)
                                 {
-                                    allObservations.add(obs);
+                                    rawObservations.add(obs);
                                 }
                             }
                     );
@@ -118,22 +122,34 @@ public class DMIPointWebDataParser {
         }
         //System.out.println("Number of extracted weather data = " + retVal.size());
         // After "now", the DMI service provides forecast values seamlessly. After approx 48 hours these
-        // values turn into 6 hour intervals, which we can't use. We need to weed them out
-        Collections.sort(allObservations);
+        // values turn into 6 hour intervals
+        // 2019-01-18: We keep all observations, leave it up to the client to decide what to do with the data.
+        // But we mark them with the correct measuring interval
+        
         ZonedDateTime now = ZonedDateTime.now();
-        ZonedDateTime lastValidObsTime = null;
         ZoneId danishZ = ZoneId.of("Europe/Copenhagen");
-        List<WeatherObservation> filteredObservations = new ArrayList<>();
-        for(WeatherObservation obs:allObservations)
-        {
-            ZonedDateTime obsTime = ZonedDateTime.ofInstant(obs.getTimeMeasured().toInstant(),danishZ);
-            if(lastValidObsTime == null || obsTime.isBefore(now) || obsTime.minusHours(6).isBefore(lastValidObsTime))
+        //List<WeatherObservation> filteredObservations = new ArrayList<>();
+        WeatherUtil wUtil = new WeatherUtil();
+        List<WeatherObservation> retVal = new ArrayList<>();
+        Set<String> parametersInResult = rawObservations.stream().map(obs->obs.getElementMeasurementTypeId()).collect(Collectors.toSet());
+        parametersInResult.forEach((param) -> {
+            ZonedDateTime lastObsTime = null;
+            List<WeatherObservation> paramObs = wUtil.filterWeatherObservationsByParameter(rawObservations, param);
+            Collections.sort(paramObs);
+            for(WeatherObservation obs:paramObs)
             {
-                filteredObservations.add(obs);
-                lastValidObsTime = obsTime;
-            }            
-        }
-        return allObservations;
+                ZonedDateTime obsTime = ZonedDateTime.ofInstant(obs.getTimeMeasured().toInstant(),danishZ);
+
+                if(lastObsTime != null && obsTime.isAfter(now) && !obsTime.minusHours(6).isBefore(lastObsTime))
+                {
+                    obs.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_6H);
+                }
+                retVal.add(obs);
+                lastObsTime = obsTime;         
+            }
+        });
+        Collections.sort(retVal);
+        return retVal;
     }
 
     private WeatherObservation getWeatherObservation(String VIPSParam, WeatherDataModel wDataModel) {

@@ -23,7 +23,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -128,11 +127,12 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
                     }, 
                     Date.from(aWeekAgo.toInstant()),
                     Date.from(aWeekAhead.toInstant()),
-                    true
+                    true,
+                    new HashSet<>(Arrays.asList(WeatherObservation.LOG_INTERVAL_ID_1H,WeatherObservation.LOG_INTERVAL_ID_3H, WeatherObservation.LOG_INTERVAL_ID_6H))
             );
-            stationObs = wUtil.checkForAndFixHourlyTimeSeriesHoles(stationObs);
+            //stationObs = wUtil.checkForAndFixHourlyTimeSeriesHoles(stationObs,6);
             return stationObs;
-        } catch (WeatherDataSourceException | WeatherObservationListException ex ) {
+        } catch (WeatherDataSourceException  ex ) {
             throw new PreprocessorException(ex.getMessage());
         }
     }
