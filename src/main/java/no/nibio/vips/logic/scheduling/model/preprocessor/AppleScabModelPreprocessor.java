@@ -106,7 +106,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                     new String[]{
                         WeatherElements.TEMPERATURE_MEAN,
                         WeatherElements.PRECIPITATION,
-                        WeatherElements.LEAF_WETNESS,
+                        WeatherElements.LEAF_WETNESS_DURATION,
                         WeatherElements.RELATIVE_HUMIDITY_MEAN
                     },
                     startDateAscosporeMaturity,
@@ -222,7 +222,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         {
             switch(o.getElementMeasurementTypeId())
             {
-                case WeatherElements.LEAF_WETNESS:
+                case WeatherElements.LEAF_WETNESS_DURATION:
                     BT.add(o); 
                     break;
                 case WeatherElements.RELATIVE_HUMIDITY_MEAN:

@@ -78,7 +78,7 @@ public class MetosAPIDataParser {
     // TODO; Separate parameter: Soil temperature. Search for name "Soil temperature", higher channel number = deeper sensor
     private final ParamInfo[] PARAM_MAP = {
         new ParamInfo(WeatherElements.PRECIPITATION,            new Integer[] {6},          "sum"),
-        new ParamInfo(WeatherElements.LEAF_WETNESS,             new Integer[] {4},          "time"),
+        new ParamInfo(WeatherElements.LEAF_WETNESS_DURATION,             new Integer[] {4},          "time"),
         new ParamInfo(WeatherElements.GLOBAL_RADIATION,         new Integer[] {600},        "avg"),
         new ParamInfo(WeatherElements.WIND_SPEED_2M,            new Integer[] {5},          "avg"),
         new ParamInfo(WeatherElements.TEMPERATURE_MEAN,         new Integer[] {0,16385},      "avg"),

@@ -120,7 +120,7 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
                     station, 
                     WeatherObservation.LOG_INTERVAL_ID_1H, 
                     new String[]{
-                        WeatherElements.LEAF_WETNESS,
+                        WeatherElements.LEAF_WETNESS_DURATION,
                         WeatherElements.RELATIVE_HUMIDITY_MEAN,
                         WeatherElements.PRECIPITATION, 
                         WeatherElements.TEMPERATURE_MEAN

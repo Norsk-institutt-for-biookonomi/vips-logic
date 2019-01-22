@@ -102,7 +102,7 @@ public class MockModel implements Model{
                 {
                     wetHoursForDay[0]++; // We add up the number of hours we actually have weather data for
                 }
-                Double BT = pointMatrix.getParamDoubleValueForDate(timestamp, WeatherElements.LEAF_WETNESS);
+                Double BT = pointMatrix.getParamDoubleValueForDate(timestamp, WeatherElements.LEAF_WETNESS_DURATION);
                 Double RR = pointMatrix.getParamDoubleValueForDate(timestamp, WeatherElements.PRECIPITATION);
                 if(TM >= 10.0)
                 {

@@ -70,7 +70,7 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
                     weatherStation,
                     WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
-                        WeatherElements.LEAF_WETNESS,
+                        WeatherElements.LEAF_WETNESS_DURATION,
                         WeatherElements.TEMPERATURE_MEAN,
                         WeatherElements.PRECIPITATION,
                         WeatherElements.RELATIVE_HUMIDITY_MEAN
@@ -78,7 +78,7 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
                     configuration.getDateStartInTimeZone(),
                     configuration.getDateEndInTimeZone());
             observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
-            List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS)));
+            List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION)));
             List<WeatherObservation> TM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.TEMPERATURE_MEAN)));
             List<WeatherObservation> RR = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.PRECIPITATION)));
             List<WeatherObservation> UM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.RELATIVE_HUMIDITY_MEAN)));

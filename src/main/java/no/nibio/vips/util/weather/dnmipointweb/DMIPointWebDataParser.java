@@ -56,7 +56,7 @@ public class DMIPointWebDataParser {
         PARAM_MAP.put(WeatherElements.RELATIVE_HUMIDITY_MEAN, WeatherDataParameter.AIRRH);
         PARAM_MAP.put(WeatherElements.WIND_SPEED_2M, WeatherDataParameter.WINDSPEED);
         PARAM_MAP.put(WeatherElements.SOIL_TEMPERATURE_10CM_MEAN, WeatherDataParameter.SOILTEMP);
-        PARAM_MAP.put(WeatherElements.LEAF_WETNESS, WeatherDataParameter.LEAFWET);
+        PARAM_MAP.put(WeatherElements.LEAF_WETNESS_DURATION, WeatherDataParameter.LEAFWET);
     }
     
     
@@ -174,7 +174,7 @@ public class DMIPointWebDataParser {
                     obs.setValue(wDataModel.getSoiltemp().getValue());     break;// Not sure if it's 10 or 5 cm depth yet
                 case WeatherElements.SOIL_TEMPERATURE_5CM_MEAN:
                     obs.setValue(wDataModel.getSoiltemp().getValue());     break;
-                case WeatherElements.LEAF_WETNESS:
+                case WeatherElements.LEAF_WETNESS_DURATION:
                     obs.setValue(wDataModel.getLeafwet().getValue());      break;
                 default: return null;
             }

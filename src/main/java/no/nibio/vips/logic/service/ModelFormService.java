@@ -150,7 +150,7 @@ public class ModelFormService {
                             WeatherElements.TEMPERATURE_MEAN,
                             WeatherElements.PRECIPITATION,
                             WeatherElements.RELATIVE_HUMIDITY_MEAN,
-                            WeatherElements.LEAF_WETNESS
+                            WeatherElements.LEAF_WETNESS_DURATION
                         }, 
                         startTime, 
                         endTime
