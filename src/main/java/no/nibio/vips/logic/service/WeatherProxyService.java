@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -48,6 +48,7 @@ import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.XDate;
 import no.nibio.vips.util.weather.ALabDataParser;
+import no.nibio.vips.util.weather.CebaowangDataParser;
 import no.nibio.vips.util.weather.FruitWebDavisDataParser;
 import no.nibio.vips.util.weather.MetosAPIDataParser;
 import no.nibio.vips.util.weather.MetosRIMProDataParser;
@@ -60,7 +61,7 @@ import no.nibio.vips.util.weather.metnothredds.TooMuchDataToAskForException;
 import org.jboss.resteasy.annotations.GZIP;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/weather/proxy")
@@ -191,6 +192,50 @@ public class WeatherProxyService {
         return Response.ok().entity(observations).build();
     }
     
+    /**
+     * Fetches data from the Chinese Cebaowang weather data service
+     * Used in the SINOGRAIN project(s)
+     * 
+     * @param stationId
+     * @param timeZonePOST
+     * @param timeZoneGET
+     * @param startDatePOST
+     * @param startDateGET
+     * @param endDatePOST
+     * @param endDateGET
+     * @return 
+     */
+    @GET
+    @POST
+    @Path("cebaowang/{stationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getCebaowangWeatherData(
+            @PathParam("stationId") String stationId, 
+            @FormParam("timeZone") String timeZonePOST, 
+            @QueryParam("timeZone") String timeZoneGET, 
+            @FormParam("startDate") String startDatePOST,
+            @QueryParam("startDate") String startDateGET,
+            @FormParam("endDate") String endDatePOST,
+            @QueryParam("endDate") String endDateGET
+            )
+    {
+        List<WeatherObservation> weatherObservations;
+        TimeZone timeZone = TimeZone.getTimeZone(timeZonePOST != null ? timeZonePOST : timeZoneGET);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(timeZone);
+        try
+        {
+            Date startDate = format.parse(startDatePOST != null ? startDatePOST : startDateGET);
+            Date endDate = format.parse(endDatePOST != null ? endDatePOST : endDateGET);
+            weatherObservations = new CebaowangDataParser().getWeatherObservations(stationId, timeZone, startDate, endDate);
+        }
+        catch(ParseException | ParseWeatherDataException ex)
+        {
+            return Response.serverError().entity(ex).build();
+        }
+        return Response.ok().entity(weatherObservations).build();
+    }
     
     @GET
     @POST
