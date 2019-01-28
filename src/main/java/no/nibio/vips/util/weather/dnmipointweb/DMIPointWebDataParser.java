@@ -22,7 +22,6 @@ package no.nibio.vips.util.weather.dnmipointweb;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -58,12 +57,12 @@ public class DMIPointWebDataParser {
         PARAM_MAP.put(WeatherElements.SOIL_TEMPERATURE_10CM_MEAN, WeatherDataParameter.SOILTEMP);
         PARAM_MAP.put(WeatherElements.LEAF_WETNESS_DURATION, WeatherDataParameter.LEAFWET);
     }
-    
+    private final ZoneId danishZ = ZoneId.of("Europe/Copenhagen");
+    private final TimeZone danishTZ = TimeZone.getTimeZone("Europe/Copenhagen");
     
     public List<WeatherObservation> getData(Double longitude, Double latitude, Date dateFrom, Date dateTo)
     {
         List<WeatherObservation> rawObservations = new ArrayList<>();
-        TimeZone danishTZ = TimeZone.getTimeZone("Europe/Copenhagen");
         try {
             IWeatherService proxy = new WeatherService().getSslOffloadedBasicHttpBindingIWeatherService();
             UseableArrayOfWeatherDataSource wdsource = new UseableArrayOfWeatherDataSource();
@@ -127,7 +126,6 @@ public class DMIPointWebDataParser {
         // But we mark them with the correct measuring interval
         
         ZonedDateTime now = ZonedDateTime.now();
-        ZoneId danishZ = ZoneId.of("Europe/Copenhagen");
         //List<WeatherObservation> filteredObservations = new ArrayList<>();
         WeatherUtil wUtil = new WeatherUtil();
         List<WeatherObservation> retVal = new ArrayList<>();
@@ -154,7 +152,20 @@ public class DMIPointWebDataParser {
 
     private WeatherObservation getWeatherObservation(String VIPSParam, WeatherDataModel wDataModel) {
         WeatherObservation obs = new WeatherObservation();
-        obs.setTimeMeasured(wDataModel.getDateDay().toGregorianCalendar().getTime());
+        /*if(VIPSParam.equals(WeatherElements.RELATIVE_HUMIDITY_MEAN))
+        {
+            System.out.println(wDataModel.getDateDay().toString());
+        }*/
+        // When the DMI weather service shifts from historic to forecast data, timezone information
+        // is added to the timestamp string. The consequence of this is that in a system
+        // where default timezone is something else than CET (UTC+1/2), there will be an 
+        // overlap of values, meaning that to values, e.g
+        // 2019-01-27T22:00:00
+        // 2019-01-27T23:00:00+01:00
+        // Will both be translated to 2019-01-27T22:00:00 UTC if the default 
+        // timezone on that system is UTC.
+        // So we add danishTZ here to avoid this. It only tok 8-10 hours to debug....
+        obs.setTimeMeasured(wDataModel.getDateDay().toGregorianCalendar(danishTZ, null, null).getTime());
         obs.setLogIntervalId(WeatherObservation.LOG_INTERVAL_ID_1H);
         obs.setElementMeasurementTypeId(VIPSParam);
         

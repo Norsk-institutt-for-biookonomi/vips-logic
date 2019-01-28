@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +68,7 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
         {
             Coordinate coordinate = new Coordinate(station.getPointOfInterest().getLongitude(), station.getPointOfInterest().getLatitude());
             List<WeatherObservation> stationObs = getStationObs(station, configuration);
+            
             try
             {
                 // We need TM, UM and RR. BT is optional
@@ -87,8 +89,17 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
             }
             catch(WeatherObservationListException ex)
             {
-                
+                System.out.println("Problem with station " + station.getPointOfInterest().getName() + " (#" + station.getPointOfInterestId() + "): " + ex.getMessage());
             }
+            
+            /*
+            // TODO: Remove this debug
+            if(station.getPointOfInterestId().equals(302))
+            {
+                Collections.sort(stationObs);
+                stationObs.forEach(obs->System.out.println(obs));
+            }*/
+            
             
             PointWeatherObservationList pointObs = new PointWeatherObservationList(coordinate, stationObs, station.getTimeZone());
             allObs.add(pointObs);
