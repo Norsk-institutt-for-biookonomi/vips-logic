@@ -39,8 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.Result;
@@ -170,22 +168,24 @@ public class MetNoThreddsDataParserTest {
         System.out.println("Total memory used:\n" + GraphLayout.parseInstance(result).toFootprint());
     }
 
-    //@Test
+    @Test
     public void testGetGridData()
     {
         try {
             System.out.println("testGetGridData");
             Coordinate[] coords = new Coordinate[5];
-            /*coords[0] = new Coordinate(8.31,63.91);
+            coords[0] = new Coordinate(8.31,63.91);
             coords[1] = new Coordinate(11.07,63.91);
             coords[2] = new Coordinate(11.07,59.52);
             coords[3] = new Coordinate(8.31,59.52);
-            coords[4] = new Coordinate(8.31,63.91);*/
+            coords[4] = new Coordinate(8.31,63.91);
+            /*
             coords[0] = new Coordinate(-14.4103,71.8152);
             coords[1] = new Coordinate(48.7212,71.8152);
             coords[2] = new Coordinate(48.7212,51.7262);
             coords[3] = new Coordinate(-14.4103,51.7262);
             coords[4] = new Coordinate(-14.4103,71.8152);
+            */
             GeometryFactory gFac = new GeometryFactory();
             Polygon pol = gFac.createPolygon(coords);
             
