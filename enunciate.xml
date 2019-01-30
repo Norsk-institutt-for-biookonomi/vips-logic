@@ -5,7 +5,7 @@
       The VIPSLogic service API gives access to stored pest predictions and organisms
   </description>
   <copyright>NIBIO</copyright>
-  <contact>Tor-Einar Skog</contact>
+  <contact><a href="https://www.nibio.no/ansatte/tor-einar-skog" target="new">Tor-Einar Skog</a></contact>
 
   <application root="/"/>
 

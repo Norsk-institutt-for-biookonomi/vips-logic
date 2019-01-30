@@ -86,9 +86,30 @@ public class LogicService {
     
     /**
      * Get all results for one pest prediction
-     * @param forecastConfigurationId
+     * @param forecastConfigurationId Database id of the configured forecast
      * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
-     * @return 
+     * @return JSON with result data. A list of ForecastResult objects. Example:
+     * <pre>
+     * {
+        "forecastResultId": 5710137,
+        "validTimeStart": "2019-01-22T23:00:00.000+0000",
+        "validTimeEnd": null,
+        "warningStatus": 0,
+        "forecastConfigurationId": -1000,
+        "validGeometry": { // NORMALLY SET ONLY IF the result set contains results for multiple locations
+            "type": "Point",
+            "coordinates": [
+                10.333252,
+                57.179002
+            ]
+        },
+        "keys": [ // A list of the existing parameter names in this result object
+            "GRIDZYMOSE.WHS"
+        ],
+        "allValues": { // Parameters with values. Everything is a String. Client must convert to numbers if necessary
+            "GRIDZYMOSE.WHS": "0"
+        }
+    }</pre>
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}")
