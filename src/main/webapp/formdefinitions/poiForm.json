@@ -71,7 +71,9 @@
         {
             "name" : "userId",
             "dataType" : "INTEGER",
-            "required" : false
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
         },
         {
             "name" : "externalResourceIdentifier",
