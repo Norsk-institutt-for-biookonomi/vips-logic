@@ -27,11 +27,12 @@ import java.sql.SQLException;
 import java.sql.Types;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 
 /**
  * Adapted from this: http://stackoverflow.com/questions/21940642/hibernate-postgres-array-type
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2015-2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
@@ -99,7 +100,7 @@ public class IntegerArrayUserType implements UserType {
      *
      * @throws java.sql.SQLException
      */
-    @Override
+    //@Override
     public Object nullSafeGet(
             ResultSet rs, 
             String[] names, 
@@ -133,7 +134,7 @@ public class IntegerArrayUserType implements UserType {
      *
      * @throws java.sql.SQLException
      */
-    @Override
+    //@Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws HibernateException, SQLException {
         if (value == null) {
             st.setNull(index, Types.OTHER);
@@ -214,6 +215,58 @@ public class IntegerArrayUserType implements UserType {
     @Override
     public Object replace(Object original, Object target, Object owner) throws HibernateException {
         return original;
+    }
+
+    /**
+     * Retrieve an instance of the mapped class from a JDBC resultset. Implementors
+     * should handle possibility of null values.
+     *
+     * @param rs      a JDBC result set
+     * @param strings   the column names
+     * @param ssci
+     * @throws org.hibernate.HibernateException
+     *
+     * @throws java.sql.SQLException
+     */
+    @Override
+    public Object nullSafeGet(ResultSet rs, String[] strings, SharedSessionContractImplementor ssci, Object o) throws HibernateException, SQLException {
+        if (rs.wasNull()) {
+            return null;
+        }
+        try
+        {
+            Integer[] array = (Integer[]) rs.getArray(strings[0]).getArray();
+            return array;
+        }
+        catch(NullPointerException ex)
+        {
+           return new Integer[0];
+        }
+    }
+
+    /**
+     * Write an instance of the mapped class to a prepared statement. Implementors
+     * should handle possibility of null values. A multi-column type should be written
+     * to parameters starting from <tt>index</tt>.
+     *
+     * @param ps      a JDBC prepared statement
+     * @param o   the object to write
+     * @param i   statement parameter index
+     * @param ssci
+     * @throws org.hibernate.HibernateException
+     *
+     * @throws java.sql.SQLException
+     */
+    @Override
+    public void nullSafeSet(PreparedStatement ps, Object o, int i, SharedSessionContractImplementor ssci) throws HibernateException, SQLException {
+        if (o == null) {
+            ps.setNull(i, Types.OTHER);
+            return;
+        }
+
+        Integer[] castObject = (Integer[]) o;
+        Array array = ssci.connection().createArrayOf("integer", castObject); // The postgres array data type
+        ps.setArray(i, array);
     }
 
 
