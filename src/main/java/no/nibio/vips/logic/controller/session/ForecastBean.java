@@ -600,6 +600,7 @@ public class ForecastBean {
                 Response resp = this.getManagerResource().runModel(config.getModelId(), request);
                 if(resp.getStatus() == Response.Status.OK.getStatusCode())
                 {
+                    //System.out.println(resp.readEntity(String.class));
                     List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
                     //System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ", resultsize=" + results.size());
                     // We delete all former results before we store the new ones
