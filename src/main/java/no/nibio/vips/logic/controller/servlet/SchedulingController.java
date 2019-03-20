@@ -22,6 +22,8 @@ package no.nibio.vips.logic.controller.servlet;
 import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.TaskExecutor;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -214,7 +216,7 @@ public class SchedulingController extends HttpServlet {
                             schedulingBean.getOneOffSchedulers().add(oneTimeScheduler);
                         }
                         String message = MessageFormat.format(SessionLocaleUtil.getI18nText(request, "taskXWasLaunched"), task.getName(SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
-                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/scheduling?message=").append(message).toString());
+                        response.sendRedirect(Globals.PROTOCOL + "://" + ServletUtil.getServerName(request) + "/scheduling?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8.toString()));
                     }
                     else
                     {
