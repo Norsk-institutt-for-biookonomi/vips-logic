@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.controller.session;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Functions;
 import java.util.Calendar;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
@@ -908,29 +909,29 @@ public class ForecastBean {
         return retVal;
     }
     
+    /**
+     * Finds the forecast configuration summaries for a given organization
+     * @param organizationId
+     * @return 
+     */
     public List<ForecastConfiguration> getForecastConfigurationSummaries(Integer organizationId)
     {
-        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurations(em.find(Organization.class, organizationId));
-        // TODO: Filter forecastconfigurations based on criteria (activity, crops, geography etc)
-        List<ForecastConfiguration> filteredConfigs = new ArrayList<>();
-        Query q = em.createNamedQuery("ForecastSummary.findByForecastConfigurationId");
-        for(ForecastConfiguration config: forecastConfigurations)
-        {
-            if(config.getForecastConfigurationId() < 0)
-            {
-                continue;
-            }
-            config.setForecastSummaries(
-                    
-                    q.setParameter("forecastConfigurationId", config.getForecastConfigurationId())
-                    .getResultList()
-            );
-            if(config.getForecastSummaries() != null && !config.getForecastSummaries().isEmpty())
-            {
-                filteredConfigs.add(config);
-            }
-        }
-        return filteredConfigs;
+        List<ForecastSummary> summaries = em.createNamedQuery("ForecastSummary.findByOrganizationId")
+                .setParameter("organizationId", em.find(Organization.class, organizationId))
+                .getResultList();
+        Map<Long, List<ForecastSummary>> mappedSummaries = new HashMap<>();
+        summaries.forEach((s) -> {
+            List<ForecastSummary> summaryForForecast = mappedSummaries.get(s.getForecastSummaryPK().getForecastConfigurationId()) != null ?
+                    mappedSummaries.get(s.getForecastSummaryPK().getForecastConfigurationId()) : 
+                    new ArrayList<>();
+            summaryForForecast.add(s);
+            mappedSummaries.put(s.getForecastSummaryPK().getForecastConfigurationId(), summaryForForecast);
+        });
+        List<ForecastConfiguration> configurations = em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationIds").setParameter("forecastConfigurationIds", mappedSummaries.keySet()).getResultList();
+        configurations.forEach((conf) -> {
+            conf.setForecastSummaries(mappedSummaries.get(conf.getForecastConfigurationId()));
+        });
+        return configurations;
     }
 
     /**
