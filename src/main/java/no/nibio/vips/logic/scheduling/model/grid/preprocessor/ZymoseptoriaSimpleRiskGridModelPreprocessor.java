@@ -92,9 +92,10 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
                 System.out.println("Problem with station " + station.getPointOfInterest().getName() + " (#" + station.getPointOfInterestId() + "): " + ex.getMessage());
             }
             
-            /*
+            
             // TODO: Remove this debug
-            if(station.getPointOfInterestId().equals(302))
+            /*
+            if(station.getPointOfInterestId().equals(345))
             {
                 Collections.sort(stationObs);
                 stationObs.forEach(obs->System.out.println(obs));
@@ -120,7 +121,6 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
     {
         List<WeatherObservation> stationObs;// = new ArrayList<>();
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
-        WeatherUtil wUtil = new WeatherUtil();
         
         // We run this for max 1 week back in time to make sure it doesn't crash
         ZonedDateTime aWeekAgo = ZonedDateTime.ofInstant(SystemTime.getSystemTime().toInstant(), ZoneId.of("Europe/Oslo")).minus(1, ChronoUnit.WEEKS);
@@ -141,7 +141,6 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
                     true,
                     new HashSet<>(Arrays.asList(WeatherObservation.LOG_INTERVAL_ID_1H,WeatherObservation.LOG_INTERVAL_ID_3H, WeatherObservation.LOG_INTERVAL_ID_6H))
             );
-            //stationObs = wUtil.checkForAndFixHourlyTimeSeriesHoles(stationObs,6);
             return stationObs;
         } catch (WeatherDataSourceException  ex ) {
             throw new PreprocessorException(ex.getMessage());
