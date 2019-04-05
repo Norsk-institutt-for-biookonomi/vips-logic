@@ -659,7 +659,7 @@ public class ForecastBean {
         return resource;
     }
     
-    public Kml getForecastsAggregateKml(Integer organizationId, List<Integer> cropOrganismIds, Date theDate, String serverName)
+    public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate, String serverName)
     {
         //String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         String iconPath = "//" + serverName + "/public/images/";
@@ -696,7 +696,20 @@ public class ForecastBean {
         
         // Run through forecast configurations 
         //Date benchmark = new Date();
-        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
+        List<PointOfInterest> poisWithAggregate = new ArrayList<>();
+        if(organizationIds.size() == 1 && organizationIds.get(0).equals(-1))
+        {
+            em.createNamedQuery("Organization.findAll",Organization.class).getResultStream().forEach(
+                    org-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(org.getOrganizationId(), cropOrganismIds, theDate))
+                    );
+        }
+        else
+        {
+            organizationIds.stream().forEach(
+                    orgId-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(orgId, cropOrganismIds, theDate))
+                    );
+        }
+        
         //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
         
         GISEntityUtil gisUtil = new GISEntityUtil();

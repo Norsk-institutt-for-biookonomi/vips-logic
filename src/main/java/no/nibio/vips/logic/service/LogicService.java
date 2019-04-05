@@ -429,6 +429,8 @@ public class LogicService {
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("cropCategoryId") List<Integer> cropCategoryIds)
     {
+        List<Integer> organizationIds = new ArrayList<>();
+        organizationIds.add(organizationId);
         if(cropCategoryIds == null || cropCategoryIds.isEmpty())
         {
             return Response.noContent().build();
@@ -436,7 +438,33 @@ public class LogicService {
         else
         {
             List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationId, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            return Response.ok().entity(retVal).build();
+        }
+    }
+    /**
+     * 
+     * @param organizationId
+     * @param cropCategoryIds
+     * @return 
+     */
+    @GET
+    @Path("forecastresults/aggregate/orgspan")
+    @GZIP
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    @Facet("restricted")
+    public Response getForecastResultsAggregate(
+            @QueryParam("organizationId") List<Integer> organizationIds,
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryIds)
+    {
+        if(cropCategoryIds == null || cropCategoryIds.isEmpty())
+        {
+            return Response.noContent().build();
+        }
+        else
+        {
+            List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
             return Response.ok().entity(retVal).build();
         }
     }
