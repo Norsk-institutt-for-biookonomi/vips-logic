@@ -361,6 +361,7 @@ public class PointOfInterestController extends HttpServlet {
                             request.setAttribute("weatherStation", weatherStation);
                             request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                             request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                            request.setAttribute("returnURL","weatherStation?organizationId=" + user.getOrganizationId().getOrganizationId());
                             request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
                             request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
                             request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());

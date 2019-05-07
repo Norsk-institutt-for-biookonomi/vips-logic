@@ -252,6 +252,12 @@ var loadScript = function(url, callback)
     document.head.appendChild(script);
 };
 
+/**
+ * Loads elements (e.g. script elements) into the parent page
+ * @param {type} type the type of element
+ * @param {type} attributes the attributes (like src) of the element
+ * @param {type} callback What do do after the loading is done
+ */
 var loadHeadElement = function(type, attributes, callback)
 {
     var elm = document.createElement(type);
