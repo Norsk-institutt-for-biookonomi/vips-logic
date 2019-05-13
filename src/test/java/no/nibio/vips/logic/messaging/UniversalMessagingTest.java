@@ -66,7 +66,7 @@ public class UniversalMessagingTest {
     // @Test
     // public void hello() {}
     
-    @Test
+    //@Test
     public void deserializeMessageLocalVersionTest()
     {
         System.out.println("deserializeMessageLocalVersionTest");
@@ -111,10 +111,10 @@ public class UniversalMessagingTest {
             
             
             String[][] recipients = {
-                //{"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no","nb","true"},
-                //{"2","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","en","false"},
+                //{"1","Tor-Einar Skog","Mail","tor-einar.skog@nibio.no","nb","true"}
+                {"2","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","en","false"},
                 //{"3","Tor-Einar Skog","Mail","tor.einar.skog@gmail.com","bs","false"},
-                {"1","Tor-Einar Skog","Sms","0015419087462","nb","true"}
+                {"1","Tor-Einar Skog","Sms","004791303819","nb","true"}
                 //{"2","Lars Aksel Opsahl", "Mail","lars.opsahl@nibio.no"}
             };
 

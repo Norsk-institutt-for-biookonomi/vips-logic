@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.controller.session;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Functions;
 import java.util.Calendar;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
@@ -50,6 +51,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -597,18 +599,19 @@ public class ForecastBean {
                 {
                     ex.printStackTrace();
                 }*/
-                Response resp = this.getManagerResource().runModel(config.getModelId(), request);
-                if(resp.getStatus() == Response.Status.OK.getStatusCode())
-                {
-                    List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
-                    //System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ", resultsize=" + results.size());
-                    // We delete all former results before we store the new ones
-                    SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
-                }
-                else
-                {
-                    throw new RunModelException(resp.readEntity(String.class));
-                }
+                    Response resp = this.getManagerResource().runModel(config.getModelId(), request);                
+                    if(resp.getStatus() == Response.Status.OK.getStatusCode())
+                    {
+                        //System.out.println(resp.readEntity(String.class));
+                        List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
+                        //System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ", resultsize=" + results.size());
+                        // We delete all former results before we store the new ones
+                        SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
+                    }
+                    else
+                    {
+                        throw new RunModelException(resp.readEntity(String.class));
+                    }
                 //System.out.println("Finished runModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
             
         }
@@ -656,7 +659,7 @@ public class ForecastBean {
         return resource;
     }
     
-    public Kml getForecastsAggregateKml(Integer organizationId, List<Integer> cropOrganismIds, Date theDate, String serverName)
+    public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate, String serverName)
     {
         //String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         String iconPath = "//" + serverName + "/public/images/";
@@ -693,7 +696,20 @@ public class ForecastBean {
         
         // Run through forecast configurations 
         //Date benchmark = new Date();
-        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
+        List<PointOfInterest> poisWithAggregate = new ArrayList<>();
+        if(organizationIds.size() == 1 && organizationIds.get(0).equals(-1))
+        {
+            em.createNamedQuery("Organization.findAll",Organization.class).getResultStream().forEach(
+                    org-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(org.getOrganizationId(), cropOrganismIds, theDate))
+                    );
+        }
+        else
+        {
+            organizationIds.stream().forEach(
+                    orgId-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(orgId, cropOrganismIds, theDate))
+                    );
+        }
+        
         //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
         
         GISEntityUtil gisUtil = new GISEntityUtil();
@@ -906,29 +922,29 @@ public class ForecastBean {
         return retVal;
     }
     
+    /**
+     * Finds the forecast configuration summaries for a given organization
+     * @param organizationId
+     * @return 
+     */
     public List<ForecastConfiguration> getForecastConfigurationSummaries(Integer organizationId)
     {
-        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurations(em.find(Organization.class, organizationId));
-        // TODO: Filter forecastconfigurations based on criteria (activity, crops, geography etc)
-        List<ForecastConfiguration> filteredConfigs = new ArrayList<>();
-        Query q = em.createNamedQuery("ForecastSummary.findByForecastConfigurationId");
-        for(ForecastConfiguration config: forecastConfigurations)
-        {
-            if(config.getForecastConfigurationId() < 0)
-            {
-                continue;
-            }
-            config.setForecastSummaries(
-                    
-                    q.setParameter("forecastConfigurationId", config.getForecastConfigurationId())
-                    .getResultList()
-            );
-            if(config.getForecastSummaries() != null && !config.getForecastSummaries().isEmpty())
-            {
-                filteredConfigs.add(config);
-            }
-        }
-        return filteredConfigs;
+        List<ForecastSummary> summaries = em.createNamedQuery("ForecastSummary.findByOrganizationId")
+                .setParameter("organizationId", em.find(Organization.class, organizationId))
+                .getResultList();
+        Map<Long, List<ForecastSummary>> mappedSummaries = new HashMap<>();
+        summaries.forEach((s) -> {
+            List<ForecastSummary> summaryForForecast = mappedSummaries.get(s.getForecastSummaryPK().getForecastConfigurationId()) != null ?
+                    mappedSummaries.get(s.getForecastSummaryPK().getForecastConfigurationId()) : 
+                    new ArrayList<>();
+            summaryForForecast.add(s);
+            mappedSummaries.put(s.getForecastSummaryPK().getForecastConfigurationId(), summaryForForecast);
+        });
+        List<ForecastConfiguration> configurations = em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationIds").setParameter("forecastConfigurationIds", mappedSummaries.keySet()).getResultList();
+        configurations.forEach((conf) -> {
+            conf.setForecastSummaries(mappedSummaries.get(conf.getForecastConfigurationId()));
+        });
+        return configurations;
     }
 
     /**

@@ -6,5 +6,8 @@
       <module name="com.fasterxml.jackson.core.jackson-core" />
       <module name="org.apache.httpcomponents" />
     </dependencies>  
+     <exclusions>
+          <module name="org.jboss.resteasy.resteasy-json-binding-provider"/>
+     </exclusions>
   </deployment>  
 </jboss-deployment-structure> 

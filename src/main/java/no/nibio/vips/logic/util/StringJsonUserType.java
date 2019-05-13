@@ -26,10 +26,11 @@ import java.sql.SQLException;
 import java.sql.Types;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2015-2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
@@ -97,7 +98,7 @@ public class StringJsonUserType implements UserType {
      *
      * @throws java.sql.SQLException
      */
-    @Override
+    //@Override
     public Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner) throws HibernateException, SQLException {
         if(rs.getString(names[0]) == null){
             return null;
@@ -118,7 +119,7 @@ public class StringJsonUserType implements UserType {
      *
      * @throws java.sql.SQLException
      */
-    @Override
+    //@Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws HibernateException, SQLException {
         if (value == null) {
             st.setNull(index, Types.OTHER);
@@ -197,6 +198,49 @@ public class StringJsonUserType implements UserType {
     @Override
     public Object replace(Object original, Object target, Object owner) throws HibernateException {
         return original;
+    }
+
+    
+    /**
+     * Retrieve an instance of the mapped class from a JDBC resultset. Implementors
+     * should handle possibility of null values.
+     *
+     * @param rs      a JDBC result set
+     * @param strings   the column names
+     * @param ssci
+     * @throws org.hibernate.HibernateException
+     *
+     * @throws java.sql.SQLException
+     */
+    @Override
+    public Object nullSafeGet(ResultSet rs, String[] strings, SharedSessionContractImplementor ssci, Object o) throws HibernateException, SQLException {
+        if(rs.getString(strings[0]) == null){
+            return null;
+        }
+        return rs.getString(strings[0]);
+    }
+
+    /**
+     * Write an instance of the mapped class to a prepared statement. Implementors
+     * should handle possibility of null values. A multi-column type should be written
+     * to parameters starting from <tt>index</tt>.
+     *
+     * @param ps      a JDBC prepared statement
+     * @param o   the object to write
+     * @param i   statement parameter index
+     * @param ssci
+     * @throws org.hibernate.HibernateException
+     *
+     * @throws java.sql.SQLException
+     */
+    @Override
+    public void nullSafeSet(PreparedStatement ps, Object o, int i, SharedSessionContractImplementor ssci) throws HibernateException, SQLException {
+        if (o == null) {
+            ps.setNull(i, Types.OTHER);
+            return;
+        }
+
+        ps.setObject(i, o, Types.OTHER);
     }
 
 

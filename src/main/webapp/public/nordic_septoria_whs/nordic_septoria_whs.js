@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2018 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 
 /**
  * Self contained application for displaying several maps with risk assesments
- * @copyright 2018 NIBIO https://www.nibio.no/
+ * @copyright 2019 NIBIO https://www.nibio.no/
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
@@ -84,12 +84,14 @@ var initMap = function ()
     ajax(hostName + "/rest/forecastresults/-1000", function(e){
     //ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
         results = JSON.parse(e.target.responseText);
-        console.info(todayAtMidnight);
+        //console.info(todayAtMidnight);
         var currentDay = todayAtMidnight;
         for(var mapName in maps)
         {
+            //console.info("currentDay=" + currentDay.format());
             displayResults(mapName, currentDay);
-            currentDay.setDate(currentDay.getDate()+1);
+            //currentDay.setDate(currentDay.getDate()+1);
+            currentDay.add(1,"days");
         }
         // This is here to fix an apparent bug in having Vector tiles
         // within the CSS grid system
@@ -127,10 +129,12 @@ var getFeatureStyle = function(feature)
 
 var displayResults = function(mapName, date){
     var features = [];
+    //var momentDate = moment(date);
     for(var i in results)
     {
-        //console.info(parseJSONDate(results[i].validTimeStart).getTime() + "==" + date.getTime());
-        if(parseJSONDate(results[i].validTimeStart).getTime() == date.getTime()){
+        //console.info(moment(results[i].validTimeStart).format() + "==" + date.format());
+       
+        if(moment(results[i].validTimeStart).isSame(date)){
             //console.info(results[i].validGeometry.coordinates);
             var feature = new ol.Feature({
                 geometry:new ol.geom.Point(ol.proj.fromLonLat(results[i].validGeometry.coordinates)),
@@ -146,7 +150,7 @@ var displayResults = function(mapName, date){
     featureOverlays[mapName].getSource().addFeatures(features);
     //console.info(featureOverlays.mainMap.getSource().getFeatures());
     // Setting the results date
-    document.getElementById(mapName + "DateField").innerHTML = date.getFullYear() + "-" + ("0" + (date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
+    document.getElementById(mapName + "DateField").innerHTML = date.format("YYYY-MM-DD");//date.getFullYear() + "-" + ("0" + (date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
 };
 
 var ajax = function(url, callback)
@@ -157,42 +161,16 @@ var ajax = function(url, callback)
     xhr.send();
 };
 
-function parseJSONDate(theDateString)
-{
-    // The format is "2017-09-09T22:00:00.000+0000"
-    var dateParts = theDateString.split("T")[0].split("-");
-    var timeParts = theDateString.split("T")[1].split(".")[0].split(":");
-    var timeZoneOffset = parseInt(theDateString.substring(24,26));
-
-    var retVal = new Date(Date.UTC(
-            parseInt(dateParts[0]),  // Year
-            parseInt(dateParts[1])-1, // Month
-            parseInt(dateParts[2]), // Date
-            parseInt(timeParts[0]) - parseInt(timeZoneOffset), // Hour taking timezone into account
-            parseInt(timeParts[1]), // Minutes
-            0,0) // Seconds and milliseconds
-            );
-    //console.info(retVal);
-    return retVal;
-    // This actually does the trick pretty well (on Chrome and Firefox...)
-    //return new Date(theDateString);
-}
 
 function getTodayAtMidnight()
 {
-    //return moment("");
-    // TODO:Add momentjs support here!!!
-    var now = new Date();
-    var midnightString = now.getFullYear() + "-" + 
-                            ('0' + (now.getMonth()+1)).slice(-2) + "-" +
-                            ('0' + (now.getDate()-1)).slice(-2) + 
-                            "T23:00:00.000+0000";
-    
-   
-    return new Date(midnightString);
-    
-    // OR RETURN A FIXED DATE FOR TESTING
-    //return new Date("2018-08-16T22:00:00.000+0000");
+    var timeZone="Europe/Oslo";
+    var today = moment().tz(timeZone)
+    today.set("hour",0);
+    today.set("minute",0);
+    today.set("second",0);
+    today.set("millisecond",0);
+    return today;
 }
 
 
@@ -240,7 +218,14 @@ document.addEventListener("DOMContentLoaded", function() {
                             { 
                                 src: hostName + "/public/nordic_septoria_whs/moment.min.js" 
                             }, 
-                            initMap
+                            function() {
+                                loadHeadElement("script", 
+                                    { 
+                                        src: hostName + "/public/nordic_septoria_whs/moment-timezone-with-data.js" 
+                                    }, 
+                                    initMap
+                                ); 
+                            }
                         ); 
                     }
                 );
@@ -267,6 +252,12 @@ var loadScript = function(url, callback)
     document.head.appendChild(script);
 };
 
+/**
+ * Loads elements (e.g. script elements) into the parent page
+ * @param {type} type the type of element
+ * @param {type} attributes the attributes (like src) of the element
+ * @param {type} callback What do do after the loading is done
+ */
 var loadHeadElement = function(type, attributes, callback)
 {
     var elm = document.createElement(type);
