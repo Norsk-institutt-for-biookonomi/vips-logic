@@ -67,6 +67,7 @@ public class Globals {
     public static String defaultTimestampFormat = "yyyy-MM-dd HH:mm:ssXXX";
     public static String defaultDateFormat = "yyyy-MM-dd";
     
+    // TODO: Move out of code and into config
     public static String[] availableTimeZones = {
         "UTC",
         "Etc/GMT-1",
