@@ -67,23 +67,6 @@ public class Globals {
     public static String defaultTimestampFormat = "yyyy-MM-dd HH:mm:ssXXX";
     public static String defaultDateFormat = "yyyy-MM-dd";
     
-    // TODO: Move out of code and into config
-    public static String[] availableTimeZones = {
-        "UTC",
-        "Etc/GMT-1",
-        "Europe/Copenhagen",
-        "Europe/Oslo",
-        "Europe/Sarajevo",
-        "Europe/Stockholm",
-        "Europe/Helsinki",
-        "Europe/Riga",
-        "Europe/Vilnius",
-        "Europe/Sofia",
-        "Europe/Zurich",
-        "America/Los_Angeles"
-        
-    };
-    
     public static int DEFAULT_UUID_VALIDITY_DURATION_DAYS = 30;
     
     public static String PROTOCOL = System.getProperty("no.nibio.vips.logic.VIPSLOGIC_PROTOCOL");
