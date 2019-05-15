@@ -22,8 +22,12 @@ package no.nibio.vips.logic.service;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -33,9 +37,15 @@ import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.entity.ForecastConfiguration;
+import no.nibio.vips.logic.entity.ForecastModelConfiguration;
+import no.nibio.vips.logic.entity.ForecastModelConfigurationPK;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
+import no.nibio.vips.logic.scheduling.model.PreprocessorException;
+import no.nibio.vips.logic.scheduling.model.preprocessor.SeptoriaApiicolaModelPreprocessor;
+import no.nibio.vips.logic.scheduling.model.preprocessor.SeptoriaHumidityModelPreprocessor;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -79,29 +89,50 @@ public class ModelFormService {
     ){
         try
         {
-            ModelConfiguration mConf = new ModelConfiguration();
-            mConf.setModelId("SEPTORIAHU");
-            mConf.setConfigParameter("dateSpraying1", dateSpraying1);
-            mConf.setConfigParameter("dateSpraying2", dateSpraying2);
-            mConf.setConfigParameter("dateGs31", dateGs31);
-            mConf.setConfigParameter("date3rdUpperLeafEmerging", date3rdUpperLeafEmerging);
-            mConf.setConfigParameter("date2ndUpperLeafEmerging", date2ndUpperLeafEmerging);
-            mConf.setConfigParameter("dateUpperLeafEmerging", dateUpperLeafEmerging);
-            mConf.setConfigParameter("dateGs75", dateGs75);
-            mConf.setConfigParameter("thresholdRelativeHumidity", thresholdRelativeHumidity);
-            mConf.setConfigParameter("thresholdLeafWetness", thresholdLeafWetness);
-            mConf.setConfigParameter("thresholdPrecipitation", thresholdPrecipitation);
-            mConf.setConfigParameter("slidingHoursPast", slidingHoursPast);
-            mConf.setConfigParameter("slidingHoursAhead", slidingHoursAhead);
-            mConf.setConfigParameter("thresholdHumidPeriodHours", thresholdHumidPeriodHours);
-            mConf.setConfigParameter("sprayingProtectionDays", sprayingProtectionDays);
-            mConf.setConfigParameter("leafLifeTime", leafLifeTime);
+            ForecastConfiguration fConf = new ForecastConfiguration();
+            fConf.setModelId("SEPTORIAHU");
+            
+            Set<ForecastModelConfiguration> fModelConf = new HashSet<>();
+            fModelConf.add(this.getForecastModelConfiguration("dateSpraying1", dateSpraying1));
+            fModelConf.add(this.getForecastModelConfiguration("dateSpraying2", dateSpraying2));
+            fModelConf.add(this.getForecastModelConfiguration("dateGs31", dateGs31));
+            fModelConf.add(this.getForecastModelConfiguration("date3rdUpperLeafEmerging", date3rdUpperLeafEmerging));
+            fModelConf.add(this.getForecastModelConfiguration("date2ndUpperLeafEmerging", date2ndUpperLeafEmerging));
+            fModelConf.add(this.getForecastModelConfiguration("dateUpperLeafEmerging", dateUpperLeafEmerging));
+            fModelConf.add(this.getForecastModelConfiguration("dateGs75", dateGs75));
+            fModelConf.add(this.getForecastModelConfiguration("thresholdRelativeHumidity", String.valueOf(thresholdRelativeHumidity)));
+            fModelConf.add(this.getForecastModelConfiguration("thresholdLeafWetness", String.valueOf(thresholdLeafWetness)));
+            fModelConf.add(this.getForecastModelConfiguration("thresholdPrecipitation", String.valueOf(thresholdPrecipitation)));
+            fModelConf.add(this.getForecastModelConfiguration("slidingHoursPast", String.valueOf(slidingHoursPast)));
+            fModelConf.add(this.getForecastModelConfiguration("slidingHoursAhead", String.valueOf(slidingHoursAhead)));
+            fModelConf.add(this.getForecastModelConfiguration("thresholdHumidPeriodHours", String.valueOf(thresholdHumidPeriodHours)));
+            fModelConf.add(this.getForecastModelConfiguration("sprayingProtectionDays", String.valueOf(sprayingProtectionDays)));
+            fModelConf.add(this.getForecastModelConfiguration("leafLifeTime", String.valueOf(leafLifeTime)));
+            fConf.setForecastModelConfigurationSet(fModelConf);
+            
+            //ModelConfiguration mConf = new ModelConfiguration();
+            //mConf.setModelId("SEPTORIAHU");
+            //mConf.setConfigParameter("dateSpraying1", dateSpraying1);
+            //mConf.setConfigParameter("dateSpraying2", dateSpraying2);
+            //mConf.setConfigParameter("dateGs31", dateGs31);
+            //mConf.setConfigParameter("date3rdUpperLeafEmerging", date3rdUpperLeafEmerging);
+            //mConf.setConfigParameter("date2ndUpperLeafEmerging", date2ndUpperLeafEmerging);
+            //mConf.setConfigParameter("dateUpperLeafEmerging", dateUpperLeafEmerging);
+            //mConf.setConfigParameter("dateGs75", dateGs75);
+            //mConf.setConfigParameter("thresholdRelativeHumidity", thresholdRelativeHumidity);
+            //mConf.setConfigParameter("thresholdLeafWetness", thresholdLeafWetness);
+            //mConf.setConfigParameter("thresholdPrecipitation", thresholdPrecipitation);
+            //mConf.setConfigParameter("slidingHoursPast", slidingHoursPast);
+            //mConf.setConfigParameter("slidingHoursAhead", slidingHoursAhead);
+            //mConf.setConfigParameter("thresholdHumidPeriodHours", thresholdHumidPeriodHours);
+            //mConf.setConfigParameter("sprayingProtectionDays", sprayingProtectionDays);
+            //mConf.setConfigParameter("leafLifeTime", leafLifeTime);
 
             // Data parsing
 
             Integer organizationId = Integer.valueOf(organizationId_countryCode.split("_")[0]);
             Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
-            mConf.setConfigParameter("timeZone", organization.getDefaultTimeZone());
+            fConf.setTimeZone(organization.getDefaultTimeZone());
             TimeZone timeZone =  TimeZone.getTimeZone(organization.getDefaultTimeZone());
             ParseRESTParamUtil pUtil = new ParseRESTParamUtil();
             // Start time is gs31, easy
@@ -116,6 +147,9 @@ public class ModelFormService {
             dayAfterTomorrow = new XDate(wUtil.pragmaticAdjustmentToMidnight(dayAfterTomorrow, timeZone));
             // The first check here is to see if the systemtime is too early
             Date endTime = dayAfterTomorrow.after(gs75) ? gs75 : dayAfterTomorrow;
+            
+            fConf.setDateStart(startTime);
+            fConf.setDateEnd(endTime);
 
             String countryCode = organizationId_countryCode.split("_")[1];
             List<WeatherObservation> observations;
@@ -143,19 +177,10 @@ public class ModelFormService {
                 // Weather station id maps to a regular weather station
                 ws = (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(weatherStationId));
             }
-            observations = wdsUtil.getWeatherObservations(
-                        ws, 
-                        WeatherObservation.LOG_INTERVAL_ID_1H, 
-                        new String[]{
-                            WeatherElements.TEMPERATURE_MEAN,
-                            WeatherElements.PRECIPITATION,
-                            WeatherElements.RELATIVE_HUMIDITY_MEAN,
-                            WeatherElements.LEAF_WETNESS_DURATION
-                        }, 
-                        startTime, 
-                        endTime
-                );
-            mConf.setConfigParameter("observations",observations);
+            fConf.setWeatherStationPointOfInterestId(ws);
+            fConf.setLocationPointOfInterestId(ws);
+            
+            ModelConfiguration mConf = new SeptoriaHumidityModelPreprocessor().getModelConfiguration(fConf);
 
             Integer VIPSCoreUserId = organization.getDefaultVipsCoreUserId();
 
@@ -163,9 +188,16 @@ public class ModelFormService {
 
             return Response.ok().entity(results).build();
         }
-        catch(WeatherDataSourceException | RunModelException ex)
+        catch(PreprocessorException |RunModelException ex)
         {
             return Response.serverError().entity(ex.getMessage()).build();
-        }
+        } 
+    }
+    
+    private ForecastModelConfiguration getForecastModelConfiguration(String key, String value)
+    {
+        ForecastModelConfiguration retVal = new ForecastModelConfiguration(new ForecastModelConfigurationPK(-1, key));
+        retVal.setParameterValue(value);
+        return retVal;
     }
 }
