@@ -146,7 +146,7 @@ public class GISEntityUtil {
     
     
     
-    public de.micromata.opengis.kml.v_2_2_0.Coordinate getKMLCoordinateFromJTSCoordinate(com.vividsolutions.jts.geom.Coordinate jtsCoordinate)
+    public de.micromata.opengis.kml.v_2_2_0.Coordinate getKMLCoordinateFromJTSCoordinate(org.locationtech.jts.geom.Coordinate jtsCoordinate)
     {
         return new de.micromata.opengis.kml.v_2_2_0.Coordinate(
                 jtsCoordinate.x, 

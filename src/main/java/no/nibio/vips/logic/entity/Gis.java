@@ -20,8 +20,8 @@
 package no.nibio.vips.logic.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;

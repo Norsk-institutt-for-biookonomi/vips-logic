@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.scheduling.model.grid.preprocessor;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;

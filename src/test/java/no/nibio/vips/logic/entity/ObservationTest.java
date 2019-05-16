@@ -18,9 +18,9 @@
  */
 package no.nibio.vips.logic.entity;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Point;
 import java.util.Date;
 import org.junit.After;
 import org.junit.AfterClass;

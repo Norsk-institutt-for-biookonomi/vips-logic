@@ -20,7 +20,6 @@
 package no.nibio.vips.logic.controller.session;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Functions;
 import java.util.Calendar;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
@@ -51,7 +50,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;

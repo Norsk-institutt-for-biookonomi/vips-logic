@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.gis;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;

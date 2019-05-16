@@ -19,15 +19,13 @@
 
 package no.nibio.vips.logic.service;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -44,16 +42,13 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.scheduling.model.preprocessor.SeptoriaApiicolaModelPreprocessor;
 import no.nibio.vips.logic.scheduling.model.preprocessor.SeptoriaHumidityModelPreprocessor;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ParseRESTParamUtil;
-import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherUtil;
 import no.nibio.vips.util.XDate;
-import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
@@ -183,6 +178,7 @@ public class ModelFormService {
             ModelConfiguration mConf = new SeptoriaHumidityModelPreprocessor().getModelConfiguration(fConf);
 
             Integer VIPSCoreUserId = organization.getDefaultVipsCoreUserId();
+            System.out.println("defaultVIPScoreUserId = " + VIPSCoreUserId);
 
             List<Result>results = SessionControllerGetter.getForecastBean().runForecast(mConf, VIPSCoreUserId);
 

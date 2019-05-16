@@ -20,11 +20,8 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
