@@ -45,6 +45,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import no.nibio.vips.logic.entity.helpers.ForecastResultSerializer;
 import org.locationtech.jts.geom.Geometry;
 
 
@@ -62,6 +64,7 @@ import org.locationtech.jts.geom.Geometry;
     @NamedQuery(name = "ForecastResult.findByForecastConfigurationIdAndPeriod", query = "SELECT f FROM ForecastResult f WHERE f.forecastConfigurationId = :forecastConfigurationId AND f.validTimeStart BETWEEN :timeStart AND :timeEnd ORDER BY f.validTimeStart ASC"),
     @NamedQuery(name = "ForecastResult.findByValidTimeStart", query = "SELECT f FROM ForecastResult f WHERE f.validTimeStart = :validTimeStart ORDER BY f.validTimeStart ASC"),
     @NamedQuery(name = "ForecastResult.findByWarningStatus", query = "SELECT f FROM ForecastResult f WHERE f.warningStatus = :warningStatus ORDER BY f.validTimeStart ASC")})
+@JsonSerialize(using=ForecastResultSerializer.class)
 public class ForecastResult implements Serializable, Comparable{
     private static final long serialVersionUID = 1L;
     @Id

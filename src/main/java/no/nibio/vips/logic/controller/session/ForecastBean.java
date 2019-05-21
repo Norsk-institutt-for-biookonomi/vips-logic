@@ -597,7 +597,7 @@ public class ForecastBean {
                 {
                     ex.printStackTrace();
                 }*/
-                    Response resp = this.getManagerResource().runModel(config.getModelId(), request);                
+                    Response resp = this.getManagerResource().runModel(config.getModelId(), request);         
                     if(resp.getStatus() == Response.Status.OK.getStatusCode())
                     {
                         //System.out.println(resp.readEntity(String.class));
