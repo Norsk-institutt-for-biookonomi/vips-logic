@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.scheduling.model.grid.preprocessor;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.gis.CoordinateProxy;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
@@ -66,7 +67,7 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
         WeatherUtil wUtil = new WeatherUtil();
         for(PointOfInterestWeatherStation station:stations)
         {
-            Coordinate coordinate = new Coordinate(station.getPointOfInterest().getLongitude(), station.getPointOfInterest().getLatitude());
+            CoordinateProxy coordinate = new CoordinateProxy(station.getPointOfInterest().getLongitude(), station.getPointOfInterest().getLatitude());
             List<WeatherObservation> stationObs = getStationObs(station, configuration);
             
             try

@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.entity;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -40,6 +40,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
+import org.hibernate.annotations.Type;
 
 /**
  * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>

@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.modules.applefruitmoth;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
