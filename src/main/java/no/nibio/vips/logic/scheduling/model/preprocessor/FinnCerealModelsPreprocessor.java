@@ -2,6 +2,7 @@ package no.nibio.vips.logic.scheduling.model.preprocessor;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,6 +55,7 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
                     },
                     sowingDate,
                     configuration.getDateEndInTimeZone());
+                    Collections.sort(observations);
             observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
 			List<WeatherObservation> temperature = observations.stream().filter(t -> t.getElementMeasurementTypeId().equals(WeatherElements.TEMPERATURE_MEAN))
 					.collect(Collectors.toList());
@@ -63,11 +65,30 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
 					.collect(Collectors.toList());
 			List<WeatherObservation> windSpeedAll = observations.stream().filter(t -> t.getElementMeasurementTypeId().equals(WeatherElements.WIND_SPEED_2M))
 					.collect(Collectors.toList());
-			if(windSpeedAll.isEmpty()) {
-				windSpeedAll = observations.stream().filter(t -> t.getElementMeasurementTypeId().equals(WeatherElements.WIND_SPEED_10MIN_2M))
-						.collect(Collectors.toList());
+                        
+                        // Dealing with wind, which may be dodgy with regards to forecasts etc.
+			if(windSpeedAll.isEmpty() || windSpeedAll.size() != temperature.size()) {
+                            List<WeatherObservation> windFallback = observations.stream()
+                                    .filter(t -> t.getElementMeasurementTypeId().equals(WeatherElements.WIND_SPEED_10MIN_2M))
+                                    .collect(Collectors.toList());
+                            if(windSpeedAll.isEmpty())
+                            {
+                                windSpeedAll.addAll(windFallback);
+                            }
+                            else
+                            {
+                                Collections.sort(windSpeedAll);
+                                Date lastWindTime = windSpeedAll.get(windSpeedAll.size()-1).getTimeMeasured();
+                                windSpeedAll.addAll(windFallback.stream().filter(o->o.getTimeMeasured().after(lastWindTime)).collect(Collectors.toList()));
+                            }
 			}
-                        /*System.out.println("Observations size = " + observations.size());
+                        
+                        
+                        /*
+                        Collections.sort(temperature);
+                        System.out.println("First temp is at " + temperature.get(0).getTimeMeasured());
+                        System.out.println("Last temp is at " + temperature.get(temperature.size()-1).getTimeMeasured());
+                        System.out.println("Observations size = " + observations.size());
                         System.out.println("temperature size=" + temperature.size());
                         System.out.println("rainfall size=" + rainfall.size());
                         System.out.println("rh size =" + rh.size());
