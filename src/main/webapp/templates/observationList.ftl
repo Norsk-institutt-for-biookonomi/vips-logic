@@ -63,8 +63,9 @@
             <div class="form-inline">
                 <div class="form-group">
                     <select class="form-control" name="statusTypeId">
-                            <#list [-1,1,2,3] as statusTypeId>
-                            <option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case -1>${i18nBundle.allCategories}<#break><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
+                            <option value="-1" <#if 1 == selectedStatusTypeId>selected="selected"</#if>>${i18nBundle.allCategories}</option>
+                            <#list [1,2,3] as statusTypeId>
+                            <option value="${statusTypeId}" <#if statusTypeId == selectedStatusTypeId>selected="selected"</#if>><#switch statusTypeId><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></option>
                             </#list>
                     </select>
                 </div>
