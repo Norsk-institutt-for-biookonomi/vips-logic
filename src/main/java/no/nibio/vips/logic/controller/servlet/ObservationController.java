@@ -170,8 +170,8 @@ public class ObservationController extends HttpServlet {
                     }
                 }
                 catch(NumberFormatException nfe) {
-                    statusTypeId = null;
-                    pestOrganismId = null;
+                    statusTypeId = -1;
+                    pestOrganismId = -1;
                     viewOthersObservations = false;
                     organizationGroupId = null;
                 }
