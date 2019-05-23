@@ -714,7 +714,7 @@
 			</div>
 		</div>
 	</div>
-	<div style="display: none;"><div id="poiMarker" title="Marker"><img src="/public/images/anemometer_mono.png"/></div></div>
+	<div style="display: none;"><div id="poiMarker" title="Marker"><img src="/public/images/Map_pin_icon_green_small.png"/></div></div>
 </div>
 </#macro>
 <@page_html/>

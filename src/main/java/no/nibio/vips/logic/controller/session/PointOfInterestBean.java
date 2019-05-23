@@ -202,7 +202,7 @@ public class PointOfInterestBean {
         .createAndSetIconStyle()
                 .withScale(0.55)
                 .createAndSetIcon()
-                    .withHref(iconPath + "anemometer_mono.png");
+                    .withHref(iconPath + "Map_pin_icon_green_small.png");
         
         
         
