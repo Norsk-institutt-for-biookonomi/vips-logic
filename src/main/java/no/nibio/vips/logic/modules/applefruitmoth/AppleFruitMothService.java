@@ -48,12 +48,14 @@ public class AppleFruitMothService {
     @GET
     @Path("observationsites/kml/")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getObservationSitesKML()
+    public Response getObservationSitesKML(
+            @QueryParam("onlyPubliclyAvailable") Boolean onlyPubliclyAvailable
+    )
     {
         Calendar cal = Calendar.getInstance();
         cal.setTime(SystemTime.getSystemTime());
         Integer season = cal.get(Calendar.YEAR);
-        return this.getObservationSitesKML(season, null);
+        return this.getObservationSitesKML(season, null, onlyPubliclyAvailable);
     }
     
     @GET
@@ -61,10 +63,11 @@ public class AppleFruitMothService {
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getObservationSitesKML(
             @PathParam("season") Integer season,
-            @QueryParam("selectedObservationSiteId") Integer selectedObservationSiteId
+            @QueryParam("selectedObservationSiteId") Integer selectedObservationSiteId,
+            @QueryParam("onlyPubliclyAvailable") Boolean onlyPubliclyAvailable
     )
     {
-        Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesKml(season, selectedObservationSiteId, ServletUtil.getServerName(httpServletRequest));
+        Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesKml(season, selectedObservationSiteId, ServletUtil.getServerName(httpServletRequest), onlyPubliclyAvailable);
         return Response.ok().entity(retVal).build();
     }
     

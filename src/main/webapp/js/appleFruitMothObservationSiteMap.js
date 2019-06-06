@@ -54,7 +54,7 @@ function initMap(center, observationSiteId, currentSeason)
     
     var sitePointsLayer = new ol.layer.Vector({
             source: new ol.source.Vector({
-                    url: "/rest/applefruitmoth/observationsites/kml/" + currentSeason + "/?selectedObservationSiteId=" + observationSiteId,
+                    url: "/rest/applefruitmoth/observationsites/kml/" + currentSeason + "/?onlyPubliclyAvailable=false&selectedObservationSiteId=" + observationSiteId,
                     format: new ol.format.KML({"extractAttributes":true}),
                     projection: ol.proj.get('EPSG:3857')
             })
