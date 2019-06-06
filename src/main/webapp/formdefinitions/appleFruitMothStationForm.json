@@ -29,6 +29,11 @@
             "required" : true
         },
         {
+            "name" : "publiclyAvailable",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "currentSeason",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

@@ -54,6 +54,14 @@
 				    <input type="text" class="form-control" name="observationSiteName" placeholder="${i18nBundle.observationSiteName}" value="${observationSite.observationSiteName!""}" onblur="validateField(this);" />
 				    <span class="help-block" id="${formId}_observationSiteName_validation"></span>
 				  </div>
+                                <div class="form-group">
+                                    <div class="checkbox">
+                                            <label>
+                                              <input type="checkbox" name="publiclyAvailable" value="true"<#if (observationSite.publiclyAvailable?has_content && observationSite.publiclyAvailable == true)> checked="checked"</#if>/>
+                                              ${i18nBundle.publiclyAvailable}
+                                            </label>
+                                    </div>
+                                </div>
 				  <div class="form-group">
 				    <label for="currentSeason">${i18nBundle.season}</label>
 				    <select class="form-control" name="currentSeason" onchange="if(confirm('${i18nBundle.appleFruitMothChangeSeasonConfirm}')){window.location.href='/applefruitmoth?action=viewObservationSite&observationSiteId=${observationSite.observationSiteId}&currentSeason=' + this.options[this.options.selectedIndex].value;}">
