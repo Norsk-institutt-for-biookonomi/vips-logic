@@ -78,7 +78,8 @@ public class AppleFruitMothBean {
         return em.find(ObservationSite.class, observationSiteId);
     }
 
-    public Kml getObservationSitesKml(Integer season, Integer selectedObservationSiteId, String serverName) {
+    public Kml getObservationSitesKml(Integer season, Integer selectedObservationSiteId, String serverName, Boolean onlyPubliclyAvailable) {
+        onlyPubliclyAvailable = onlyPubliclyAvailable != null ? onlyPubliclyAvailable : true;
         String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         // Initialization
         final Vec2 hotspot = new Vec2()
@@ -175,6 +176,10 @@ public class AppleFruitMothBean {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         for(ObservationSite site:sites)
         {
+            if(onlyPubliclyAvailable && !site.getPubliclyAvailable())
+            {
+                continue;
+            }
             Integer warningStatus = 0;
             String remarks = "Varsel ikke oppdatert";
             ObservationSiteSeasonCommonData commonData = site.getCommonDataForSeason(season);
@@ -222,53 +227,7 @@ public class AppleFruitMothBean {
         return kml;
     }
     
-    /*
-    public Kml getObservationSitePointsKml(Integer observationSiteId, String serverName) {
-        
-        ObservationSite observationSite = em.find(ObservationSite.class, observationSiteId);
-        
-        String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
-        // Initialization
-        final Vec2 hotspot = new Vec2()
-                .withX(0.5)
-                .withXunits(Units.FRACTION)
-                .withY(0)
-                .withYunits(Units.FRACTION);
-        final Kml kml = KmlFactory.createKml();
-        final Document document = kml.createAndSetDocument()
-                .withName("Rognebærmøllstasjon-punkter").withDescription("Oversikt over punkter for rognebærmøllstasjonen " + observationSite.getObservationSiteName());
-        
-        // Adding icons for warning statuses
-        document.createAndAddStyle()
-            .withId("observation_site_point_icon")
-        .createAndSetIconStyle()
-                .withScale(1)
-                .withHotSpot(hotspot)
-                .createAndSetIcon()
-                    .withHref(iconPath + "dot_blue.png");
-        
-        Set<ObservationSitePoint> sitePoints = observationSite.getObservationSitePointSet();
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        for(ObservationSitePoint sitePoint:sitePoints)
-        {
-            
-            final Placemark placemark = document.createAndAddPlacemark()
-                    .withName(sitePoint.getPointName())
-                    .withStyleUrl("#observation_site_point_icon")
-                    .withId(sitePoint.getObservationSitePointId().toString());
-            
-            final Point point = placemark.createAndSetPoint();
-            List<Coordinate> coord = point.createAndSetCoordinates();
-            coord.add(new Coordinate(
-                    sitePoint.getGisId().getGisGeom().getCoordinate().x,
-                    sitePoint.getGisId().getGisGeom().getCoordinate().y,
-                    0
-            ));
-            
-        }
-        return kml;
-    }*/
-
+    
     public ObservationSite storeObservationSite(ObservationSite observationSite) {
         return em.merge(observationSite);
     }

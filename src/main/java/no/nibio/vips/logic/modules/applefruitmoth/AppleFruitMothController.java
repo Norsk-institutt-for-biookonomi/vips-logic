@@ -172,6 +172,7 @@ public class AppleFruitMothController extends HttpServlet {
                         {
                             Integer currentSeason = formValidation.getFormField("currentSeason").getValueAsInteger();
                             observationSite.setObservationSiteName(formValidation.getFormField("observationSiteName").getWebValue());
+                            observationSite.setPubliclyAvailable(formValidation.getFormField("publiclyAvailable").getWebValue() != null);
                             ObservationSiteSeasonCommonData ossc = observationSite.getCommonDataForSeason(currentSeason);
                             if(ossc == null)
                             {
