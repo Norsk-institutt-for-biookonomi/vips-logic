@@ -245,6 +245,10 @@ public class LogicService {
                 try
                 {
                     Integer includeOrgId = Integer.valueOf(orgId);
+                    if(includeOrgId.equals(organizationId))
+                    {
+                        continue;
+                    }
                     summaries.addAll(SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(includeOrgId));
                 }
                 catch(NumberFormatException ex){}
@@ -333,6 +337,46 @@ public class LogicService {
             return Response.noContent().build();
         }
         
+    }
+    
+    @GET
+    @Path("forecastconfigurationsincludeorgs/{organizationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getActiveForecastConfigurationsWithIncludeOrganizations(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("includeOrganizationIds") String includeOrganizationIds
+    )
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(SystemTime.getSystemTime());
+        cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY, 1, 0, 0, 0);
+        Date from = cal.getTime();
+        cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER, 31, 23, 0, 0);
+        Date to = cal.getTime();
+        
+        
+        List<Integer> orgIds = new ArrayList<>();
+        orgIds.add(organizationId);
+        if(includeOrganizationIds != null)
+        {
+            String[] includeOrgIdStrs = includeOrganizationIds.split(",");
+            for(String orgIdStr:includeOrgIdStrs)
+            {
+                try
+                {
+                    Integer includeOrgId = Integer.valueOf(orgIdStr.trim());
+                    if(includeOrgId.equals(organizationId))
+                    {
+                        continue;
+                    }
+                    orgIds.add(includeOrgId);
+                }
+                catch(NumberFormatException ex){}
+            }
+        }
+        List<ForecastConfiguration> forecastConfigs = SessionControllerGetter.getForecastBean().getForecastConfigurations(orgIds, from, to);
+        return Response.ok().entity(forecastConfigs).build();
     }
     
     /**
