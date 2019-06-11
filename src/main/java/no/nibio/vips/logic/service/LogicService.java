@@ -232,10 +232,24 @@ public class LogicService {
     @Facet("restricted")
     public Response getForecastSummaries(
             @PathParam("organizationId") Integer organizationId,
-            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds
+            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds,
+            @QueryParam("includeOrganizationIds") String includeOrganizationIds
     )
     {
         List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(organizationId);
+        if(includeOrganizationIds != null)
+        {
+            String[] includeOrgIdStrs = includeOrganizationIds.split(",");
+            for(String orgId:includeOrgIdStrs)
+            {
+                try
+                {
+                    Integer includeOrgId = Integer.valueOf(orgId);
+                    summaries.addAll(SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(includeOrgId));
+                }
+                catch(NumberFormatException ex){}
+            }
+        }
         return Response.ok().entity(summaries).build();
     }
     
