@@ -344,6 +344,29 @@ public class ForecastBean {
         }
     }
     
+    public List<ForecastConfiguration> getForecastConfigurations(List<Integer> organizationIds, Date from, Date to)
+    {
+        List<VipsLogicUser> organizationUsers = em
+                .createNamedQuery("VipsLogicUser.findByOrganizationIds")
+                .setParameter("organizationIds", organizationIds)
+                .getResultList();
+        
+        
+        if(!organizationUsers.isEmpty())
+        {
+            return em
+                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndDate")
+                    .setParameter("vipsLogicUserIds", organizationUsers)
+                    .setParameter("from", from)
+                    .setParameter("to", to)
+                    .getResultList();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
+    }
+    
     public List<ForecastConfiguration> getForecastConfigurationsByWeatherStation(PointOfInterestWeatherStation weatherStation)
     {
         return em
@@ -938,11 +961,18 @@ public class ForecastBean {
             summaryForForecast.add(s);
             mappedSummaries.put(s.getForecastSummaryPK().getForecastConfigurationId(), summaryForForecast);
         });
-        List<ForecastConfiguration> configurations = em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationIds").setParameter("forecastConfigurationIds", mappedSummaries.keySet()).getResultList();
-        configurations.forEach((conf) -> {
-            conf.setForecastSummaries(mappedSummaries.get(conf.getForecastConfigurationId()));
-        });
-        return configurations;
+        if(mappedSummaries.size() > 0)
+        {
+            List<ForecastConfiguration> configurations = em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationIds").setParameter("forecastConfigurationIds", mappedSummaries.keySet()).getResultList();
+            configurations.forEach((conf) -> {
+                conf.setForecastSummaries(mappedSummaries.get(conf.getForecastConfigurationId()));
+            });
+            return configurations;
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
     }
 
     /**
