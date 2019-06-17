@@ -176,7 +176,7 @@
 			 
 			</fieldset>
 			</#if>
-			  <#if user.isSuperUser()>
+			  <#if user.isSuperUser() || user.isOrganizationAdmin()>
 			  <div class="form-group">
 			    <label for="userId">${i18nBundle.vipsLogicUserId}</label>
 			    <select class="form-control" name="userId" onblur="validateField(this);">

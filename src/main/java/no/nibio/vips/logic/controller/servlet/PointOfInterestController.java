@@ -544,6 +544,13 @@ public class PointOfInterestController extends HttpServlet {
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
                         }
+                        else if(user.isOrganizationAdmin())
+                        {
+                            request.getSession().setAttribute("users", 
+                                    em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
+                                            .setParameter("organizationId", user.getOrganizationId()).getResultList()
+                            );
+                        }
                         Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
                         request.setAttribute("returnURL","poi?organizationId=" + organizationId);
                         request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
@@ -583,6 +590,13 @@ public class PointOfInterestController extends HttpServlet {
                         if(user.isSuperUser())
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                        }
+                        else if(user.isOrganizationAdmin())
+                        {
+                            request.getSession().setAttribute("users", 
+                                    em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
+                                            .setParameter("organizationId", user.getOrganizationId()).getResultList()
+                            );
                         }
                         request.setAttribute("returnURL","poi?organizationId=" + poi.getUserId().getOrganizationId().getOrganizationId());
                         request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
@@ -656,7 +670,7 @@ public class PointOfInterestController extends HttpServlet {
                                 // If userId is set from form, always update
 
 
-                                if(user.isSuperUser() && !formValidation.getFormField("userId").isEmpty())
+                                if((user.isSuperUser() || user.isOrganizationAdmin()) && !formValidation.getFormField("userId").isEmpty())
                                 {
                                     poi.setUserId(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
                                 }
