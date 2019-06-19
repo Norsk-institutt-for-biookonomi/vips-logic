@@ -79,7 +79,7 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
             {
                 BTg = BT;
             }
-            if(BTg.size() != TX.size())
+            if(BTg.size() != TM.size())
             {
                 BTg = wUtil.calculateLeafWetnessHourSeriesBestEffort(BTg,TM, RR, null,null, UM);
             }
