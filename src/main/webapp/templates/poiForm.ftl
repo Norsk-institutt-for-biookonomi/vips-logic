@@ -188,6 +188,8 @@
 			     </select>
 			     <span class="help-block" id="${formId}_userId_validation"></span>
 			  </div>
+                          <#else>
+                            <input type="hidden" name="userId" value="${user.userId}"/>
 			  </#if>
 			  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			  <#if poi.pointOfInterestId?has_content>

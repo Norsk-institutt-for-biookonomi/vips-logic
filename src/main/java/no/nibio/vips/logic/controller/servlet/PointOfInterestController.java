@@ -57,12 +57,11 @@ import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
 /**
  * Handles transactions for POIs
- * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class PointOfInterestController extends HttpServlet {
