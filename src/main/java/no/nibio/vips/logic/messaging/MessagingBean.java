@@ -108,20 +108,29 @@ public class MessagingBean {
         //ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
         UniversalMessagingServiceClient umClient = target.proxy(UniversalMessagingServiceClient.class);
 
-
-        try
+        if  (
+                System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM") == null 
+                || System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM").equals("false")
+            )
         {
-            //System.out.println(new ObjectMapper().writeValueAsString(um));
-            Response r = umClient.sendMessage(new ObjectMapper().writeValueAsString(uMessage));
+            try
+            {
+                //System.out.println(new ObjectMapper().writeValueAsString(um));
+                Response r = umClient.sendMessage(new ObjectMapper().writeValueAsString(uMessage));
 
-            // TODO: Handle result
+                // TODO: Handle result
 
-            String result = r.readEntity(String.class);
-            System.out.println(result);
+                String result = r.readEntity(String.class);
+                //System.out.println(result);
+            }
+            catch(JsonProcessingException ex)
+            {
+                // Handle error
+            }
         }
-        catch(JsonProcessingException ex)
+        else
         {
-            // Handle error
+            System.out.println("Messaging system disabled. This message was not sent: " + uMessage.toString());
         }
         
         return uMessage;

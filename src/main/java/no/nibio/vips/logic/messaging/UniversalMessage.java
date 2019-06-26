@@ -189,7 +189,12 @@ public class UniversalMessage implements Serializable {
 
     @Override
     public String toString() {
-        return "no.nibio.vips.logic.messaging.UniversalMessage[ universalMessageId=" + universalMessageId + " ]";
+        
+        return "no.nibio.vips.logic.messaging.UniversalMessage[ universalMessageId=" + universalMessageId + " ]\n"
+                + (this.getMessageLocalVersionObjects().size() > 0 ? 
+                    "Subject = " + this.getMessageLocalVersionObjects().get(0).getMsgSubject() + "\n" +
+                    "Recipients = " + this.getDistributionList()
+                : "");
     }
 
     /**
