@@ -56,6 +56,7 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageTag;
+import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
@@ -1024,6 +1025,16 @@ public class LogicService {
     public Response getOrganizations()
     {
         return Response.ok().entity(SessionControllerGetter.getUserBean().getOrganizations()).build();
+    }
+    
+    @GET
+    @Path("model/{modelId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getModelInformation(@PathParam("modelId") String modelId)
+    {
+        ModelInformation retVal = SessionControllerGetter.getForecastBean().getModelInformation(modelId);
+        return retVal != null ? Response.ok().entity(retVal).build() 
+                : Response.status(Response.Status.NOT_FOUND).entity("ERROR: Could not find model with id=" + modelId).build();
     }
     
     /**

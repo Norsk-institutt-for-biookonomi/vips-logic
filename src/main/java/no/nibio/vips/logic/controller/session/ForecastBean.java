@@ -479,6 +479,18 @@ public class ForecastBean {
         return retVal;
     }
     
+    public ModelInformation getModelInformation(String modelId)
+    {
+        try
+        {
+            return em.createNamedQuery("ModelInformation.findByModelId", ModelInformation.class).setParameter("modelId", modelId).getSingleResult();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
+    }
+    
     /**
      * Stores a forecast configuration, including model specific form fields
      * @param forecastConfiguration

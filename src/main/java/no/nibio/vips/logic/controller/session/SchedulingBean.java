@@ -215,7 +215,7 @@ public class SchedulingBean {
         
         // Run grid models
         VIPSLogicTaskCollector runGridModelsCollector = new VIPSLogicTaskCollector(-1);
-        runGridModelsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_GRID_MODELS_TASK));
+        runGridModelsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_GRID_MODELS_TASK));
         
         List<TaskCollector> definedTasks = new ArrayList<>();
         definedTasks.add(modelRunCollector);

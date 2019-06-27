@@ -42,9 +42,10 @@ var initMap = function ()
                                     + "     <div id='legend'>"
                                     + "         <table>"
                                     + "             <tr><td>0</td><td style='color: #777777; font-weight: bold;'>" + geti18nText("risk_no") + "</td></tr>"
-                                    + "             <tr><td>0-20</td><td style='color: yellow; font-weight: bold;'>" + geti18nText("risk_low") + "</td></tr>"
-                                    + "             <tr><td>20-40</td><td style='color: orange; font-weight: bold;'>" + geti18nText("risk_medium") + "</td></tr>"
+                                    + "             <tr><td>0-20</td><td style='color: yellow; background-color: #777777; font-weight: bold;'>" + geti18nText("risk_low") + "</td></tr>"
+                                    + "             <tr><td>20-40</td><td style='color: orange; font-weight: bold; '>" + geti18nText("risk_medium") + "</td></tr>"
                                     + "             <tr><td>" + geti18nText("over") + " 40</td><td style='color: red; font-weight: bold;'>" + geti18nText("risk_high") + "</td></tr>"
+                                    + "             <tr><td><span style='cursor:pointer; color: green;' onclick='showModelInfo();'><i class='fas fa-info-circle'></i></span></td><td></td></tr>"
                                     + "         </table>"
                                     + "     </div>"
                                     + " </div>"
@@ -53,7 +54,10 @@ var initMap = function ()
                                     + "<div id='subMap1'><div id='subMap1DateField' class='dateField'></div></div>"
                                     + "<div id='subMap2'><div id='subMap2DateField' class='dateField'></div></div>"
                                     + "<div id='subMap3'><div id='subMap3DateField' class='dateField'></div></div>"
-                                    + "<div id='subMap4'><div id='subMap4DateField' class='dateField'></div></div>";
+                                    + "<div id='subMap4'><div id='subMap4DateField' class='dateField'></div></div>"
+                                    + "<div id='popup'></div>";
+                                    + "</div>"
+                                    
                             
     for(var mapName in featureOverlays)
     {
@@ -161,6 +165,21 @@ var ajax = function(url, callback)
     xhr.send();
 };
 
+var showModelInfo = function()
+{
+    ajax(hostName + "/rest/model/GRIDZYMOSE", function(e){
+        var modelInfo = JSON.parse(e.target.responseText);
+        document.getElementById('popup').innerHTML= "<p><button type='button' onclick='hideModelInfo();'>" + geti18nText("close") + "</button></p>" 
+                + modelInfo.defaultDescription.replace("\n","<br/><br/>");
+        document.getElementById('popup').style.display="block";
+        
+    });
+}
+
+var hideModelInfo = function()
+{
+    document.getElementById('popup').style.display="none";
+}
 
 function getTodayAtMidnight()
 {
@@ -223,7 +242,14 @@ document.addEventListener("DOMContentLoaded", function() {
                                     { 
                                         src: hostName + "/public/nordic_septoria_whs/moment-timezone-with-data.js" 
                                     }, 
-                                    initMap
+                                    function() {
+                                        loadHeadElement("script", 
+                                            { 
+                                                src: "https://kit.fontawesome.com/567c8b1eb5.js" 
+                                            }, 
+                                            initMap
+                                        ); 
+                                    }
                                 ); 
                             }
                         ); 
@@ -289,7 +315,8 @@ var dict = {
     "risk_high"         : {     "no": "Høy risiko",         "dk": "Høj risiko",         "en": "High risk"},
     "over"              : {     "no": "Over",               "dk": "Over",               "en": "Over"},
     
-    "poweredBy"         : {     "no": "Drevet av",          "dk": "Drevet af",          "en": "Powered by"}
+    "poweredBy"         : {     "no": "Drevet av",          "dk": "Drevet af",          "en": "Powered by"},
+    "close"         : {     "no": "Lukk",          "dk": "Lukk",          "en": "Close"}
 };
 
 var geti18nText = function(keyword)
