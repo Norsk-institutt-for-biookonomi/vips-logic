@@ -170,7 +170,9 @@ var showModelInfo = function()
     ajax(hostName + "/rest/model/GRIDZYMOSE", function(e){
         var modelInfo = JSON.parse(e.target.responseText);
         document.getElementById('popup').innerHTML= "<p><button type='button' onclick='hideModelInfo();'>" + geti18nText("close") + "</button></p>" 
-                + modelInfo.defaultDescription.replace("\n","<br/><br/>");
+                + refHumidityModelMapExplanation;
+                //+ "<h3>Background</h3>"
+                //+ modelInfo.defaultDescription.replace("\n","<br/><br/>");
         document.getElementById('popup').style.display="block";
         
     });
@@ -323,3 +325,6 @@ var geti18nText = function(keyword)
 {
     return dict[keyword][language];
 };
+
+var refHumidityModelMapExplanation = "<p>The map shows the risk for new infections of Septoria SPP. in wheat. The reference humidity model calculates the total number of humid hours as a running sum of 36 hours (Yesterday + today + tomorrow). 0 = no risk; 1-20= low risk; 21-40 is medium risk and >40 is high risk. A humid hour is calculated if: Rh>=88% or, Leaf wetness >=30 minutes per hour or rain >=0,2mm. Only hours where the temperature >=8°C </p>"
+                                     + "<p>This risk index was developed as a supplement to the Humidity model. It should be considered as a weather based submodel for Septoria risk, easy to show on maps (risk across regions) as well as on a graph (curve) with risk across time. </p>";
