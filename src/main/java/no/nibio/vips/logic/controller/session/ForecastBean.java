@@ -109,6 +109,24 @@ public class ForecastBean {
         return q.getResultList();
     }
     
+    /**
+     * 
+     * @param forecastConfiguration
+     * @param user
+     * @return 
+     */
+    public boolean isUserAuthorizedForForecastConfiguration(ForecastConfiguration forecastConfiguration, VipsLogicUser user)
+    {
+        // Public forecasts are always OK for everyone to view
+        if(!forecastConfiguration.getIsPrivate())
+        {
+            return true;
+        }
+        // Private forecasts are only viewable by owner or super users / orgadmins
+        return user != null && (user.isSuperUser() || user.isOrganizationAdmin() || user.getUserId().equals( forecastConfiguration.getVipsLogicUserId().getUserId()));
+    }
+            
+    
     public boolean isUserAuthorizedForForecastConfiguration(Long forecastConfigurationId, String userUUID)
     {
         // Authentication
@@ -125,7 +143,7 @@ public class ForecastBean {
             }
             UUID uUUID = UUID.fromString(userUUID);
             VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
-            if(user == null || user.getUserId().equals( fc.getVipsLogicUserId()))
+            if(user == null || ! user.getUserId().equals( fc.getVipsLogicUserId().getUserId()))
             {
                 return false;
             }
@@ -956,11 +974,11 @@ public class ForecastBean {
     }
     
     /**
-     * Finds the forecast configuration summaries for a given organization
+     * Finds the forecast configuration summaries for a given organization and that this user has access to
      * @param organizationId
      * @return 
      */
-    public List<ForecastConfiguration> getForecastConfigurationSummaries(Integer organizationId)
+    public List<ForecastConfiguration> getForecastConfigurationSummaries(Integer organizationId, VipsLogicUser user)
     {
         List<ForecastSummary> summaries = em.createNamedQuery("ForecastSummary.findByOrganizationId")
                 .setParameter("organizationId", em.find(Organization.class, organizationId))
@@ -976,7 +994,11 @@ public class ForecastBean {
         if(mappedSummaries.size() > 0)
         {
             List<ForecastConfiguration> configurations = em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationIds").setParameter("forecastConfigurationIds", mappedSummaries.keySet()).getResultList();
+            // Do some authorization.
+            configurations = configurations.stream().filter(fc -> this.isUserAuthorizedForForecastConfiguration(fc, user)).collect(Collectors.toList());
+            
             configurations.forEach((conf) -> {
+                
                 conf.setForecastSummaries(mappedSummaries.get(conf.getForecastConfigurationId()));
             });
             return configurations;

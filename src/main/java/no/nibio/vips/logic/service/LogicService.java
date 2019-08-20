@@ -234,10 +234,21 @@ public class LogicService {
     public Response getForecastSummaries(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("cropOrganismId") List<Integer> cropOrganismIds,
-            @QueryParam("includeOrganizationIds") String includeOrganizationIds
+            @QueryParam("includeOrganizationIds") String includeOrganizationIds,
+            @QueryParam("userUUID") String userUUID
     )
     {
-        List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(organizationId);
+        
+        VipsLogicUser user = null;
+        try
+        {
+            UUID uUUID = UUID.fromString(userUUID);
+            user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+        }
+        catch(NullPointerException | IllegalArgumentException ex) {}
+        
+        List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(organizationId, user);
+        
         if(includeOrganizationIds != null)
         {
             String[] includeOrgIdStrs = includeOrganizationIds.split(",");
@@ -250,7 +261,7 @@ public class LogicService {
                     {
                         continue;
                     }
-                    summaries.addAll(SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(includeOrgId));
+                    summaries.addAll(SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(includeOrgId, user));
                 }
                 catch(NumberFormatException ex){}
             }
