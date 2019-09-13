@@ -104,6 +104,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Boolean isQuantified;
     private Boolean broadcastMessage;
     private Boolean locationIsPrivate;
+    private PolygonService polygonService;
     
     private String observationDataSchema;
     
@@ -304,6 +305,17 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setOrganism(Organism organism) {
         this.organism = organism;
+    }
+    
+    @JoinColumn(name = "polygon_service_id", referencedColumnName = "polygon_service_id")
+    @ManyToOne
+    public PolygonService getPolygonService(){
+        return this.polygonService;
+    }
+    
+    public void setPolygonService(PolygonService polygonService)
+    {
+        this.polygonService = polygonService;
     }
     
     /*
@@ -610,6 +622,11 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.lastEditedByUser = lastEditedByUser;
     }
 
+    /**
+     * Simplifies the public JSON object
+     * @param locale
+     * @return 
+     */
     public ObservationListItem getListItem(String locale)
     {
         // If geoInfo is from POI, need to add observationId
@@ -624,7 +641,10 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 this.getOrganism().getLocalName(locale),
                 this.getCropOrganismId(),
                 this.getCropOrganism().getLocalName(locale),
-                this.location != null ? this.location.getGeoJSON() : this.getGeoinfo(),
+                // Specific geoInfo trumps location. This is to be interpreted 
+                // as that the observation has been geographically masked by
+                // choice of the observer
+                this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
                 this.getObservationHeading(),
                 this.getBroadcastMessage(),
                 this.getLocationIsPrivate()

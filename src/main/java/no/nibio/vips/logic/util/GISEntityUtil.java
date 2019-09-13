@@ -82,6 +82,14 @@ public class GISEntityUtil {
         return retVal;
     }
 
+    public Gis getGisFromFeature(Feature feature)
+    {
+        GeoJSONReader reader = new GeoJSONReader();
+        Gis gis = new Gis();
+        gis.setGisGeom(reader.read(feature.getGeometry()));
+        gis.getGisGeom().setSRID(GISUtil.DEFAULT_SRID);
+        return gis;
+    }
     
     /**
      * Converts a list of observations to a FeatureCollection
