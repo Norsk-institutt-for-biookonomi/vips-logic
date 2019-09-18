@@ -89,7 +89,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                         new String[]{
                             WeatherElements.TEMPERATURE_MEAN,
                             WeatherElements.PRECIPITATION,
-                            WeatherElements.LEAF_WETNESS,
+                            WeatherElements.LEAF_WETNESS_DURATION,
                             WeatherElements.RELATIVE_HUMIDITY_MEAN,
                             WeatherElements.GLOBAL_RADIATION,
                             WeatherElements.WIND_SPEED_2M
@@ -194,7 +194,7 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
             {
                 switch(o.getElementMeasurementTypeId())
                 {
-                    case WeatherElements.LEAF_WETNESS:
+                    case WeatherElements.LEAF_WETNESS_DURATION:
                         BT.add(o); 
                         break;
 

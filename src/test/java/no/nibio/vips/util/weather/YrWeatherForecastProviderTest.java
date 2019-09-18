@@ -18,8 +18,8 @@
  */
 package no.nibio.vips.util.weather;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
 import java.util.Collections;
 import java.util.List;
 import no.nibio.vips.entity.WeatherObservation;
@@ -87,26 +87,26 @@ public class YrWeatherForecastProviderTest {
             //weatherStation.setAltitude(110.0);
             //weatherStation.setLongitude(10.83474668);
             //weatherStation.setLatitude(59.63851390);
-            weatherStation.setAltitude(19.0);
-            weatherStation.setLongitude(6.57052);
-            weatherStation.setLatitude(60.2542);
+            weatherStation.setAltitude(102.0);
+            weatherStation.setLongitude(11.39);
+            weatherStation.setLatitude(59.388);
             result = instance.getWeatherForecasts(weatherStation);
             assertNotNull(result);
-            
-            /*for(WeatherObservation obs:result)
+            Collections.sort(result);
+            for(WeatherObservation obs:result)
             {
-                if(obs.getElementMeasurementTypeId().equals("RR"))
+                if(obs.getElementMeasurementTypeId().equals("TM"))
                 System.out.println(obs.toString());
-            }*/
+            }
             
             WeatherUtil wUtil = new WeatherUtil();
-            wUtil.checkForAndFixHourlyTimeSeriesHoles(result);
+            //wUtil.checkForAndFixHourlyTimeSeriesHoles(result);
             
             // Testing Jablanica (Republika Srpska, Bosnia)
             weatherStation.setAltitude(219.0);
             weatherStation.setLongitude(16.988056);
             weatherStation.setLatitude(45.115);
-            result = instance.getWeatherForecasts(weatherStation);
+            //result = instance.getWeatherForecasts(weatherStation);
             assertNotNull(result);
             
             /**Collections.sort(result);

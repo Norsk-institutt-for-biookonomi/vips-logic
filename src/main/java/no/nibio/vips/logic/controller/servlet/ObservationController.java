@@ -170,8 +170,9 @@ public class ObservationController extends HttpServlet {
                     }
                 }
                 catch(NumberFormatException nfe) {
-                    statusTypeId = null;
-                    pestOrganismId = null;
+                    //nfe.printStackTrace();
+                    statusTypeId = -1;
+                    pestOrganismId = -1;
                     viewOthersObservations = false;
                     organizationGroupId = null;
                 }
@@ -233,6 +234,7 @@ public class ObservationController extends HttpServlet {
                 
                 Collections.sort(observations);
                 Collections.reverse(observations);
+                observations.forEach(o->System.out.println(o));
                 List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
                 request.setAttribute("shortcuts", shortcuts);
                 request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));

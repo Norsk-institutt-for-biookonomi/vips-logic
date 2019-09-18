@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -17,16 +17,16 @@
  * 
  */
 
-package no.nibio.vips.util.weather.dnmipointweb;
+package no.nibio.vips.logic.controller.session;
 
 /**
- * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class UseableArrayOfWeatherDataSource extends ArrayOfWeatherDataSource{
+public class DeleteUserException extends Exception {
 
-    public void add(WeatherDataSource wds)
-    {
-        this.getWeatherDataSource().add(wds);
+    public DeleteUserException(String msg) {
+        super(msg);
     }
+
 }

@@ -96,3 +96,19 @@ along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
     bottom: -5px;
     width: 50px;
 }
+
+#popup {
+    position: absolute !important;
+    right: 0;
+    left: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+    padding: 20px !important;
+    z-index: 1000;
+    display: none;
+    background-color: white;
+    border: 2px solid black;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
+}

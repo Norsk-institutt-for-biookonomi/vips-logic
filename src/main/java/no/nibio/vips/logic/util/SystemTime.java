@@ -21,8 +21,11 @@ package no.nibio.vips.logic.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,7 +41,7 @@ public final class SystemTime {
 
     private static Integer SYSTEM_TIME_OFFSET_MONTHS;
     private final static Calendar cal = Calendar.getInstance();
-    
+    private static String[] availableTimeZones;
     public static Date getSystemTime()
     {
         if(SYSTEM_TIME_OFFSET_MONTHS == null)
@@ -94,4 +97,19 @@ public final class SystemTime {
         }
     }
     
+    /**
+     * Using the system config "no.nibio.vips.logic.AVAILABLE_TIMEZONES" to 
+     * generate the available timezones in lists in this VIPSLogic instance
+     * UTC is always included
+     * @return 
+     */
+    public static String[] getAvailableTimeZones(){
+        if(SystemTime.availableTimeZones == null)
+        {
+            List<String> tmp = System.getProperty("no.nibio.vips.logic.AVAILABLE_TIMEZONES") != null ? new ArrayList(Arrays.asList(System.getProperty("no.nibio.vips.logic.AVAILABLE_TIMEZONES").split(","))) : new ArrayList<>();
+            tmp.add("UTC");
+            SystemTime.availableTimeZones = tmp.toArray(new String[tmp.size()]);
+        }
+        return SystemTime.availableTimeZones;
+    }
 }

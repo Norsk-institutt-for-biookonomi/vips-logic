@@ -57,8 +57,8 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
                     weatherStation,
                     WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
-                        WeatherElements.LEAF_WETNESS,
-                        WeatherElements.LEAF_WETNESS_GROUND_LEVEL,
+                        WeatherElements.LEAF_WETNESS_DURATION,
+                        WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL,
                         WeatherElements.TEMPERATURE_MAXIMUM,
                         WeatherElements.GLOBAL_RADIATION,
                         WeatherElements.RELATIVE_HUMIDITY_MEAN,
@@ -68,8 +68,8 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
                     configuration.getDateStartInTimeZone(),
                     configuration.getDateEndInTimeZone());
             observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
-            List<WeatherObservation> BTg = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_GROUND_LEVEL)));
-            List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS)));
+            List<WeatherObservation> BTg = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL)));
+            List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION)));
             List<WeatherObservation> TX = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.TEMPERATURE_MAXIMUM)));
             List<WeatherObservation> Q0 = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.GLOBAL_RADIATION)));
             List<WeatherObservation> UM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.RELATIVE_HUMIDITY_MEAN)));
@@ -79,11 +79,11 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
             {
                 BTg = BT;
             }
-            if(BTg.size() != TX.size())
+            if(BTg.size() != TM.size())
             {
                 BTg = wUtil.calculateLeafWetnessHourSeriesBestEffort(BTg,TM, RR, null,null, UM);
             }
-            wUtil.renameParameter(BTg, WeatherElements.LEAF_WETNESS, WeatherElements.LEAF_WETNESS_GROUND_LEVEL);
+            wUtil.renameParameter(BTg, WeatherElements.LEAF_WETNESS_DURATION, WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL);
             
             observations = new ArrayList<>();
             observations.addAll(BTg);

@@ -89,7 +89,7 @@
 					</#if>
 					<td>
 					<#if weatherStation.weatherStationDataSourceId?has_content>
-						<a href="${weatherStation.weatherStationDataSourceId.uri}">${weatherStation.weatherStationDataSourceId.name}</a>
+						<a href="${weatherStation.weatherStationDataSourceId.uri!""}">${weatherStation.weatherStationDataSourceId.name!""}</a>
 					</#if>
 					</td>
 				    </tr>

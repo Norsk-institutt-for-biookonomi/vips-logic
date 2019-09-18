@@ -56,6 +56,7 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageTag;
+import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
@@ -86,9 +87,30 @@ public class LogicService {
     
     /**
      * Get all results for one pest prediction
-     * @param forecastConfigurationId
+     * @param forecastConfigurationId Database id of the configured forecast
      * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
-     * @return 
+     * @return JSON with result data. A list of ForecastResult objects. Example:
+     * <pre>
+     * {
+        "forecastResultId": 5710137,
+        "validTimeStart": "2019-01-22T23:00:00.000+0000",
+        "validTimeEnd": null,
+        "warningStatus": 0,
+        "forecastConfigurationId": -1000,
+        "validGeometry": { // NORMALLY SET ONLY IF the result set contains results for multiple locations
+            "type": "Point",
+            "coordinates": [
+                10.333252,
+                57.179002
+            ]
+        },
+        "keys": [ // A list of the existing parameter names in this result object
+            "GRIDZYMOSE.WHS"
+        ],
+        "allValues": { // Parameters with values. Everything is a String. Client must convert to numbers if necessary
+            "GRIDZYMOSE.WHS": "0"
+        }
+    }</pre>
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}")
@@ -211,10 +233,39 @@ public class LogicService {
     @Facet("restricted")
     public Response getForecastSummaries(
             @PathParam("organizationId") Integer organizationId,
-            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds
+            @QueryParam("cropOrganismId") List<Integer> cropOrganismIds,
+            @QueryParam("includeOrganizationIds") String includeOrganizationIds,
+            @QueryParam("userUUID") String userUUID
     )
     {
-        List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(organizationId);
+        
+        VipsLogicUser user = null;
+        try
+        {
+            UUID uUUID = UUID.fromString(userUUID);
+            user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+        }
+        catch(NullPointerException | IllegalArgumentException ex) {}
+        
+        List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(organizationId, user);
+        
+        if(includeOrganizationIds != null)
+        {
+            String[] includeOrgIdStrs = includeOrganizationIds.split(",");
+            for(String orgId:includeOrgIdStrs)
+            {
+                try
+                {
+                    Integer includeOrgId = Integer.valueOf(orgId);
+                    if(includeOrgId.equals(organizationId))
+                    {
+                        continue;
+                    }
+                    summaries.addAll(SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(includeOrgId, user));
+                }
+                catch(NumberFormatException ex){}
+            }
+        }
         return Response.ok().entity(summaries).build();
     }
     
@@ -298,6 +349,46 @@ public class LogicService {
             return Response.noContent().build();
         }
         
+    }
+    
+    @GET
+    @Path("forecastconfigurationsincludeorgs/{organizationId}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getActiveForecastConfigurationsWithIncludeOrganizations(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("includeOrganizationIds") String includeOrganizationIds
+    )
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(SystemTime.getSystemTime());
+        cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY, 1, 0, 0, 0);
+        Date from = cal.getTime();
+        cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER, 31, 23, 0, 0);
+        Date to = cal.getTime();
+        
+        
+        List<Integer> orgIds = new ArrayList<>();
+        orgIds.add(organizationId);
+        if(includeOrganizationIds != null)
+        {
+            String[] includeOrgIdStrs = includeOrganizationIds.split(",");
+            for(String orgIdStr:includeOrgIdStrs)
+            {
+                try
+                {
+                    Integer includeOrgId = Integer.valueOf(orgIdStr.trim());
+                    if(includeOrgId.equals(organizationId))
+                    {
+                        continue;
+                    }
+                    orgIds.add(includeOrgId);
+                }
+                catch(NumberFormatException ex){}
+            }
+        }
+        List<ForecastConfiguration> forecastConfigs = SessionControllerGetter.getForecastBean().getForecastConfigurations(orgIds, from, to);
+        return Response.ok().entity(forecastConfigs).build();
     }
     
     /**
@@ -408,6 +499,8 @@ public class LogicService {
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("cropCategoryId") List<Integer> cropCategoryIds)
     {
+        List<Integer> organizationIds = new ArrayList<>();
+        organizationIds.add(organizationId);
         if(cropCategoryIds == null || cropCategoryIds.isEmpty())
         {
             return Response.noContent().build();
@@ -415,7 +508,33 @@ public class LogicService {
         else
         {
             List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationId, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            return Response.ok().entity(retVal).build();
+        }
+    }
+    /**
+     * 
+     * @param organizationId
+     * @param cropCategoryIds
+     * @return 
+     */
+    @GET
+    @Path("forecastresults/aggregate/orgspan")
+    @GZIP
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    @Facet("restricted")
+    public Response getForecastResultsAggregate(
+            @QueryParam("organizationId") List<Integer> organizationIds,
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryIds)
+    {
+        if(cropCategoryIds == null || cropCategoryIds.isEmpty())
+        {
+            return Response.noContent().build();
+        }
+        else
+        {
+            List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
             return Response.ok().entity(retVal).build();
         }
     }
@@ -917,6 +1036,16 @@ public class LogicService {
     public Response getOrganizations()
     {
         return Response.ok().entity(SessionControllerGetter.getUserBean().getOrganizations()).build();
+    }
+    
+    @GET
+    @Path("model/{modelId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getModelInformation(@PathParam("modelId") String modelId)
+    {
+        ModelInformation retVal = SessionControllerGetter.getForecastBean().getModelInformation(modelId);
+        return retVal != null ? Response.ok().entity(retVal).build() 
+                : Response.status(Response.Status.NOT_FOUND).entity("ERROR: Could not find model with id=" + modelId).build();
     }
     
     /**

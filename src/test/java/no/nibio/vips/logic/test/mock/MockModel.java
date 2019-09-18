@@ -19,8 +19,8 @@
 
 package no.nibio.vips.logic.test.mock;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -102,7 +102,7 @@ public class MockModel implements Model{
                 {
                     wetHoursForDay[0]++; // We add up the number of hours we actually have weather data for
                 }
-                Double BT = pointMatrix.getParamDoubleValueForDate(timestamp, WeatherElements.LEAF_WETNESS);
+                Double BT = pointMatrix.getParamDoubleValueForDate(timestamp, WeatherElements.LEAF_WETNESS_DURATION);
                 Double RR = pointMatrix.getParamDoubleValueForDate(timestamp, WeatherElements.PRECIPITATION);
                 if(TM >= 10.0)
                 {

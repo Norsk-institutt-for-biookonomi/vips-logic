@@ -164,6 +164,8 @@
 			     </select>
 			     <span class="help-block" id="${formId}_userId_validation"></span>
 			  </div>
+                          <#else>
+                          <input type="hidden" name="userId" value="<#if weatherStation.userId?has_content>${weatherStation.userId.userId}<#else>${user.userId}</#if>"/>
 			  </#if>
 			  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			  <#if weatherStation.pointOfInterestId?has_content>

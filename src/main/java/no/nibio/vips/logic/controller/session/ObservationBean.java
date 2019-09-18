@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,6 +116,28 @@ public class ObservationBean {
     {
         List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByUserId")
                 .setParameter("userId", user.getUserId())
+                .getResultList());
+        
+        retVal = this.getObservationsWithLocations(retVal);
+        retVal = this.getObservationsWithObservers(retVal);
+        
+        return retVal;
+    }
+    
+    public List<Observation> getObservationsLastEditedByUser(VipsLogicUser user) {
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByLastEditedBy")
+                .setParameter("lastEditedBy", user.getUserId())
+                .getResultList());
+        
+        retVal = this.getObservationsWithLocations(retVal);
+        retVal = this.getObservationsWithObservers(retVal);
+        
+        return retVal;
+    }
+    
+    public List<Observation> getObservationsStatusChangedByUser(VipsLogicUser user) {
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByStatusChangedByUserId")
+                .setParameter("statusChangedByUserId", user.getUserId())
                 .getResultList());
         
         retVal = this.getObservationsWithLocations(retVal);
@@ -714,5 +737,9 @@ public class ObservationBean {
         }
                 
     }
+
+    
+
+    
     
 }

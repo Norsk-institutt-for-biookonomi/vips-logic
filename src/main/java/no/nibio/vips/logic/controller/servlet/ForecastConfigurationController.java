@@ -227,7 +227,7 @@ public class ForecastConfigurationController extends HttpServlet {
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
                         request.setAttribute("formId", multipleNew ? "forecastConfigurationMultipleNewForm" : "forecastConfigurationForm");
                         request.setAttribute("multipleNew", multipleNew);
-                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         // All organisms used for parent organism list
                         request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
@@ -261,7 +261,7 @@ public class ForecastConfigurationController extends HttpServlet {
                     request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList());
                     request.setAttribute("forecastConfiguration", forecastConfiguration);
                     request.setAttribute("formId","forecastConfigurationForm");
-                    request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                    request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                     
                     request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
@@ -355,7 +355,7 @@ public class ForecastConfigurationController extends HttpServlet {
                         request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
                         request.setAttribute("dateStart_dateFormat", formFields.get("dateStart").getDateFormat());
                         request.setAttribute("dateEnd_dateFormat", formFields.get("dateEnd").getDateFormat());
-                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
                         request.setAttribute("forecastConfiguration", forecastConfiguration);

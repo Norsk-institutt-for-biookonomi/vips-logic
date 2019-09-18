@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
+/* 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -17,17 +17,11 @@
  * 
  */
 
-package no.nibio.vips.util.weather.dnmipointweb;
-
 /**
- * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
- * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
+ * Author:  Tor-Einar Skog <tor-einar.skog@nibio.no>
+ * Created: Jan 14, 2019
  */
-public class UseableArrayOfWeatherDataParameter extends ArrayOfWeatherDataParameter{
-    
-    public void add(WeatherDataParameter wdp)
-    {
-        this.getWeatherDataParameter().add(wdp);
-    }
 
-}
+ALTER TABLE public.organization 
+ADD COLUMN archive_user_id INTEGER REFERENCES public.vips_logic_user (user_id);
+

@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.modules.applefruitmoth;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -81,6 +81,8 @@ public class ObservationSite implements Serializable, Comparable {
     private Gis gisId;
     @Transient
     private Date lastUpdatedClusterCount;
+    @Column(name = "publicly_available")
+    private Boolean publiclyAvailable;
 
 
     public ObservationSite() {
@@ -200,5 +202,19 @@ public class ObservationSite implements Serializable, Comparable {
      */
     public void setLastUpdatedClusterCount(Date lastUpdatedClusterCount) {
         this.lastUpdatedClusterCount = lastUpdatedClusterCount;
+    }
+
+    /**
+     * @return the publiclyAvailable
+     */
+    public Boolean getPubliclyAvailable() {
+        return publiclyAvailable;
+    }
+
+    /**
+     * @param publiclyAvailable the publiclyAvailable to set
+     */
+    public void setPubliclyAvailable(Boolean publiclyAvailable) {
+        this.publiclyAvailable = publiclyAvailable;
     }
 }

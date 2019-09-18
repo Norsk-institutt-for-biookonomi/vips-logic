@@ -134,8 +134,12 @@ public class PointOfInterestWeatherStation extends PointOfInterest implements Se
     @Transient
     public String getDataFetchUri()
     {
-        String dataRequestUri = String.format(this.getWeatherStationDataSourceId().getDatafetchUriExpression(),this.getWeatherStationRemoteId());
-        return dataRequestUri;
+        if(this.getWeatherStationDataSourceId() != null)
+        {
+            String dataRequestUri = String.format(this.getWeatherStationDataSourceId().getDatafetchUriExpression(),this.getWeatherStationRemoteId());
+            return dataRequestUri;
+        }
+        return "";
     }
 
     /**

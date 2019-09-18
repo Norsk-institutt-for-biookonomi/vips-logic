@@ -33,8 +33,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
@@ -68,13 +70,16 @@ public class WeatherDataSourceUtil {
      * @return
      * @throws PreprocessorException
      */
-    public List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, Boolean ignoreErrors) throws WeatherDataSourceException {
-        List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()), ignoreErrors);
+    public List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, Boolean ignoreErrors, Set<Integer> toleratedLogIntervalIds) throws WeatherDataSourceException {
+        // Get measured (and possibly forecasted, depending on the data source) observations
+        List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()), ignoreErrors, toleratedLogIntervalIds);
         Collections.sort(observations);
+        // Append forecasts, if available
         Date latestTimeOfMeasuredObservations = observations.isEmpty() ? null : observations.get(observations.size() - 1).getTimeMeasured();
         //System.out.println("latestTimeOfMeasuredObservations = " + latestTimeOfMeasuredObservations);
         // Todo: We don't collect forecast data when the endTime is before the actual, current date (not systemdate)
-        if (station.getWeatherForecastProviderId() != null && ! SystemTime.isSystemTimeOffsetFromNow()) {
+        if (station.getWeatherForecastProviderId() != null && ! SystemTime.isSystemTimeOffsetFromNow()) 
+        {
             try {
                 WeatherForecastProvider forecastProvider = WeatherStationProviderFactory.getWeatherForecastProvider(station.getWeatherForecastProviderId().getWeatherForecastProviderId());
                 List<WeatherObservation> forecasts = forecastProvider.getWeatherForecasts(station);
@@ -83,7 +88,7 @@ public class WeatherDataSourceUtil {
                     obsMap.put(elementMeasurementType, new ArrayList<>());
                 }
                 forecasts.stream().filter((obs) -> (
-                        obs.getLogIntervalId().equals(logIntervalId) && obsMap.get(obs.getElementMeasurementTypeId()) != null)
+                        toleratedLogIntervalIds.contains(obs.getLogIntervalId()) && obsMap.get(obs.getElementMeasurementTypeId()) != null)
                     ).forEachOrdered((obs) -> {
                         obsMap.get(obs.getElementMeasurementTypeId()).add(obs);
                     });
@@ -120,6 +125,21 @@ public class WeatherDataSourceUtil {
         }
         return observations;
     }
+    
+    /**
+     * The intolerant version. Only accept observations with same logIntervalId as requested
+     * @param station
+     * @param logIntervalId
+     * @param elementMeasurementTypes
+     * @param startTime
+     * @param endTime
+     * @param ignoreErrors
+     * @return
+     * @throws WeatherDataSourceException 
+     */
+    public List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, Boolean ignoreErrors) throws WeatherDataSourceException {
+        return this.getWeatherObservations(station, logIntervalId, elementMeasurementTypes, startTime, endTime, ignoreErrors, new HashSet<>(Arrays.asList(logIntervalId)));
+    }
 
     /**
      * Fetches measured data from the stations weather data source, and optionally
@@ -149,6 +169,22 @@ public class WeatherDataSourceUtil {
         return new ObjectMapper().readValue(JSONtext, new TypeReference<List<WeatherObservation>>() {
         });
     }
+    
+    /**
+     * The intolerant version. Only accept observations with same logIntervalId as requested
+     * @param fetchURI
+     * @param logIntervalId
+     * @param elementMeasurementTypes
+     * @param startTime
+     * @param endTime
+     * @param timeZone
+     * @param ignoreErrors
+     * @return
+     * @throws WeatherDataSourceException 
+     */
+    public List<WeatherObservation> getWeatherObservations(String fetchURI, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, TimeZone timeZone, Boolean ignoreErrors) throws WeatherDataSourceException {
+        return this.getWeatherObservations(fetchURI, logIntervalId, elementMeasurementTypes, startTime, endTime, timeZone, ignoreErrors, new HashSet<>(Arrays.asList(logIntervalId)));
+    }
 
     /**
      * Collects weather observations from a data source
@@ -160,7 +196,7 @@ public class WeatherDataSourceUtil {
      * @param timeZone
      * @return
      */
-    public List<WeatherObservation> getWeatherObservations(String fetchURI, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, TimeZone timeZone, Boolean ignoreErrors) throws WeatherDataSourceException {
+    public List<WeatherObservation> getWeatherObservations(String fetchURI, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, TimeZone timeZone, Boolean ignoreErrors, Set<Integer> toleratedLogIntervalIds) throws WeatherDataSourceException {
         SimpleDateFormat dateOutput = new SimpleDateFormat("yyyy-MM-dd");
         dateOutput.setTimeZone(timeZone);
         SimpleDateFormat hourOutput = new SimpleDateFormat("H");
@@ -199,7 +235,7 @@ public class WeatherDataSourceUtil {
             List<WeatherObservation> filteredObservations = new ArrayList<>();
             //System.out.println(this.getClass().getName() + "/preliminaryResult.size()=" + preliminaryResult.size());
             preliminaryResult.stream().filter((candidateObs) -> (
-                    candidateObs.getLogIntervalId().equals(logIntervalId)
+                    toleratedLogIntervalIds.contains(candidateObs.getLogIntervalId())
                     && Arrays.asList(elementMeasurementTypes).contains(candidateObs.getElementMeasurementTypeId())
                     )
                 ).forEachOrdered((candidateObs) -> {

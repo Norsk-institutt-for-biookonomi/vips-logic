@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2018 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -19,20 +19,21 @@
 
 /**
  * Self contained application for displaying several maps with risk assesments
- * @copyright 2018 NIBIO https://www.nibio.no/
+ * @copyright 2019 NIBIO https://www.nibio.no/
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
 var hostName;
 var results;
 //var localTimeZoneOffset = 120;
-var todayAtMidnight = getTodayAtMidnight();
+var todayAtMidnight; 
 var featureOverlays = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null}; 
 var maps = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null};
 var language = "en";
 
 var initMap = function ()
 {
+    todayAtMidnight = getTodayAtMidnight();
     var zymoGridMapContainer = document.getElementById("zymoGridMapContainer");
     language = zymoGridMapContainer.getAttribute("data-language") != null ? zymoGridMapContainer.getAttribute("data-language") : language;
     zymoGridMapContainer.innerHTML = "<div id='mainMap'>"
@@ -41,9 +42,10 @@ var initMap = function ()
                                     + "     <div id='legend'>"
                                     + "         <table>"
                                     + "             <tr><td>0</td><td style='color: #777777; font-weight: bold;'>" + geti18nText("risk_no") + "</td></tr>"
-                                    + "             <tr><td>0-20</td><td style='color: yellow; font-weight: bold;'>" + geti18nText("risk_low") + "</td></tr>"
-                                    + "             <tr><td>20-40</td><td style='color: orange; font-weight: bold;'>" + geti18nText("risk_medium") + "</td></tr>"
+                                    + "             <tr><td>0-20</td><td style='color: yellow; background-color: #777777; font-weight: bold;'>" + geti18nText("risk_low") + "</td></tr>"
+                                    + "             <tr><td>20-40</td><td style='color: orange; font-weight: bold; '>" + geti18nText("risk_medium") + "</td></tr>"
                                     + "             <tr><td>" + geti18nText("over") + " 40</td><td style='color: red; font-weight: bold;'>" + geti18nText("risk_high") + "</td></tr>"
+                                    + "             <tr><td><span style='cursor:pointer; color: green;' onclick='showModelInfo();'><i class='fas fa-info-circle'></i></span></td><td></td></tr>"
                                     + "         </table>"
                                     + "     </div>"
                                     + " </div>"
@@ -52,7 +54,10 @@ var initMap = function ()
                                     + "<div id='subMap1'><div id='subMap1DateField' class='dateField'></div></div>"
                                     + "<div id='subMap2'><div id='subMap2DateField' class='dateField'></div></div>"
                                     + "<div id='subMap3'><div id='subMap3DateField' class='dateField'></div></div>"
-                                    + "<div id='subMap4'><div id='subMap4DateField' class='dateField'></div></div>";
+                                    + "<div id='subMap4'><div id='subMap4DateField' class='dateField'></div></div>"
+                                    + "<div id='popup'></div>";
+                                    + "</div>"
+                                    
                             
     for(var mapName in featureOverlays)
     {
@@ -83,11 +88,14 @@ var initMap = function ()
     ajax(hostName + "/rest/forecastresults/-1000", function(e){
     //ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
         results = JSON.parse(e.target.responseText);
+        //console.info(todayAtMidnight);
         var currentDay = todayAtMidnight;
         for(var mapName in maps)
         {
+            //console.info("currentDay=" + currentDay.format());
             displayResults(mapName, currentDay);
-            currentDay.setDate(currentDay.getDate()+1);
+            //currentDay.setDate(currentDay.getDate()+1);
+            currentDay.add(1,"days");
         }
         // This is here to fix an apparent bug in having Vector tiles
         // within the CSS grid system
@@ -125,10 +133,12 @@ var getFeatureStyle = function(feature)
 
 var displayResults = function(mapName, date){
     var features = [];
+    //var momentDate = moment(date);
     for(var i in results)
     {
-        //console.info(parseJSONDate(results[i].validTimeStart).getTime() + "==" + date.getTime());
-        if(parseJSONDate(results[i].validTimeStart).getTime() == date.getTime()){
+        //console.info(moment(results[i].validTimeStart).format() + "==" + date.format());
+       
+        if(moment(results[i].validTimeStart).isSame(date)){
             //console.info(results[i].validGeometry.coordinates);
             var feature = new ol.Feature({
                 geometry:new ol.geom.Point(ol.proj.fromLonLat(results[i].validGeometry.coordinates)),
@@ -144,7 +154,7 @@ var displayResults = function(mapName, date){
     featureOverlays[mapName].getSource().addFeatures(features);
     //console.info(featureOverlays.mainMap.getSource().getFeatures());
     // Setting the results date
-    document.getElementById(mapName + "DateField").innerHTML = date.getFullYear() + "-" + ("0" + (date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
+    document.getElementById(mapName + "DateField").innerHTML = date.format("YYYY-MM-DD");//date.getFullYear() + "-" + ("0" + (date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
 };
 
 var ajax = function(url, callback)
@@ -155,38 +165,33 @@ var ajax = function(url, callback)
     xhr.send();
 };
 
-function parseJSONDate(theDateString)
+var showModelInfo = function()
 {
-    // The format is "2017-09-09T22:00:00.000+0000"
-    var dateParts = theDateString.split("T")[0].split("-");
-    var timeParts = theDateString.split("T")[1].split(".")[0].split(":");
-    var timeZoneOffset = parseInt(theDateString.substring(24,26));
+    ajax(hostName + "/rest/model/GRIDZYMOSE", function(e){
+        var modelInfo = JSON.parse(e.target.responseText);
+        document.getElementById('popup').innerHTML= "<p><button type='button' onclick='hideModelInfo();'>" + geti18nText("close") + "</button></p>" 
+                + refHumidityModelMapExplanation;
+                //+ "<h3>Background</h3>"
+                //+ modelInfo.defaultDescription.replace("\n","<br/><br/>");
+        document.getElementById('popup').style.display="block";
+        
+    });
+}
 
-    var retVal = new Date(Date.UTC(
-            parseInt(dateParts[0]),  // Year
-            parseInt(dateParts[1])-1, // Month
-            parseInt(dateParts[2]), // Date
-            parseInt(timeParts[0]) - parseInt(timeZoneOffset), // Hour taking timezone into account
-            parseInt(timeParts[1]), // Minutes
-            0,0) // Seconds and milliseconds
-            );
-    //console.info(retVal);
-    return retVal;
-    // This actually does the trick pretty well (on Chrome and Firefox...)
-    //return new Date(theDateString);
+var hideModelInfo = function()
+{
+    document.getElementById('popup').style.display="none";
 }
 
 function getTodayAtMidnight()
 {
-    var now = new Date();
-    
-    var midnightString = now.getFullYear() + "-" + 
-                            ('0' + (now.getMonth()+1)).slice(-2) + "-" +
-                            ('0' + (now.getDate()-1)).slice(-2) + 
-                            "T22:00:00.000+0000";
-    return new Date(midnightString);
-    // OR RETURN A FIXED DATE FOR TESTING
-    return new Date("2017-09-07T22:00:00.000+0000");
+    var timeZone="Europe/Oslo";
+    var today = moment().tz(timeZone)
+    today.set("hour",0);
+    today.set("minute",0);
+    today.set("second",0);
+    today.set("millisecond",0);
+    return today;
 }
 
 
@@ -209,8 +214,8 @@ document.addEventListener("DOMContentLoaded", function() {
       }
   }
   hostName = me.src.substring(0,me.src.indexOf("/public"));
-  // Creating a chain here: First we load ol.css, then nordic_septoria_whs.css 
-  // and finally ol.js. Then we initialize the Map
+  // Creating a chain here: First we load ol.css, then nordic_septoria_whs.css, 
+  // ol.js and finally moment.min.js. Then we initialize the Map
   loadHeadElement("link", 
     {
         href: hostName + "/public/nordic_septoria_whs/ol.css",
@@ -224,7 +229,35 @@ document.addEventListener("DOMContentLoaded", function() {
                 rel: "stylesheet",
                 media: "screen"
             },
-            function(){ loadHeadElement("script", { src: hostName + "/public/nordic_septoria_whs/ol.js" }, initMap); }
+            function(){ 
+                loadHeadElement("script", 
+                    { 
+                        src: hostName + "/public/nordic_septoria_whs/ol.js" 
+                    }, 
+                    function() {
+                        loadHeadElement("script", 
+                            { 
+                                src: hostName + "/public/nordic_septoria_whs/moment.min.js" 
+                            }, 
+                            function() {
+                                loadHeadElement("script", 
+                                    { 
+                                        src: hostName + "/public/nordic_septoria_whs/moment-timezone-with-data.js" 
+                                    }, 
+                                    function() {
+                                        loadHeadElement("script", 
+                                            { 
+                                                src: "https://kit.fontawesome.com/567c8b1eb5.js" 
+                                            }, 
+                                            initMap
+                                        ); 
+                                    }
+                                ); 
+                            }
+                        ); 
+                    }
+                );
+            }
         );
     }
     );
@@ -247,6 +280,12 @@ var loadScript = function(url, callback)
     document.head.appendChild(script);
 };
 
+/**
+ * Loads elements (e.g. script elements) into the parent page
+ * @param {type} type the type of element
+ * @param {type} attributes the attributes (like src) of the element
+ * @param {type} callback What do do after the loading is done
+ */
 var loadHeadElement = function(type, attributes, callback)
 {
     var elm = document.createElement(type);
@@ -278,10 +317,14 @@ var dict = {
     "risk_high"         : {     "no": "Høy risiko",         "dk": "Høj risiko",         "en": "High risk"},
     "over"              : {     "no": "Over",               "dk": "Over",               "en": "Over"},
     
-    "poweredBy"         : {     "no": "Drevet av",          "dk": "Drevet af",          "en": "Powered by"}
+    "poweredBy"         : {     "no": "Drevet av",          "dk": "Drevet af",          "en": "Powered by"},
+    "close"         : {     "no": "Lukk",          "dk": "Lukk",          "en": "Close"}
 };
 
 var geti18nText = function(keyword)
 {
     return dict[keyword][language];
 };
+
+var refHumidityModelMapExplanation = "<p>The map shows the risk for new infections of Septoria SPP. in wheat. The reference humidity model calculates the total number of humid hours as a running sum of 36 hours (Yesterday + today + tomorrow). 0 = no risk; 1-20= low risk; 21-40 is medium risk and >40 is high risk. A humid hour is calculated if: Rh>=88% or, Leaf wetness >=30 minutes per hour or rain >=0,2mm. Only hours where the temperature >=8°C </p>"
+                                     + "<p>This risk index was developed as a supplement to the Humidity model. It should be considered as a weather based submodel for Septoria risk, easy to show on maps (risk across regions) as well as on a graph (curve) with risk across time. </p>";

@@ -19,11 +19,6 @@
 
 package no.nibio.vips.logic.util;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.PrecisionModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -151,7 +146,7 @@ public class GISEntityUtil {
     
     
     
-    public de.micromata.opengis.kml.v_2_2_0.Coordinate getKMLCoordinateFromJTSCoordinate(com.vividsolutions.jts.geom.Coordinate jtsCoordinate)
+    public de.micromata.opengis.kml.v_2_2_0.Coordinate getKMLCoordinateFromJTSCoordinate(org.locationtech.jts.geom.Coordinate jtsCoordinate)
     {
         return new de.micromata.opengis.kml.v_2_2_0.Coordinate(
                 jtsCoordinate.x, 

@@ -19,9 +19,14 @@
 
 package no.nibio.vips.logic.scheduling.model.grid.preprocessor;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,11 +34,13 @@ import java.util.stream.Stream;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.gis.CoordinateProxy;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherObservationListException;
 import no.nibio.vips.util.WeatherUtil;
@@ -60,8 +67,9 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
         WeatherUtil wUtil = new WeatherUtil();
         for(PointOfInterestWeatherStation station:stations)
         {
-            Coordinate coordinate = new Coordinate(station.getPointOfInterest().getLongitude(), station.getPointOfInterest().getLatitude());
+            CoordinateProxy coordinate = new CoordinateProxy(station.getPointOfInterest().getLongitude(), station.getPointOfInterest().getLatitude());
             List<WeatherObservation> stationObs = getStationObs(station, configuration);
+            
             try
             {
                 // We need TM, UM and RR. BT is optional
@@ -82,8 +90,18 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
             }
             catch(WeatherObservationListException ex)
             {
-                
+                System.out.println("Problem with station " + station.getPointOfInterest().getName() + " (#" + station.getPointOfInterestId() + "): " + ex.getMessage());
             }
+            
+            
+            // TODO: Remove this debug
+            /*
+            if(station.getPointOfInterestId().equals(345))
+            {
+                Collections.sort(stationObs);
+                stationObs.forEach(obs->System.out.println(obs));
+            }*/
+            
             
             PointWeatherObservationList pointObs = new PointWeatherObservationList(coordinate, stationObs, station.getTimeZone());
             allObs.add(pointObs);
@@ -104,25 +122,28 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
     {
         List<WeatherObservation> stationObs;// = new ArrayList<>();
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
-        WeatherUtil wUtil = new WeatherUtil();
+        
+        // We run this for max 1 week back in time to make sure it doesn't crash
+        ZonedDateTime aWeekAgo = ZonedDateTime.ofInstant(SystemTime.getSystemTime().toInstant(), ZoneId.of("Europe/Oslo")).minus(1, ChronoUnit.WEEKS);
+        ZonedDateTime aWeekAhead = ZonedDateTime.ofInstant(SystemTime.getSystemTime().toInstant(), ZoneId.of("Europe/Oslo")).plus(1, ChronoUnit.WEEKS);
         try {
 
             stationObs = wdsUtil.getWeatherObservations(
                     station, 
                     WeatherObservation.LOG_INTERVAL_ID_1H, 
                     new String[]{
-                        WeatherElements.LEAF_WETNESS,
+                        WeatherElements.LEAF_WETNESS_DURATION,
                         WeatherElements.RELATIVE_HUMIDITY_MEAN,
                         WeatherElements.PRECIPITATION, 
                         WeatherElements.TEMPERATURE_MEAN
                     }, 
-                    configuration.getDateStartInTimeZone(),
-                    configuration.getDateEndInTimeZone(),
-                    true
+                    Date.from(aWeekAgo.toInstant()),
+                    Date.from(aWeekAhead.toInstant()),
+                    true,
+                    new HashSet<>(Arrays.asList(WeatherObservation.LOG_INTERVAL_ID_1H,WeatherObservation.LOG_INTERVAL_ID_3H, WeatherObservation.LOG_INTERVAL_ID_6H))
             );
-            stationObs = wUtil.checkForAndFixHourlyTimeSeriesHoles(stationObs);
             return stationObs;
-        } catch (WeatherDataSourceException | WeatherObservationListException ex ) {
+        } catch (WeatherDataSourceException  ex ) {
             throw new PreprocessorException(ex.getMessage());
         }
     }

@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.i18n.LanguageUtil;
+import no.nibio.vips.logic.controller.session.DeleteUserException;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.UserAuthentication;
@@ -464,12 +465,10 @@ public class UserController extends HttpServlet {
                             return;
                         }
                     }
-                    //em.remove(viewUser);
                     userBean.deleteUser(viewUser);
                     response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userDeleted").toString());
-                    
                 }
-                catch(NullPointerException | NumberFormatException ex)
+                catch(NullPointerException | NumberFormatException | DeleteUserException ex)
                 {
                     response.sendError(500, ex.getMessage());
                 }

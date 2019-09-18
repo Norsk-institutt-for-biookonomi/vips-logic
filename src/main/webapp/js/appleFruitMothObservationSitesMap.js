@@ -32,7 +32,7 @@ var initMap = function(container, mapAttribution)
 	
 	forecastLayer = new ol.layer.Vector({
 		source: new ol.source.Vector({
-			url: "/rest/applefruitmoth/observationsites/kml/",
+			url: "/rest/applefruitmoth/observationsites/kml/?onlyPubliclyAvailable=false",
 			format: new ol.format.KML({"extractAttributes":true}),
 			projection: ol.proj.get('EPSG:3857')
 		})

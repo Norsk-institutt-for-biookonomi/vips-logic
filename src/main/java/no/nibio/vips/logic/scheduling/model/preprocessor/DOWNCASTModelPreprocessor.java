@@ -56,8 +56,8 @@ public class DOWNCASTModelPreprocessor extends ModelRunPreprocessor{
                     weatherStation,
                     WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
-                        WeatherElements.LEAF_WETNESS,
-                        WeatherElements.LEAF_WETNESS_GROUND_LEVEL,
+                        WeatherElements.LEAF_WETNESS_DURATION,
+                        WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL,
                         WeatherElements.RELATIVE_HUMIDITY_MEAN,
                         WeatherElements.PRECIPITATION, 
                         WeatherElements.TEMPERATURE_MEAN 
@@ -65,8 +65,8 @@ public class DOWNCASTModelPreprocessor extends ModelRunPreprocessor{
                     configuration.getDateStartInTimeZone(),
                     configuration.getDateEndInTimeZone());
             observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
-            List<WeatherObservation> BTg = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_GROUND_LEVEL)));
-            List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS)));
+            List<WeatherObservation> BTg = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL)));
+            List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION)));
             List<WeatherObservation> UM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.RELATIVE_HUMIDITY_MEAN)));
             List<WeatherObservation> RR = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.PRECIPITATION)));
             List<WeatherObservation> TM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.TEMPERATURE_MEAN)));
@@ -78,7 +78,7 @@ public class DOWNCASTModelPreprocessor extends ModelRunPreprocessor{
             {
                 BTg = wUtil.calculateLeafWetnessHourSeriesBestEffort(BTg,TM, RR, null,null, UM);
             }
-            wUtil.renameParameter(BTg, WeatherElements.LEAF_WETNESS, WeatherElements.LEAF_WETNESS_GROUND_LEVEL);
+            wUtil.renameParameter(BTg, WeatherElements.LEAF_WETNESS_DURATION, WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL);
             
             observations = new ArrayList<>();
             observations.addAll(BTg);

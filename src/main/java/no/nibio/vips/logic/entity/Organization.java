@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 
 package no.nibio.vips.logic.entity;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -39,10 +39,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.FetchType;
+import javax.persistence.OneToOne;
 import org.hibernate.annotations.Type;
 
 /**
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -105,6 +106,12 @@ public class Organization implements Serializable {
     private Set<VipsLogicUser> vipsLogicUserSet;
     @Column(name = "vipsweb_url")
     private String vipswebUrl;
+    // The user for that organization that we can move resources to (messages, observations etc)
+    // from a regular user that we are deleting
+    @JoinColumn(name = "archive_user_id")
+    @OneToOne
+    @JsonIgnore
+    private VipsLogicUser archiveUser; 
 
     public Organization() {
     }
@@ -310,6 +317,20 @@ public class Organization implements Serializable {
      */
     public void setVipswebUrl(String vipswebUrl) {
         this.vipswebUrl = vipswebUrl;
+    }
+
+    /**
+     * @return the archiveUser
+     */
+    public VipsLogicUser getArchiveUser() {
+        return archiveUser;
+    }
+
+    /**
+     * @param archiveUser the archiveUser to set
+     */
+    public void setArchiveUser(VipsLogicUser archiveUser) {
+        this.archiveUser = archiveUser;
     }
 
 }

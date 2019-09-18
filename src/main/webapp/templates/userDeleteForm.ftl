@@ -32,9 +32,10 @@
 	<p>${i18nBundle.deleteUserDescription}</p>
 	<h2>${i18nBundle.userResources}</h2>
 	<ul>
-		<li>${i18nBundle.weatherStations}: ${userResources.weatherStations?size}</li>
+		<li>${i18nBundle.weatherStations}: ${userResources.pois?size}</li>
 		<li>${i18nBundle.messages}: ${userResources.messageLocales?size}</li>
 		<li>${i18nBundle.forecasts}: ${userResources.forecastConfigurations?size}</li>
+                <li>${i18nBundle.observations}: ${userResources.observations?size}</li>
 	</ul>
 	<h2>${i18nBundle.transferResources}</h2>
 	<form action="/user?action=deleteUser" method="POST" onsubmit="return confirm('${i18nBundle.confirmDelete}');"/>
@@ -42,6 +43,9 @@
 	<p>
 		<select class="form-control" name="transferToUserId">
 			<option value="-1">-- ${i18nBundle.select} --</option>
+                        <#if viewUser.organizationId.archiveUser?has_content>
+                        <option value="${viewUser.organizationId.archiveUser.userId}">${i18nBundle.organizationsArchiveUser}</option>
+                        </#if>
 		<#list users as user>
 			<#if user.userId != viewUser.userId>
 			<option value="${user.userId}">${user.firstName!""} ${user.lastName}</option>

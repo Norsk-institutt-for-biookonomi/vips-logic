@@ -29,6 +29,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.TimeZone;
 import java.util.Date;
 import java.util.List;
@@ -40,7 +41,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -55,8 +55,10 @@ import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.MapLayer;
 import no.nibio.vips.logic.entity.MessageLocale;
+import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.OrganizationGroup;
+import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.UserAuthentication;
 import no.nibio.vips.logic.entity.UserAuthenticationPK;
@@ -210,37 +212,84 @@ public class UserBean {
      * 
      * @param user 
      */
-    public void deleteUser(VipsLogicUser user)
+    public void deleteUser(VipsLogicUser user)  throws DeleteUserException
     {
+        // Must double check: NO user can be force deleted without first
+        // transferring resources to another user
+        UserResources userResources = SessionControllerGetter.getUserBean().getUserResources(user);
+        if(! userResources.isEmpty())
+        {
+            throw new DeleteUserException("User still has resources connected to them.");
+        }
         user = em.find(VipsLogicUser.class, user.getUserId());
+        // If it's an archive user, do NOT delete it!
+        if(user.getOrganizationId().getArchiveUser().getUserId().equals(user.getUserId()))
+        {
+            throw new DeleteUserException("User is an archive user for organization " + user.getOrganizationId().getOrganizationName() + ". Can't delete it");
+        }
         // Remove all notification subscriptions
         SessionControllerGetter.getMessagingBean().deleteAllNotificationSubscriptions(user);
+        // Remove all User UUIDs
+        this.deleteAllUserUuidsForUser(user);
+        
+        // Delete all of the user's private forecast configurations and results
+        SessionControllerGetter.getForecastBean().deleteAllPrivateForecastConfigurationsForUser(user);
+        
         em.remove(user);
     }
     
     public UserResources getUserResources(VipsLogicUser user)
     {
         UserResources retVal = new UserResources();
-        retVal.setWeatherStations(SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForUser(user));
+        retVal.setPois(SessionControllerGetter.getPointOfInterestBean().getPoisForUser(user));
         retVal.setMessageLocales(SessionControllerGetter.getMessageBean().getMessageLocaleList(user));
         retVal.setForecastConfigurations(SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(user.getUserId()));
+        List<Observation> observations = SessionControllerGetter.getObservationBean().getObservationsForUser(user);
+        observations.addAll(SessionControllerGetter.getObservationBean().getObservationsLastEditedByUser(user));
+        observations.addAll(SessionControllerGetter.getObservationBean().getObservationsStatusChangedByUser(user));
+        retVal.setObservations(observations);
         return retVal;
     }
     
+    /**
+     * Transfers all user resources (may need to update this method to keep up with the system)
+     * <ul>
+     *  <li>Weather Stations</li>
+     *  <li>Messages</li>
+     *  <li>Forecast Configurations</li>
+     *  <li>Observations</li>
+     * </ul>
+     * @param fromUser
+     * @param toUser 
+     */
     public void transferUserResources(VipsLogicUser fromUser, VipsLogicUser toUser) {
         UserResources userResources = this.getUserResources(fromUser);
-        for(PointOfInterestWeatherStation ws:userResources.getWeatherStations())
-        {
+        (userResources.getPois() != null ? userResources.getPois() : Collections.<PointOfInterest>emptyList()).forEach((ws) -> {
             ws.setUserId(toUser);
-        }
-        for(MessageLocale ml:userResources.getMessageLocales())
-        {
+        });
+        (userResources.getMessageLocales() != null ? userResources.getMessageLocales() : Collections.<MessageLocale>emptyList()).forEach((ml) -> {
             ml.setCreatedBy(toUser);
-        }
-        for(ForecastConfiguration fc: userResources.getForecastConfigurations())
-        {
+        });
+        (userResources.getForecastConfigurations() != null ? userResources.getForecastConfigurations() : Collections.<ForecastConfiguration>emptyList()).forEach((fc) -> {
             fc.setVipsCoreUserId(toUser);
-        }
+        });
+        //HMMMMMMM - noe med transaksjoner som ikke er oppdatert elns????
+        (userResources.getObservations() != null ? userResources.getObservations() : Collections.<Observation>emptyList()).forEach((obs) -> {
+            if(obs.getUserId().equals(fromUser.getUserId()))
+            {
+                obs.setUserId(toUser.getUserId());
+                obs.setUser(toUser);
+            }
+            if(obs.getLastEditedBy() != null && obs.getLastEditedBy().equals(fromUser.getUserId()))
+            {
+                obs.setLastEditedBy(toUser.getUserId());
+                obs.setLastEditedByUser(toUser);
+            }
+            if(obs.getStatusChangedByUserId() != null && obs.getStatusChangedByUserId().equals(fromUser.getUserId()))
+            {
+                obs.setStatusChangedByUserId(toUser.getUserId());
+            }
+        });
         
     }
     
@@ -673,6 +722,10 @@ public class UserBean {
         em.createNativeQuery("DELETE FROM public.user_uuid WHERE expires_at < now()").executeUpdate();
     }
     
+    public void deleteAllUserUuidsForUser(VipsLogicUser user){
+        em.createNativeQuery("DELETE FROM public.user_uuid WHERE user_id=:userId").setParameter("userId", user.getUserId()).executeUpdate();
+    }
+    
     public String getMapLayerJSONForUser(VipsLogicUser user)
     {
         try {
@@ -733,6 +786,11 @@ public class UserBean {
         {
             return new ArrayList<>();
         }
+    }
+    
+    public List<Country> getCountries()
+    {
+        return em.createNamedQuery("Country.findAll").getResultList();
     }
 
     public List<OrganizationGroup> getOrganizationGroups(Organization organization) {
@@ -858,5 +916,13 @@ public class UserBean {
 
     public List<OrganizationGroup> getOrganizationGroups() {
         return em.createNamedQuery("OrganizationGroup.findAll").getResultList();
+    }
+
+    public Country getCountry(String webValue) {
+        return em.find(Country.class, webValue);
+    }
+
+    public Organization storeOrganization(Organization organization) {
+        return em.merge(organization);
     }
 }

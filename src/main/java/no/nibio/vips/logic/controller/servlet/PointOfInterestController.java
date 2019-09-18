@@ -19,11 +19,12 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,16 +52,16 @@ import no.nibio.vips.logic.entity.WeatherForecastProvider;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
 /**
  * Handles transactions for POIs
- * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class PointOfInterestController extends HttpServlet {
@@ -169,7 +170,7 @@ public class PointOfInterestController extends HttpServlet {
                     {
                         request.getSession().setAttribute("weatherStation", weatherStation);
                     }
-                    request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                    request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
@@ -190,7 +191,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                         request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
-                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
@@ -200,7 +201,9 @@ public class PointOfInterestController extends HttpServlet {
                 
                         if(user.isSuperUser())
                         {
-                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                            List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList();
+                            Collections.sort(users);
+                            request.getSession().setAttribute("users", users);
                         }
                         Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
                         request.setAttribute("returnURL","weatherStation?organizationId=" + organizationId);
@@ -229,7 +232,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                         request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
-                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
@@ -239,7 +242,9 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         if(user.isSuperUser())
                         {
-                            request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                            List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList();
+                            Collections.sort(users);
+                            request.getSession().setAttribute("users", users);
                         }
                         request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUserId().getOrganizationId().getOrganizationId());
                         request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
@@ -356,8 +361,9 @@ public class PointOfInterestController extends HttpServlet {
                             request.setAttribute("weatherStation", weatherStation);
                             request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                             request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
+                            request.setAttribute("returnURL","weatherStation?organizationId=" + user.getOrganizationId().getOrganizationId());
                             request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
-                            request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                            request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                             request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                             request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                             request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
@@ -502,7 +508,7 @@ public class PointOfInterestController extends HttpServlet {
                 {
                     PointOfInterest poi = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
                     request.getSession().setAttribute("poi", poi);
-                    request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                    request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
@@ -522,7 +528,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("returnIdCallback", request.getParameter("returnIdCallback") != null ? request.getParameter("returnIdCallback") :"");
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
@@ -536,6 +542,13 @@ public class PointOfInterestController extends HttpServlet {
                         if(user.isSuperUser())
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                        }
+                        else if(user.isOrganizationAdmin())
+                        {
+                            request.getSession().setAttribute("users", 
+                                    em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
+                                            .setParameter("organizationId", user.getOrganizationId()).getResultList()
+                            );
                         }
                         Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
                         request.setAttribute("returnURL","poi?organizationId=" + organizationId);
@@ -562,7 +575,7 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("poi", poi);
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                        request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                        request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
@@ -576,6 +589,13 @@ public class PointOfInterestController extends HttpServlet {
                         if(user.isSuperUser())
                         {
                             request.getSession().setAttribute("users", em.createNamedQuery("VipsLogicUser.findAll", VipsLogicUser.class).getResultList());
+                        }
+                        else if(user.isOrganizationAdmin())
+                        {
+                            request.getSession().setAttribute("users", 
+                                    em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
+                                            .setParameter("organizationId", user.getOrganizationId()).getResultList()
+                            );
                         }
                         request.setAttribute("returnURL","poi?organizationId=" + poi.getUserId().getOrganizationId().getOrganizationId());
                         request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
@@ -649,7 +669,7 @@ public class PointOfInterestController extends HttpServlet {
                                 // If userId is set from form, always update
 
 
-                                if(user.isSuperUser() && !formValidation.getFormField("userId").isEmpty())
+                                if((user.isSuperUser() || user.isOrganizationAdmin()) && !formValidation.getFormField("userId").isEmpty())
                                 {
                                     poi.setUserId(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
                                 }
@@ -721,7 +741,7 @@ public class PointOfInterestController extends HttpServlet {
                                 request.setAttribute("returnURL","poi?organizationId=" + user.getOrganizationId().getOrganizationId());
                                 // Finding all external resources where entry is missing
                                 request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
-                                request.getSession().setAttribute("availableTimeZones", Globals.availableTimeZones);
+                                request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                                 request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                                 request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                                 request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());

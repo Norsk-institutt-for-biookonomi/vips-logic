@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2015-2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -42,11 +42,10 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Locale;
 import java.util.UUID;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -64,7 +63,7 @@ import java.util.UUID;
     @NamedQuery(name = "VipsLogicUser.findByLastName", query = "SELECT v FROM VipsLogicUser v WHERE v.lastName = :lastName"),
     @NamedQuery(name = "VipsLogicUser.findByCompletePhoneNumber", query = "SELECT v FROM VipsLogicUser v WHERE v.phoneCountryCode || v.phone = :completePhoneNumber")
 })
-public class VipsLogicUser implements Serializable {
+public class VipsLogicUser implements Serializable, Comparable{
     
     private static final long serialVersionUID = 1L;
     private Integer userId;
@@ -509,4 +508,12 @@ public class VipsLogicUser implements Serializable {
     public void setFreeSms(boolean freeSms) {
         this.freeSms = freeSms;
     }
+
+    @Override
+    public int compareTo(Object o) {
+        VipsLogicUser other = (VipsLogicUser)o;
+        return (this.getLastName() + ", " + this.getFirstName()).compareTo(other.getLastName() + ", " + other.getFirstName());
+    }
+    
+    
 }

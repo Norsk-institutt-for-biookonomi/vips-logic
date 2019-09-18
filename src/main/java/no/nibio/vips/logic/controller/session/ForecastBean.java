@@ -109,6 +109,24 @@ public class ForecastBean {
         return q.getResultList();
     }
     
+    /**
+     * 
+     * @param forecastConfiguration
+     * @param user
+     * @return 
+     */
+    public boolean isUserAuthorizedForForecastConfiguration(ForecastConfiguration forecastConfiguration, VipsLogicUser user)
+    {
+        // Public forecasts are always OK for everyone to view
+        if(!forecastConfiguration.getIsPrivate())
+        {
+            return true;
+        }
+        // Private forecasts are only viewable by owner or super users / orgadmins
+        return user != null && (user.isSuperUser() || user.isOrganizationAdmin() || user.getUserId().equals( forecastConfiguration.getVipsLogicUserId().getUserId()));
+    }
+            
+    
     public boolean isUserAuthorizedForForecastConfiguration(Long forecastConfigurationId, String userUUID)
     {
         // Authentication
@@ -125,7 +143,7 @@ public class ForecastBean {
             }
             UUID uUUID = UUID.fromString(userUUID);
             VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
-            if(user == null || user.getUserId().equals( fc.getVipsLogicUserId()))
+            if(user == null || ! user.getUserId().equals( fc.getVipsLogicUserId().getUserId()))
             {
                 return false;
             }
@@ -344,6 +362,29 @@ public class ForecastBean {
         }
     }
     
+    public List<ForecastConfiguration> getForecastConfigurations(List<Integer> organizationIds, Date from, Date to)
+    {
+        List<VipsLogicUser> organizationUsers = em
+                .createNamedQuery("VipsLogicUser.findByOrganizationIds")
+                .setParameter("organizationIds", organizationIds)
+                .getResultList();
+        
+        
+        if(!organizationUsers.isEmpty())
+        {
+            return em
+                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndDate")
+                    .setParameter("vipsLogicUserIds", organizationUsers)
+                    .setParameter("from", from)
+                    .setParameter("to", to)
+                    .getResultList();
+        }
+        else
+        {
+            return new ArrayList<>();
+        }
+    }
+    
     public List<ForecastConfiguration> getForecastConfigurationsByWeatherStation(PointOfInterestWeatherStation weatherStation)
     {
         return em
@@ -454,6 +495,18 @@ public class ForecastBean {
             retVal.put(mi.getModelId(), mi);
         });
         return retVal;
+    }
+    
+    public ModelInformation getModelInformation(String modelId)
+    {
+        try
+        {
+            return em.createNamedQuery("ModelInformation.findByModelId", ModelInformation.class).setParameter("modelId", modelId).getSingleResult();
+        }
+        catch(NoResultException ex)
+        {
+            return null;
+        }
     }
     
     /**
@@ -597,18 +650,19 @@ public class ForecastBean {
                 {
                     ex.printStackTrace();
                 }*/
-                Response resp = this.getManagerResource().runModel(config.getModelId(), request);
-                if(resp.getStatus() == Response.Status.OK.getStatusCode())
-                {
-                    List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
-                    //System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ", resultsize=" + results.size());
-                    // We delete all former results before we store the new ones
-                    SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
-                }
-                else
-                {
-                    throw new RunModelException(resp.readEntity(String.class));
-                }
+                    Response resp = this.getManagerResource().runModel(config.getModelId(), request);         
+                    if(resp.getStatus() == Response.Status.OK.getStatusCode())
+                    {
+                        //System.out.println(resp.readEntity(String.class));
+                        List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
+                        //System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ", resultsize=" + results.size());
+                        // We delete all former results before we store the new ones
+                        SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
+                    }
+                    else
+                    {
+                        throw new RunModelException(resp.readEntity(String.class));
+                    }
                 //System.out.println("Finished runModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
             
         }
@@ -656,7 +710,7 @@ public class ForecastBean {
         return resource;
     }
     
-    public Kml getForecastsAggregateKml(Integer organizationId, List<Integer> cropOrganismIds, Date theDate, String serverName)
+    public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate, String serverName)
     {
         //String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         String iconPath = "//" + serverName + "/public/images/";
@@ -693,7 +747,20 @@ public class ForecastBean {
         
         // Run through forecast configurations 
         //Date benchmark = new Date();
-        List<PointOfInterest> poisWithAggregate = getPointOfInterestForecastsAggregate(organizationId, cropOrganismIds, theDate);
+        List<PointOfInterest> poisWithAggregate = new ArrayList<>();
+        if(organizationIds.size() == 1 && organizationIds.get(0).equals(-1))
+        {
+            em.createNamedQuery("Organization.findAll",Organization.class).getResultStream().forEach(
+                    org-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(org.getOrganizationId(), cropOrganismIds, theDate))
+                    );
+        }
+        else
+        {
+            organizationIds.stream().forEach(
+                    orgId-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(orgId, cropOrganismIds, theDate))
+                    );
+        }
+        
         //System.out.println(this.getClass().getName() + " DEBUG: getPointOfInterestForecastsAggregate took " + (new Date().getTime() - benchmark.getTime()) + " ms to complete.");
         
         GISEntityUtil gisUtil = new GISEntityUtil();
@@ -906,29 +973,40 @@ public class ForecastBean {
         return retVal;
     }
     
-    public List<ForecastConfiguration> getForecastConfigurationSummaries(Integer organizationId)
+    /**
+     * Finds the forecast configuration summaries for a given organization and that this user has access to
+     * @param organizationId
+     * @return 
+     */
+    public List<ForecastConfiguration> getForecastConfigurationSummaries(Integer organizationId, VipsLogicUser user)
     {
-        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurations(em.find(Organization.class, organizationId));
-        // TODO: Filter forecastconfigurations based on criteria (activity, crops, geography etc)
-        List<ForecastConfiguration> filteredConfigs = new ArrayList<>();
-        Query q = em.createNamedQuery("ForecastSummary.findByForecastConfigurationId");
-        for(ForecastConfiguration config: forecastConfigurations)
+        List<ForecastSummary> summaries = em.createNamedQuery("ForecastSummary.findByOrganizationId")
+                .setParameter("organizationId", em.find(Organization.class, organizationId))
+                .getResultList();
+        Map<Long, List<ForecastSummary>> mappedSummaries = new HashMap<>();
+        summaries.forEach((s) -> {
+            List<ForecastSummary> summaryForForecast = mappedSummaries.get(s.getForecastSummaryPK().getForecastConfigurationId()) != null ?
+                    mappedSummaries.get(s.getForecastSummaryPK().getForecastConfigurationId()) : 
+                    new ArrayList<>();
+            summaryForForecast.add(s);
+            mappedSummaries.put(s.getForecastSummaryPK().getForecastConfigurationId(), summaryForForecast);
+        });
+        if(mappedSummaries.size() > 0)
         {
-            if(config.getForecastConfigurationId() < 0)
-            {
-                continue;
-            }
-            config.setForecastSummaries(
-                    
-                    q.setParameter("forecastConfigurationId", config.getForecastConfigurationId())
-                    .getResultList()
-            );
-            if(config.getForecastSummaries() != null && !config.getForecastSummaries().isEmpty())
-            {
-                filteredConfigs.add(config);
-            }
+            List<ForecastConfiguration> configurations = em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationIds").setParameter("forecastConfigurationIds", mappedSummaries.keySet()).getResultList();
+            // Do some authorization.
+            configurations = configurations.stream().filter(fc -> this.isUserAuthorizedForForecastConfiguration(fc, user)).collect(Collectors.toList());
+            
+            configurations.forEach((conf) -> {
+                
+                conf.setForecastSummaries(mappedSummaries.get(conf.getForecastConfigurationId()));
+            });
+            return configurations;
         }
-        return filteredConfigs;
+        else
+        {
+            return new ArrayList<>();
+        }
     }
 
     /**
@@ -1101,5 +1179,28 @@ public class ForecastBean {
         return modelInfos.stream()
                 .filter(modelInfo -> ModelRunPreprocessorFactory.getModelRunPreprocessor(modelInfo.getModelId()) != null)
                 .collect(Collectors.toList());
+    }
+
+    public void deleteAllPrivateForecastConfigurationsForUser(VipsLogicUser user) {
+        
+        em.createNativeQuery(
+                "DELETE FROM public.forecast_result WHERE forecast_configuration_id IN "
+                + "("
+                + "     SELECT forecast_configuration_id "
+                + "     FROM public.forecast_configuration "
+                + "     WHERE is_private IS TRUE "
+                + "     AND vips_logic_user_id = :userId "
+                + ")"
+        )
+        .setParameter("userId", user.getUserId())
+        .executeUpdate();
+        
+        em.createNativeQuery(
+                "DELETE FROM public.forecast_configuration "
+                + "     WHERE is_private IS TRUE "
+                + "     AND vips_logic_user_id = :userId"
+        )
+        .setParameter("userId", user.getUserId())
+        .executeUpdate();
     }
 }

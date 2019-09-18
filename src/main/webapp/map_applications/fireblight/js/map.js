@@ -353,10 +353,15 @@ var storeFeature = function(featureId)
     var tiltak = document.getElementById("tiltak").options[document.getElementById("tiltak").options.selectedIndex].value;
     var observationText = document.getElementById("beskrivelse").value;
     var observationHeading = "Registrering av pærebrann";
-    var timeOfObservation = moment(document.getElementById("dato").value + "+0200","DD.MM.YYYYZ").valueOf();
+    var timeOfObservation = moment(document.getElementById("dato").value + "+0200","DD.MM.YYYYZ");
+    if(timeOfObservation.year() < 2000)
+    {
+        alert("Feil dato (før år 2000). Datoformat er DD.MM.ÅÅÅÅ");
+        return;
+    }
     
     feature.setProperties({
-       timeOfObservation: timeOfObservation,
+       timeOfObservation: timeOfObservation.valueOf(),
        cropOrganism: cropOrganism,
        organism: paerebrann,
        observationHeading: observationHeading,

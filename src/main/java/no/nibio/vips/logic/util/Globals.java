@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2019 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 package no.nibio.vips.logic.util;
 
 /**
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class Globals {
@@ -66,21 +66,6 @@ public class Globals {
 
     public static String defaultTimestampFormat = "yyyy-MM-dd HH:mm:ssXXX";
     public static String defaultDateFormat = "yyyy-MM-dd";
-    
-    public static String[] availableTimeZones = {
-        "UTC",
-        "Etc/GMT-1",
-        "Europe/Copenhagen",
-        "Europe/Oslo",
-        "Europe/Sarajevo",
-        "Europe/Stockholm",
-        "Europe/Helsinki",
-        "Europe/Riga",
-        "Europe/Vilnius",
-        "Europe/Sofia",
-        "America/Los_Angeles"
-        
-    };
     
     public static int DEFAULT_UUID_VALIDITY_DURATION_DAYS = 30;
     
