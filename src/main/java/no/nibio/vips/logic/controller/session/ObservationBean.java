@@ -291,6 +291,10 @@ public class ObservationBean {
 
     public void deleteObservation(Integer observationId) {
         Observation observation = em.find(Observation.class, observationId);
+        // Delete all current group memberships
+        em.createNativeQuery("DELETE FROM public.organization_group_observation WHERE observation_id=:observationId")
+                .setParameter("observationId", observation.getObservationId())
+                .executeUpdate();
         em.remove(observation);
     }
 
