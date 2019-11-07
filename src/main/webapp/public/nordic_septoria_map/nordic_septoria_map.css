@@ -1,0 +1,122 @@
+/*
+Copyright (c) 2018 NIBIO <http://www.nibio.no/>. 
+
+This file is part of VIPSLogic.
+VIPSLogic is free software: you can redistribute it and/or modify
+it under the terms of the NIBIO Open Source License as published by 
+NIBIO, either version 1 of the License, or (at your option) any
+later version.
+
+VIPSLogic is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+NIBIO Open Source License for more details.
+
+You should have received a copy of the NIBIO Open Source License
+along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+
+*/
+/* 
+    Created on : Mar 15, 2018, 3:50:00 PM
+    Author     : Tor-Einar Skog <tor-einar.skog@nibio.no>
+    Using CSS grid layout with fallback for MS browsers
+*/
+#mainMap { grid-area: mainMap; height: 450px;}
+#subMap1 { grid-area: subMap1; height: 250px;}
+#subMap2 { grid-area: subMap2; height: 250px;}
+#subMap3 { grid-area: subMap3; height: 250px;}
+#subMap4 { grid-area: subMap4; height: 250px;}
+
+#nordicSeptoriaMapContainer {
+    display: grid;
+    grid-template-areas: 
+        'mainMap mainMap mainMap mainMap'
+        'subMap1 subMap2 subMap3 subMap4';
+    grid-gap: 10px;
+    background-color: white;
+    padding: 0px;
+    border: 10px solid white;
+}
+
+#nordicSeptoriaMapContainer > div {
+    position: relative;
+    padding: 0px 0;
+    
+}
+
+/* For the MS browsers that do not support CSS Grid */
+#subMap1, #subMap2, #subMap3, #subMap4 {
+    display: inline-block;
+    width: 24%; 
+    border-top: 10px solid white;
+    border-bottom: 0px none;
+}
+
+#subMap1, #subMap2, #subMap3 {
+    border-right: 10px solid white;
+}
+
+/* Make sure the MS specific stuff doesn't affect the modern browsers */
+@supports (display: grid) {
+        #subMap1, #subMap2, #subMap3, #subMap4 {
+        width: auto;
+        border: 0px none;
+    }
+}
+
+#VIPSAttribution, .dateField, #layersField {
+    position: absolute;
+    z-index: 1000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
+}
+
+#VIPSAttribution {
+    bottom: 10px;
+    left: 10px;
+}
+
+.dateField, #layersField {
+    border-radius: 5px;
+    padding: 5px;
+    top: 10px;
+    background-color: white;
+    font-weight: bold;
+}
+
+.dateField {
+    
+    right: 10px;
+}
+
+#layersField {
+    left: 45px;
+}
+
+#subMap1 .ol-attribution, #subMap2 .ol-attribution, #subMap3 .ol-attribution, #subMap4 .ol-attribution  ,
+#subMap1 .ol-zoom, #subMap2 .ol-zoom, #subMap3 .ol-zoom, #subMap4 .ol-zoom  
+{
+    display: none;
+}
+
+#VIPSLogo {
+    position: relative;
+    bottom: -5px;
+    width: 50px;
+}
+
+#popup {
+    position: absolute !important;
+    right: 0;
+    left: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+    padding: 20px !important;
+    z-index: 1000;
+    display: none;
+    background-color: white;
+    border: 2px solid black;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
+}
