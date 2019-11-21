@@ -221,6 +221,29 @@ public class LogicService {
         }
     }
     
+    @GET
+    @Path("forecastresults/{forecastConfigurationId}/{dateStart}/{dateEnd}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastResults(
+            @PathParam("forecastConfigurationId") Long forecastConfigurationId,
+            @PathParam("dateStart") String dateStartStr,
+            @PathParam("dateEnd") String dateEndStr
+    )
+    {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try
+        {
+            Date dateStart = format.parse(dateStartStr);
+            Date dateEnd = format.parse(dateEndStr);
+            return Response.ok().entity(SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, dateStart, dateEnd)).build();
+        }
+        catch(ParseException ex)
+        {
+            return Response.serverError().entity(ex.getMessage()).build();
+        }
+    }
+    
     /**
      * @param organizationId
      * @param cropOrganismIds
@@ -318,6 +341,21 @@ public class LogicService {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
+    
+    /**
+     * Returns public forecast configurations for the given model and season
+     * @param modelId
+     * @param year
+     * @return 
+     */
+    @GET
+    @Path("forecastconfigurations/model/{modelId}/{year}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastConfigurationsForModel(@PathParam("modelId") String modelId, @PathParam("year") Integer year)
+    {
+        return Response.ok().entity(SessionControllerGetter.getForecastBean().getForecastConfigurationsForModel(modelId, year)).build();
+    }
+    
     
     /**
      * 

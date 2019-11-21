@@ -1203,4 +1203,17 @@ public class ForecastBean {
         .setParameter("userId", user.getUserId())
         .executeUpdate();
     }
+
+    /**
+     * 
+     * @param modelId
+     * @param year
+     * @return 
+     */
+    public List<ForecastConfiguration> getForecastConfigurationsForModel(String modelId, Integer year) {
+        return em.createNamedQuery("ForecastConfiguration.findByModelIdAndYear")
+                .setParameter("modelId", modelId)
+                .setParameter("year", year)
+                .getResultList();
+    }
 }
