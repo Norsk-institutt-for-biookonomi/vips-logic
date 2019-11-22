@@ -59,7 +59,8 @@ public class GrowthStageService {
     public Response getDateForGrowthStage(
             @PathParam("organismId") Integer organismId,
             @PathParam("growthStages") String growthStagesStr,
-            @QueryParam("location") String location
+            @QueryParam("location") String location,
+            @QueryParam("season") Integer season
     )
     {
         //SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -72,15 +73,15 @@ public class GrowthStageService {
             
             if(growthStage.equals(32))
             {
-                gsDate.put(growthStage, LocalDate.of(LocalDate.now().getYear(), Month.JUNE,10));
+                gsDate.put(growthStage, LocalDate.of(season != null ? season : LocalDate.now().getYear(), Month.JUNE,10));
             }
             else if(growthStage.equals(71))
             {
-                gsDate.put(growthStage, LocalDate.of(LocalDate.now().getYear(), Month.JULY,25));
+                gsDate.put(growthStage, LocalDate.of(season != null ? season : LocalDate.now().getYear(), Month.JULY,25));
             }
             else
             {
-                gsDate.put(growthStage, LocalDate.of(LocalDate.now().getYear(), Month.JANUARY,1));
+                gsDate.put(growthStage, LocalDate.of(season != null ? season : LocalDate.now().getYear(), Month.JANUARY,1));
             }
             retVal.add(gsDate);
         }

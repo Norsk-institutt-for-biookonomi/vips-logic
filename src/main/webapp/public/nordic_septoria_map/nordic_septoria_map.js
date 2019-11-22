@@ -37,16 +37,32 @@ for (var i in views)
 var maps = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null};
 var language = "en";
 
+/**
+ * After all libraries have been loaded (added to the containing page), this
+ * function sets up all the maps and displays the initial view
+ * @returns {undefined}
+ */
 var initMap = function ()
 {
     todayAtMidnight = getTodayAtMidnight();
     var nordicSeptoriaMapContainer = document.getElementById("nordicSeptoriaMapContainer");
-    language = nordicSeptoriaMapContainer.getAttribute("data-language") != null ? nordicSeptoriaMapContainer.getAttribute("data-language") : language;
+    // This is being used by dict, the translation tables
+    language = nordicSeptoriaMapContainer.getAttribute("data-language") !== null ? nordicSeptoriaMapContainer.getAttribute("data-language") : language;
+    // Giving the user the option to choose between the different views
     var viewRadioList = "";
     for (var i in views)
     {
         viewRadioList += "     <input type='radio' name='selectedlayer' " + (views[i] == initialView ? "checked " : "") + "value='" + views[i] + "' onclick='showLayer(this.value);'/> " + geti18nText(views[i]) + "<br/>"
     }
+    // Model results should be calculated by VIPS from 2014 and forward
+    var seasonList = "";
+    var currentSeason = new Date().getFullYear();
+    for(var season=2014;season<=currentSeason;season++)
+    {
+        seasonList += "     <option value='" + season + "'" + (season == currentSeason ? " selected='selected'" : "") + ">" + season + "</option>";
+    }
+    // This HTML is injected into the hosting web page. It contains all of the
+    // maps and the controls
     nordicSeptoriaMapContainer.innerHTML = "<div id='mainMap'>"
                                     + " <div id='popupTooltip_mainMap' class='ol-popup'>"
                                     + "     <a href='#' class='ol-popup-closer' onclick='closeOverlay(this);'></a>"
@@ -60,6 +76,13 @@ var initMap = function ()
                                     + " </div>"
                                     + " <div id='layersField'>"
                                     + viewRadioList
+                                    + " </div>"
+                                    + " <div id='seasonField'>"
+                                    + " <select id='seasonList' name='season' onchange='changeSeason(this.options[this.options.selectedIndex].value);'>"
+                                    + seasonList
+                                    + " </select>"
+                                    + " <input type='date' id='startDate' name='startDate' min='" + currentSeason + "-01-01' onchange='updateResults();'/> "
+                                    + " <input type='date' id='endDate' name='endDate' max='" + currentSeason + "-12-31' onchange='updateResults();'/>"
                                     + " </div>"
                                     + " <div id='VIPSAttribution'>" + geti18nText("poweredBy") + " <a href='https://www.vips-landbruk.no/' target='new'><img id='VIPSLogo' src='" + hostName + "/public/nordic_septoria_map/logo_vips.png'/></a></div>"
                                     + "</div>"
@@ -90,7 +113,7 @@ var initMap = function ()
                                     + "<div id='popup'></div>"
                                     + "</div>";
                                     
-    // Initializing all the layers for all maps
+    // Initializing all the layers (one for each model result view) for all maps
     for (var i in views)
     {
         for(var mapName in featureOverlays[views[i]])
@@ -104,7 +127,7 @@ var initMap = function ()
         }
     }
     
-    // Creating the 5 maps
+    // Creating the 5 maps (present day + 4 days ahead)
     for(var mapName in maps)
     {
         var currentMap = currentMap;
@@ -114,9 +137,9 @@ var initMap = function ()
             layers: [
               new ol.layer.Tile({
                 source: new ol.source.OSM()
-              })//,
-              //featureOverlays["WHS"][mapName]
+              })
             ],
+            // This is the cartoon text bubble
             overlays: [new ol.Overlay({
                     element: document.getElementById('popupTooltip_' + mapName),
                     autoPan: true,
@@ -132,6 +155,7 @@ var initMap = function ()
         {
             maps[mapName].addLayer(featureOverlays[views[i]][mapName]);
         }
+        // When clicking on a feature - get the details and display
         maps[mapName].on('singleclick', function(evt) {
             var pixel = evt.map.getEventPixel(evt.originalEvent);
             var coordinate = evt.coordinate;
@@ -139,9 +163,63 @@ var initMap = function ()
 	});
     }
     showLayer(initialView);
-
 };
 
+var updateResults = function() {
+  console.info("updateResults: TODO");  
+};
+
+/**
+ * 
+ * @returns {undefined}All features are removed. Used at when switching season
+ */
+var clearAll = function()
+{
+    for (var i in views)
+    {
+        for(var mapName in featureOverlays[views[i]])
+        {
+            featureOverlays[views[i]][mapName].getSource().clear();
+        }
+    }
+}
+
+/**
+ * This function does what you think! It clears all current features
+ * and gets/displays results for the new selected season
+ */
+var changeSeason = function(selectedSeason)
+{
+  // Clear layer(s)
+  clearAll();
+  // Set date field limits
+  var startDate = document.getElementById("startDate").value;
+  var endDate = document.getElementById("endDate").value;
+  document.getElementById("startDate").value = 
+          document.getElementById("startDate").value != "" ? 
+            selectedSeason + document.getElementById("startDate").value.substring(4) : 
+            "";
+  document.getElementById("endDate").value = 
+          document.getElementById("endDate").value != "" ? 
+            selectedSeason + document.getElementById("endDate").value.substring(4) : 
+            "";
+  // Get results for this season
+  getResults[getVisibleLayerName()](getCurrentSeason());
+  
+};
+
+/**
+ * Which season is currently in use? Checking the season select list
+ */
+var getCurrentSeason = function()
+{
+    return parseInt(document.getElementById('seasonList').options[document.getElementById('seasonList').options.selectedIndex].value);
+}
+
+/**
+ * Collects features at the point clicked on the map. Displays the feature
+ * properties (differs between views/models) in a cartoon text bubble
+ */
 var displayFeatureDetails = function(map, pixel, coordinate)
 {
     var features = [];
@@ -159,6 +237,9 @@ var displayFeatureDetails = function(map, pixel, coordinate)
     currentOverlay.setPosition(coordinate);
 }
 
+/**
+ * Returns a text representation of the feature, including specific properties
+ */
 var getFeatureDetails = {
     "WHS": function(features) { return "TODO"; },
     "rainyDays": function(features) {
@@ -167,6 +248,9 @@ var getFeatureDetails = {
     }
 };
 
+/**
+ * Closing the cartoon text bubble (clicked feature details)
+ */
 var closeOverlay = function(theCloser)
 {
     var currentOverlay = maps[theCloser.parentNode.id.split("_")[1]].getOverlays().item(0);
@@ -183,13 +267,12 @@ var closeOverlay = function(theCloser)
  */
 function showLayer(layerName)
 {
+    //console.info("Attempting to show " + layerName);
     // Has this layer been initialized already?
-    console.info("Attempting to show " + layerName);
-    
     if(featureOverlays[layerName]["mainMap"].getSource().getFeatures().length == 0)
     {
-         console.info("Layer " + layerName + " is new, need to get data ");
-         getResults[layerName]();
+         //console.info("Layer " + layerName + " is new, need to get data ");
+         getResults[layerName](getCurrentSeason());
     }
     for(var mapName in maps)
     {
@@ -202,8 +285,9 @@ function showLayer(layerName)
 }
 
 /**
- * 
- * @returns {String}
+ * Which layer is currently visible? I can tell you, using my immense powers
+ * of deduction!
+ * @returns {String} The name of the currently visible layer
  */
 var getVisibleLayerName = function()
 {
@@ -220,7 +304,10 @@ var getVisibleLayerName = function()
  * Contains layer specific methods for fetching and displaying the data
  */
 var getResults = {
-    "WHS" : function(){
+    /**
+     * TODO: This is old school
+     */
+    "WHS" : function(season){
         ajax(hostName + "/rest/forecastresults/-1000", function(e){
         //ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
             var results = JSON.parse(e.target.responseText);
@@ -235,25 +322,22 @@ var getResults = {
             }
             // This is here to fix an apparent bug in having Vector tiles
             // within the CSS grid system
+            // THE FIRST LAYER THAT IS BEING SHOWN ON THE MAP MUST DO THIS. 
+            // AT LEAST ONCE.
             window.dispatchEvent(new Event('resize'));
         });
     },
     "observedDisease": function() { console.info("NOT IMPLEMENTED");},
     "yieldLoss": function() { console.info("NOT IMPLEMENTED");},
-    "rainyDays": function() { 
+    "rainyDays": function(season) { 
         // Retrieve the forecast ids first
-        ajax(hostName + "/rest/forecastconfigurations/model/RAINYDAYSM/2019", function(e){
-            //console.info(e);
+        ajax(hostName + "/rest/forecastconfigurations/model/RAINYDAYSM/" + season, function(e){
             forecastsForSeason = JSON.parse(e.target.responseText);
-            
-            // For each forecast config, get the results for a given period (GS32-GS71 or user selected)
-            // and aggregate
+            // For each forecast config, get the results for a given season 
+            // and aggregate for a given period (GS32-GS71 or user selected)
             for(var i in forecastsForSeason)
             {
-                // This is a closure. It has access to the parent function's variables. 
-                // This is how we keep state in this chain of Ajax calls
-                var getForecastResults = function(e){
-                    
+                ajax(hostName + "/rest/forecastresults/" + forecastsForSeason[i].forecastConfigurationId + "/" + season + "-01-01/" + season + "-12-31", function(e){
                     var forecastResults = JSON.parse(e.target.responseText);
                     //console.info(forecastResults);
                     var currentForecastId = forecastResults[0].forecastConfigurationId;
@@ -266,10 +350,13 @@ var getResults = {
                             break;
                         }
                     }
-                    
-                    var getForecastGSTimeLimit = function(e){
+                    ajax(hostName + "/rest/gs/date/32,71/25/?season=" + season + "&location=" + currentForecast.locationPointOfInterestId.longitude + "," + currentForecast.locationPointOfInterestId.latitude, function(e){
+                        // This callback interprets the data returned from 
+                        // the VIPSLogic GrowthStageService
+                        // It then forwards results and GS dates to displayResults
                         var GSResults = JSON.parse(e.target.responseText);
                         var GS32Date, GS71Date;
+                        
                         for(var i in GSResults)
                         {
                             if(GSResults[i]["32"] != null)
@@ -281,14 +368,18 @@ var getResults = {
                                 GS71Date = moment(GSResults[i]["71"]);
                             }
                         }
+                        
+                        var startDate = document.getElementById("startDate").value != "" ? moment(document.getElementById("startDate").value) : GS32Date;
+                        var endDate = document.getElementById("endDate").value != "" ? moment(document.getElementById("endDate").value) : GS71Date;
+                        //console.info("startDate=" + startDate.format("YYYY-MM-DD"));
                         // We now have everything we need to calculate the sum
                         var rainyDaysSum = 0;
                         for(var i in forecastResults)
                         {
                             var validTimeStart = moment(forecastResults[i].validTimeStart);
                             if(
-                                    validTimeStart.isSameOrAfter(GS32Date) 
-                                    && validTimeStart.isSameOrBefore(GS71Date) 
+                                    validTimeStart.isSameOrAfter(startDate) 
+                                    && validTimeStart.isSameOrBefore(endDate) 
                                     && forecastResults[i].allValues["RAINYDAYSM.RAINY_DAY"] == "true"
                             )
                             {
@@ -296,21 +387,19 @@ var getResults = {
                             }
                         }
                         // We have the sum and location, let's display it on the map!
+                        // THIS IS THE LAST STEP IN THIS CHAIN!
                         displayResults["rainyDays"](rainyDaysSum, GS32Date, GS71Date, currentForecast);
-                    }
-                    ajax(hostName + "/rest/gs/date/32,71/25/?location=" + currentForecast.locationPointOfInterestId.longitude + "," + currentForecast.locationPointOfInterestId.latitude, getForecastGSTimeLimit);
-                };
-                ajax(hostName + "/rest/forecastresults/" + forecastsForSeason[i].forecastConfigurationId + "/2019-05-01/2019-09-13", getForecastResults);
+                    });
+                });
             }
         });
     },
     "HM": function() { console.info("NOT IMPLEMENTED");},
 };
 
-// "observedDisease","yieldLoss","rainyDays","WHS","HM"
-
 var featureZIndex = 10;
-
+// This is used by OpenLayers to define the features' looks
+// The different models have varying thresholds, colors etc
 var getFeatureStyle = {
     "WHS": function(feature)
     {
@@ -339,7 +428,6 @@ var getFeatureStyle = {
     },
     "rainyDays": function(feature)
     {
-        //console.info(feature);
         var rainyDays = parseInt(feature.get("rainyDays"));
         var color = rainyDays < 4 ? "green" : "red";
         
@@ -362,14 +450,17 @@ var getFeatureStyle = {
     }
 };
 
+/**
+ * 
+ * Creating OpenLayers features from the model results from VIPSLogiv and 
+ * displaying them on the map
+ */
 var displayResults = {
     "WHS" : function(results,mapName, date){
         var features = [];
         //var momentDate = moment(date);
         for(var i in results)
         {
-            //console.info(moment(results[i].validTimeStart).format() + "==" + date.format());
-
             if(moment(results[i].validTimeStart).isSame(date)){
                 //console.info(results[i].validGeometry.coordinates);
                 var feature = new ol.Feature({
@@ -380,8 +471,6 @@ var displayResults = {
                 features.push(feature);
             }
         }
-        //var featureSource = new ol.source.Vector({features:features});
-        //console.info(features);
         featureOverlays["WHS"][mapName].getSource().clear();
         featureOverlays["WHS"][mapName].getSource().addFeatures(features);
         
@@ -405,6 +494,13 @@ var displayResults = {
     }
 };
 
+/**
+ * 
+ * @param {type} url
+ * @param {type} callback
+ * @returns {undefined}General XMLHttpRequest utility function. To avoid using JQuery or similarly
+ * bloated framework
+ */
 var ajax = function(url, callback)
 {
     var xhr = new XMLHttpRequest();
@@ -413,6 +509,9 @@ var ajax = function(url, callback)
     xhr.send();
 };
 
+/**
+ * Simple popup with detailed description of each model
+ */
 var showModelInfo = {
     "WHS": function()
     {
@@ -440,6 +539,10 @@ var hideModelInfo = function()
     document.getElementById('popup').style.display="none";
 }
 
+/**
+ * TODO: this is using Europe/Oslo as default. What about Finland/the Baltics?
+ * @returns {getTodayAtMidnight.today}
+ */
 function getTodayAtMidnight()
 {
     var timeZone="Europe/Oslo";
@@ -475,7 +578,7 @@ var getLayerLegend = {
 // All the stuff below is for dynamically loading all JavaScript Libs that are
 // needed to run the application
 
-// After the client document has finished loading, we download OpenLayers and subsequently
+// After the client document has finished loading, we download OpenLayers, MomentJS and subsequently
 // initialize the map.
 document.addEventListener("DOMContentLoaded", function() {
   // Some introspection here

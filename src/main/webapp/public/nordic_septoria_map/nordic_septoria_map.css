@@ -64,7 +64,7 @@ along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
     }
 }
 
-#VIPSAttribution, .dateField, #layersField {
+#VIPSAttribution, .dateField, #layersField, #seasonField {
     position: absolute;
     z-index: 1000;
     font-family: Arial, Helvetica, sans-serif;
@@ -89,8 +89,12 @@ along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
     right: 10px;
 }
 
-#layersField {
+#layersField, #seasonField {
     left: 45px;
+}
+
+#seasonField {
+    top: 150px;
 }
 
 #subMap1 .ol-attribution, #subMap2 .ol-attribution, #subMap3 .ol-attribution, #subMap4 .ol-attribution  ,
