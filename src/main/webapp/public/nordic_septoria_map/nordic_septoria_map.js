@@ -27,15 +27,21 @@ var hostName;
 //var results;
 //var localTimeZoneOffset = 120;
 var todayAtMidnight; 
-var views = ["observedDisease","yieldLoss","rainyDays","WHS","HM"];
+var views =             ["observedDisease", "yieldLoss",    "rainyDays",    "WHS",          "HM"            ];
+var modelNames =        [null,              null,           "RAINYDAYSM",   "SEPTREFHUM",   "SEPTORIAHU"    ];
+var viewsModelNames = {};
 var initialView = "WHS";
 var featureOverlays = {};
+var viewsForecastCache = {}; // For one season only
 for (var i in views)
 {
     featureOverlays[views[i]] = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null};
+    viewsForecastCache[views[i]] = [];
+    viewsModelNames[views[i]] = modelNames[i];
 }
 var maps = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null};
 var language = "en";
+
 
 /**
  * After all libraries have been loaded (added to the containing page), this
@@ -80,8 +86,8 @@ var initMap = function ()
                                     + " <div id='seasonField'>"
                                     + " <select id='seasonList' name='season' onchange='changeSeason(this.options[this.options.selectedIndex].value);'>"
                                     + seasonList
-                                    + " </select>"
-                                    + " <input type='date' id='startDate' name='startDate' min='" + currentSeason + "-01-01' onchange='updateResults();'/> "
+                                    + " </select><br/>"
+                                    + " <input type='date' id='startDate' name='startDate' min='" + currentSeason + "-01-01' onchange='updateResults();'/><br/>"
                                     + " <input type='date' id='endDate' name='endDate' max='" + currentSeason + "-12-31' onchange='updateResults();'/>"
                                     + " </div>"
                                     + " <div id='VIPSAttribution'>" + geti18nText("poweredBy") + " <a href='https://www.vips-landbruk.no/' target='new'><img id='VIPSLogo' src='" + hostName + "/public/nordic_septoria_map/logo_vips.png'/></a></div>"
@@ -166,12 +172,50 @@ var initMap = function ()
 };
 
 var updateResults = function() {
-  console.info("updateResults: TODO");  
+    var startDate = document.getElementById('startDate').value !== "" ? moment(document.getElementById('startDate').value) : null;
+    var endDate = document.getElementById('endDate').value !== "" ? moment(document.getElementById('endDate').value) : null;
+    // Using custom dates
+    if(startDate !== null && endDate !== null)
+    {
+        if(startDate.isSameOrAfter(endDate))
+        {
+            alert("ERROR: Start date is on same day or after end date. Please correct this.");
+            return;
+        }
+        clearAll();
+        var currentLayer = getVisibleLayerName();
+        for(var i in viewsForecastCache[currentLayer])
+        {
+            var currentForecast = viewsForecastCache[currentLayer][i];
+            displayResults[currentLayer](
+                    calculateResults[currentLayer](currentForecast.forecastResults, startDate, endDate),
+                    currentForecast.GS32Date,
+                    currentForecast.GS71Date,
+                    currentForecast.forecastConfiguration
+            )
+        }
+    }
+    // Using the estimated GS dates for each location
+    else if(startDate === null && endDate === null)
+    {
+        clearAll();
+        var currentLayer = getVisibleLayerName();
+        for(var i in viewsForecastCache[currentLayer])
+        {
+            var currentForecast = viewsForecastCache[currentLayer][i];
+            displayResults[currentLayer](
+                    calculateResults[currentLayer](currentForecast.forecastResults, currentForecast.GS32Date, currentForecast.GS71Date),
+                    currentForecast.GS32Date,
+                    currentForecast.GS71Date,
+                    currentForecast.forecastConfiguration
+            )
+        }
+    }
 };
 
 /**
  * 
- * @returns {undefined}All features are removed. Used at when switching season
+ * @returns {undefined}All features are removed. Used when switching season
  */
 var clearAll = function()
 {
@@ -192,9 +236,12 @@ var changeSeason = function(selectedSeason)
 {
   // Clear layer(s)
   clearAll();
+  // Clear cache
+  for(var i in viewsForecastCache)
+  {
+      viewsForecastCache[i] = [];
+  }
   // Set date field limits
-  var startDate = document.getElementById("startDate").value;
-  var endDate = document.getElementById("endDate").value;
   document.getElementById("startDate").value = 
           document.getElementById("startDate").value != "" ? 
             selectedSeason + document.getElementById("startDate").value.substring(4) : 
@@ -241,7 +288,10 @@ var displayFeatureDetails = function(map, pixel, coordinate)
  * Returns a text representation of the feature, including specific properties
  */
 var getFeatureDetails = {
-    "WHS": function(features) { return "TODO"; },
+    "WHS": function(features) { 
+        var properties = features[0].getProperties();
+        return "GS 32 estimated at " + properties.GS32Date.format("YYYY-MM-DD") + ", GS 71 estimated at " + properties.GS71Date.format("YYYY-MM-DD");
+    },
     "rainyDays": function(features) {
         var properties = features[0].getProperties();
         return "GS 32 estimated at " + properties.GS32Date.format("YYYY-MM-DD") + ", GS 71 estimated at " + properties.GS71Date.format("YYYY-MM-DD");
@@ -300,38 +350,9 @@ var getVisibleLayerName = function()
     }
 };
 
-/**
- * Contains layer specific methods for fetching and displaying the data
- */
-var getResults = {
-    /**
-     * TODO: This is old school
-     */
-    "WHS" : function(season){
-        ajax(hostName + "/rest/forecastresults/-1000", function(e){
-        //ajax("http://vipslogic-local.no/rest/forecastresults/-1000", function(e){
-            var results = JSON.parse(e.target.responseText);
-            //console.info(todayAtMidnight);
-            var currentDay = todayAtMidnight;
-            for(var mapName in maps)
-            {
-                //console.info("currentDay=" + currentDay.format());
-                displayResults["WHS"](results,mapName, currentDay);
-                //currentDay.setDate(currentDay.getDate()+1);
-                currentDay.add(1,"days");
-            }
-            // This is here to fix an apparent bug in having Vector tiles
-            // within the CSS grid system
-            // THE FIRST LAYER THAT IS BEING SHOWN ON THE MAP MUST DO THIS. 
-            // AT LEAST ONCE.
-            window.dispatchEvent(new Event('resize'));
-        });
-    },
-    "observedDisease": function() { console.info("NOT IMPLEMENTED");},
-    "yieldLoss": function() { console.info("NOT IMPLEMENTED");},
-    "rainyDays": function(season) { 
-        // Retrieve the forecast ids first
-        ajax(hostName + "/rest/forecastconfigurations/model/RAINYDAYSM/" + season, function(e){
+var getResultsChain = function(season, layerName)
+{
+    ajax(hostName + "/rest/forecastconfigurations/model/" + viewsModelNames[layerName] + "/" + season, function(e){
             forecastsForSeason = JSON.parse(e.target.responseText);
             // For each forecast config, get the results for a given season 
             // and aggregate for a given period (GS32-GS71 or user selected)
@@ -339,17 +360,22 @@ var getResults = {
             {
                 ajax(hostName + "/rest/forecastresults/" + forecastsForSeason[i].forecastConfigurationId + "/" + season + "-01-01/" + season + "-12-31", function(e){
                     var forecastResults = JSON.parse(e.target.responseText);
+                    if(forecastResults.length === 0)
+                    {
+                        return;
+                    }
                     //console.info(forecastResults);
                     var currentForecastId = forecastResults[0].forecastConfigurationId;
                     var currentForecast = null;
                     for(var j in forecastsForSeason)
                     {
-                        if(forecastsForSeason[j].forecastConfigurationId == currentForecastId)
+                        if(forecastsForSeason[j].forecastConfigurationId === currentForecastId)
                         {
                             currentForecast = forecastsForSeason[j];
                             break;
                         }
                     }
+                    
                     ajax(hostName + "/rest/gs/date/32,71/25/?season=" + season + "&location=" + currentForecast.locationPointOfInterestId.longitude + "," + currentForecast.locationPointOfInterestId.latitude, function(e){
                         // This callback interprets the data returned from 
                         // the VIPSLogic GrowthStageService
@@ -373,29 +399,76 @@ var getResults = {
                         var endDate = document.getElementById("endDate").value != "" ? moment(document.getElementById("endDate").value) : GS71Date;
                         //console.info("startDate=" + startDate.format("YYYY-MM-DD"));
                         // We now have everything we need to calculate the sum
-                        var rainyDaysSum = 0;
-                        for(var i in forecastResults)
-                        {
-                            var validTimeStart = moment(forecastResults[i].validTimeStart);
-                            if(
-                                    validTimeStart.isSameOrAfter(startDate) 
-                                    && validTimeStart.isSameOrBefore(endDate) 
-                                    && forecastResults[i].allValues["RAINYDAYSM.RAINY_DAY"] == "true"
-                            )
-                            {
-                                rainyDaysSum++;
-                            }
-                        }
+                        var layerResults = calculateResults[layerName](forecastResults, startDate, endDate);
+                        
                         // We have the sum and location, let's display it on the map!
                         // THIS IS THE LAST STEP IN THIS CHAIN!
-                        displayResults["rainyDays"](rainyDaysSum, GS32Date, GS71Date, currentForecast);
+                        displayResults[layerName](layerResults, GS32Date, GS71Date, currentForecast);
+                        // We must cache these results
+                        viewsForecastCache[layerName].push({
+                            forecastConfiguration: currentForecast,
+                            forecastResults: forecastResults,
+                            GS32Date: GS32Date,
+                            GS71Date: GS71Date
+                        });
                     });
                 });
             }
         });
+}
+
+/**
+ * Contains layer specific methods for fetching and displaying the data
+ */
+var getResults = {
+    /**
+     * TODO: This is old school
+     */
+    "WHS" : function(season){
+        getResultsChain(season, "WHS");
+    },
+    "observedDisease": function() { console.info("NOT IMPLEMENTED");},
+    "yieldLoss": function() { console.info("NOT IMPLEMENTED");},
+    "rainyDays": function(season) { 
+        getResultsChain(season, "rainyDays");
     },
     "HM": function() { console.info("NOT IMPLEMENTED");},
 };
+
+var calculateResults = {
+    "WHS": function(forecastResults, startDate, endDate){
+        var WHSSum = 0;
+        for(var i in forecastResults)
+        {
+            var validTimeStart = moment(forecastResults[i].validTimeStart);
+            if(
+                    validTimeStart.isSameOrAfter(startDate) 
+                    && validTimeStart.isSameOrBefore(endDate) 
+            )
+            {
+                WHSSum += parseInt(forecastResults[i].allValues["SEPTREFHUM.WHS"]);
+            }
+        }
+        return WHSSum;        
+    },
+    
+    "rainyDays": function(forecastResults, startDate, endDate) {
+        var rainyDaysSum = 0;
+        for(var i in forecastResults)
+        {
+            var validTimeStart = moment(forecastResults[i].validTimeStart);
+            if(
+                    validTimeStart.isSameOrAfter(startDate) 
+                    && validTimeStart.isSameOrBefore(endDate) 
+                    && forecastResults[i].allValues["RAINYDAYSM.RAINY_DAY"] == "true"
+            )
+            {
+                rainyDaysSum++;
+            }
+        }
+        return rainyDaysSum;
+    }
+}
 
 var featureZIndex = 10;
 // This is used by OpenLayers to define the features' looks
@@ -456,27 +529,16 @@ var getFeatureStyle = {
  * displaying them on the map
  */
 var displayResults = {
-    "WHS" : function(results,mapName, date){
-        var features = [];
-        //var momentDate = moment(date);
-        for(var i in results)
-        {
-            if(moment(results[i].validTimeStart).isSame(date)){
-                //console.info(results[i].validGeometry.coordinates);
-                var feature = new ol.Feature({
-                    geometry:new ol.geom.Point(ol.proj.fromLonLat(results[i].validGeometry.coordinates)),
-                    WHS: results[i].allValues["GRIDZYMOSE.WHS"]
+    "WHS" : function(WHSSum, GS32Date, GS71Date, currentForecast){
+        var feature = new ol.Feature({
+                    geometry:new ol.geom.Point(ol.proj.fromLonLat([currentForecast.locationPointOfInterestId.longitude,currentForecast.locationPointOfInterestId.latitude])),
+                    WHS: WHSSum.toString(),
+                    GS32Date: GS32Date,
+                    GS71Date: GS71Date
                 });
-                //console.info(feature.getGeometry());
-                features.push(feature);
-            }
-        }
-        featureOverlays["WHS"][mapName].getSource().clear();
-        featureOverlays["WHS"][mapName].getSource().addFeatures(features);
-        
-        //console.info(featureOverlays["WHS"].mainMap.getSource().getFeatures());
-        // Setting the results date
-        document.getElementById(mapName + "DateField").innerHTML = date.format("YYYY-MM-DD");//date.getFullYear() + "-" + ("0" + (date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2);
+        var features = [];
+        features.push(feature);
+        featureOverlays["WHS"]["mainMap"].getSource().addFeatures(features);
     },
     // This may be called several times, make sure we don't remove features from 
     // the layer
@@ -490,7 +552,6 @@ var displayResults = {
         var features = [];
         features.push(feature);
         featureOverlays["rainyDays"]["mainMap"].getSource().addFeatures(features);
-        
     }
 };
 
