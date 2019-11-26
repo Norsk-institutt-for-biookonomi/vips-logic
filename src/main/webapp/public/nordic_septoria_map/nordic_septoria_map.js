@@ -295,6 +295,10 @@ var getFeatureDetails = {
     "rainyDays": function(features) {
         var properties = features[0].getProperties();
         return "GS 32 estimated at " + properties.GS32Date.format("YYYY-MM-DD") + ", GS 71 estimated at " + properties.GS71Date.format("YYYY-MM-DD");
+    },
+    "HM": function(features) {
+        var properties = features[0].getProperties();
+        return "GS 32 estimated at " + properties.GS32Date.format("YYYY-MM-DD") + ", GS 71 estimated at " + properties.GS71Date.format("YYYY-MM-DD");
     }
 };
 
@@ -432,7 +436,9 @@ var getResults = {
     "rainyDays": function(season) { 
         getResultsChain(season, "rainyDays");
     },
-    "HM": function() { console.info("NOT IMPLEMENTED");},
+    "HM": function(season) { 
+        getResultsChain(season,"HM");
+    },
 };
 
 var calculateResults = {
@@ -467,6 +473,23 @@ var calculateResults = {
             }
         }
         return rainyDaysSum;
+    },
+    "HM": function(forecastResults, startDate, endDate){
+        var numberOfRiskPeriods = 0;
+        for(var i in forecastResults)
+        {
+            var validTimeStart = moment(forecastResults[i].validTimeStart);
+            if(
+                    validTimeStart.isSameOrAfter(startDate) 
+                    && validTimeStart.isSameOrBefore(endDate) 
+                    && forecastResults[i].warningStatus === 4
+                    && (i > 0 && forecastResults[i-1].warningStatus !== 4)
+            )
+            {
+                numberOfRiskPeriods++;
+            }
+        }
+       return numberOfRiskPeriods;
     }
 }
 
@@ -520,6 +543,27 @@ var getFeatureStyle = {
                     zIndex: featureZIndex++
                 })
         ];
+    },
+    "HM" : function(feature){
+        var numberOfRiskPeriods = parseInt(feature.get("numberOfRiskPeriods"));
+        var color = numberOfRiskPeriods < 4 ? "green" : "red";
+        
+        return [
+                new ol.style.Style({
+                    image: new ol.style.Circle({
+                        fill: new ol.style.Fill({ color: color }),
+                        stroke: new ol.style.Stroke({ color: [0,0,0,0], width: 0 }),
+                        radius: 11
+                    }),
+                    text: new ol.style.Text({
+                        text: feature.get("numberOfRiskPeriods"),
+                        font: 'bold 12px sans-serif',
+                        fill: new ol.style.Fill({ color: "white" }),
+                        stroke: new ol.style.Stroke({ color: [90,90,90,1], width: 1 })
+                    }),
+                    zIndex: featureZIndex++
+                })
+        ];
     }
 };
 
@@ -552,6 +596,17 @@ var displayResults = {
         var features = [];
         features.push(feature);
         featureOverlays["rainyDays"]["mainMap"].getSource().addFeatures(features);
+    },
+    "HM": function(numberOfRiskPeriods, GS32Date, GS71Date, currentForecast){
+        var feature = new ol.Feature({
+                    geometry:new ol.geom.Point(ol.proj.fromLonLat([currentForecast.locationPointOfInterestId.longitude,currentForecast.locationPointOfInterestId.latitude])),
+                    numberOfRiskPeriods: numberOfRiskPeriods.toString(),
+                    GS32Date: GS32Date,
+                    GS71Date: GS71Date
+                });
+        var features = [];
+        features.push(feature);
+        featureOverlays["HM"]["mainMap"].getSource().addFeatures(features);
     }
 };
 
@@ -631,6 +686,9 @@ var getLayerLegend = {
             + "             <tr><td>&gt;= 4</td><td style='color: red; background-color: #777777; font-weight: bold;'>" + geti18nText("risk_high") + "</td></tr>"
             + "             <tr><td><span style='cursor:pointer; color: green;' onclick='showModelInfo[\"rainyDays\"]();'><i class='fas fa-info-circle'></i></span></td><td></td></tr>"
             + "         </table>";
+    },
+    "HM": function(){
+        return "TODO";
     }
 };
 
