@@ -143,6 +143,46 @@ public class WheatLeafBlotchModelService {
         }
     }
     
+    /**
+     * Returns the yield loss from Septoria in wheat(?)
+     * @param organizationId
+     * @param season
+     * @return 
+     */
+    @GET
+    @Path("yieldloss/septoria/{organizationId}/{season}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getYieldLoss(
+            @PathParam("organizationId") Integer organizationId,
+            @PathParam("season") Integer season
+    )
+    {
+        List<YieldLoss> retVal;
+        if(organizationId <= 0)
+        {
+            retVal = em.createNamedQuery("YieldLoss.findBySeason")
+                    .setParameter("season", season)
+                    .getResultList();
+        }
+        else
+        {
+            retVal = em.createNativeQuery("SELECT * FROM wheatleafb.yield_loss \n" +
+                    "WHERE season = :season\n" +
+                    "AND point_of_interest_id IN (\n" +
+                    "	SELECT point_of_interest_id FROM point_of_interest\n" +
+                    "	WHERE user_id IN (SELECT user_id FROM vips_logic_user WHERE organization_id = :organizationId" +
+                    "       )\n" +
+                    ")"
+                    , 
+                    YieldLoss.class
+                    )
+                    .setParameter("organizationId", organizationId)
+                    .setParameter("season", season)
+                    .getResultList();
+        }
+        return Response.ok().entity(retVal).build();
+    }
+    
     @GET
     @Path("runmodel/{organizationId}")
     @Produces("application/json;charset=UTF-8")

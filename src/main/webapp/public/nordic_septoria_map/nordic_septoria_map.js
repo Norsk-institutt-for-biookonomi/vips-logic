@@ -71,7 +71,7 @@ var initMap = function ()
     // maps and the controls
     nordicSeptoriaMapContainer.innerHTML = "<div id='mainMap'>"
                                     + " <div id='popupTooltip_mainMap' class='ol-popup'>"
-                                    + "     <a href='#' class='ol-popup-closer' onclick='closeOverlay(this);'></a>"
+                                    + "     <span class='ol-popup-closer' onclick='closeOverlay(this);'></span>"
                                     + "     <div></div>"
                                     + " </div>"
                                     + " <div class='dateField'>"
@@ -86,8 +86,8 @@ var initMap = function ()
                                     + " <div id='seasonField'>"
                                     + " <select id='seasonList' name='season' onchange='changeSeason(this.options[this.options.selectedIndex].value);'>"
                                     + seasonList
-                                    + " </select><br/>"
-                                    + " <input type='date' id='startDate' name='startDate' min='" + currentSeason + "-01-01' onchange='updateResults();'/><br/>"
+                                    + " </select>"
+                                    + " <input type='date' id='startDate' name='startDate' min='" + currentSeason + "-01-01' onchange='updateResults();'/>"
                                     + " <input type='date' id='endDate' name='endDate' max='" + currentSeason + "-12-31' onchange='updateResults();'/>"
                                     + " </div>"
                                     + " <div id='VIPSAttribution'>" + geti18nText("poweredBy") + " <a href='https://www.vips-landbruk.no/' target='new'><img id='VIPSLogo' src='" + hostName + "/public/nordic_septoria_map/logo_vips.png'/></a></div>"
@@ -118,7 +118,11 @@ var initMap = function ()
                                     + "<div id='subMap4DateField' class='dateField'></div></div>"
                                     + "<div id='popup'></div>"
                                     + "</div>";
-                                    
+
+    //console.info("areWeInSeason() ? " + areWeInSeason());
+    toggleLegendVisibility(areWeInSeason());
+    toggleSubMapsVisibility(areWeInSeason());
+    
     // Initializing all the layers (one for each model result view) for all maps
     for (var i in views)
     {
@@ -170,6 +174,52 @@ var initMap = function ()
     }
     showLayer(initialView);
 };
+
+var toggleLegendVisibility = function(visible)
+{
+    var dateFieldEls = document.getElementsByClassName("dateField");
+    for(var i=0; i< dateFieldEls.length;i++)
+    {
+        if(visible)
+        {
+            dateFieldEls[i].classList.remove("hidden");
+        }
+        else
+        {
+            dateFieldEls[i].classList.add("hidden");
+        }
+    }
+}
+
+var toggleSubMapsVisibility = function(visible)
+{
+    for(var i=1;i<=4;i++)
+    {
+        var subMapDiv = document.getElementById("subMap" + i);
+        subMapDiv.style.display= visible ? "block":"none";
+    }
+};
+
+// Investigates if NOW is within the latest growing season 
+// (arbitrarily decided to be XXXX-03-01 - XXXX-10-01)
+// And the selected season is the current season
+function areWeInSeason()
+{
+    var thisYear = new Date().getFullYear();
+    if(getCurrentSeason() === thisYear)
+    {
+        // Active season is arbitrarily decided to be XXXX-03-01 - XXXX-10-01
+        // Months are zero based
+        var seasonStart = new Date(thisYear, 2, 1);
+        var seasonEnd = new Date(thisYear, 9, 1);
+        var now = new Date();
+        return now >= seasonStart && now <= seasonEnd;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 var updateResults = function() {
     var startDate = document.getElementById('startDate').value !== "" ? moment(document.getElementById('startDate').value) : null;
@@ -234,6 +284,8 @@ var clearAll = function()
  */
 var changeSeason = function(selectedSeason)
 {
+    toggleLegendVisibility(areWeInSeason());
+    toggleSubMapsVisibility(areWeInSeason());
   // Clear layer(s)
   clearAll();
   // Clear cache
@@ -299,6 +351,12 @@ var getFeatureDetails = {
     "HM": function(features) {
         var properties = features[0].getProperties();
         return "GS 32 estimated at " + properties.GS32Date.format("YYYY-MM-DD") + ", GS 71 estimated at " + properties.GS71Date.format("YYYY-MM-DD");
+    },
+    "observedDisease": function(features){
+        return "";
+    },
+    "yieldLoss": function(features){
+        return "";
     }
 };
 
@@ -431,8 +489,25 @@ var getResults = {
     "WHS" : function(season){
         getResultsChain(season, "WHS");
     },
-    "observedDisease": function() { console.info("NOT IMPLEMENTED");},
-    "yieldLoss": function() { console.info("NOT IMPLEMENTED");},
+    "observedDisease": function(season) { 
+        ajax(hostName + "/rest/observation/filter/1?pestId=123&cropId=70&from=" + season + "-12-30&to=" + (season + 1) + "-01-01", function(e){
+                var observations = JSON.parse(e.target.responseText);
+                for(var i in observations)
+                {
+                    displayResults["observedDisease"](observations[i]);
+                }
+            }
+        ); 
+    
+    },
+    "yieldLoss": function(season) { ajax(hostName + "/rest/wheatleafblotchmodel/yieldloss/septoria/-1/" + season, function(e){
+                var yieldLosses = JSON.parse(e.target.responseText);
+                for(var i in yieldLosses)
+                {
+                    displayResults["yieldLoss"](yieldLosses[i]);
+                }
+            }
+        ); },
     "rainyDays": function(season) { 
         getResultsChain(season, "rainyDays");
     },
@@ -564,6 +639,66 @@ var getFeatureStyle = {
                     zIndex: featureZIndex++
                 })
         ];
+    },
+    "observedDisease": function(feature){
+        var color =  "green";
+        var observedDisease = parseFloat(feature.get("observedDisease"));
+        if(observedDisease >=0.5)
+        {
+            color = "yellow";
+        }
+        if(observedDisease >= 5)
+        {
+            color = "orange";
+        }
+        if(observedDisease >= 10)
+        {
+            color = "red";
+        }
+        if(observedDisease >= 50)
+        {
+            color = "#990000";
+        }
+  
+        return [
+                new ol.style.Style({
+                    image: new ol.style.Circle({
+                        fill: new ol.style.Fill({ color: color }),
+                        stroke: new ol.style.Stroke({ color: [0,0,0,0], width: 0 }),
+                        radius: 11
+                    }),
+                    text: new ol.style.Text({
+                        text: feature.get("observedDisease"),
+                        font: 'bold 12px sans-serif',
+                        fill: new ol.style.Fill({ color: "white" }),
+                        stroke: new ol.style.Stroke({ color: [90,90,90,1], width: 1 })
+                    }),
+                    zIndex: featureZIndex++
+                })
+        ];
+    },
+    "yieldLoss" : function(feature){
+        var color = "green";
+        //var radius = 11 + (Math.min(2,feature.get("yieldLoss").length - 2)) * 4;
+        var radius = 2;
+        // TODO: Add threshold!
+        return [
+                new ol.style.Style({
+                    image: new ol.style.Circle({
+                        fill: new ol.style.Fill({ color: color }),
+                        stroke: new ol.style.Stroke({ color: [0,0,0,0], width: 0 }),
+                        //radius: 11
+                        radius: radius
+                    }),
+                    text: new ol.style.Text({
+                        text: feature.get("yieldLoss"),
+                        font: 'bold 12px sans-serif',
+                        fill: new ol.style.Fill({ color: "white" }),
+                        stroke: new ol.style.Stroke({ color: [90,90,90,1], width: 1 })
+                    }),
+                    zIndex: featureZIndex++
+                })
+        ];
     }
 };
 
@@ -607,6 +742,29 @@ var displayResults = {
         var features = [];
         features.push(feature);
         featureOverlays["HM"]["mainMap"].getSource().addFeatures(features);
+    },
+    "observedDisease": function(observation){
+        var observationData = JSON.parse(observation.observationData);
+        
+        //console.info(JSON.parse(observation.observationData));
+        var feature = new ol.Feature({
+           geometry: new ol.geom.Point(ol.proj.fromLonLat([observation.location.longitude, observation.location.latitude])),
+           observedDisease: observationData.number.toString()
+        });
+        var features = [];
+        features.push(feature);
+        featureOverlays["observedDisease"]["mainMap"].getSource().addFeatures(features);
+    },
+    "yieldLoss": function(yieldLoss){
+        //console.info(yieldLoss);
+        var location = yieldLoss.yieldLossPK.pointOfInterestId;
+        var feature = new ol.Feature({
+           geometry: new ol.geom.Point(ol.proj.fromLonLat([location.longitude, location.latitude])),
+           yieldLoss: yieldLoss.yieldLoss.toString()
+        });
+        var features = [];
+        features.push(feature);
+        featureOverlays["yieldLoss"]["mainMap"].getSource().addFeatures(features);
     }
 };
 
@@ -689,8 +847,14 @@ var getLayerLegend = {
     },
     "HM": function(){
         return "TODO";
+    },
+    "observedDisease" : function(){
+        return "TODO";
+    },
+    "yieldLoss" : function(){
+        return "TODO";
     }
-};
+}; 
 
 
 // ###########################################################################
@@ -773,7 +937,7 @@ var loadScript = function(url, callback)
     
     script.onreadystatechange = callback;
     script.onload = callback;
-    console.info(script);
+    //console.info(script);
     
     document.head.appendChild(script);
 };

@@ -21,6 +21,16 @@
     <idle-timeout-minutes>5</idle-timeout-minutes>
   </local-tx-datasource>
   <local-tx-datasource>
+    <jndi-name>wheatleafb</jndi-name>
+    <connection-url>jdbc:postgresql://localhost:5432/vipslogic?searchpath=wheatleafb</connection-url>
+    <driver-class>org.postgresql.Driver</driver-class>
+    <user-name>vipslogic</user-name>
+    <password>VIPS123</password>
+    <min-pool-size>5</min-pool-size>
+    <max-pool-size>20</max-pool-size>
+    <idle-timeout-minutes>5</idle-timeout-minutes>
+  </local-tx-datasource>
+  <local-tx-datasource>
     <jndi-name>MessagingSchema</jndi-name>
     <connection-url>jdbc:postgresql://localhost/vipslogic</connection-url>
     <driver-class>org.postgresql.Driver</driver-class>
