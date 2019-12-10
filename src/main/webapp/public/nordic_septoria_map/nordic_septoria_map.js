@@ -54,6 +54,7 @@ var initMap = function ()
     var nordicSeptoriaMapContainer = document.getElementById("nordicSeptoriaMapContainer");
     // This is being used by dict, the translation tables
     language = nordicSeptoriaMapContainer.getAttribute("data-language") !== null ? nordicSeptoriaMapContainer.getAttribute("data-language") : language;
+    var mainMapHeight = nordicSeptoriaMapContainer.getAttribute("data-mainmap-height") !== null ? nordicSeptoriaMapContainer.getAttribute("data-mainmap-height") : "450px";
     // Giving the user the option to choose between the different views
     var viewRadioList = "";
     for (var i in views)
@@ -69,7 +70,7 @@ var initMap = function ()
     }
     // This HTML is injected into the hosting web page. It contains all of the
     // maps and the controls
-    nordicSeptoriaMapContainer.innerHTML = "<div id='mainMap'>"
+    nordicSeptoriaMapContainer.innerHTML = "<div id='mainMap' style='height: " + mainMapHeight + "'>"
                                     + " <div id='popupTooltip_mainMap' class='ol-popup'>"
                                     + "     <span class='ol-popup-closer' onclick='closeOverlay(this);'></span>"
                                     + "     <div></div>"

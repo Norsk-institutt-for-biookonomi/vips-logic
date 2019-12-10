@@ -21,7 +21,7 @@ along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
     Author     : Tor-Einar Skog <tor-einar.skog@nibio.no>
     Using CSS grid layout with fallback for MS browsers
 */
-#mainMap { grid-area: mainMap; height: 450px;}
+#mainMap { grid-area: mainMap; /*height: 450px;*/}
 #subMap1 { grid-area: subMap1; height: 250px;}
 #subMap2 { grid-area: subMap2; height: 250px;}
 #subMap3 { grid-area: subMap3; height: 250px;}
