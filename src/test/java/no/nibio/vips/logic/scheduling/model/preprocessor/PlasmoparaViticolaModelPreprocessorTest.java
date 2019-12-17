@@ -74,8 +74,8 @@ public class PlasmoparaViticolaModelPreprocessorTest {
         try
         {
 
-            URL weatherURL = new URL("http://www.robigus.ba/Vips/GetJsonWeatherData/11?logIntervalId=1&timeZone=Europe/Sarajevo&startDate=2015-01-01&startTime=0&endDate=2015-02-20&endTime=0&elementMeasurementTypes[]=TM&elementMeasurementTypes[]=RR");
-            //URL weatherURL = new URL("http://lmt.nibio.no/agrometbase/export/getVIPS3JSONWeatherData.php?weatherStationId=5&elementMeasurementTypes%5B%5D=TM&elementMeasurementTypes%5B%5D=UM&logInterval=1h&startDate=2015-01-01&startTime=00&endDate=2015-02-17&endTime=00&timeZone=Europe%2FOslo");
+            //URL weatherURL = new URL("http://www.robigus.ba/Vips/GetJsonWeatherData/11?logIntervalId=1&timeZone=Europe/Sarajevo&startDate=2015-01-01&startTime=0&endDate=2015-02-20&endTime=0&elementMeasurementTypes[]=TM&elementMeasurementTypes[]=RR");
+            URL weatherURL = new URL("https://lmt.nibio.no/services/rest/vips/getdata/forecastfallback?weatherStationId=5&elementMeasurementTypes[]=TM&elementMeasurementTypes[]=UM&logInterval=1h&startDate=2015-01-01&startTime=00&endDate=2015-02-17&endTime=00&timeZone=Europe/Oslo");
             URLConnection URLConn = weatherURL.openConnection();
             InputStream URLStream = URLConn.getInputStream();
             String URLOutput = IOUtils.toString(URLStream);
