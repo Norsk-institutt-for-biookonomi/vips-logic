@@ -41,12 +41,25 @@ for (var i in views)
 }
 var maps = {mainMap:null, subMap1: null, subMap2: null, subMap3: null, subMap4: null};
 var language = "en";
-
+var cropNorwegianName = "Høsthvete";
+var cropId = -1;
 
 /**
  * After all libraries have been loaded (added to the containing page), this
- * function sets up all the maps and displays the initial view
- * @returns {undefined}
+ * function configures anything that needs dynamic config and then inits the map
+ * setup
+ */
+var initApp = function()
+{
+    ajax(hostName + "/rest/organism/search/localnames/nb?keywords=" + cropNorwegianName, function(e){
+        var cropList = JSON.parse(e.target.responseText);
+        cropId = cropList[0].organismId;
+        initMap();
+    });
+};
+
+/**
+ * Set up the map and all that goes with it
  */
 var initMap = function ()
 {
@@ -439,7 +452,7 @@ var getResultsChain = function(season, layerName)
                         }
                     }
                     
-                    ajax(hostName + "/rest/gs/date/32,71/25/?season=" + season + "&location=" + currentForecast.locationPointOfInterestId.longitude + "," + currentForecast.locationPointOfInterestId.latitude, function(e){
+                    ajax(hostName + "/rest/gs/date/32,71/" + cropId + "/?season=" + season + "&location=" + currentForecast.locationPointOfInterestId.longitude + "," + currentForecast.locationPointOfInterestId.latitude, function(e){
                         // This callback interprets the data returned from 
                         // the VIPSLogic GrowthStageService
                         // It then forwards results and GS dates to displayResults
@@ -457,7 +470,6 @@ var getResultsChain = function(season, layerName)
                                 GS71Date = moment(GSResults[i]["71"]);
                             }
                         }
-                        
                         var startDate = document.getElementById("startDate").value != "" ? moment(document.getElementById("startDate").value) : GS32Date;
                         var endDate = document.getElementById("endDate").value != "" ? moment(document.getElementById("endDate").value) : GS71Date;
                         //console.info("startDate=" + startDate.format("YYYY-MM-DD"));
@@ -912,7 +924,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                             { 
                                                 src: "https://kit.fontawesome.com/567c8b1eb5.js" 
                                             }, 
-                                            initMap
+                                            initApp
                                         ); 
                                     }
                                 ); 
