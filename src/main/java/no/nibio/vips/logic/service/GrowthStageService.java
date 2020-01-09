@@ -56,7 +56,15 @@ public class GrowthStageService {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
     
-    
+    /**
+     * At what dates can we expect the given crop to be at the given growth stages
+     * at the given location?
+     * @param organismId
+     * @param growthStagesStr
+     * @param location
+     * @param season
+     * @return 
+     */
     @GET
     @Path("date/{growthStages}/{organismId}")
     @Produces("application/json;charset=UTF-8")
@@ -82,6 +90,13 @@ public class GrowthStageService {
         return Response.ok().entity(retVal).build();
     }
     
+    /**
+     * At what GS is the given organism at the given date and location?
+     * @param organismId
+     * @param dateStr
+     * @param location
+     * @return 
+     */
     @GET
     @Path("gs/{date}/{organismId}")
     @Produces("application/json;charset=UTF-8")
