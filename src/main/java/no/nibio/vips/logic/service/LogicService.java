@@ -713,6 +713,24 @@ public class LogicService {
     }
     
     /**
+     * Look up organisms by local names
+     * @param keywords
+     * @return 
+     */
+    @GET
+    @Path("organism/search/localnames/{locale}")
+    @Produces("application/json;charset=UTF-8")
+    public Response findOrganismsByLocalNames(
+            @PathParam("locale") String locale,
+            @QueryParam("keywords") String keywords
+    )
+    {
+        List<String> localNames = Arrays.asList(keywords.split(",")).stream().map(String::trim).collect(Collectors.toList());
+        List<Organism> organismList = SessionControllerGetter.getOrganismBean().findOrganismsByLocalNames(localNames, locale);
+        return Response.ok().entity(organismList).build();
+    }
+    
+    /**
      * Get a list of crops
      * @return 
      */

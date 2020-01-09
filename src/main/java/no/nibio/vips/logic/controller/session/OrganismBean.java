@@ -46,7 +46,7 @@ import no.nibio.vips.logic.entity.OrganismLocalePK;
 import no.nibio.vips.logic.util.HierarchyCategoryLocaleNames;
 
 /**
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
@@ -480,5 +480,12 @@ public class OrganismBean {
 
     public List<Organism> findOrganismsByLatinNames(List<String> latinNames) {
         return em.createNamedQuery("Organism.findByLatinNames").setParameter("latinNames", latinNames).getResultList();
+    }
+
+    public List<Organism> findOrganismsByLocalNames(List<String> localNames, String locale) {
+        return em.createNamedQuery("Organism.findByLocalNames")
+                .setParameter("localNames", localNames)
+                .setParameter("locale", locale)
+                .getResultList();
     }
 }
