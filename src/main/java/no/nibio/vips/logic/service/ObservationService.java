@@ -19,6 +19,8 @@
 
 package no.nibio.vips.logic.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
 import java.net.URI;
@@ -30,6 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -451,13 +456,16 @@ public class ObservationService {
 
     private List<Observation> getFilteredObservationsFromBackend(Integer organizationId, Integer pestId, Integer cropId, List<Integer> cropCategoryId, String fromStr, String toStr, VipsLogicUser user) {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
+        //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
         // If superuser or orgadmin: Return everything, unchanged, uncensored
         if(user != null && (user.isSuperUser() || user.isOrganizationAdmin()))
         {
             return filteredObservations;
         }
         List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage()).collect(Collectors.toList());
+        //retVal.forEach(o->System.out.println(o.getObservationId()));
         retVal = this.maskObservations(retVal);
+        //retVal.forEach(o->System.out.println(o.getObservationId()));
         // If user is not logged in, return only the publicly available observations
         if(user == null)
         {
@@ -493,21 +501,21 @@ public class ObservationService {
         else
         {
             // Loop through, mask
-            List<Observation> maskedObservations = new ArrayList<>();
-            
+            Map<Integer,Observation> maskedObservations = new HashMap<>();
             registeredPolygonServicesInObservationList.keySet().forEach((pService) -> {
-                maskedObservations.addAll(this.maskObservations(pService, registeredPolygonServicesInObservationList.get(pService)));
+                this.maskObservations(pService, registeredPolygonServicesInObservationList.get(pService))
+                        .forEach(o->maskedObservations.put(o.getObservationId(), o));
             });
             
             // Adding the rest of the observations (the ones that don't need masking)
-            
-            return maskedObservations;
+            observations.stream().filter(o->maskedObservations.get(o.getObservationId())==null).forEach(o->maskedObservations.put(o.getObservationId(), o));
+            return new ArrayList(maskedObservations.values());
         }
-        //throw new UnsupportedOperationException();
     }
     
     private List<Observation> maskObservations(PolygonService polygonService, List<Observation> observations)
     {
+        //observations.forEach(o->System.out.println(o.getObservationId()));
         Client client = ClientBuilder.newClient();
         WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
         List<ReferencedPoint> points = observations.stream()
@@ -527,9 +535,15 @@ public class ObservationService {
                     }
                     return rp;
         }).collect(Collectors.toList());
+        /*System.out.println("maskobservations - target.request() about to be called");
+        ObjectMapper oMapper = new ObjectMapper();
+        try {
+            System.out.println(oMapper.writeValueAsString(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON)));
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(ObservationService.class.getName()).log(Level.SEVERE, null, ex);
+        }*/
         PointMappingResponse response = target.request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
-
         // We need to loop through the observations and find corresponding featurecollections and replace those
         Map<Integer, Feature> indexedPolygons = new HashMap<>();
         for(Feature feature:response.getFeatureCollection().getFeatures())

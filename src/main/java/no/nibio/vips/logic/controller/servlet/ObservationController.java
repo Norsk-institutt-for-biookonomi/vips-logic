@@ -521,7 +521,9 @@ public class ObservationController extends HttpServlet {
                             
                             // All transactions finished, we can send notifications
                             // if conditions are met
-                            if(sendNotification)
+                            if(sendNotification && !
+                                    (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
+                                    )
                             {
                                 SessionControllerGetter.getMessagingBean().sendUniversalMessage(observation);
                             }
