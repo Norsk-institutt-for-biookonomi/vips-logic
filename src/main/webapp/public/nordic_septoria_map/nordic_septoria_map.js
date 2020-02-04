@@ -308,14 +308,18 @@ var changeSeason = function(selectedSeason)
       viewsForecastCache[i] = [];
   }
   // Set date field limits
-  document.getElementById("startDate").value = 
-          document.getElementById("startDate").value != "" ? 
-            selectedSeason + document.getElementById("startDate").value.substring(4) : 
-            "";
-  document.getElementById("endDate").value = 
-          document.getElementById("endDate").value != "" ? 
-            selectedSeason + document.getElementById("endDate").value.substring(4) : 
-            "";
+  ["startDate","endDate"].forEach(function(fieldName){
+        var dateField = document.getElementById(fieldName);
+        dateField.value = 
+                dateField.value != "" ? 
+                  selectedSeason + dateField.value.substring(4) : 
+                  "";
+        dateField.min = selectedSeason + "-01-01";
+        dateField.max = selectedSeason + "-12-31";
+  });
+  
+  
+  
   // Get results for this season
   getResults[getVisibleLayerName()](getCurrentSeason());
   
