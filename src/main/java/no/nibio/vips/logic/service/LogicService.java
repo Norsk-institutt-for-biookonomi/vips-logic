@@ -395,15 +395,26 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getActiveForecastConfigurationsWithIncludeOrganizations(
             @PathParam("organizationId") Integer organizationId,
-            @QueryParam("includeOrganizationIds") String includeOrganizationIds
+            @QueryParam("includeOrganizationIds") String includeOrganizationIds,
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr
     )
     {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(SystemTime.getSystemTime());
-        cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY, 1, 0, 0, 0);
-        Date from = cal.getTime();
-        cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER, 31, 23, 0, 0);
-        Date to = cal.getTime();
+        Date from, to;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try{
+            from = format.parse(fromStr);
+            to = format.parse(toStr);
+        }
+        catch(ParseException | NullPointerException ex)
+        {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(SystemTime.getSystemTime());
+            cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY, 1, 0, 0, 0);
+            from = cal.getTime();
+            cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER, 31, 23, 0, 0);
+            to = cal.getTime();
+        }
         
         
         List<Integer> orgIds = new ArrayList<>();
