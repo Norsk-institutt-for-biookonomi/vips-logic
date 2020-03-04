@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.text.SimpleDateFormat;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -51,6 +52,7 @@ public class JacksonConfig implements ContextResolver<ObjectMapper>
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"));
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(new JtsModule());
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override

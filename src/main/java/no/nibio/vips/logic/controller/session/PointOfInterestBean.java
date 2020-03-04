@@ -483,7 +483,96 @@ public class PointOfInterestBean {
                 .setParameter("name", dataSourceName)
                 .getSingleResult();
     }
-
     
+    
+
+    /**
+     * Utility method to find the nearest weather station
+     * @param location
+     * @return 
+     */
+    public PointOfInterestWeatherStation findClosestWeatherStation(com.vividsolutions.jts.geom.Coordinate location)
+    {
+        return this.findClosestWeatherStation(location.x, location.y);
+        
+    }
+    
+    
+    
+    public PointOfInterestWeatherStation findClosestWeatherStation(Double longitude, Double latitude)
+    {
+        List<PointOfInterestWeatherStation> weatherStations = em.createNamedQuery("PointOfInterestWeatherStation.findAll", PointOfInterestWeatherStation.class)
+                .getResultList();
+        return this.findClosestWeatherStation(longitude, latitude, weatherStations);
+    }
+    
+    /**
+     * Utility method to find the nearest weather station
+     * @param location
+     * @return 
+     */
+    public PointOfInterestWeatherStation findClosestWeatherStation(com.vividsolutions.jts.geom.Coordinate location, List<PointOfInterestWeatherStation> weatherStations)
+    {
+        return this.findClosestWeatherStation(location.x, location.y, weatherStations);
+        
+    }
+    
+    /**
+     * Utility method to find the nearest weather station
+     * @param longitude
+     * @param latitude
+     * @return 
+     */
+    public PointOfInterestWeatherStation findClosestWeatherStation(Double longitude, Double latitude, List<PointOfInterestWeatherStation> weatherStations)
+    {
+        
+        
+        PointOfInterestWeatherStation retVal = null;
+        Double minimumDistance = null; // km
+        
+        for(PointOfInterestWeatherStation ws:weatherStations)
+        {
+            Double distance = this.calculateDistance(latitude, longitude, ws.getLatitude(), ws.getLongitude());
+            if(minimumDistance == null || minimumDistance >= distance)
+            {
+                minimumDistance = distance;
+                retVal = ws;
+            }
+        }
+        return retVal;
+    }
+    
+    /**
+     * Based on <a href="http://www.movable-type.co.uk/scripts/latlong.html">this</a>. Explanation:
+     * <pre>
+     * This uses the "haversine" formula to calculate the great-circle distance between two points ? that is, the shortest distance over the earth?s surface ? giving an ?as-the-crow-flies? distance between the points (ignoring any hills, of course!).
+        Haversine formula:
+                a = sin²(∆lat/2) + cos(lat1).cos(lat2).sin²(∆long/2)
+                c = 2 * atan2(√a,√(1-a))
+                d = R*c
+        where R is earth's radius (mean radius = 6,371km);
+        Note that angles need to be in radians to pass to trig functions!
+     * </pre>
+     * @param lat1 WGS84 latitude of point 1 
+     * @param long1 WGS84 longitude of point 1
+     * @param lat2 WGS84 latitude of point 2
+     * @param long2 WGS84 longitude of point 2
+     * @return distance in km
+     */
+    public Double calculateDistance(Double lat1, Double long1, Double lat2, Double long2)
+    {
+        Integer R = 6371; // km
+        Double dLat = Math.toRadians(lat2-lat1);
+        Double dLon = Math.toRadians(long2-long1);
+        lat1 = Math.toRadians(lat1);
+        lat2 = Math.toRadians(lat2);
+
+        Double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+        Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        Double d = R * c;
+        
+        return d;
+    }
     
 }

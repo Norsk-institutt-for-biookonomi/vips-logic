@@ -105,24 +105,6 @@ public class ModelFormService {
             fModelConf.add(this.getForecastModelConfiguration("leafLifeTime", String.valueOf(leafLifeTime)));
             fConf.setForecastModelConfigurationSet(fModelConf);
             
-            //ModelConfiguration mConf = new ModelConfiguration();
-            //mConf.setModelId("SEPTORIAHU");
-            //mConf.setConfigParameter("dateSpraying1", dateSpraying1);
-            //mConf.setConfigParameter("dateSpraying2", dateSpraying2);
-            //mConf.setConfigParameter("dateGs31", dateGs31);
-            //mConf.setConfigParameter("date3rdUpperLeafEmerging", date3rdUpperLeafEmerging);
-            //mConf.setConfigParameter("date2ndUpperLeafEmerging", date2ndUpperLeafEmerging);
-            //mConf.setConfigParameter("dateUpperLeafEmerging", dateUpperLeafEmerging);
-            //mConf.setConfigParameter("dateGs75", dateGs75);
-            //mConf.setConfigParameter("thresholdRelativeHumidity", thresholdRelativeHumidity);
-            //mConf.setConfigParameter("thresholdLeafWetness", thresholdLeafWetness);
-            //mConf.setConfigParameter("thresholdPrecipitation", thresholdPrecipitation);
-            //mConf.setConfigParameter("slidingHoursPast", slidingHoursPast);
-            //mConf.setConfigParameter("slidingHoursAhead", slidingHoursAhead);
-            //mConf.setConfigParameter("thresholdHumidPeriodHours", thresholdHumidPeriodHours);
-            //mConf.setConfigParameter("sprayingProtectionDays", sprayingProtectionDays);
-            //mConf.setConfigParameter("leafLifeTime", leafLifeTime);
-
             // Data parsing
 
             Integer organizationId = Integer.valueOf(organizationId_countryCode.split("_")[0]);
