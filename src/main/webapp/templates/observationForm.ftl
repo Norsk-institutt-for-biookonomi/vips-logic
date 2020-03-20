@@ -600,15 +600,39 @@
 			     </select>
 			     <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 			  </div>
-                          <div class="form-group">
-			  	<div class="checkbox">
-                                        <#if editAccess!="W" && observation.locationIsPrivate?has_content && observation.locationIsPrivate == true><input type="hidden" name="locationIsPrivate" value="true"/></#if>
-					<label>
-						<input type="checkbox" name="locationIsPrivate"<#if !observation.locationIsPrivate?has_content || observation.locationIsPrivate == false><#else>checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
-					</label>
-					${i18nBundle.locationIsPrivate}
-			  	</div>
-			  </div>
+                          <#if editAccess!="W" && observation.locationIsPrivate?has_content && observation.locationIsPrivate == true>
+                                <input type="hidden" name="locationVisibility" value="private"/>
+                          <#else>
+                                <div class="form-group">
+                                    <div class="radio">
+                                              <label>
+                                                      <input type="radio" name="locationVisibility" value="public"
+                                                             <#if locationVisibilityFormValue == "public">checked="checked"</#if>
+                                                             />
+                                              </label>
+                                              ${i18nBundle.locationIsPublic}
+                                      </div>
+                                      <div class="radio">
+
+                                              <label>
+                                                      <input type="radio" name="locationVisibility" value="private"
+                                                             <#if locationVisibilityFormValue == "private">checked="checked"</#if>
+                                                             />
+                                              </label>
+                                              ${i18nBundle.locationIsPrivate}
+                                      </div>
+                                      <#list polygonServices as polygonService>
+                                          <div class="radio">
+                                                <label>
+                                                  <input type="radio" name="locationVisibility" value="mask_${polygonService.polygonServiceId}"
+                                                         <#if locationVisibilityFormValue == "mask_" + polygonService.polygonServiceId>checked="checked"</#if>
+                                                         />
+                                                  ${i18nBundle.maskObservationWith} ${polygonService.polygonServiceName}
+                                                </label>
+                                        </div>
+                                      </#list>
+                                </div>
+                          </#if>
                           <div class="form-group">
                                 <label for="organizationGroupId">${i18nBundle.availableFor} ${i18nBundle.organizationGroupList?lower_case}</label>
                                 <select class="form-control chosen-select" name="organizationGroupId" multiple="multiple" data-placeholder="${i18nBundle.all}"  <#if editAccess!="W">readonly="readonly"</#if>>

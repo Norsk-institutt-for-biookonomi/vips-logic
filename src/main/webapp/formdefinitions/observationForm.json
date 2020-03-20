@@ -58,9 +58,10 @@
             "required" : false
         },
         {
-            "name" : "locationIsPrivate",
+            "name" : "locationVisibility",
             "dataType" : "STRING",
-            "required" : false
+            "fieldType" : "RADIO",
+            "required" : true
         },
         {
             "name" : "organizationGroupId",

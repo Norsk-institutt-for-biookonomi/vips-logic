@@ -534,7 +534,6 @@ public class LogicService {
     }
     
     /**
-     * 
      * @param organizationId
      * @param cropCategoryIds
      * @return 
@@ -546,8 +545,22 @@ public class LogicService {
     @Facet("restricted")
     public Response getForecastResultsAggregate(
             @PathParam("organizationId") Integer organizationId,
-            @QueryParam("cropCategoryId") List<Integer> cropCategoryIds)
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryIds,
+            @QueryParam("userUUID") String userUUID)
     {
+        VipsLogicUser viewUser = null;
+        if(userUUID != null)
+        {
+            try
+            {
+                UUID uUUID = UUID.fromString(userUUID);
+                viewUser = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            }
+            catch(IllegalArgumentException ex)
+            {
+                // Skip this
+            }
+        }
         List<Integer> organizationIds = new ArrayList<>();
         organizationIds.add(organizationId);
         if(cropCategoryIds == null || cropCategoryIds.isEmpty())
@@ -557,7 +570,7 @@ public class LogicService {
         else
         {
             List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
             return Response.ok().entity(retVal).build();
         }
     }
@@ -574,7 +587,8 @@ public class LogicService {
     @Facet("restricted")
     public Response getForecastResultsAggregate(
             @QueryParam("organizationId") List<Integer> organizationIds,
-            @QueryParam("cropCategoryId") List<Integer> cropCategoryIds)
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryIds,
+            @QueryParam("userUUID") String userUUID)
     {
         if(cropCategoryIds == null || cropCategoryIds.isEmpty())
         {
@@ -582,8 +596,21 @@ public class LogicService {
         }
         else
         {
+            VipsLogicUser viewUser = null;
+            if(userUUID != null)
+            {
+                try
+                {
+                    UUID uUUID = UUID.fromString(userUUID);
+                    viewUser = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+                }
+                catch(IllegalArgumentException ex)
+                {
+                    // Skip this
+                }
+            }
             List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest));
+            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
             return Response.ok().entity(retVal).build();
         }
     }

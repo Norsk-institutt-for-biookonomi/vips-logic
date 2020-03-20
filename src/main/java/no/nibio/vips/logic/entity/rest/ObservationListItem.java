@@ -22,6 +22,7 @@ package no.nibio.vips.logic.entity.rest;
 import java.util.Date;
 
 /**
+ * A JSON friendly, public representation of the Observation
  * @copyright 2018 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */

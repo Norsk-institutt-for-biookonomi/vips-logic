@@ -19,14 +19,22 @@
 
 package no.nibio.vips.logic.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -37,15 +45,28 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.rest.PointMappingRequest;
+import no.nibio.vips.logic.entity.rest.PointMappingResponse;
+import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.annotations.GZIP;
+import org.wololo.geojson.Feature;
+import org.wololo.geojson.FeatureCollection;
+import org.wololo.geojson.Polygon;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -131,6 +152,7 @@ public class ObservationService {
         {
             user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(userUUID));
         }
+        //System.out.println("getFilteredObservationListItems");
         return Response.ok().entity(
                 getFilteredObservationsFromBackend(
                         organizationId,
@@ -154,6 +176,7 @@ public class ObservationService {
             String toStr
     )
     {
+        //System.out.println("getFilteredObservationsFromBackend");
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         //TODO Set correct timeZone!!!
         Date from = null;
@@ -306,8 +329,44 @@ public class ObservationService {
     @GET
     @Path("{observationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getObservation(@PathParam("observationId") Integer observationId){
-        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservation(observationId)).build();
+    public Response getObservation(
+            @PathParam("observationId") Integer observationId,
+            @QueryParam("userUUID") String userUUID
+    ){
+        // Observation needs to be masked here as well, or does it create trouble for VIPSLogic observation admin?
+        Observation o = SessionControllerGetter.getObservationBean().getObservation(observationId);
+        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        if(user == null && userUUID != null)
+        {
+            user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(userUUID));
+        }
+        // Modification of location information:
+        // 1) If location is private, only the owner or super users/org admins may view them
+        // slett all geoInfo
+        if(user == null || (! user.isSuperUser() && ! user.isOrganizationAdmin()))
+        {
+            // Hide completely for all users except super and orgadmin
+            if(o.getLocationIsPrivate() && (user == null || ! o.getUserId().equals(user.getUserId()))) 
+            {
+                o.setGeoinfos(null);
+            }
+            // This means the user wants to hide the exact location,
+            // so mask for all users except super and orgadmin
+            else if(o.getPolygonService() != null) 
+            {
+                //System.out.println("Masking observation");
+                List<Observation> intermediary = new ArrayList<>();
+                intermediary.add(o);
+                intermediary = this.maskObservations(o.getPolygonService(), 
+                        SessionControllerGetter.getObservationBean().getObservationsWithLocations(
+                                SessionControllerGetter.getObservationBean().getObservationsWithGeoInfo(intermediary)
+                        )
+                    );
+                o = intermediary.get(0);
+            }
+        }
+        
+        return Response.ok().entity(o).build();
     }
     
     /**
@@ -397,20 +456,116 @@ public class ObservationService {
 
     private List<Observation> getFilteredObservationsFromBackend(Integer organizationId, Integer pestId, Integer cropId, List<Integer> cropCategoryId, String fromStr, String toStr, VipsLogicUser user) {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
-        // If user is not logged in, return only the publicly available observations
-        if(user == null)
-        {
-            return filteredObservations.stream().filter(obs->obs.getBroadcastMessage()).collect(Collectors.toList());
-        }
-        // Else: If superuser: Return everything
-        if(user.isSuperUser() || user.isOrganizationAdmin())
+        //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
+        // If superuser or orgadmin: Return everything, unchanged, uncensored
+        if(user != null && (user.isSuperUser() || user.isOrganizationAdmin()))
         {
             return filteredObservations;
         }
-        // Else: This is a registered user without special privileges. Show public observations + user's own
         List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage()).collect(Collectors.toList());
+        //retVal.forEach(o->System.out.println(o.getObservationId()));
+        retVal = this.maskObservations(retVal);
+        //retVal.forEach(o->System.out.println(o.getObservationId()));
+        // If user is not logged in, return only the publicly available observations
+        if(user == null)
+        {
+            return retVal;
+        }
+        // Else: This is a registered user without special privileges. Show public observations + user's own
         retVal.addAll(SessionControllerGetter.getObservationBean().getObservationsForUser(user));
         return retVal;
+    }
+
+    /**
+     * Runs through the observations, check each to see if it should be masked
+     * (for privacy reasons) through a polygon service
+     * @param observations
+     * @return 
+     */
+    private List<Observation> maskObservations(List<Observation> observations) {
+        //System.out.println("maskObservations(List<Observation> observations)");
+        
+        // Placing all observations with a polygon service in the correct bucket.
+        Map<PolygonService, List<Observation>> registeredPolygonServicesInObservationList = new HashMap<>();
+        observations.stream().filter((obs) -> (!obs.getLocationIsPrivate() && obs.getPolygonService() != null)).forEachOrdered((obs) -> {
+            List<Observation> obsWithPolyServ = registeredPolygonServicesInObservationList.getOrDefault(obs.getPolygonService(), new ArrayList<>());
+            obsWithPolyServ.add(obs);
+            registeredPolygonServicesInObservationList.put(obs.getPolygonService(), obsWithPolyServ);
+        });
+        
+        // No buckets filled = No masking needed, return list unmodified
+        if(registeredPolygonServicesInObservationList.isEmpty())
+        {
+            return observations; 
+        }
+        else
+        {
+            // Loop through, mask
+            Map<Integer,Observation> maskedObservations = new HashMap<>();
+            registeredPolygonServicesInObservationList.keySet().forEach((pService) -> {
+                this.maskObservations(pService, registeredPolygonServicesInObservationList.get(pService))
+                        .forEach(o->maskedObservations.put(o.getObservationId(), o));
+            });
+            
+            // Adding the rest of the observations (the ones that don't need masking)
+            observations.stream().filter(o->maskedObservations.get(o.getObservationId())==null).forEach(o->maskedObservations.put(o.getObservationId(), o));
+            return new ArrayList(maskedObservations.values());
+        }
+    }
+    
+    private List<Observation> maskObservations(PolygonService polygonService, List<Observation> observations)
+    {
+        //observations.forEach(o->System.out.println(o.getObservationId()));
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
+        List<ReferencedPoint> points = observations.stream()
+                .filter(obs -> (obs.getGeoinfos()!=null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
+                .map(obs->{
+                    ReferencedPoint rp = new ReferencedPoint();
+                    rp.setId(String.valueOf(obs.getObservationId()));
+                    if(obs.getGeoinfos() != null)
+                    {
+                        rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
+                        rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
+                    }
+                    else
+                    {
+                        rp.setLon(obs.getLocation().getLongitude());
+                        rp.setLat(obs.getLocation().getLatitude());
+                    }
+                    return rp;
+        }).collect(Collectors.toList());
+        /*System.out.println("maskobservations - target.request() about to be called");
+        ObjectMapper oMapper = new ObjectMapper();
+        try {
+            System.out.println(oMapper.writeValueAsString(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON)));
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(ObservationService.class.getName()).log(Level.SEVERE, null, ex);
+        }*/
+        PointMappingResponse response = target.request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
+        // We need to loop through the observations and find corresponding featurecollections and replace those
+        Map<Integer, Feature> indexedPolygons = new HashMap<>();
+        for(Feature feature:response.getFeatureCollection().getFeatures())
+        {
+            indexedPolygons.put((Integer)feature.getProperties().get("id"), feature);
+        }
+        GISEntityUtil gisEntityUtil = new GISEntityUtil();
+        for(Map mapping:response.getMapping())
+        {
+            Integer observationId = Integer.valueOf((String) mapping.get("id"));
+            Integer borderId = (Integer) mapping.get("borderid");
+            observations.stream().filter((o) -> (o.getObservationId().equals(observationId))).forEachOrdered((o) -> {
+                Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
+                List<Gis> gis = new ArrayList<>();
+                gis.add(polygon);
+                o.setGeoinfos(gis);
+                o.setLocation(null);
+                o.setLocationPointOfInterestId(null);
+            });
+        }
+        
+        return observations;
     }
     
 }
