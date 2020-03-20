@@ -19,14 +19,20 @@
 
 package no.nibio.vips.logic.scheduling.model.preprocessor;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
+import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
@@ -40,12 +46,24 @@ public class SeptoriaHumidityModelPreprocessor  extends ModelRunPreprocessor{
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
+        ForecastBean forecastBean = SessionControllerGetter.getForecastBean();
         ModelConfiguration retVal = new ModelConfiguration();
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", configuration.getTimeZone());
+        String[] modelConfigurationValueNames = {"dateSpraying1","dateSpraying2","dateGs31","date3rdUpperLeafEmerging",
+        "date2ndUpperLeafEmerging","dateUpperLeafEmerging","dateGs75","thresholdRelativeHumidity","thresholdLeafWetness",
+        "thresholdPrecipitation","slidingHoursPast","slidingHoursAhead","thresholdHumidPeriodHours","sprayingProtectionDays",
+        "leafLifeTime"};
+        for(String modelConfigurationValueName: modelConfigurationValueNames)
+        {
+            retVal.setConfigParameter(modelConfigurationValueName, configuration.getForecastModelConfigurationValue(forecastBean.getDeCamelizedFieldName(this.getModelId(),modelConfigurationValueName)));
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(TimeZone.getTimeZone(configuration.getTimeZone()));
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
         try
         {
+            Date gs31 = format.parse((String)retVal.getConfigParameter("dateGs31"));
             List<WeatherObservation> observations = wdsUtil.getWeatherObservations(
                         (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId(), 
                         WeatherObservation.LOG_INTERVAL_ID_1H, 
@@ -55,13 +73,13 @@ public class SeptoriaHumidityModelPreprocessor  extends ModelRunPreprocessor{
                             WeatherElements.RELATIVE_HUMIDITY_MEAN,
                             WeatherElements.LEAF_WETNESS_DURATION
                         }, 
-                        configuration.getDateStart(), 
+                        gs31, 
                         configuration.getDateEnd()
                 );
             Collections.sort(observations);
             retVal.setConfigParameter("observations", observations);
         }
-        catch(WeatherDataSourceException ex)
+        catch(WeatherDataSourceException | ParseException ex)
         {
             throw new PreprocessorException(ex.getMessage());
         }

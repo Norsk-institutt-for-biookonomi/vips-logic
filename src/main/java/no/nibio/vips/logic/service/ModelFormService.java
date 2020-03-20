@@ -88,41 +88,23 @@ public class ModelFormService {
             fConf.setModelId("SEPTORIAHU");
             
             Set<ForecastModelConfiguration> fModelConf = new HashSet<>();
-            fModelConf.add(this.getForecastModelConfiguration("dateSpraying1", dateSpraying1));
-            fModelConf.add(this.getForecastModelConfiguration("dateSpraying2", dateSpraying2));
-            fModelConf.add(this.getForecastModelConfiguration("dateGs31", dateGs31));
-            fModelConf.add(this.getForecastModelConfiguration("date3rdUpperLeafEmerging", date3rdUpperLeafEmerging));
-            fModelConf.add(this.getForecastModelConfiguration("date2ndUpperLeafEmerging", date2ndUpperLeafEmerging));
-            fModelConf.add(this.getForecastModelConfiguration("dateUpperLeafEmerging", dateUpperLeafEmerging));
-            fModelConf.add(this.getForecastModelConfiguration("dateGs75", dateGs75));
-            fModelConf.add(this.getForecastModelConfiguration("thresholdRelativeHumidity", String.valueOf(thresholdRelativeHumidity)));
-            fModelConf.add(this.getForecastModelConfiguration("thresholdLeafWetness", String.valueOf(thresholdLeafWetness)));
-            fModelConf.add(this.getForecastModelConfiguration("thresholdPrecipitation", String.valueOf(thresholdPrecipitation)));
-            fModelConf.add(this.getForecastModelConfiguration("slidingHoursPast", String.valueOf(slidingHoursPast)));
-            fModelConf.add(this.getForecastModelConfiguration("slidingHoursAhead", String.valueOf(slidingHoursAhead)));
-            fModelConf.add(this.getForecastModelConfiguration("thresholdHumidPeriodHours", String.valueOf(thresholdHumidPeriodHours)));
-            fModelConf.add(this.getForecastModelConfiguration("sprayingProtectionDays", String.valueOf(sprayingProtectionDays)));
-            fModelConf.add(this.getForecastModelConfiguration("leafLifeTime", String.valueOf(leafLifeTime)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"dateSpraying1", dateSpraying1));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"dateSpraying2", dateSpraying2));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"dateGs31", dateGs31));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"date3rdUpperLeafEmerging", date3rdUpperLeafEmerging));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"date2ndUpperLeafEmerging", date2ndUpperLeafEmerging));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"dateUpperLeafEmerging", dateUpperLeafEmerging));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"dateGs75", dateGs75));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"thresholdRelativeHumidity", String.valueOf(thresholdRelativeHumidity)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"thresholdLeafWetness", String.valueOf(thresholdLeafWetness)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"thresholdPrecipitation", String.valueOf(thresholdPrecipitation)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"slidingHoursPast", String.valueOf(slidingHoursPast)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"slidingHoursAhead", String.valueOf(slidingHoursAhead)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"thresholdHumidPeriodHours", String.valueOf(thresholdHumidPeriodHours)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"sprayingProtectionDays", String.valueOf(sprayingProtectionDays)));
+            fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"leafLifeTime", String.valueOf(leafLifeTime)));
             fConf.setForecastModelConfigurationSet(fModelConf);
             
-            //ModelConfiguration mConf = new ModelConfiguration();
-            //mConf.setModelId("SEPTORIAHU");
-            //mConf.setConfigParameter("dateSpraying1", dateSpraying1);
-            //mConf.setConfigParameter("dateSpraying2", dateSpraying2);
-            //mConf.setConfigParameter("dateGs31", dateGs31);
-            //mConf.setConfigParameter("date3rdUpperLeafEmerging", date3rdUpperLeafEmerging);
-            //mConf.setConfigParameter("date2ndUpperLeafEmerging", date2ndUpperLeafEmerging);
-            //mConf.setConfigParameter("dateUpperLeafEmerging", dateUpperLeafEmerging);
-            //mConf.setConfigParameter("dateGs75", dateGs75);
-            //mConf.setConfigParameter("thresholdRelativeHumidity", thresholdRelativeHumidity);
-            //mConf.setConfigParameter("thresholdLeafWetness", thresholdLeafWetness);
-            //mConf.setConfigParameter("thresholdPrecipitation", thresholdPrecipitation);
-            //mConf.setConfigParameter("slidingHoursPast", slidingHoursPast);
-            //mConf.setConfigParameter("slidingHoursAhead", slidingHoursAhead);
-            //mConf.setConfigParameter("thresholdHumidPeriodHours", thresholdHumidPeriodHours);
-            //mConf.setConfigParameter("sprayingProtectionDays", sprayingProtectionDays);
-            //mConf.setConfigParameter("leafLifeTime", leafLifeTime);
-
             // Data parsing
 
             Integer organizationId = Integer.valueOf(organizationId_countryCode.split("_")[0]);
@@ -190,9 +172,9 @@ public class ModelFormService {
         } 
     }
     
-    private ForecastModelConfiguration getForecastModelConfiguration(String key, String value)
+    private ForecastModelConfiguration getForecastModelConfiguration(String modelId, String key, String value)
     {
-        ForecastModelConfiguration retVal = new ForecastModelConfiguration(new ForecastModelConfigurationPK(-1, key));
+        ForecastModelConfiguration retVal = new ForecastModelConfiguration(new ForecastModelConfigurationPK(-1, SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(modelId, key)));
         retVal.setParameterValue(value);
         return retVal;
     }

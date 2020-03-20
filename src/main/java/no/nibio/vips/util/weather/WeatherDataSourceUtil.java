@@ -50,7 +50,7 @@ import org.apache.commons.io.IOUtils;
  */
 public class WeatherDataSourceUtil {
     
-    private final boolean DEBUG = false;
+    private final boolean DEBUG = true;
 
     /**
      * Fetches measured data from the stations weather data source, and optionally

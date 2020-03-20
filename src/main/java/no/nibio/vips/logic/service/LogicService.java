@@ -221,6 +221,29 @@ public class LogicService {
         }
     }
     
+    @GET
+    @Path("forecastresults/{forecastConfigurationId}/{dateStart}/{dateEnd}")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastResults(
+            @PathParam("forecastConfigurationId") Long forecastConfigurationId,
+            @PathParam("dateStart") String dateStartStr,
+            @PathParam("dateEnd") String dateEndStr
+    )
+    {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try
+        {
+            Date dateStart = format.parse(dateStartStr);
+            Date dateEnd = format.parse(dateEndStr);
+            return Response.ok().entity(SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, dateStart, dateEnd)).build();
+        }
+        catch(ParseException ex)
+        {
+            return Response.serverError().entity(ex.getMessage()).build();
+        }
+    }
+    
     /**
      * @param organizationId
      * @param cropOrganismIds
@@ -320,6 +343,21 @@ public class LogicService {
     }
     
     /**
+     * Returns public forecast configurations for the given model and season
+     * @param modelId
+     * @param year
+     * @return 
+     */
+    @GET
+    @Path("forecastconfigurations/model/{modelId}/{year}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getForecastConfigurationsForModel(@PathParam("modelId") String modelId, @PathParam("year") Integer year)
+    {
+        return Response.ok().entity(SessionControllerGetter.getForecastBean().getForecastConfigurationsForModel(modelId, year)).build();
+    }
+    
+    
+    /**
      * 
      * @param userUUID
      * @return 
@@ -357,15 +395,26 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getActiveForecastConfigurationsWithIncludeOrganizations(
             @PathParam("organizationId") Integer organizationId,
-            @QueryParam("includeOrganizationIds") String includeOrganizationIds
+            @QueryParam("includeOrganizationIds") String includeOrganizationIds,
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr
     )
     {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(SystemTime.getSystemTime());
-        cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY, 1, 0, 0, 0);
-        Date from = cal.getTime();
-        cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER, 31, 23, 0, 0);
-        Date to = cal.getTime();
+        Date from, to;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try{
+            from = format.parse(fromStr);
+            to = format.parse(toStr);
+        }
+        catch(ParseException | NullPointerException ex)
+        {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(SystemTime.getSystemTime());
+            cal.set(cal.get(Calendar.YEAR), Calendar.JANUARY, 1, 0, 0, 0);
+            from = cal.getTime();
+            cal.set(cal.get(Calendar.YEAR), Calendar.DECEMBER, 31, 23, 0, 0);
+            to = cal.getTime();
+        }
         
         
         List<Integer> orgIds = new ArrayList<>();
@@ -671,6 +720,24 @@ public class LogicService {
     {
         List<String> latinNames = Arrays.asList(keywords.split(","));
         List<Organism> organismList = SessionControllerGetter.getOrganismBean().findOrganismsByLatinNames(latinNames);
+        return Response.ok().entity(organismList).build();
+    }
+    
+    /**
+     * Look up organisms by local names
+     * @param keywords
+     * @return 
+     */
+    @GET
+    @Path("organism/search/localnames/{locale}")
+    @Produces("application/json;charset=UTF-8")
+    public Response findOrganismsByLocalNames(
+            @PathParam("locale") String locale,
+            @QueryParam("keywords") String keywords
+    )
+    {
+        List<String> localNames = Arrays.asList(keywords.split(",")).stream().map(String::trim).collect(Collectors.toList());
+        List<Organism> organismList = SessionControllerGetter.getOrganismBean().findOrganismsByLocalNames(localNames, locale);
         return Response.ok().entity(organismList).build();
     }
     

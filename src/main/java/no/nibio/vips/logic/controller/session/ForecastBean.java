@@ -563,7 +563,7 @@ public class ForecastBean {
      * @param camelCaseName
      * @return MODELID_CAMEL_CASE_NAME
      */
-    private String getDeCamelizedFieldName(String modelId, String camelCaseName)
+    public String getDeCamelizedFieldName(String modelId, String camelCaseName)
     {
         StringBuilder deCamelizedFieldName = new StringBuilder(modelId.toUpperCase());
         for(String phrase : camelCaseName.split("(?=\\p{Lu})"))
@@ -573,7 +573,7 @@ public class ForecastBean {
         
         return deCamelizedFieldName.toString();
     }
-    
+        
     
     public List<ForecastModelConfiguration> getForecastModelConfigurations(Long forecastConfigurationId)
     {
@@ -1202,5 +1202,18 @@ public class ForecastBean {
         )
         .setParameter("userId", user.getUserId())
         .executeUpdate();
+    }
+
+    /**
+     * 
+     * @param modelId
+     * @param year
+     * @return 
+     */
+    public List<ForecastConfiguration> getForecastConfigurationsForModel(String modelId, Integer year) {
+        return em.createNamedQuery("ForecastConfiguration.findByModelIdAndYear")
+                .setParameter("modelId", modelId)
+                .setParameter("year", year)
+                .getResultList();
     }
 }

@@ -1,0 +1,104 @@
+{
+    "_licenseNote": [
+        "Copyright (c) 2019 NIBIO <http://www.nibio.no/>. ",
+        "",
+        "This file is part of VIPSLogic. ",
+        "VIPSLogic is free software: you can redistribute it and/or modify ",
+        "it under the terms of the NIBIO Open Source License as published by ",
+        "NIBIO, either version 1 of the License, or (at your option) any ",
+        "later version. ",
+        "",
+        "VIPSLogic is distributed in the hope that it will be useful, ",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of ",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the ",
+        "NIBIO Open Source License for more details. ",
+        "",
+        "You should have received a copy of the NIBIO Open Source License ",
+        "along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>. "
+    ],
+    "_comment" : "Structure of the specific fields for SEPTORIAHU",
+    "fields": [
+        {
+            "name" : "dateSpraying1",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : false
+        },
+        {
+            "name" : "dateSpraying2",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : false
+        },
+        {
+            "name" : "dateGs31",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "date3rdUpperLeafEmerging",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "date2ndUpperLeafEmerging",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "dateUpperLeafEmerging",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "dateGs75",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "thresholdRelativeHumidity",
+            "dataType" : "DOUBLE",
+            "required" : true
+        },
+        {
+            "name" : "thresholdLeafWetness",
+            "dataType" : "DOUBLE",
+            "required" : true
+        },
+        {
+            "name" : "thresholdPrecipitation",
+            "dataType" : "DOUBLE",
+            "required" : true
+        },
+        {
+            "name" : "slidingHoursPast",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "slidingHoursAhead",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "thresholdHumidPeriodHours",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "sprayingProtectionDays",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "leafLifeTime",
+            "dataType" : "INTEGER",
+            "required" : true
+        }
+    ]
+}

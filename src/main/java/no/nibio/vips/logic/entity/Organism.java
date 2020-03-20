@@ -42,7 +42,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * @copyright 2013-2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -57,6 +57,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Organism.findByParentOrganismId", query = "SELECT o FROM Organism o WHERE o.parentOrganismId = :parentOrganismId"),
     @NamedQuery(name = "Organism.findByLatinName", query = "SELECT o FROM Organism o WHERE o.latinName = :latinName"),
     @NamedQuery(name = "Organism.findByLatinNames", query = "SELECT o FROM Organism o WHERE o.latinName IN :latinNames"),
+    @NamedQuery(name = "Organism.findByLocalNames", query = "SELECT o FROM Organism o WHERE o.organismId IN (SELECT ol.organismId FROM OrganismLocale ol WHERE ol.localName IN(:localNames) AND ol.organismLocalePK.locale  = :locale)"),
     @NamedQuery(name = "Organism.findByTradeName", query = "SELECT o FROM Organism o WHERE o.tradeName = :tradeName"),
     @NamedQuery(name = "Organism.findByLogicallyDeleted", query = "SELECT o FROM Organism o WHERE o.logicallyDeleted = :logicallyDeleted")})
 public class Organism implements Serializable {
