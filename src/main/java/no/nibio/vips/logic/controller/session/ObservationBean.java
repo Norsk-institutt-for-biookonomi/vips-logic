@@ -49,6 +49,7 @@ import no.nibio.vips.logic.entity.ObservationStatusType;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
+import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -464,7 +465,7 @@ public class ObservationBean {
                 .getResultList();
     }
 
-    private List<Observation> getObservationsWithLocations(List<Observation> observations) {
+    public List<Observation> getObservationsWithLocations(List<Observation> observations) {
          Set<Integer> locationPointOfInterestIds = new HashSet<>();
          observations.stream().filter((o) -> (o.getLocationPointOfInterestId() != null)).forEach((o) -> {
              locationPointOfInterestIds.add(o.getLocationPointOfInterestId());
@@ -607,7 +608,7 @@ public class ObservationBean {
         List<Observation> retVal = new ArrayList<>();
         if(! observations.isEmpty())
         {
-            //start = new Date();
+            //Date start = new Date();
             retVal = this.getObservationsWithGeoInfo(observations);
             //System.out.println("Finding geoinfo took " + (new Date().getTime() - start.getTime()) + " milliseconds");
             //start = new Date();
@@ -742,8 +743,10 @@ public class ObservationBean {
                 
     }
 
-    
+    public List<PolygonService> getPolygonServicesForOrganization(Integer organizationId) {
+        return em.createNativeQuery("SELECT * FROM polygon_service p WHERE p.polygon_service_id IN (SELECT polygon_service_id FROM public.organization_polygon_service WHERE organization_id=:organizationId)", PolygonService.class)
+                .setParameter("organizationId", organizationId)
+                .getResultList();
+    }
 
-    
-    
 }

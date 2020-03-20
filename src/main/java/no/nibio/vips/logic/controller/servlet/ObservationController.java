@@ -46,6 +46,7 @@ import no.nibio.vips.logic.entity.ObservationMethod;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.OrganizationGroup;
+import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -234,7 +235,7 @@ public class ObservationController extends HttpServlet {
                 
                 Collections.sort(observations);
                 Collections.reverse(observations);
-                observations.forEach(o->System.out.println(o));
+                //observations.forEach(o->System.out.println(o));
                 List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
                 request.setAttribute("shortcuts", shortcuts);
                 request.setAttribute("allPests", SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(allPests, SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
@@ -282,7 +283,12 @@ public class ObservationController extends HttpServlet {
                             allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
                         }
                         
+                        // Get the polygonServices
+                        List<PolygonService> polygonServices = SessionControllerGetter.getObservationBean().getPolygonServicesForOrganization(user.getOrganization_id());
+                        
                         request.setAttribute("observation", observation);
+                        request.setAttribute("polygonServices", polygonServices);
+                        request.setAttribute("locationVisibilityFormValue", ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PUBLIC);
                         request.setAttribute("shortcut", request.getParameter("observationFormShortcutId") != null ?
                                     em.find(ObservationFormShortcut.class, Integer.valueOf(request.getParameter("observationFormShortcutId")))
                                     : null
@@ -328,7 +334,10 @@ public class ObservationController extends HttpServlet {
                     {
                         Integer observationId = Integer.valueOf(request.getParameter("observationId"));
                         Observation observation = SessionControllerGetter.getObservationBean().getObservation(observationId);//em.find(Observation.class, observationId);
+                        List<PolygonService> polygonServices = SessionControllerGetter.getObservationBean().getPolygonServicesForOrganization(user.getOrganization_id());
+                        request.setAttribute("locationVisibilityFormValue", this.getLocationVisibilityFormValue(observation));
                         request.setAttribute("observation", observation);
+                        request.setAttribute("polygonServices", polygonServices);
                         request.setAttribute("noBroadcast", request.getParameter("noBroadcast") != null);
                         request.setAttribute("mapLayers", SessionControllerGetter.getUserBean().getMapLayerJSONForUser(user));
                         //System.out.println(observation.getGeoinfo());
@@ -442,7 +451,7 @@ public class ObservationController extends HttpServlet {
                                             : formValidation.getFormField("observationData").getWebValue()
                             );
                             observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
-                            observation.setLocationIsPrivate(formValidation.getFormField("locationIsPrivate").getWebValue() != null);
+                            this.setObservationLocationVisibility(observation, formValidation.getFormField("locationVisibility").getWebValue());
                             observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);
 
                             boolean sendNotification = false;    
@@ -512,7 +521,9 @@ public class ObservationController extends HttpServlet {
                             
                             // All transactions finished, we can send notifications
                             // if conditions are met
-                            if(sendNotification)
+                            if(sendNotification && !
+                                    (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
+                                    )
                             {
                                 SessionControllerGetter.getMessagingBean().sendUniversalMessage(observation);
                             }
@@ -670,6 +681,39 @@ public class ObservationController extends HttpServlet {
             }
         }
     } 
+    
+    public static final String LOCATION_VISIBILITY_FORM_VALUE_PRIVATE = "private";
+    public static final String LOCATION_VISIBILITY_FORM_VALUE_PUBLIC = "public";
+    public static final String LOCATION_VISIBILITY_FORM_VALUE_MASK_PREFIX = "mask_";
+    
+    private String getLocationVisibilityFormValue(Observation observation)
+    {
+        // Private is private, no matter what
+        if(observation.getLocationIsPrivate())
+        {
+            return ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PRIVATE;
+        }
+        // Public can either be completely public or masked by a polygon layer
+        // e.g. county borders
+        if(observation.getPolygonService() == null)
+        {
+            return ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PUBLIC;
+        }
+        return ObservationController.LOCATION_VISIBILITY_FORM_VALUE_MASK_PREFIX + observation.getPolygonService().getPolygonServiceId();
+    }
+    
+    private void setObservationLocationVisibility(Observation observation, String formValue)
+    {
+        // Private is private, no matter what
+        observation.setLocationIsPrivate(formValue.equals(ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PRIVATE));
+        observation.setPolygonService(
+                // If private or public, set no polygon service
+                formValue.equals(ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PRIVATE) || formValue.equals(ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PUBLIC)
+                ? null
+                // Otherwise, set selected polygon service
+                : em.find(PolygonService.class, Integer.valueOf(formValue.split("_")[1]))              
+        );
+    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
