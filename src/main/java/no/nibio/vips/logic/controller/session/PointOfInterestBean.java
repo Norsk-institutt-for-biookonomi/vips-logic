@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -410,8 +411,14 @@ public class PointOfInterestBean {
                 }
             }
             catch(NoResultException ex) {}
-            // Getting all weather stations for user's organization
-            retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE));
+            // Getting all weather stations for user's organization. Need to avoid
+            // double catching of privately owned weather station
+            retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE)
+                    .stream()
+                    .filter(weatherStation -> ! weatherStation.getUserId().getUserId().equals(user.getUserId()))
+                    .collect(Collectors.toList())
+            );
+            
         }
         Collections.sort(retVal);
         return retVal;
