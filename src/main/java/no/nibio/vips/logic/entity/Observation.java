@@ -67,6 +67,7 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "Observation.findByObservationId", query = "SELECT o FROM Observation o WHERE o.observationId = :observationId"),
     @NamedQuery(name = "Observation.findByUserId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByLastEditedBy", query = "SELECT o FROM Observation o WHERE o.lastEditedBy IN(:lastEditedBy)"),
+    @NamedQuery(name = "Observation.findByLocationPointOfInterestId", query = "SELECT o FROM Observation o WHERE o.locationPointOfInterestId = :locationPointOfInterestId"),
     @NamedQuery(name = "Observation.findByStatusChangedByUserId", query = "SELECT o FROM Observation o WHERE o.statusChangedByUserId IN(:statusChangedByUserId)"),
     @NamedQuery(name = "Observation.findByUserIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByUserIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId) AND o.statusTypeId= :statusTypeId"),

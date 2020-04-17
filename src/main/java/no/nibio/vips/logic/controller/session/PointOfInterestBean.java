@@ -324,7 +324,7 @@ public class PointOfInterestBean {
     public void deleteWeatherStation(Integer pointOfInterestId)
     {
         PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
-        SessionControllerGetter.getForecastBean().deleteForecastConfigurations(weatherStation);
+        SessionControllerGetter.getForecastBean().deleteForecastConfigurationsForWeatherStation(weatherStation);
         em.remove(weatherStation);
     }
 
@@ -359,7 +359,10 @@ public class PointOfInterestBean {
     }
 
     public void deletePoi(Integer pointOfInterestId) {
-        em.remove(em.find(PointOfInterest.class, pointOfInterestId));
+        PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
+        SessionControllerGetter.getForecastBean().deleteForecastConfigurationsForLocation(poi);
+        SessionControllerGetter.getObservationBean().deleteObservationsForLocation(poi);
+        em.remove(poi);
     }
 
     public List<PointOfInterest> getRelevantPointOfInterestsForUser(VipsLogicUser user) {

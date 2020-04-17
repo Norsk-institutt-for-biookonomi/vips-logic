@@ -51,6 +51,7 @@ import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.logic.entity.WeatherForecastProvider;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestTypeFarm;
 import no.nibio.vips.logic.entity.PointOfInterestTypeField;
@@ -780,10 +781,10 @@ public class PointOfInterestController extends HttpServlet {
                         List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsByLocation(poi);
                         
                         // TODO: Are there observations attached to this location?
-                        
+                        List<Observation> observations = SessionControllerGetter.getObservationBean().getObservationsByLocation(poi);
                         // 
                         // If no strings attached, delete immediately
-                        if(forecastConfigurations.isEmpty())
+                        if(forecastConfigurations.isEmpty() && observations.isEmpty())
                         {
                             response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
@@ -798,6 +799,7 @@ public class PointOfInterestController extends HttpServlet {
                             request.setAttribute("poi", poi);
                             request.setAttribute("forecastConfigurations", forecastConfigurations);
                             // TODO Set observations
+                            request.setAttribute("observations", observations);
                             request.setAttribute("modelInformation", modelInformationMap);
                             request.getRequestDispatcher("/poiDeletePreview.ftl").forward(request, response);
                         }
