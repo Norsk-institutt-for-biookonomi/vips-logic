@@ -175,7 +175,7 @@ public class PointOfInterestBean {
         }
         else
         {
-            if(Objects.equals(pointOfInterestTypeId, PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION))
+            if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
             {
                 pois.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),true));
             }

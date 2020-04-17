@@ -60,7 +60,10 @@ public class PointOfInterestType implements Serializable {
     private String defaultName;
     
     // Hard coded stuff
-    public final static Integer POINT_OF_INTEREST_TYPE_WEATHER_STATION = 1;
+    public static final int POINT_OF_INTEREST_TYPE_WEATHER_STATION = 1;
+    public static final int POINT_OF_INTEREST_TYPE_FARM = 2;
+    public static final int POINT_OF_INTEREST_TYPE_FIELD = 3;
+    public static final int POINT_OF_INTEREST_TYPE_REGION = 4;
 
     public PointOfInterestType() {
     }

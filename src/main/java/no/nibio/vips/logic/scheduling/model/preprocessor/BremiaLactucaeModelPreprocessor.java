@@ -51,7 +51,7 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
         
         List<WeatherObservation> observations;
             
-   
+        
         try {
             observations = wdsUtil.getWeatherObservations(
                     weatherStation,

@@ -21,8 +21,10 @@ package no.nibio.vips.logic.scheduling.model.preprocessor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -64,7 +66,8 @@ public class DOWNCASTModelPreprocessor extends ModelRunPreprocessor{
                     },
                     configuration.getDateStartInTimeZone(),
                     configuration.getDateEndInTimeZone());
-            observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
+            
+            observations = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(observations);
             List<WeatherObservation> BTg = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL)));
             List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION)));
             List<WeatherObservation> UM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.RELATIVE_HUMIDITY_MEAN)));
