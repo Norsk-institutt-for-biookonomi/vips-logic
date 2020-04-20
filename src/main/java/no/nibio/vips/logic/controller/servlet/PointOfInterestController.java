@@ -51,6 +51,11 @@ import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.logic.entity.WeatherForecastProvider;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.PointOfInterestType;
+import no.nibio.vips.logic.entity.PointOfInterestTypeFarm;
+import no.nibio.vips.logic.entity.PointOfInterestTypeField;
+import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
@@ -530,7 +535,6 @@ public class PointOfInterestController extends HttpServlet {
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                         request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
-                        request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
                         request.getSession().setAttribute("groups", user.isSuperUser() || user.isOrganizationAdmin() ? SessionControllerGetter.getUserBean().getOrganizationGroups(user.getOrganizationId())
@@ -615,22 +619,22 @@ public class PointOfInterestController extends HttpServlet {
             {
                     try
                     {
+                        FormValidation formValidation = FormValidator.validateForm("poiForm", request, getServletContext());
                         Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                         PointOfInterest poi = pointOfInterestId > 0 ? 
                                                                         em.find(PointOfInterest.class, pointOfInterestId) 
-                                                                        : new PointOfInterest();
+                                                                        : PointOfInterestFactory.getPointOfInterest(formValidation.getFormField("pointOfInterestTypeId").getValueAsInteger());
                         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                             || poi.getPointOfInterestId() == null
                             || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
                             )
                         {
-                            FormValidation formValidation = FormValidator.validateForm("poiForm", request, getServletContext());
                             Boolean poiNameAlreadyExists = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(formValidation.getFormField("name").getWebValue()) != null;
                             // Only store if valid form data and NOT a new poi with an existing poiName
                             if(formValidation.isValid() && !(poi.getPointOfInterestId() == null && poiNameAlreadyExists))
                             {
                                 // Set values
-                                poi.setName(formValidation.getFormField("name").getWebValue());
+                                poi.setName(formValidation.getFormField("name").getWebValue());                                
                                 // A POI is per default not a forecast location. Only superusers and orgadmins 
                                 // may change the status
                                 if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
@@ -763,20 +767,24 @@ public class PointOfInterestController extends HttpServlet {
             }
             else if(action.equals("deletePoiPreview"))
             {
-                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
+                if(
+                        SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        || user.getUserId().equals(poi.getUserId().getUserId())
+                )
                 {
                     try
                     {
-                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
-                        PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
+
                         // Are there forecasts attached to this location
                         List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsByLocation(poi);
                         
                         // TODO: Are there observations attached to this location?
-                        
+                        List<Observation> observations = SessionControllerGetter.getObservationBean().getObservationsByLocation(poi);
                         // 
                         // If no strings attached, delete immediately
-                        if(forecastConfigurations.isEmpty())
+                        if(forecastConfigurations.isEmpty() && observations.isEmpty())
                         {
                             response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
@@ -791,6 +799,7 @@ public class PointOfInterestController extends HttpServlet {
                             request.setAttribute("poi", poi);
                             request.setAttribute("forecastConfigurations", forecastConfigurations);
                             // TODO Set observations
+                            request.setAttribute("observations", observations);
                             request.setAttribute("modelInformation", modelInformationMap);
                             request.getRequestDispatcher("/poiDeletePreview.ftl").forward(request, response);
                         }
@@ -807,12 +816,15 @@ public class PointOfInterestController extends HttpServlet {
             }
             else if(action.equals("deletePoi"))
             {
-                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
+                PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
+                if(
+                        SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        || user.getUserId().equals(poi.getUserId().getUserId())
+                )
                 {
                     try
                     {
-                        Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
-                        //PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
                         SessionControllerGetter.getPointOfInterestBean().deletePoi(pointOfInterestId);
                         response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))

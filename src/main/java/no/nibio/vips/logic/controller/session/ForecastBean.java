@@ -415,9 +415,25 @@ public class ForecastBean {
      * Deletes all forecasts and results from the given weather station
      * @param weatherStation 
      */
-    public void deleteForecastConfigurations(PointOfInterestWeatherStation weatherStation)
+    public void deleteForecastConfigurationsForWeatherStation(PointOfInterestWeatherStation weatherStation)
     {
         List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurationsByWeatherStation(weatherStation);
+        for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
+        {
+            em.createNativeQuery("DELETE FROM forecast_result WHERE forecast_configuration_id=:forecastConfigurationId")
+                    .setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId())
+                    .executeUpdate();
+            em.remove(forecastConfiguration);
+        }
+    }
+    
+    /**
+     * Deletes all forecasts and results from the given location
+     * @param weatherStation 
+     */
+    public void deleteForecastConfigurationsForLocation(PointOfInterest location)
+    {
+        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurationsByLocation(location);
         for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
         {
             em.createNativeQuery("DELETE FROM forecast_result WHERE forecast_configuration_id=:forecastConfigurationId")
@@ -1230,4 +1246,5 @@ public class ForecastBean {
                 .setParameter("year", year)
                 .getResultList();
     }
+
 }

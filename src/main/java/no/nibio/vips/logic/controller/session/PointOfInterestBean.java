@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -174,7 +175,7 @@ public class PointOfInterestBean {
         }
         else
         {
-            if(Objects.equals(pointOfInterestTypeId, PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION))
+            if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
             {
                 pois.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),true));
             }
@@ -323,7 +324,7 @@ public class PointOfInterestBean {
     public void deleteWeatherStation(Integer pointOfInterestId)
     {
         PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
-        SessionControllerGetter.getForecastBean().deleteForecastConfigurations(weatherStation);
+        SessionControllerGetter.getForecastBean().deleteForecastConfigurationsForWeatherStation(weatherStation);
         em.remove(weatherStation);
     }
 
@@ -358,7 +359,10 @@ public class PointOfInterestBean {
     }
 
     public void deletePoi(Integer pointOfInterestId) {
-        em.remove(em.find(PointOfInterest.class, pointOfInterestId));
+        PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
+        SessionControllerGetter.getForecastBean().deleteForecastConfigurationsForLocation(poi);
+        SessionControllerGetter.getObservationBean().deleteObservationsForLocation(poi);
+        em.remove(poi);
     }
 
     public List<PointOfInterest> getRelevantPointOfInterestsForUser(VipsLogicUser user) {
@@ -410,8 +414,14 @@ public class PointOfInterestBean {
                 }
             }
             catch(NoResultException ex) {}
-            // Getting all weather stations for user's organization
-            retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE));
+            // Getting all weather stations for user's organization. Need to avoid
+            // double catching of privately owned weather station
+            retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE)
+                    .stream()
+                    .filter(weatherStation -> ! weatherStation.getUserId().getUserId().equals(user.getUserId()))
+                    .collect(Collectors.toList())
+            );
+            
         }
         Collections.sort(retVal);
         return retVal;

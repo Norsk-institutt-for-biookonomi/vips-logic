@@ -25,14 +25,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -60,7 +58,7 @@ import org.wololo.geojson.FeatureCollection;
 import org.wololo.geojson.GeoJSONFactory;
 
 /**
- * @copyright 2014-2018 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
@@ -747,6 +745,23 @@ public class ObservationBean {
         return em.createNativeQuery("SELECT * FROM polygon_service p WHERE p.polygon_service_id IN (SELECT polygon_service_id FROM public.organization_polygon_service WHERE organization_id=:organizationId)", PolygonService.class)
                 .setParameter("organizationId", organizationId)
                 .getResultList();
+    }
+
+    public List<Observation> getObservationsByLocation(PointOfInterest poi) {
+        return em.createNativeQuery("SELECT * FROM Observation WHERE location_point_of_interest_id=:locationPointOfInterestId", Observation.class)
+                .setParameter("locationPointOfInterestId", poi.getPointOfInterestId())
+                .getResultList();
+    }
+
+    /**
+     * Part of the cleaning up dependencies procedure for when deleting a POI
+     * @param poi 
+     */
+    public void deleteObservationsForLocation(PointOfInterest poi) {
+        em.createNamedQuery("Observation.findByLocationPointOfInterestId", Observation.class)
+                .setParameter("locationPointOfInterestId", poi.getPointOfInterestId())
+                .getResultList().stream()
+                .forEach(obs -> em.remove(obs));
     }
 
 }
