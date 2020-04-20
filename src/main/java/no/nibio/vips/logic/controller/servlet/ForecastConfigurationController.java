@@ -55,7 +55,7 @@ import no.nibio.web.forms.FormValidator;
 
 /**
  * Handles form configuration actions
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ForecastConfigurationController extends HttpServlet {
@@ -377,27 +377,26 @@ public class ForecastConfigurationController extends HttpServlet {
             }
         }
         // Delete forecast configuration
-        // Authorization: SUPERUSERS and ORGANIZATION ADMINS
+        // Authorization: SUPERUSERS and ORGANIZATION ADMINS OR regular users owning the forecast config
         else if(action.equals("deleteForecastConfiguration"))
         {
-            if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+            Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
+            ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
+            if(
+                    userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                    || user.getUserId().equals(forecastConfiguration.getVipsLogicUserId().getUserId())
+                    )
             {
+                // Only superusers can delete forecasts from other organizations
+                if(! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getOrganizationId().equals(user.getOrganizationId()))
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                    return;
+                }
                 try
                 {
-                    Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
-                    ForecastConfiguration forecastConfiguration = em.find(ForecastConfiguration.class, forecastConfigurationId);
-
-                    // Only superusers can delete forecasts from other organizations
-                    if(! user.isSuperUser() && forecastConfiguration.getVipsLogicUserId() != null && !forecastConfiguration.getVipsLogicUserId().getOrganizationId().equals(user.getOrganizationId()))
-                    {
-                        response.sendError(403,"Access not authorized"); // HTTP Forbidden
-                    }
-                    else
-                    {
-                        forecastBean.deleteForecastConfiguration(forecastConfigurationId);
-                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?").append("&messageKey=").append("forecastConfigurationDeleted").toString());
-                       
-                    }
+                    forecastBean.deleteForecastConfiguration(forecastConfigurationId);
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?").append("&messageKey=").append("forecastConfigurationDeleted").toString());                       
                 }
                 catch(NullPointerException | NumberFormatException ex)
                 {

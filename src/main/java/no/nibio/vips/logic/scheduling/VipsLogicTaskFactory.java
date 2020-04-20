@@ -26,6 +26,7 @@ import java.util.Map;
 import no.nibio.vips.logic.scheduling.tasks.DeleteAllExpiredUserUuidsTask;
 import no.nibio.vips.logic.scheduling.tasks.RunAllForecastConfigurationsForOrganizationTask;
 import no.nibio.vips.logic.scheduling.tasks.RunAllForecastConfigurationsTask;
+import no.nibio.vips.logic.scheduling.tasks.RunForecastConfigurationsByIdTask;
 import no.nibio.vips.logic.scheduling.tasks.RunGridModelsTask;
 import no.nibio.vips.logic.scheduling.tasks.SendForecastEventNotificationsTask;
 import no.nibio.vips.logic.scheduling.tasks.UpdateForecastResultCacheTableTask;
@@ -47,8 +48,9 @@ public class VipsLogicTaskFactory {
     public static final int SEND_FORECAST_EVENT_NOTIFICATIONS_TASK = 6;
     public static final int RUN_ALL_FORECAST_CONFIGURATIONS_FOR_ORGANIZATION_TASK = 7;
     public static final int RUN_GRID_MODELS_TASK = 8;
+    public static final int RUN_FORECAST_CONFIGURATIONS_BY_ID_TASK = 9;
     
-    private final static int[] ALL_TASK_IDS = {1,2,3,4,5,6,7,8};
+    private final static int[] ALL_TASK_IDS = {1,2,3,4,5,6,7,8,9};
     
     private final static int[] ORGANIZATION_ADMIN_TASK_IDS = {7};
     
@@ -89,6 +91,9 @@ public class VipsLogicTaskFactory {
                 break;
             case RUN_GRID_MODELS_TASK:
                 retVal = new RunGridModelsTask();
+                break;
+            case RUN_FORECAST_CONFIGURATIONS_BY_ID_TASK:
+                retVal = new RunForecastConfigurationsByIdTask();
                 break;
             default:
                 return null;

@@ -85,9 +85,11 @@
 			    <label for="pointOfInterestTypeId">${i18nBundle.pointOfInterestType}</label>
 			    <select class="form-control" name="pointOfInterestTypeId" onblur="validateField(this);">
 				<#list 0..3 as pointOfInterestTypeId>
+                                    <#if pointOfInterestTypeId != 1>
 					<option value="${pointOfInterestTypeId}"<#if 
 								poi.pointOfInterestTypeId?has_content && pointOfInterestTypeId == poi.pointOfInterestTypeId
 								> selected="selected"</#if>>${i18nBundle["pointOfInterestType_" + pointOfInterestTypeId]}</option>
+                                    </#if>
 				</#list>
 			     </select>
 			     <span class="help-block" id="${formId}_pointOfInterestTypeId_validation"></span>
@@ -111,18 +113,6 @@
 			    <label for="altitude">${i18nBundle.altitude} (${i18nBundle.meter})</label>
 			    <input type="number" class="form-control" name="altitude" placeholder="${i18nBundle.altitude}" value="${(poi.altitude?c)!""}" onblur="validateField(this);"/>
 			    <span class="help-block" id="${formId}_altitude_validation"></span>
-			  </div>
-			  <div class="form-group">
-			    <label for="weatherForecastProviderId">${i18nBundle.weatherForecastProvider}</label>
-			    <select class="form-control" name="weatherForecastProviderId" onblur="validateField(this);">
-			    	<option value="-1">${i18nBundle.none} ${i18nBundle.weatherForecastProvider?lower_case}
-				<#list weatherForecastProviders as weatherForecastProvider>
-					<option value="${weatherForecastProvider.weatherForecastProviderId}"
-						<#if poi.weatherForecastProviderId?has_content && poi.weatherForecastProviderId.weatherForecastProviderId == weatherForecastProvider.weatherForecastProviderId>selected="selected"</#if>
-					>${weatherForecastProvider.name}</option>
-				</#list>
-			     </select>
-			     <span class="help-block" id="${formId}_weatherForecastProviderId_validation"></span>
 			  </div>
 			   <div class="form-group">
 			    <label for="timeZone">${i18nBundle.timeZone}</label>

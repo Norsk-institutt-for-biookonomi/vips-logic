@@ -194,7 +194,7 @@ function getHTMLInputType(dataType)
             return "number";
             break;
         case dataTypes.TYPE_DOUBLE:
-            return "number";
+            return "number' step='any";
             break;
         case dataTypes.TYPE_DATE:
             return "date";

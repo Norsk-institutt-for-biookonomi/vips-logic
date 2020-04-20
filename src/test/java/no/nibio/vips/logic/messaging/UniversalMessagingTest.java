@@ -86,7 +86,7 @@ public class UniversalMessagingTest {
         }
     }
     
-    @Test
+    //@Test
     public void serviceTest()
     {
         System.out.println("serviceTest");

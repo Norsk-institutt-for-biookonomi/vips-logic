@@ -30,7 +30,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * @copyright 2013-2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -40,7 +40,8 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "OrganismLocale.findAll", query = "SELECT o FROM OrganismLocale o"),
     @NamedQuery(name = "OrganismLocale.findByOrganismId", query = "SELECT o FROM OrganismLocale o WHERE o.organismLocalePK.organismId = :organismId"),
     @NamedQuery(name = "OrganismLocale.findByLocale", query = "SELECT o FROM OrganismLocale o WHERE o.organismLocalePK.locale = :locale"),
-    @NamedQuery(name = "OrganismLocale.findByLocalName", query = "SELECT o FROM OrganismLocale o WHERE o.localName = :localName")})
+    @NamedQuery(name = "OrganismLocale.findByLocalName", query = "SELECT o FROM OrganismLocale o WHERE o.localName = :localName")//,
+})
 public class OrganismLocale implements Serializable {
     private static final long serialVersionUID = 1L;
     @EmbeddedId

@@ -25,14 +25,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -49,6 +47,7 @@ import no.nibio.vips.logic.entity.ObservationStatusType;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
+import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -59,7 +58,7 @@ import org.wololo.geojson.FeatureCollection;
 import org.wololo.geojson.GeoJSONFactory;
 
 /**
- * @copyright 2014-2018 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
@@ -291,6 +290,10 @@ public class ObservationBean {
 
     public void deleteObservation(Integer observationId) {
         Observation observation = em.find(Observation.class, observationId);
+        // Delete all current group memberships
+        em.createNativeQuery("DELETE FROM public.organization_group_observation WHERE observation_id=:observationId")
+                .setParameter("observationId", observation.getObservationId())
+                .executeUpdate();
         em.remove(observation);
     }
 
@@ -460,7 +463,7 @@ public class ObservationBean {
                 .getResultList();
     }
 
-    private List<Observation> getObservationsWithLocations(List<Observation> observations) {
+    public List<Observation> getObservationsWithLocations(List<Observation> observations) {
          Set<Integer> locationPointOfInterestIds = new HashSet<>();
          observations.stream().filter((o) -> (o.getLocationPointOfInterestId() != null)).forEach((o) -> {
              locationPointOfInterestIds.add(o.getLocationPointOfInterestId());
@@ -603,7 +606,7 @@ public class ObservationBean {
         List<Observation> retVal = new ArrayList<>();
         if(! observations.isEmpty())
         {
-            //start = new Date();
+            //Date start = new Date();
             retVal = this.getObservationsWithGeoInfo(observations);
             //System.out.println("Finding geoinfo took " + (new Date().getTime() - start.getTime()) + " milliseconds");
             //start = new Date();
@@ -738,8 +741,27 @@ public class ObservationBean {
                 
     }
 
-    
+    public List<PolygonService> getPolygonServicesForOrganization(Integer organizationId) {
+        return em.createNativeQuery("SELECT * FROM polygon_service p WHERE p.polygon_service_id IN (SELECT polygon_service_id FROM public.organization_polygon_service WHERE organization_id=:organizationId)", PolygonService.class)
+                .setParameter("organizationId", organizationId)
+                .getResultList();
+    }
 
-    
-    
+    public List<Observation> getObservationsByLocation(PointOfInterest poi) {
+        return em.createNativeQuery("SELECT * FROM Observation WHERE location_point_of_interest_id=:locationPointOfInterestId", Observation.class)
+                .setParameter("locationPointOfInterestId", poi.getPointOfInterestId())
+                .getResultList();
+    }
+
+    /**
+     * Part of the cleaning up dependencies procedure for when deleting a POI
+     * @param poi 
+     */
+    public void deleteObservationsForLocation(PointOfInterest poi) {
+        em.createNamedQuery("Observation.findByLocationPointOfInterestId", Observation.class)
+                .setParameter("locationPointOfInterestId", poi.getPointOfInterestId())
+                .getResultList().stream()
+                .forEach(obs -> em.remove(obs));
+    }
+
 }

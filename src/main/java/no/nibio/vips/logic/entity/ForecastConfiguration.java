@@ -82,7 +82,8 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIds", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds) AND f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndModelIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.modelId IN (:modelIds) AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE"),
-    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE")
+    @NamedQuery(name = "ForecastConfiguration.findByVipsLogicUserIdsAndDate", query = "SELECT f FROM ForecastConfiguration f WHERE f.vipsLogicUserId IN (:vipsLogicUserIds) AND f.dateStart <= :to AND f.dateEnd >= :from AND f.isPrivate = FALSE"),
+    @NamedQuery(name = "ForecastConfiguration.findByModelIdAndYear", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId = :modelId AND YEAR(f.dateStart) <= :year AND YEAR(f.dateEnd) >= :year AND f.isPrivate = FALSE")
 })
 public class ForecastConfiguration implements Serializable, Comparable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration", fetch = FetchType.EAGER)

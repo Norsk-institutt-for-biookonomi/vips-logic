@@ -415,9 +415,25 @@ public class ForecastBean {
      * Deletes all forecasts and results from the given weather station
      * @param weatherStation 
      */
-    public void deleteForecastConfigurations(PointOfInterestWeatherStation weatherStation)
+    public void deleteForecastConfigurationsForWeatherStation(PointOfInterestWeatherStation weatherStation)
     {
         List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurationsByWeatherStation(weatherStation);
+        for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
+        {
+            em.createNativeQuery("DELETE FROM forecast_result WHERE forecast_configuration_id=:forecastConfigurationId")
+                    .setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId())
+                    .executeUpdate();
+            em.remove(forecastConfiguration);
+        }
+    }
+    
+    /**
+     * Deletes all forecasts and results from the given location
+     * @param weatherStation 
+     */
+    public void deleteForecastConfigurationsForLocation(PointOfInterest location)
+    {
+        List<ForecastConfiguration> forecastConfigurations = this.getForecastConfigurationsByLocation(location);
         for(ForecastConfiguration forecastConfiguration:forecastConfigurations)
         {
             em.createNativeQuery("DELETE FROM forecast_result WHERE forecast_configuration_id=:forecastConfigurationId")
@@ -563,7 +579,7 @@ public class ForecastBean {
      * @param camelCaseName
      * @return MODELID_CAMEL_CASE_NAME
      */
-    private String getDeCamelizedFieldName(String modelId, String camelCaseName)
+    public String getDeCamelizedFieldName(String modelId, String camelCaseName)
     {
         StringBuilder deCamelizedFieldName = new StringBuilder(modelId.toUpperCase());
         for(String phrase : camelCaseName.split("(?=\\p{Lu})"))
@@ -573,7 +589,7 @@ public class ForecastBean {
         
         return deCamelizedFieldName.toString();
     }
-    
+        
     
     public List<ForecastModelConfiguration> getForecastModelConfigurations(Long forecastConfigurationId)
     {
@@ -710,7 +726,7 @@ public class ForecastBean {
         return resource;
     }
     
-    public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate, String serverName)
+    public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate, String serverName, VipsLogicUser user)
     {
         //String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
         String iconPath = "//" + serverName + "/public/images/";
@@ -751,13 +767,13 @@ public class ForecastBean {
         if(organizationIds.size() == 1 && organizationIds.get(0).equals(-1))
         {
             em.createNamedQuery("Organization.findAll",Organization.class).getResultStream().forEach(
-                    org-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(org.getOrganizationId(), cropOrganismIds, theDate))
+                    org-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(org.getOrganizationId(), cropOrganismIds, theDate, user))
                     );
         }
         else
         {
             organizationIds.stream().forEach(
-                    orgId-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(orgId, cropOrganismIds, theDate))
+                    orgId-> poisWithAggregate.addAll(getPointOfInterestForecastsAggregate(orgId, cropOrganismIds, theDate, user))
                     );
         }
         
@@ -1015,9 +1031,15 @@ public class ForecastBean {
      * @param organizationId Filter for organization
      * @param cropOrganismIds Filter for crops
      * @param theDate Filter for date. If theDate=systemDate, data is fetched from the caching table forecast_result_cache
+     * @param user if not null: Include private forecasts for this user
      * @return 
      */
-    private List<PointOfInterest> getPointOfInterestForecastsAggregate(Integer organizationId, List<Integer> cropOrganismIds, Date theDate) {
+    private List<PointOfInterest> getPointOfInterestForecastsAggregate(
+            Integer organizationId, 
+            List<Integer> cropOrganismIds, 
+            Date theDate,
+            VipsLogicUser user
+    ) {
         // TODO: More precise gathering of POIs...
         List<PointOfInterest> pois;
         if(organizationId != null && organizationId > 0)
@@ -1050,14 +1072,22 @@ public class ForecastBean {
                         "WHERE forecast_configuration_id IN( \n" +
                         "	SELECT forecast_configuration_id \n" +
                         "	FROM forecast_configuration \n" +
-                        "	WHERE is_private IS FALSE \n" +
-                        "       AND forecast_configuration_id > 0 \n" +
+                        "       WHERE forecast_configuration_id > 0 \n" +
+                        
+                        (user == null ? 
+                        "	AND is_private IS FALSE \n" 
+                        :"      AND (is_private IS FALSE OR (is_private IS TRUE AND vips_logic_user_id=:vipsLogicUserId))"
+                        ) +
                         "       AND location_point_of_interest_id=:locationPointOfInterestId \n" +
                         (cropOrganismIds != null && ! cropOrganismIds.isEmpty() ? "     AND crop_organism_id IN (" + StringUtils.join(cropOrganismIds, ",") + ") " : "") +
                         ")\n" +
                         "AND valid_time_start between :midnight AND :nextMidnight";
             //System.out.println(poi.getName() + " SQL=" + sql);
             Query q = em.createNativeQuery(sql);
+            if(user != null)
+            {
+                q.setParameter("vipsLogicUserId", user);
+            }
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
             q.setParameter("midnight", midnight);
             q.setParameter("nextMidnight", nextMidnight);
@@ -1203,4 +1233,18 @@ public class ForecastBean {
         .setParameter("userId", user.getUserId())
         .executeUpdate();
     }
+
+    /**
+     * 
+     * @param modelId
+     * @param year
+     * @return 
+     */
+    public List<ForecastConfiguration> getForecastConfigurationsForModel(String modelId, Integer year) {
+        return em.createNamedQuery("ForecastConfiguration.findByModelIdAndYear")
+                .setParameter("modelId", modelId)
+                .setParameter("year", year)
+                .getResultList();
+    }
+
 }

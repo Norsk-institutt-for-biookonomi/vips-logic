@@ -39,6 +39,7 @@ var dataTypes = {
 var fieldTypes= {
     TYPE_SELECT_SINGLE: "SELECT_SINGLE",
     TYPE_SELECT_MULTIPLE: "SELECT_MULTIPLE",
+    TYPE_RADIO: "RADIO",
     TYPE_INPUT: "INPUT"
 };
 
@@ -64,7 +65,7 @@ var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
 
 /**
  * Validation function for all forms
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2019 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  * 
  * It depends on the following:
@@ -101,7 +102,6 @@ function validateForm(theForm, formDefinitionKey)
             continue;
         }
         if(!validateFieldActual(theForm[fieldDefinition.name], theForm, formDefinitionKey)){
-            //alert("Validation failed for " + fieldDefinition.name);
             isValid = false;
         }
     }
@@ -241,9 +241,16 @@ function getValidationOutputEl(fieldEl, theForm)
  */
 function validateFieldActual(fieldEl, theForm, formDefinitionKey)
 {
-    
     var webValue = fieldEl.value;
-    var fieldDefinition = getFieldDefinition(fieldEl.name, formDefinitions[formDefinitionKey !== null ? formDefinitionKey : theForm.id]);
+    // Determine the fieldName.
+    // If it's a RadioNodeList, get the name of the first radio element item
+    // Otherwise (AFAIK), it's the name of the field
+    var fieldName = fieldEl.name;
+    if(Object.prototype.toString.call(fieldEl).indexOf("RadioNodeList") >= 0)
+    {
+        fieldName = fieldEl.item(0).name;
+    }
+    var fieldDefinition = getFieldDefinition(fieldName, formDefinitions[formDefinitionKey !== null ? formDefinitionKey : theForm.id]);
     // Empty?
     if(webValue === null || webValue === "")
     {
@@ -258,7 +265,6 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
             return true;
         }
     }
-    
     // Single select field - check for nullValue
     if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE)
     {
@@ -299,6 +305,21 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
         }
         else
         {
+            return true;
+        }
+    }
+    
+    // Radio buttons
+    if(fieldDefinition.fieldType === fieldTypes.TYPE_RADIO)
+    {
+        if(fieldDefinition.required && fieldEl.value === "")
+        {
+            invalidizeField(fieldEl, theForm, getI18nMsg("fieldIsRequired",null));
+            return false;
+        }
+        else
+        {
+            validizeField(fieldEl, theForm);
             return true;
         }
     }
@@ -526,8 +547,8 @@ function evaluatePassword(passwordEl)
  */
 function invalidizeField(inputEl, theForm, message)
 {
-    // Make sure we don't try to manipulate hidden fields
-    if(inputEl.type === "hidden")
+    // Make sure we don't try to manipulate hidden fields or radio node lists
+    if(inputEl.type === "hidden" || Object.prototype.toString.call(inputEl).indexOf("RadioNodeList") >= 0)
     {
         alert(message);
         return;
@@ -544,8 +565,8 @@ function invalidizeField(inputEl, theForm, message)
  */
 function validizeField(inputEl, theForm)
 {
-    // Make sure we don't try to manipulate hidden fields
-    if(inputEl.type === "hidden")
+    // Make sure we don't try to manipulate hidden fields or radio node lists
+    if(inputEl.type === "hidden" || Object.prototype.toString.call(inputEl).indexOf("RadioNodeList") >= 0)
     {
         return;
     }

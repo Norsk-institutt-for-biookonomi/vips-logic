@@ -229,7 +229,9 @@ public class UserController extends HttpServlet {
                     FormValidation formValidation = FormValidator.validateForm("userForm",request,getServletContext());
                     FormField usernameField = formValidation.getFormField("username");
                     FormField passwordField = formValidation.getFormField("pass1");
-                    String username = usernameField.getWebValue().trim();
+                    String username = (usernameField != null && usernameField.getWebValue() != null && !usernameField.getWebValue().trim().isEmpty()) ?
+                                        usernameField.getWebValue().trim()
+                                        : null;
                     String password = (passwordField != null && passwordField.getWebValue() != null && !passwordField.getWebValue().trim().isEmpty()) ?
                                         passwordField.getWebValue().trim()
                                         : null;
