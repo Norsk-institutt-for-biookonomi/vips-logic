@@ -67,7 +67,7 @@ public class BremiaLactucaeModelPreprocessor extends ModelRunPreprocessor {
                     },
                     configuration.getDateStartInTimeZone(),
                     configuration.getDateEndInTimeZone());
-            observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
+            observations = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(observations);
             List<WeatherObservation> BTg = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION_GROUND_LEVEL)));
             List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION)));
             List<WeatherObservation> TX = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.TEMPERATURE_MAXIMUM)));

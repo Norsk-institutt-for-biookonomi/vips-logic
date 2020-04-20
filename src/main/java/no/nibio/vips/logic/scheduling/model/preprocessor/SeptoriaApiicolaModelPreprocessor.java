@@ -77,7 +77,7 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
                     },
                     configuration.getDateStartInTimeZone(),
                     configuration.getDateEndInTimeZone());
-            observations = wUtil.checkForAndFixHourlyTimeSeriesHoles(observations);
+            observations = wUtil.checkForAndFixHourlyTimeSeriesHolesMultiParameter(observations);
             List<WeatherObservation> BT = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.LEAF_WETNESS_DURATION)));
             List<WeatherObservation> TM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.TEMPERATURE_MEAN)));
             List<WeatherObservation> RR = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.PRECIPITATION)));
