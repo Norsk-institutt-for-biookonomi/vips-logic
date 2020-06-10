@@ -17,5 +17,30 @@
         "along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>. "
     ],
     "_comment" : "Structure of the specific fields for ALTERNARIA",
-    "fields": []
+        "fields": [
+        {
+            "name" : "sprayingDate01",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : false
+        },
+        {
+            "name" : "sprayingDate02",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : false
+        },
+        {
+            "name" : "sprayingDate03",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : false
+        },
+        {
+            "name" : "sprayingDate04",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : false
+        }         
+        ]
 }

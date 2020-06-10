@@ -20,6 +20,8 @@ Error reading included file Templates/Classes/Templates/Licenses/license-nibio_o
 
 package no.nibio.vips.logic.scheduling.model.preprocessor;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -28,12 +30,15 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
+import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.model.ConfigValidationException;
 import no.nibio.vips.util.WeatherElements;
@@ -47,7 +52,7 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @author bhabesh
  */
 public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
-   
+   public final   Logger      LOGGER              =   Logger.getLogger(this.getClass().getName());
     private final boolean DEBUG = false;
     
     /**
@@ -62,9 +67,19 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
+        String      ALTERNARIA_SPRAYING_DATES_01    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate01");
+        String      ALTERNARIA_SPRAYING_DATES_02    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate02");
+        String      ALTERNARIA_SPRAYING_DATES_03    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate03");
+        String      ALTERNARIA_SPRAYING_DATES_04    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate04");
+        
+        String      paramConfigValue                = null;
+        List<Date>  lstSprayingDates                = new ArrayList(){};
+        
         PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         // What timezone is the calculation for
         TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
+        format.setTimeZone(timeZone);
         // Getting date three days after "today"
         Calendar cal = Calendar.getInstance(timeZone);
         cal.setTime(SystemTime.getSystemTime());
@@ -78,6 +93,11 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
         ModelConfiguration retVal = new ModelConfiguration();
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
         List<WeatherObservation> observations;
+        
+        Date    paramSprayingDate01   = null;
+        Date    paramSprayingDate02   = null;
+        Date    paramSprayingDate03   = null;
+        Date    paramSprayingDate04   = null;
         
         try {
             observations = wdsUtil.getWeatherObservations( 
@@ -115,6 +135,58 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
             }
         }
   */   
+    
+    
+
+    try
+    {
+                if(
+                            null != configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_01)
+                        &&  ! configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_01).trim().equals("")
+                   )
+                {
+                    paramConfigValue    = configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_01);
+                    paramSprayingDate01 = format.parse(paramConfigValue);
+                    lstSprayingDates.add(paramSprayingDate01);
+                }
+        
+                if(
+                            null != configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_02)
+                        &&  ! configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_02).trim().equals("")
+                  )
+                {
+                    paramConfigValue    = configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_02);
+                    paramSprayingDate02 = format.parse(paramConfigValue);
+                    lstSprayingDates.add(paramSprayingDate02);
+                }
+
+                if(
+                            null != configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_03)
+                        &&  ! configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_03).trim().equals("")
+                  )
+                {
+                    paramConfigValue    = configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_03);
+                    paramSprayingDate03 = format.parse(paramConfigValue);
+                    lstSprayingDates.add(paramSprayingDate03);
+                }
+
+                if(
+                            null != configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_04)
+                        &&  ! configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_04).trim().equals("")
+                  )
+                {
+                    paramConfigValue    = configuration.getForecastModelConfigurationValue(ALTERNARIA_SPRAYING_DATES_04);
+                    paramSprayingDate04 = format.parse(paramConfigValue);
+                    lstSprayingDates.add(paramSprayingDate04);
+                }                
+                
+                
+                
+    }
+    catch(ParseException ex)
+    {
+       throw new PreprocessorException("Could not parse date for Spraying Date for Alternaria. Given string was: "+ paramConfigValue);
+    }
 
         Collections.sort(observations);
 
@@ -139,7 +211,7 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
 
         if(DEBUG)
         {
-            System.out.println("Finished getting weather data at " + new Date().toString());
+            LOGGER.log(Level.CONFIG, "Finished getting weather data at  "+new Date().toString());
         }
         try {
             observations = validateAndSanitizeObservations(observations, startDate);
@@ -149,15 +221,21 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
         } 
         if(DEBUG)
         {        
-            System.out.println("Observations=" + observations.toString());
+            LOGGER.log(Level.CONFIG, "Observations=" + observations.toString());
         }
 
-
+        
+        
+        
         // TODO:  weather data validation
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
-            
+        
+        //retVal.setConfigParameter("sprayingDates", format.format(paramSprayingDate));
+        
+        retVal.setConfigParameter("sprayingDates", lstSprayingDates);
+        
         return retVal; 
         
     }
@@ -174,7 +252,7 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
     private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations, Date firstTimeStamp) throws ConfigValidationException, WeatherObservationListException {
         if(DEBUG)
         {
-            System.out.println("validateAndSanitizeObservations");
+            LOGGER.log(Level.CONFIG, "validateAndSanitizeObservations");
         }
         
         WeatherUtil wUtil = new WeatherUtil();
@@ -240,8 +318,7 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
         // Holes in series
         if(DEBUG)
         {
-            System.out.println("checkForAndFixHourlyTimeSeriesHoles");
-            //System.out.println(wUtil.dumpWeatherObservationList(RR));
+            LOGGER.log(Level.CONFIG, "checkForAndFixHourlyTimeSeriesHoles");
         }
 
         
@@ -260,7 +337,7 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
                     null
             );
             
-            System.out.println("Value of relative Humidity : "+UM);
+            
             
             // Fallback if missing leaf wetness: If we have relative humidity. leaf wetness may be calculated
             if((BT.size() != TM.size()) && (UM.size() == TM.size()))
@@ -274,8 +351,7 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
             }
             else
             {
-                System.out.println("TM starts " + TM.get(0).getTimeMeasured() + ", ends " + TM.get(TM.size()-1).getTimeMeasured());
-                //System.out.println("UM starts " + UM.get(0).getTimeMeasured() + ", ends " + UM.get(UM.size()-1).getTimeMeasured());
+                LOGGER.log(Level.WARNING, "TM starts " + TM.get(0).getTimeMeasured() + ", ends " + TM.get(TM.size()-1).getTimeMeasured());
                 throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() + ", UM.size()=" + UM.size() );
             }
         }
