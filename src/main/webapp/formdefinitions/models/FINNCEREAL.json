@@ -24,9 +24,9 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"selectOptions": [
-				{"value":"PyrenophoraTeres", "label":{"en":"Net Blotch","nb":"Bladflekk","fi":"Verkkolaikku"}, "selected":"true"},
-				{"value":"DrechsleraTriticiRepentis", "label":{"en":"Tan Spot","nb":"Tan Spot","fi":"Ruskolaikku"}},
-				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonospora spot", "nb":"Stagonospora spot", "fi":"Pistelaikku"}}
+				{"value":"PyrenophoraTeres", "label":{"en":"Net Blotch","nb":"Byggbrunflekk","fi":"Verkkolaikku"}, "selected":"true"},
+				{"value":"DrechsleraTriticiRepentis", "label":{"en":"Tan Spot","nb":"Hvetebrunflekk","fi":"Ruskolaikku"}},
+				{"value":"StagonosporaNodorum", "label":{"en" : "Stagonospora spot", "nb":"Hveteaksprikk", "fi":"Pistelaikku"}}
 			]
         },
         {
@@ -56,8 +56,8 @@
             "fieldType" : "SELECT_SINGLE",
             "required" : true,
 			"selectOptions": [
-				{"value":"Intensive", "label":{"en":"Ploughing","nb":"Pløying","fi":"Kyntö"}, "selected":"true"},
-				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"Redusert pløying","fi":"Kevytmuokkaus"}},
+				{"value":"Intensive", "label":{"en":"Ploughing","nb":"Jordarbeiding","fi":"Kyntö"}, "selected":"true"},
+				{"value":"Reduced", "label":{"en":"Reduced tillage","nb":"Redusert jordarbeiding","fi":"Kevytmuokkaus"}},
 				{"value":"None", "label":{"en" : "Direct seeding", "nb":"Direktesåing","fi":"Suorakylvö"}}
 			]
         },
