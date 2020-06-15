@@ -21,6 +21,7 @@ package no.nibio.vips.logic.scheduling.model.preprocessor;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -64,6 +65,8 @@ public class SeptoriaHumidityModelPreprocessor  extends ModelRunPreprocessor{
         try
         {
             Date gs31 = format.parse((String)retVal.getConfigParameter("dateGs31"));
+            // Pull data from one day before, to make sure we don't have any "startup issues" in the weather data
+            Date dateStart = Date.from(gs31.toInstant().minus(1, ChronoUnit.DAYS));
             List<WeatherObservation> observations = wdsUtil.getWeatherObservations(
                         (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId(), 
                         WeatherObservation.LOG_INTERVAL_ID_1H, 
@@ -73,7 +76,7 @@ public class SeptoriaHumidityModelPreprocessor  extends ModelRunPreprocessor{
                             WeatherElements.RELATIVE_HUMIDITY_MEAN,
                             WeatherElements.LEAF_WETNESS_DURATION
                         }, 
-                        gs31, 
+                        dateStart, 
                         configuration.getDateEnd()
                 );
             Collections.sort(observations);
