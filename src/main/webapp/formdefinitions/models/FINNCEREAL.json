@@ -42,7 +42,7 @@
             "required" : true,
 			"selectOptions": [
 				{"value":"Wheat", "label":{"en":"Wheat","nb":"Hvete","fi":"Vehnä"}, "selected":"true"},
-				{"value":"Barley", "label":{"en":"Barley","nb":"Barley","fi":"Kaura"}},
+				{"value":"Barley", "label":{"en":"Barley","nb":"Bygg","fi":"Kaura"}},
 				{"value":"Oat", "label":{"en" : "Oats", "nb":"Havre", "fi":"Ohra"}},
 				{"value":"Grass", "label":{"en" : "Grass", "nb":"Gras","fi":"Heinä"}},
 				{"value":"Rapeseed", "label":{"en" : "Turnip rape", "nb":"Raps","fi":"Rypsi"}},
