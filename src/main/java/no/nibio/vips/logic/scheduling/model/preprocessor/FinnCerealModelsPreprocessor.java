@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import no.nibio.vips.entity.ModelConfiguration;
@@ -40,7 +41,7 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
         List<WeatherObservation> observations;
         Date sowingDate = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        
+        format.setTimeZone(TimeZone.getTimeZone(configuration.getTimeZone()));
         try {
         	sowingDate = format.parse(configuration.getForecastModelConfigurationValue(SOWING_DATE));
             observations = wdsUtil.getWeatherObservations(
@@ -84,7 +85,7 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
 			}
                         
                         
-                        /*
+                        
                         Collections.sort(temperature);
                         System.out.println("First temp is at " + temperature.get(0).getTimeMeasured());
                         System.out.println("Last temp is at " + temperature.get(temperature.size()-1).getTimeMeasured());
@@ -92,7 +93,7 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
                         System.out.println("temperature size=" + temperature.size());
                         System.out.println("rainfall size=" + rainfall.size());
                         System.out.println("rh size =" + rh.size());
-                        System.out.println("windSpeedAll=" + windSpeedAll.size());*/
+                        System.out.println("windSpeedAll=" + windSpeedAll.size());
 	        config.setModelId(this.getModelId());
 	        config.setConfigParameter("timeZone", weatherStation.getTimeZone());
 	        config.setConfigParameter("temperature", temperature);
