@@ -87,6 +87,7 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
                         
                         
                         Collections.sort(temperature);
+                        /*
                         System.out.println("First temp is at " + temperature.get(0).getTimeMeasured());
                         System.out.println("Last temp is at " + temperature.get(temperature.size()-1).getTimeMeasured());
                         System.out.println("Observations size = " + observations.size());
@@ -94,6 +95,7 @@ public class FinnCerealModelsPreprocessor extends ModelRunPreprocessor {
                         System.out.println("rainfall size=" + rainfall.size());
                         System.out.println("rh size =" + rh.size());
                         System.out.println("windSpeedAll=" + windSpeedAll.size());
+*/
 	        config.setModelId(this.getModelId());
 	        config.setConfigParameter("timeZone", weatherStation.getTimeZone());
 	        config.setConfigParameter("temperature", temperature);
