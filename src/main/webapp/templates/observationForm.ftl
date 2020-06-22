@@ -224,11 +224,11 @@
 		var allPois = [];
 		
                 /**
-                 * Fetches locations and weather stations, renders the list
+                 * Fetches locations, farms, fields and weather stations, renders the list
                  */
 		function refreshLocationPointOfInterests(pointOfInterestId)
 		{
-                    var poiTypes = ["${i18nBundle.genericPlaces}","${i18nBundle.weatherStations}"]
+                    var poiTypes = ["${i18nBundle.genericPlaces}","${i18nBundle.weatherStations}","${i18nBundle.farms}","${i18nBundle.fields}"];
                     $.getJSON("/rest/poi/user", function( json ) {
                                     allPois = json;
                                     var theList = document.getElementById("locationPointOfInterestId");
