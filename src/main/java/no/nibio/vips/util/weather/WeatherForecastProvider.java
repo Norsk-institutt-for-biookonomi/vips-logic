@@ -24,7 +24,7 @@ import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterest;
 
 /**
- * Implement this to ensure homogoneus access to weather forecast data
+ * Implement this to ensure homogenous access to weather forecast data
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
