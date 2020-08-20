@@ -34,8 +34,8 @@ import no.nibio.vips.logic.entity.PointOfInterest;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class FMIWeatherForecastprovider implements WeatherForecastProvider {
-
-    private final static String FMI_VIPS_WEATHER_PROXY_URL = "http://localhost:8080/VIPSWeatherProxy/rest/forecasts/fmi?longitude={0}&latitude={1}&altitude={2}";
+    
+    private final static String FMI_VIPS_WEATHER_PROXY_URL = System.getProperty("no.nibio.vips.logic.weather.VIPS_WEATHER_PROXY_BASE_URL") + "/rest/forecasts/fmi?longitude={0}&latitude={1}&altitude={2}";
     
     @Override
     public List<WeatherObservation> getWeatherForecasts(PointOfInterest location) throws ParseWeatherDataException {
