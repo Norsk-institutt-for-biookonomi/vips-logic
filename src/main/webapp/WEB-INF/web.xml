@@ -87,6 +87,10 @@
         <servlet-name>OrganizationController</servlet-name>
         <servlet-class>no.nibio.vips.logic.controller.servlet.OrganizationController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>BarkbeetleController</servlet-name>
+        <servlet-class>no.nibio.vips.logic.modules.barkbeetle.BarkbeetleController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -160,6 +164,10 @@
     <servlet-mapping>
         <servlet-name>OrganizationController</servlet-name>
         <url-pattern>/organization</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BarkbeetleController</servlet-name>
+        <url-pattern>/barkbeetle</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

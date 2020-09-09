@@ -1,0 +1,108 @@
+{
+    "_licenseNote": [
+        "Copyright (c) 2020 NIBIO <http://www.nibio.no/>. ",
+        "",
+        "This file is part of VIPSLogic. ",
+        "VIPSLogic is free software: you can redistribute it and/or modify ",
+        "it under the terms of the NIBIO Open Source License as published by ",
+        "NIBIO, either version 1 of the License, or (at your option) any ",
+        "later version. ",
+        "",
+        "VIPSLogic is distributed in the hope that it will be useful, ",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of ",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the ",
+        "NIBIO Open Source License for more details. ",
+        "",
+        "You should have received a copy of the NIBIO Open Source License ",
+        "along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>. "
+    ],
+    "_comment" : "Structure of the seasonTrapsiteForm and how to validate it",
+    "fields": [
+        {
+            "name" : "seasonTrapsiteId",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "season",
+            "dataType" : "INTEGER",
+            "required" : true
+        },
+        {
+            "name" : "trapsiteTypeId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
+        },
+        {
+            "name" : "userId",
+            "dataType" : "INTEGER",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+            "nullValue" : "-1"
+        },
+        {
+            "name" : "gisGeom",
+            "dataType" : "POINT_WGS84",
+            "required" : true
+        },
+        {
+            "name" : "altitude",
+            "dataType" : "DOUBLE",
+            "required" : false
+        },
+        {
+            "name" : "ownerName",
+            "dataType" : "STRING",
+            "required" : true
+        },
+        {
+            "name" : "ownerPhone",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "dateInstalled",
+            "dataType" : "DATE",
+            "required" : true
+        },
+        {
+            "name" : "installationRemarks",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "countyNo",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
+            "name" : "countyName",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "municipalityNo",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
+            "name" : "municipalityName",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "propertyNo",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
+            "name" : "propertySectionNo",
+            "dataType" : "INTEGER",
+            "required" : false
+        }
+        
+        
+    ]
+}

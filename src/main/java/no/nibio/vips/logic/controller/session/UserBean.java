@@ -925,4 +925,14 @@ public class UserBean {
     public Organization storeOrganization(Organization organization) {
         return em.merge(organization);
     }
+
+    public List<VipsLogicUser> getUsersByVipsLogicRoles(Integer[] vipsLogicRoleIds) {
+        return em.createNativeQuery(
+                "SELECT * FROM vips_logic_user "
+                        + "WHERE user_id IN ("
+                        + "SELECT user_id FROM user_vips_logic_role WHERE vips_logic_role_id IN (:vipsLogicRoleIds)"
+                        + ")", VipsLogicUser.class)
+                .setParameter("vipsLogicRoleIds", Arrays.asList(vipsLogicRoleIds))
+                .getResultList();
+    }
 }

@@ -170,7 +170,7 @@ public class SessionControllerGetter {
         }
     }
     
-    private static String getJndiPath(Class obj)
+    public static String getJndiPath(Class obj)
     {
         String retVal = SessionControllerGetter.JNDI_PATH + obj.getSimpleName();
         //System.out.println("JNDI-path=" + retVal);
