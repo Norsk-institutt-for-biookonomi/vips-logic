@@ -65,7 +65,7 @@
         {
             "name" : "dateInstalled",
             "dataType" : "DATE",
-            "required" : true
+            "required" : false
         },
         {
             "name" : "installationRemarks",

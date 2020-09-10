@@ -22,6 +22,8 @@ package no.nibio.vips.logic.modules.barkbeetle;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +44,7 @@ import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
@@ -72,7 +75,7 @@ public class BarkbeetleController extends HttpServlet {
             request.setAttribute("user",user);
             request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER));
             Integer season = request.getParameter("season") != null?  Integer.valueOf(request.getParameter("season"))
-                        : LocalDate.now().getYear();
+                        : LocalDate.ofInstant(SystemTime.getSystemTime().toInstant(),ZoneId.of("Europe/Oslo")).getYear();
             String action = request.getParameter("action");
             if(action == null)
             {
@@ -116,15 +119,15 @@ public class BarkbeetleController extends HttpServlet {
                         trapsite.setSeason(formValidation.getFormField("season").getValueAsInteger());
                         trapsite.setTrapsiteType(BarkbeetleBean.getInstance().getTrapsiteType(formValidation.getFormField("trapsiteTypeId").getValueAsInteger()));
                         
-                        trapsite.setCountyNo(formValidation.getFormField("countyNo").getValueAsInteger());
+                        trapsite.setCountyNo(formValidation.getFormField("countyNo").isEmpty() ? null : formValidation.getFormField("countyNo").getValueAsInteger());
                         trapsite.setCountyName(formValidation.getFormField("countyName").getWebValue());
-                        trapsite.setMunicipalityNo(formValidation.getFormField("municipalityNo").getValueAsInteger());
+                        trapsite.setMunicipalityNo(formValidation.getFormField("municipalityNo").isEmpty() ? null : formValidation.getFormField("municipalityNo").getValueAsInteger());
                         trapsite.setMunicipalityName(formValidation.getFormField("municipalityName").getWebValue());
-                        trapsite.setPropertyNo(formValidation.getFormField("propertyNo").getValueAsInteger());
-                        trapsite.setPropertySectionNo(formValidation.getFormField("propertySectionNo").getValueAsInteger());
+                        trapsite.setPropertyNo(formValidation.getFormField("propertyNo").isEmpty() ? null : formValidation.getFormField("propertyNo").getValueAsInteger());
+                        trapsite.setPropertySectionNo(formValidation.getFormField("propertySectionNo").isEmpty() ? null : formValidation.getFormField("propertySectionNo").getValueAsInteger());
                         trapsite.setOwnerName(formValidation.getFormField("ownerName").getWebValue());
                         trapsite.setOwnerPhone(formValidation.getFormField("ownerPhone").getWebValue());
-                        trapsite.setDateInstalled(formValidation.getFormField("dateInstalled").getValueAsDate());
+                        trapsite.setDateInstalled(formValidation.getFormField("dateInstalled").isEmpty() ? null : formValidation.getFormField("dateInstalled").getValueAsDate());
                         trapsite.setInstallationRemarks(formValidation.getFormField("installationRemarks").getWebValue());
                         trapsite.setUserId(SessionControllerGetter.getUserBean().getVipsLogicUser(formValidation.getFormField("userId").getValueAsInteger()));
                         
