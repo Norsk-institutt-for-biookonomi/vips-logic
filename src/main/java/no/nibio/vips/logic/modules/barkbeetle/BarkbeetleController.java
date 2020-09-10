@@ -166,6 +166,7 @@ public class BarkbeetleController extends HttpServlet {
                         : null;
                 if(trapsite != null)
                 {
+                    request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER));
                     request.setAttribute("seasonTrapsite", trapsite);
                     Set<Integer> missingWeeks = new HashSet(trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)?
                             Arrays.asList(new Integer[]{21,24,28,33})

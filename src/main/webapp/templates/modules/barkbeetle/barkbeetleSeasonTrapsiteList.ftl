@@ -21,7 +21,7 @@
 </#macro>
 <#macro page_contents>
 <h1>Fellelokaliteter for sesongen ${season}</h1>
-<#if userIsAdmin || user.userId == site.userId.userId>
+<#if userIsAdmin>
 <p>
 	<a href="/barkbeetle?action=editSeasonTrapsite&season=${season}" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
 </p>

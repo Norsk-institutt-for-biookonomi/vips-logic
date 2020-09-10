@@ -47,6 +47,9 @@
 	<h1><#if seasonTrapsite.seasonTrapsiteId?has_content>Rediger<#else>Ny</#if> fellelokalitet</h1>
 	<p>
 		<a href="/barkbeetle?season=${season}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
+		<#if seasonTrapsite.seasonTrapsiteId?has_content>
+		<a href="/barkbeetle?action=registerData&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer data</a>
+		</#if>
 	</p>
 <div class="singleBlockContainer">
 	<div class="row">

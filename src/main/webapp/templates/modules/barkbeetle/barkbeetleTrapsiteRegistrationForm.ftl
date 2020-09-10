@@ -16,14 +16,15 @@
   along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
 	
 --><#include "../../master.ftl">
+<#assign siteName= seasonTrapsite.countyName + "/" + seasonTrapsite.municipalityName + "/" + seasonTrapsite.ownerName>
 <#macro page_head>
-	<title>Barkbilleregistrering: Registrer data for lokalitet X, sesong ${seasonTrapsite.season}</title>
+	<title>Barkbilleregistrering: Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</title>
 </#macro>
 <#macro page_contents>
 	<#if messageKey?has_content>
 		<div class="alert alert-success">Data ble lagret ${.now}</div>
 	</#if>
-	<h1>Registrer data for lokalitet X, sesong ${seasonTrapsite.season}</h1>
+	<h1>Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</h1>
 	<p>
 		<a href="/barkbeetle?action=editSeasonTrapsite&season=${seasonTrapsite.season}&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
 	</p>
@@ -72,14 +73,19 @@
 					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap4_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4" value="${reg.trap4!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					
-					<td rowspan="2"><#if reg.dateRegistration?has_content>
-						<select class="form-control status_${reg.registrationStatusTypeId}" name="${reg.trapsiteRegistrationPK.week}_registrationStatusTypeId" onchange="this.className='form-control status_' + this.options[this.selectedIndex].value;">
-						<#list registrationStatusTypes as registrationStatusType>
-							<option class="status_${registrationStatusType.registrationStatusTypeId}" value="${registrationStatusType.registrationStatusTypeId}"
-							<#if reg.registrationStatusTypeId?has_content && reg.registrationStatusTypeId==registrationStatusType.registrationStatusTypeId>selected="selected"</#if>
-							>${registrationStatusType.title}</option>
-						</#list>
-						</select>
+					<td rowspan="2">
+					<#if reg.dateRegistration?has_content>
+						<#if userIsAdmin>
+							<select class="form-control status_${reg.registrationStatusTypeId}" name="${reg.trapsiteRegistrationPK.week}_registrationStatusTypeId" onchange="this.className='form-control status_' + this.options[this.selectedIndex].value;">
+							<#list registrationStatusTypes as registrationStatusType>
+								<option class="status_${registrationStatusType.registrationStatusTypeId}" value="${registrationStatusType.registrationStatusTypeId}"
+								<#if reg.registrationStatusTypeId?has_content && reg.registrationStatusTypeId==registrationStatusType.registrationStatusTypeId>selected="selected"</#if>
+								>${registrationStatusType.title}</option>
+							</#list>
+							</select>
+						<#else>
+							<#list registrationStatusTypes as registrationStatusType><#if reg.registrationStatusTypeId?has_content && reg.registrationStatusTypeId==registrationStatusType.registrationStatusTypeId><span class="status_${registrationStatusType.registrationStatusTypeId}">${registrationStatusType.title}</span></#if></#list>
+						</#if>
 					</#if></td>
 				</tr>
 				<tr>
@@ -126,13 +132,13 @@
 <#macro custom_css>
 	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
 	<style type="text/css">
-		select option[value="1"], select.status_1 {
+		select option[value="1"], select.status_1, span.status_1 {
 			background-color: #ffe066 !important;
 		}
-		select option[value="2"], select.status_2 {
+		select option[value="2"], select.status_2, span.status_2 {
 			background-color: #1aff88 !important;
 		}
-		select option[value="3"], select.status_3 {
+		select option[value="3"], select.status_3, span.status_3 {
 			background-color: #ff6e66 !important;
 		}
 
