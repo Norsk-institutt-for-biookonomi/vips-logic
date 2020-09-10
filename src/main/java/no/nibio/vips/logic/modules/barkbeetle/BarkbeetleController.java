@@ -242,6 +242,10 @@ public class BarkbeetleController extends HttpServlet {
                                 {
                                     tr.setRegistrationStatusTypeId(Integer.valueOf(registrationStatusTypeIdFieldValue));
                                 }
+                                else
+                                {
+                                    tr.setRegistrationStatusTypeId(1); // Default untreated
+                                }
                                 
                                 registrations.add(tr);
                             }
