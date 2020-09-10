@@ -244,7 +244,7 @@ public class BarkbeetleController extends HttpServlet {
                                 }
                                 else
                                 {
-                                    tr.setRegistrationStatusTypeId(1); // Default untreated
+                                    tr.setRegistrationStatusTypeId(RegistrationStatusType.NOT_EVALUATED); // Default not evaluated
                                 }
                                 
                                 registrations.add(tr);

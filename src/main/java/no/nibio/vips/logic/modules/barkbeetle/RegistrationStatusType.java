@@ -43,6 +43,10 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "RegistrationStatusType.findByRegistrationStatusTypeId", query = "SELECT r FROM RegistrationStatusType r WHERE r.registrationStatusTypeId = :registrationStatusTypeId"),
     @NamedQuery(name = "RegistrationStatusType.findByTitle", query = "SELECT r FROM RegistrationStatusType r WHERE r.title = :title")})
 public class RegistrationStatusType implements Serializable {
+    
+    public final static Integer NOT_EVALUATED = 1;
+    public final static Integer APPROVED = 2;
+    public final static Integer NOT_APPROVED = 3;
 
     private static final long serialVersionUID = 1L;
     @Id
