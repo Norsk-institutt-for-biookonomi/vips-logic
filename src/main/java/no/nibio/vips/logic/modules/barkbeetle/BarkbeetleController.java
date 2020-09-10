@@ -189,8 +189,8 @@ public class BarkbeetleController extends HttpServlet {
                     request.setAttribute("trapsiteRegistrations", trapsiteReg);
                     // Setting the current week - last week for enabled registrations (future reg. not allowed)
                     WeekFields weekFields = WeekFields.of(Locale.getDefault());
-                    //request.setAttribute("currentWeek", LocalDate.now().get(weekFields.weekOfWeekBasedYear()));
-                    request.setAttribute("currentWeek", 32); // TEST!
+                    request.setAttribute("currentWeek", LocalDate.now().get(weekFields.weekOfWeekBasedYear()));
+                    //request.setAttribute("currentWeek", 32); // TEST!
                     request.setAttribute("registrationStatusTypes", BarkbeetleBean.getInstance().getRegistrationStatusTypes());
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.getRequestDispatcher("/modules/barkbeetle/barkbeetleTrapsiteRegistrationForm.ftl").forward(request, response);
