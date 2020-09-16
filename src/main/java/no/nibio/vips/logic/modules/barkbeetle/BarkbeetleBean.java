@@ -27,6 +27,7 @@ import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import no.nibio.vips.logic.util.SessionControllerGetter;
+import org.locationtech.jts.geom.Point;
 
 /**
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>

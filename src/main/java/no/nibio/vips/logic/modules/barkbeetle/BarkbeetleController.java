@@ -22,8 +22,6 @@ package no.nibio.vips.logic.modules.barkbeetle;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +40,7 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.gis.CoordinateXYZ;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -51,6 +50,7 @@ import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateXYZM;
 import org.locationtech.jts.geom.Point;
 
 /**
@@ -70,10 +70,10 @@ public class BarkbeetleController extends HttpServlet {
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_REGISTRATOR, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.BARKBEETLE_REGISTRATOR, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
         {
             request.setAttribute("user",user);
-            request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER));
+            request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.SUPERUSER));
             Integer season = request.getParameter("season") != null?  Integer.valueOf(request.getParameter("season"))
                         : LocalDate.ofInstant(SystemTime.getSystemTime().toInstant(),ZoneId.of("Europe/Oslo")).getYear();
             String action = request.getParameter("action");
@@ -86,11 +86,11 @@ public class BarkbeetleController extends HttpServlet {
             }
             else if(action.equals("editSeasonTrapsite"))
             {
-                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
-                request.setAttribute("trapsiteRegistrators", SessionControllerGetter.getUserBean().getUsersByVipsLogicRoles(new Integer[]{VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_REGISTRATOR}));
+                request.setAttribute("trapsiteRegistrators", SessionControllerGetter.getUserBean().getUsersByVipsLogicRoles(new Integer[]{VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_REGISTRATOR, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN}));
                 SeasonTrapsite trapsite = request.getParameter("seasonTrapsiteId") != null ? 
                         BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
                         : new SeasonTrapsite();
@@ -104,7 +104,7 @@ public class BarkbeetleController extends HttpServlet {
             }
             else if(action.equals("seasonTrapsiteFormSubmit"))
             {
-                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
@@ -133,11 +133,11 @@ public class BarkbeetleController extends HttpServlet {
                         
                         // Handling the GIS
                         Point p2d = formValidation.getFormField("gisGeom").getValueAsPointWGS84();
-                        Coordinate coordinate = new Coordinate(p2d.getX(), p2d.getY(),0);
+                        CoordinateXYZ coordinate = new CoordinateXYZ(p2d.getX(), p2d.getY(),0.0);
                         try
                         {
                             Double altitude = formValidation.getFormField("altitude").getValueAsDouble();
-                            coordinate = new Coordinate(p2d.getX(), p2d.getY(),altitude);
+                            coordinate = new CoordinateXYZ(p2d.getX(), p2d.getY(),altitude);
                         }
                         catch(NullPointerException | NumberFormatException ex) {}
                         GISUtil gisUtil = new GISUtil();
@@ -169,7 +169,7 @@ public class BarkbeetleController extends HttpServlet {
                         : null;
                 if(trapsite != null)
                 {
-                    request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER));
+                    request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.SUPERUSER));
                     request.setAttribute("seasonTrapsite", trapsite);
                     Set<Integer> missingWeeks = new HashSet(trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)?
                             Arrays.asList(new Integer[]{21,24,28,33})
@@ -177,6 +177,7 @@ public class BarkbeetleController extends HttpServlet {
                     //request.setAttribute("weeks", weeks);
                     request.setAttribute("traps", trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)? 4 : 2 );
                     List<TrapsiteRegistration> trapsiteReg = new ArrayList(trapsite.getTrapsiteRegistrationCollection());
+                    request.setAttribute("firstTimeReg", trapsiteReg.isEmpty());
                     
                     // Finding which registrations are present, removing them from "missing" collection
                     trapsiteReg.forEach(r -> {

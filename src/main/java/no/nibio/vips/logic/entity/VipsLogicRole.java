@@ -54,8 +54,9 @@ public class VipsLogicRole implements Serializable {
     public static Integer APPLE_FRUIT_MOTH_ADMINISTRATOR = 6; // Norway only
     public static Integer ORGANISM_EDITOR = 7;
     public static Integer APPLE_FRUIT_MOTH_BERRY_CLUSTER_COUNTER = 8; // Norway only
-    public static Integer BARKBEETLE_REGISTRATOR = 9;
-    public static Integer BARKBEETLE_ADMIN = 10;
+    public static Integer BARKBEETLE_REGISTRATOR = 9; // Norway only
+    public static Integer BARKBEETLE_ADMIN = 10; // Norway only
+    public static Integer BARKBEETLE_COUNTY_ADMIN = 11; // Norway only
 
 
     private static final long serialVersionUID = 1L;

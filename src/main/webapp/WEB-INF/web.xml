@@ -91,6 +91,10 @@
         <servlet-name>BarkbeetleController</servlet-name>
         <servlet-class>no.nibio.vips.logic.modules.barkbeetle.BarkbeetleController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>CorsProxyServlet</servlet-name>
+        <servlet-class>no.nibio.vips.logic.util.CorsProxyServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PointOfInterestController</servlet-name>
         <url-pattern>/poi/*</url-pattern>
@@ -168,6 +172,10 @@
     <servlet-mapping>
         <servlet-name>BarkbeetleController</servlet-name>
         <url-pattern>/barkbeetle</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CorsProxyServlet</servlet-name>
+        <url-pattern>/corsproxy/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

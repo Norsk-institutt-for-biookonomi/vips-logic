@@ -25,9 +25,25 @@
 		<div class="alert alert-success">Data ble lagret ${.now}</div>
 	</#if>
 	<h1>Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</h1>
+	<div class="row">
+		<div class="col-md-11">
+		<p style="clear: left;">
+			[Her trengs tekstforslag]: Barkbilleregistreringen er organisert gjennom XXX 
+			og slik og sånn. Alle feller må være av typen BEKA (også kalt Novefella) (se bildet), og feromonet som 
+			brukes må være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>. Les <a href="/images/modules/barkbeetle/Instruks_2020.pdf">årets instruks</a>
+			og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">monteringsanvisningen.</a>
+		</p>
+		</div>
+		<div class="col-md-1">
+		<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 150px;"/>
+		</div>
+	</div>
 	<p>
 		<a href="/barkbeetle?action=editSeasonTrapsite&season=${seasonTrapsite.season}&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
 	</p>
+	<#if userIsAdmin>
+	<div class="alert alert-info">Registrant: <strong>${seasonTrapsite.userId.firstName} ${seasonTrapsite.userId.lastName}</strong>, tlf <strong>${seasonTrapsite.userId.phone!"Ikke oppgitt"}</strong>, e-post <strong>${seasonTrapsite.userId.email}</strong></div>
+	</#if>
 	<div class="singleBlockContainer">
 		<div class="row">
 		<form id="trapsiteRegistrationForm" action="/barkbeetle?action=trapsiteRegistrationFormSubmit" method="post">
@@ -43,7 +59,7 @@
 				<th></th>
 				<th></th>
 				<th></th>
-				<th></th>
+				<#if userIsAdmin><th></th></#if>
 			</thead>
 			<thead>
 				<th>Uke</th>
@@ -56,7 +72,7 @@
 				<th>antall</th>
 				<th>ml</th>
 				<th>antall</th>
-				<th>Status</th>
+				<#if userIsAdmin><th>Status</th></#if>
 			</thead>
 			
 			<tbody>
@@ -83,8 +99,6 @@
 								>${registrationStatusType.title}</option>
 							</#list>
 							</select>
-						<#else>
-							<#list registrationStatusTypes as registrationStatusType><#if reg.registrationStatusTypeId?has_content && reg.registrationStatusTypeId==registrationStatusType.registrationStatusTypeId><span class="status_${registrationStatusType.registrationStatusTypeId}">${registrationStatusType.title}</span></#if></#list>
 						</#if>
 					</#if></td>
 				</tr>
@@ -98,9 +112,17 @@
 			</#list>
 			</tbody>
 		</table>
-		<p>
-			<button type="submit" class="btn btn-default">Lagre</button>
-		</p>
+			<div class="form-group" style="padding-left: 5px;">
+				  <div class="checkbox">
+					  <label>
+						<input type="checkbox" name="bekaConfirm" value="true"<#if !firstTimeReg> checked="checked"</#if> onclick="document.getElementById('submitButton').disabled=this.checked ? '':'disabled';"/>
+						Jeg bekrefter at denne fellelokaliteten kun består av BEKAfeller med feromonet <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>
+					  </label>
+				  </div>
+			  </div>
+			<div class="form-group" style="padding-left: 5px;">
+				<button type="submit" id="submitButton" class="btn btn-default"<#if firstTimeReg> disabled="disabled"</#if>>Lagre</button>
+			</div>
 		</form>
 		</div>
 	</div>

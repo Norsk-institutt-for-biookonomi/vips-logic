@@ -74,7 +74,7 @@ public class SeasonTrapsite implements Serializable {
     private Integer seasonTrapsiteId;
     @Column(name = "season")
     private Integer season;
-    @Column(name = "gis_geom", columnDefinition = "Geometry")
+    @Column(name = "gis_geom", columnDefinition = "GeometryZ")
     @JsonIgnore
     private Geometry gisGeom;
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
@@ -188,6 +188,29 @@ public class SeasonTrapsite implements Serializable {
 
     public void setTrapsiteRegistrationCollection(Collection<TrapsiteRegistration> trapsiteRegistrationCollection) {
         this.trapsiteRegistrationCollection = trapsiteRegistrationCollection;
+    }
+    
+    /**
+     * Report tool for listing this site
+     * @return 
+     */
+    @JsonIgnore
+    @XmlTransient
+    @Transient
+    public Integer getMostSevereRegistrationStatus()
+    {
+        // Weighting the severity of the status codes for easy comparison
+        // 1 = not checked, so gets severity status 3
+        // 2 = checked and found OK, so gets severity status 1
+        // 3 = checked and rejected, so gets severity status 2
+        Integer[] codeWeight = {0,3,1,2};
+        // 1,3,2
+        Integer retVal = 0;
+        for(TrapsiteRegistration reg:this.getTrapsiteRegistrationCollection())
+        {
+            retVal = codeWeight[retVal] > codeWeight[reg.getRegistrationStatusTypeId()] ? retVal : reg.getRegistrationStatusTypeId();
+        }
+        return retVal;
     }
 
     public TrapsiteType getTrapsiteType() {
