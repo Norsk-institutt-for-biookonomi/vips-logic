@@ -176,7 +176,7 @@ public class CropCategory implements Serializable {
                 }
             }
         }
-        return null;
+        return this.getDefaultName();
     }
     
     @JsonIgnore
