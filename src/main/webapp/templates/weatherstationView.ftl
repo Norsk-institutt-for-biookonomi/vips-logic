@@ -94,7 +94,7 @@
 			<h3>${i18nBundle.test} ${i18nBundle.dataSource?lower_case}</h3>
 			<form action="${weatherStation.dataFetchUri}" method="GET" target="new" class="form-horizontal" role="form">
                                 <#list queryParams as queryParam>
-                                <input type="hidden" name="${queryParam.name}" value="${queryParam.value}"/>
+                                <input type="hidden" name="${queryParam.name}" value="${queryParam.value!""}"/>
                                 </#list>
 				<div class="form-group">
 					<label class="col-lg-4 control-label" for="elementMeasurementTypes[]">${i18nBundle.elementMeasurementTypes}</label>
