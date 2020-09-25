@@ -24,23 +24,33 @@
 	<#if messageKey?has_content>
 		<div class="alert alert-success">Data ble lagret ${.now}</div>
 	</#if>
+	<p>
+		<a href="/barkbeetle?action=editSeasonTrapsite&season=${seasonTrapsite.season}&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
+	</p>
 	<h1>Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</h1>
 	<div class="row">
 		<div class="col-md-11">
-		<p style="clear: left;">
-			[Her trengs tekstforslag]: Barkbilleregistreringen er organisert gjennom XXX 
-			og slik og sånn. Alle feller må være av typen BEKA (også kalt Novefella) (se bildet), og feromonet som 
-			brukes må være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>. Les <a href="/images/modules/barkbeetle/Instruks_2020.pdf">årets instruks</a>
-			og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">monteringsanvisningen.</a>
+		<p>
+		Påse at
+		</p>
+		<ul>
+			<li>alle feller er av typen <strong>BEKA</strong> (=Nove, se bildet) og feromon av typen 
+			<a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>
+			(= Norlure; tilsendt fra Nibio).</li>
+			<li>antall biller legges inn for rett tømmeperiode i rett ukenummer</li>
+			<li>tallet legges inn på rett sted, som enten antall biller eller antall ml (volum målt med målebeger; omregning til antall biller skjer automatisk).</li>
+		</ul>
+		<p>
+		Se utdypende informasjon i 
+		<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a>
+		og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
+	Beka-felle</a>
 		</p>
 		</div>
 		<div class="col-md-1">
 		<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 150px;"/>
 		</div>
 	</div>
-	<p>
-		<a href="/barkbeetle?action=editSeasonTrapsite&season=${seasonTrapsite.season}&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
-	</p>
 	<#if userIsAdmin>
 	<div class="alert alert-info">Registrant: <strong>${seasonTrapsite.userId.firstName} ${seasonTrapsite.userId.lastName}</strong>, tlf <strong>${seasonTrapsite.userId.phone!"Ikke oppgitt"}</strong>, e-post <strong>${seasonTrapsite.userId.email}</strong></div>
 	</#if>
@@ -84,10 +94,10 @@
 					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap1" value="${reg.trap1!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap2_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap2" value="${reg.trap2!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap3_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3" value="${reg.trap3!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap4_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4" value="${reg.trap4!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
+					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap3_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek || isExtended> disabled="disabled"</#if>/></td>
+					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3" value="${reg.trap3!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek || isExtended> disabled="disabled"</#if>/></td>
+					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap4_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek || isExtended> disabled="disabled"</#if>/></td>
+					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4" value="${reg.trap4!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek || isExtended> disabled="disabled"</#if>/></td>
 					
 					<td rowspan="2">
 					<#if reg.dateRegistration?has_content>
@@ -105,8 +115,8 @@
 				<tr>
 					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap1Remarks" placeholder="Kommentar felle 1" value="${reg.trap1Remarks!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap2Remarks" placeholder="Kommentar felle 2" value="${reg.trap2Remarks!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
-					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3Remarks" placeholder="Kommentar felle 3" value="${reg.trap3Remarks!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
-					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4Remarks" placeholder="Kommentar felle 4" value="${reg.trap4Remarks!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
+					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3Remarks" placeholder="Kommentar felle 3" value="${reg.trap3Remarks!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek || isExtended> disabled="disabled"</#if>/></td>
+					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4Remarks" placeholder="Kommentar felle 4" value="${reg.trap4Remarks!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek || isExtended> disabled="disabled"</#if>/></td>
 
 				</tr>
 			</#list>

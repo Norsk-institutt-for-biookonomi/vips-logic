@@ -49,8 +49,6 @@ import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.CoordinateXYZM;
 import org.locationtech.jts.geom.Point;
 
 /**
@@ -171,6 +169,7 @@ public class BarkbeetleController extends HttpServlet {
                 {
                     request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.SUPERUSER));
                     request.setAttribute("seasonTrapsite", trapsite);
+                    request.setAttribute("isExtended", trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_EXTENDED));
                     Set<Integer> missingWeeks = new HashSet(trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)?
                             Arrays.asList(new Integer[]{21,24,28,33})
                             : Arrays.asList(new Integer[]{21,24,28,33,37}));

@@ -20,6 +20,9 @@
 	<title>Barkbilleregistrering: Rediger fellelokalitet for ${season}</title>
 </#macro>
 <#macro custom_js>
+	<script type="text/javascript" src="/js/constants.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/modules/barkbeetle/seasonTrapsiteFormMap.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
 	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
@@ -27,17 +30,17 @@
 	<script type="text/javascript" src="/js/3rdparty/proj4.js"></script>
 	<script type="text/javascript">
 		var theForm = document.getElementById("${formId}"); 
-		// Make sure that there is a date picker present for HTML5 
-		// date input fields
-		if (!Modernizr.inputtypes.date) {
-		    $('input[type=date]').datepicker({ dateFormat: 'yy-mm-dd' });
-		}
-		// Load main form definition (for validation)
-		loadFormDefinition("seasonTrapsiteForm","/formdefinitions/modules/barkbeetle/");
+		$(document).ready(function() {
+			// Make sure that there is a date picker present for HTML5 
+			// date input fields
+			if (!Modernizr.inputtypes.date) {
+				$('input[type=date]').datepicker({ dateFormat: 'yy-mm-dd' });
+			}
+			// Load main form definition (for validation)
+			loadFormDefinition("seasonTrapsiteForm","/formdefinitions/modules/barkbeetle/");
+			initMap(${season},${seasonTrapsite.seasonTrapsiteId!"null"},[${(seasonTrapsite.longitude?c)!"0"},${(seasonTrapsite.latitude?c)!"0"}]);
+		});
 		
-		function updateMarkerPosition(){
-			console.info("TODO: updateMarkerPosition");
-		}
 		
 		function handleLocationChanged(locationField){
 			// Input control first
@@ -71,10 +74,21 @@
 			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/2019?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())
 			.then(municInfo =>{
-					theForm["countyNo"].value=municInfo[0]["fylkenr"];
-					theForm["countyName"].value=municInfo[0]["fylkenavn"];
-					theForm["municipalityNo"].value=municInfo[0]["komnr"];
-					theForm["municipalityName"].value=municInfo[0]["komnavn"];
+					if(municInfo.length == 0)
+					{
+						alert("Posisjonen er utenfor Norges grenser. Vennligst korriger dette");
+						theForm["countyNo"].value = 0;
+						theForm["countyName"].value = "Utlandet";
+						theForm["municipalityNo"].value = 0;
+						theForm["municipalityName"].value = "Utlandet";
+					}
+					else
+					{
+						theForm["countyNo"].value=municInfo[0]["fylkenr"];
+						theForm["countyName"].value=municInfo[0]["fylkenavn"];
+						theForm["municipalityNo"].value=municInfo[0]["komnr"];
+						theForm["municipalityName"].value=municInfo[0]["komnavn"];
+					}
 				}
 			)
 			.catch( error => console.info(error));;
@@ -104,31 +118,45 @@
 </#macro>
 <#macro custom_css>
 	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<style type="text/css">
+		#seasonTrapsiteFormMap {
+			height: 600px;	
+		}
+	</style>
 </#macro>
 <#macro page_contents>
 	<#if messageKey?has_content>
 		<div class="alert alert-success">Data ble lagret ${.now}</div>
 	</#if>
+	<p>
+		<a href="/barkbeetle?season=${season}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
+	</p>
 	<h1><#if seasonTrapsite.seasonTrapsiteId?has_content>Rediger<#else>Ny</#if> fellelokalitet</h1>
 	<div class="row">
 		<div class="col-md-11">
-		<p style="clear: left;">
-			[Her trengs tekstforslag]: Barkbilleregistreringen er organisert gjennom XXX 
-			og slik og sånn. Alle feller må være av typen BEKA (også kalt Novefella) (se bildet), og feromonet som 
-			brukes må være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>. Les <a href="/images/modules/barkbeetle/Instruks_2020.pdf">årets instruks</a>
-			og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">monteringsanvisningen.</a>
+		<p>Alle feller må være av typen BEKA (=Nove, se bildet) og feromon av typen 
+		<a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>
+		(=Norlure; tilsendt fra Nibio). Plasser lokaliteten med et trykk 
+		på kartet, så genereres koordinater og flere av feltene automatisk. Alle 
+		øvrige felt med stjerne må fylles inn. Fyll også inn dato og kommentar 
+		nederst i skjemaet dersom montering av feller skjer senere enn 20. april.
+		Se utdypende informasjon i 
+		<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a> 
+		og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
+	Beka-felle</a>
+	   </p>
+		<p>
+			<#if seasonTrapsite.seasonTrapsiteId?has_content>
+			<a href="/barkbeetle?action=registerData&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer data</a>
+			</#if>
 		</p>
 		</div>
 		<div class="col-md-1">
 		<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 150px;"/>
 		</div>
 	</div>
-	<p>
-		<a href="/barkbeetle?season=${season}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
-		<#if seasonTrapsite.seasonTrapsiteId?has_content>
-		<a href="/barkbeetle?action=registerData&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer data</a>
-		</#if>
-	</p>
+	
 <div class="singleBlockContainer">
 	<div class="row">
 	<div class="col-md-8">
@@ -167,7 +195,7 @@
 				<button class="btn btn-default" type="button" onclick="convertProjection();">Konverter til WGS84</button>
 			</div>
 			</label>
-			<input type="text" class="form-control" id="gisGeom" name="gisGeom" placeholder="Lokalitet" value="${(seasonTrapsite.longitude?c)!""},${(seasonTrapsite.latitude?c)!""}" onblur="validateField(this);" onchange="if(validateField(this)){handleLocationChanged(this);}" />
+			<input type="text" class="form-control" id="gisGeom" name="gisGeom" placeholder="Lokalitet" value="${(seasonTrapsite.longitude?c)!""},${(seasonTrapsite.latitude?c)!""}" onblur="validateField(this);" onchange="if(validateField(this)){handleLocationChanged(this);updateMarkerPosition();}" />
 			<span class="help-block" id="${formId}_gisGeom_validation"></span>
 		  </div>
 		  <div class="form-group">
@@ -250,9 +278,12 @@
 	</form>
 	</div>
 	<div class="col-md-4">
-	Kartet kommer her!
+		<div id="seasonTrapsiteFormMap" class="map">
+				<div id="popover"></div>
+			</div>
 	</div>
 	</div>
+	<div style="display: none;"><div id="trapMarker" title="Marker"><img src="/images/modules/barkbeetle/trapsite.png"/></div></div>
 </div>
 </#macro>
 <@page_html/>

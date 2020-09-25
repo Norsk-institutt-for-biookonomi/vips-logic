@@ -19,6 +19,11 @@
 
 package no.nibio.vips.logic.modules.barkbeetle;
 
+import de.micromata.opengis.kml.v_2_2_0.Coordinate;
+import de.micromata.opengis.kml.v_2_2_0.Document;
+import de.micromata.opengis.kml.v_2_2_0.Kml;
+import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
+import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import java.util.List;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -26,8 +31,9 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
-import org.locationtech.jts.geom.Point;
 
 /**
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
@@ -116,5 +122,52 @@ public class BarkbeetleBean {
         SeasonTrapsite trapsite = em.find(SeasonTrapsite.class, seasonTrapsiteId);
         trapsite.setTrapsiteRegistrationCollection(registrations);
         return em.merge(trapsite);
+    }
+
+    public Kml getSeasonTrapsitesKml(Integer season, Integer excludeSeasonTrapsiteId, String serverName) {
+        String iconPath = Globals.PROTOCOL + "://" + serverName + "/images/modules/barkbeetle/";
+        List<SeasonTrapsite> traps = this.getSeasonTrapsites(season);
+        // Initialization
+        final Kml kml = KmlFactory.createKml();
+        final Document document = kml.createAndSetDocument()
+        .withName("Barkbillefellelokaliteter").withDescription("Barkbillefellelokaliteter for sesongen " + season);
+        
+        document.createAndAddStyle()
+            .withId("trapsite_icon")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref(iconPath + "dot_blue.png");
+        
+        document.createAndAddStyle()
+            .withId("trapsite_icon_highlighted")
+        .createAndSetIconStyle()
+                .withScale(0.55)
+                .createAndSetIcon()
+                    .withHref(iconPath + "trapsite.png");
+        
+        String styleUrl = "#trapsite_icon";
+        GISEntityUtil gisUtil = new GISEntityUtil();
+        for(SeasonTrapsite trap:traps)
+        {
+            if(excludeSeasonTrapsiteId != null && excludeSeasonTrapsiteId.equals(trap.getSeasonTrapsiteId()))
+            {
+                continue;
+            }
+            final Placemark placemark = document.createAndAddPlacemark()
+            .withName(trap.getCountyName() + "/" + trap.getMunicipalityName())
+            .withDescription(
+                    "<ul>"
+                    + "<li>Eier: " + trap.getOwnerName() + ", tlf: " + trap.getOwnerPhone() + "</li>"
+                    + "<li>Registrant: <a href='mailto:" + trap.getUserId().getEmail() + "'>" + trap.getUserId().getFirstName() + " " + trap.getUserId().getLastName() + "</a>, tlf: " + trap.getUserId().getPhone() + "</li>"
+                    + "</ul>")
+            .withStyleUrl(styleUrl)
+            .withId(trap.getSeasonTrapsiteId().toString());
+            
+            final de.micromata.opengis.kml.v_2_2_0.Point point = placemark.createAndSetPoint();
+            List<Coordinate> coord = point.createAndSetCoordinates();
+            coord.add(gisUtil.getKMLCoordinateFromJTSCoordinate(trap.getGisGeom().getCoordinate()));
+        }
+        return kml;
     }
 }

@@ -22,16 +22,53 @@
 <#macro page_contents>
 <h1>Fellelokaliteter for sesongen ${season}</h1>
 <div class="row">
-	<div class="col-md-11">
-	<p style="clear: left;">
-		[Her trengs tekstforslag]: Barkbilleregistreringen er organisert gjennom XXX 
-			og slik og sånn. Alle feller må være av typen BEKA (også kalt Novefella) (se bildet), og feromonet som 
-			brukes må være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>. Les <a href="/images/modules/barkbeetle/Instruks_2020.pdf">årets instruks</a>
-			og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">monteringsanvisningen.</a>
-	</p>
+	<div class="col-md-7">
+	<p>Barkbilleovervåkingen er organisert gjennom «"Barkbilleadministratorer» 
+	ved Nibio, «Barkbillefylkeskontakter» og «Registranter». Alle feller må være 
+	av typen BEKA (også kalt Novefella) (se bildet), og feromonet som brukes må 
+	være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>
+	(=Norlure; tilsendt fra Nibio). Les instruksjoner som 
+	er aktuelle for deg nøye, slik som 
+	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
+	Barkbillefylkeskontakter</a>,
+	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a>, og 
+	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
+	Beka-felle</a> (kun noen få har i tillegg 
+	<a href="/images/modules/barkbeetle/Instruks_utvidet_sesong.pdf" target="new">utvidet 
+	sesong</a> med egen instruksjon).</p>
+	
+	<p><strong>Barkbillefylkeskontakt</strong> oppretter her lokaliteter for sitt fylke («Legg til 
+	ny») og tildeler disse registranter som sørger for fellemontering, tømming 
+	av feller og fortløpende innlegging av data gjennom sesongen. Det bør være 
+	lokaliteter i alle kommuner som tidligere har vært med (<strong>NB</strong> kommuner før 
+	sammenslåinger etter 2012). Liste over registranter, inkludert navn/telefon 
+	og epost, sendes tor-einar.skog@nibio.no så	tidlig som mulig før sesong for 
+	å opprette tilgang i systemet for registrantene. Etter dette får registrantene 
+	innloggingsadgang tilsendt per epost. Se utdypende informasjon i 
+	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
+	Barkbillefylkeskontakter</a> (se også 
+	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks 
+	Registranter</a> for å forstå deres oppgaver).</p>
+	
+	<p><strong>Registranter</strong> må oppdatere informasjon under «Endre lokalitetsinfo» for 
+	sin(e) lokalitet(er) så snart som mulig og sørge for at feller blir montert 
+	innen 20. april. Fellene i standardlokaliteter tømmes etter hver av fire 
+	perioder, dvs. på mandag eller tirsdag i ukene 21, 24, 28 og 33. Data fra 
+	hver tømming skal legges inn under «Registrer» innen mandag i påfølgende uke, 
+	og blir dermed del av en fortløpende kartvisning av barkbillenivået gjennom 
+	sesongen. Se utdypende informasjon i 
+	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks 
+	Registranter</a>, og 
+	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
+	Beka-felle</a></p>
 	</div>
 	<div class="col-md-1">
-	<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 150px;"/>
+	<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 250px;"/>
+	</div>
+	<div class="col-md-4">
+		<div id="seasonTrapsiteListMap" class="map">
+				<div id="popover"></div>
+		</div>
 	</div>
 </div>
 <#if userIsAdmin>
@@ -40,11 +77,6 @@
 </p>
 </#if>
 <div class="singleBlockContainer">
-	<div class="row">
-	<div class="col-md-12">
-	<h1>Kartet kommer her!</h1>
-	</div>
-	</div>
 	<div class="row">
 	<table class="table table-striped">
 		<thead>
@@ -80,12 +112,17 @@
 </div>
 </#macro>
 <#macro custom_js>
+	<script type="text/javascript" src="/js/constants.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/modules/barkbeetle/seasonTrapsiteListMap.js"></script>
 <script type="text/javascript">
-// TODO?		
+$(document).ready(function() {
+		initMap(${season});
+});
 </script>
 </#macro>
 <#macro custom_css>
-
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
 	<style type="text/css">
 		td.status_1 {
 			background-color: #ffe066 !important;
@@ -97,7 +134,9 @@
 			background-color: #ff6e66 !important;
 		}
 
-			
+		#seasonTrapsiteListMap {
+			height: 500px;	
+		}	
 	</style>
 </#macro>
 <@page_html/>
