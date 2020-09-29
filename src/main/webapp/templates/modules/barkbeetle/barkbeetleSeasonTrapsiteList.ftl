@@ -137,6 +137,10 @@ $(document).ready(function() {
 		#seasonTrapsiteListMap {
 			height: 500px;	
 		}	
+		
+		div.popover {
+			min-width: 250px !important;
+		}
 	</style>
 </#macro>
 <@page_html/>

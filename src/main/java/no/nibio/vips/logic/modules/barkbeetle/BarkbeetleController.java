@@ -78,6 +78,7 @@ public class BarkbeetleController extends HttpServlet {
             if(action == null)
             {
                 List<SeasonTrapsite> seasonTrapSites = BarkbeetleBean.getInstance().getSeasonTrapsites(season);
+                Collections.sort(seasonTrapSites);
                 request.setAttribute("season", season);
                 request.setAttribute("seasonTrapsites", seasonTrapSites);
                 request.getRequestDispatcher("/modules/barkbeetle/barkbeetleSeasonTrapsiteList.ftl").forward(request, response);
@@ -177,7 +178,7 @@ public class BarkbeetleController extends HttpServlet {
                     request.setAttribute("traps", trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)? 4 : 2 );
                     List<TrapsiteRegistration> trapsiteReg = new ArrayList(trapsite.getTrapsiteRegistrationCollection());
                     request.setAttribute("firstTimeReg", trapsiteReg.isEmpty());
-                    
+
                     // Finding which registrations are present, removing them from "missing" collection
                     trapsiteReg.forEach(r -> {
                         missingWeeks.remove(r.getTrapsiteRegistrationPK().getWeek());

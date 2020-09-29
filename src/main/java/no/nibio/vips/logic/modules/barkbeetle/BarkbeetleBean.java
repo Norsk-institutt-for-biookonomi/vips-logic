@@ -23,7 +23,11 @@ import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 import de.micromata.opengis.kml.v_2_2_0.Document;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
+import de.micromata.opengis.kml.v_2_2_0.LabelStyle;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
+import de.micromata.opengis.kml.v_2_2_0.Units;
+import de.micromata.opengis.kml.v_2_2_0.Vec2;
+import java.util.Calendar;
 import java.util.List;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -148,26 +152,80 @@ public class BarkbeetleBean {
         
         String styleUrl = "#trapsite_icon";
         GISEntityUtil gisUtil = new GISEntityUtil();
-        for(SeasonTrapsite trap:traps)
+        traps.stream()
+            .filter(trap -> !(excludeSeasonTrapsiteId != null && excludeSeasonTrapsiteId.equals(trap.getSeasonTrapsiteId())))
+            .forEachOrdered(trap -> {
+                final Placemark placemark = document.createAndAddPlacemark()
+                        .withName(trap.getCountyName() + "/" + trap.getMunicipalityName())
+                        .withDescription(
+                                "<ul>"
+                                + "<li>Eier: " + trap.getOwnerName() + ", tlf: " + trap.getOwnerPhone() + "</li>"
+                                + "<li>Registrant: <a href='mailto:" + trap.getUserId().getEmail() + "'>" + trap.getUserId().getFirstName() + " " + trap.getUserId().getLastName() + "</a>, tlf: " + trap.getUserId().getPhone() + "</li>"
+                                + "</ul>")
+                        .withStyleUrl(styleUrl)
+                        .withId(trap.getSeasonTrapsiteId().toString());
+
+                final de.micromata.opengis.kml.v_2_2_0.Point point = placemark.createAndSetPoint();
+                List<Coordinate> coord = point.createAndSetCoordinates();
+                coord.add(gisUtil.getKMLCoordinateFromJTSCoordinate(trap.getGisGeom().getCoordinate()));
+            });
+        return kml;
+    }
+    
+    /**
+     * Returns the season's trapsites with their risk status included
+     * @param season
+     * @param serverName // For returning paths to the icons
+     * @return 
+     */
+    public Kml getSeasonTrapsitesStatusKml(Integer season, String serverName) {
+        String iconPath = Globals.PROTOCOL + "://" + serverName + "/images/modules/barkbeetle/";
+        List<SeasonTrapsite> traps = this.getSeasonTrapsites(season);
+        // Initialization
+        final Kml kml = KmlFactory.createKml();
+        final Document document = kml.createAndSetDocument()
+        .withName("Barkbillefellelokaliteter").withDescription("Barkbillefellelokaliteter for sesongen " + season);
+        // Setting the icon anchor (bottom, middle of icon. Aligns with pinpoint)
+        final Vec2 hotspot = new Vec2()
+                .withX(0.5)
+                .withXunits(Units.FRACTION)
+                .withY(0)
+                .withYunits(Units.FRACTION);
+        
+        LabelStyle noLabel = new LabelStyle().withScale(0.0);
+        
+        for(int i=0;i<=5;i++)
         {
-            if(excludeSeasonTrapsiteId != null && excludeSeasonTrapsiteId.equals(trap.getSeasonTrapsiteId()))
-            {
-                continue;
-            }
+            
+            document.createAndAddStyle()
+                .withId("status_type_" + i)
+                .withLabelStyle(noLabel)
+            .createAndSetIconStyle()
+                    .withScale(1)
+                    .withHotSpot(hotspot)
+                    .createAndSetIcon()
+                        .withHref(iconPath + "station_icon_status_" + i + ".png"); 
+        }
+        
+        
+        
+        String styleUrl = "#status_type_";
+        GISEntityUtil gisUtil = new GISEntityUtil();
+        traps.forEach(trap -> {
             final Placemark placemark = document.createAndAddPlacemark()
-            .withName(trap.getCountyName() + "/" + trap.getMunicipalityName())
-            .withDescription(
-                    "<ul>"
-                    + "<li>Eier: " + trap.getOwnerName() + ", tlf: " + trap.getOwnerPhone() + "</li>"
-                    + "<li>Registrant: <a href='mailto:" + trap.getUserId().getEmail() + "'>" + trap.getUserId().getFirstName() + " " + trap.getUserId().getLastName() + "</a>, tlf: " + trap.getUserId().getPhone() + "</li>"
-                    + "</ul>")
-            .withStyleUrl(styleUrl)
-            .withId(trap.getSeasonTrapsiteId().toString());
+                    .withName(trap.getCountyName() + "/" + trap.getMunicipalityName())
+                    .withDescription(
+                            "<ul>"
+                            + "<li>Eier: " + trap.getOwnerName() + (trap.getOwnerPhone() == null || trap.getOwnerPhone().isBlank() ? "" : ", tlf: " + trap.getOwnerPhone() ) + "</li>"
+                            + "<li>Registrant: <a href='mailto:" + trap.getUserId().getEmail() + "'>" + trap.getUserId().getFirstName() + " " + trap.getUserId().getLastName() + "</a>, tlf: " + trap.getUserId().getPhone() + "</li>"
+                            + "</ul>")
+                    .withStyleUrl(styleUrl + trap.getWarningStatus())
+                    .withId(trap.getSeasonTrapsiteId().toString());
             
             final de.micromata.opengis.kml.v_2_2_0.Point point = placemark.createAndSetPoint();
             List<Coordinate> coord = point.createAndSetCoordinates();
             coord.add(gisUtil.getKMLCoordinateFromJTSCoordinate(trap.getGisGeom().getCoordinate()));
-        }
+        });
         return kml;
     }
 }

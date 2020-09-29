@@ -41,9 +41,9 @@
     // The trapsite layer
     var trapLayer = new ol.layer.Vector({
     source: new ol.source.Vector({
-        url: "/rest/barkbeetle/seasontrapsites/" + season + "/kml/",
+        url: "/rest/barkbeetle/seasontrapsites/" + season + "/kml/status",
 		projection: "EPSG:3857",
-		format: new ol.format.KML()
+		format: new ol.format.KML({showPointNames:false})
       })
     });
     

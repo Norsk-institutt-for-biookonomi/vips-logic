@@ -51,4 +51,14 @@ public class BarkbeetleService {
     {
         return Response.ok().entity(BarkbeetleBean.getInstance().getSeasonTrapsitesKml(season, excludeSeasonTrapsiteId, ServletUtil.getServerName(httpServletRequest))).build();
     }
+    
+    @GET
+    @Path("seasontrapsites/{season}/kml/status")
+    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
+    public Response getSeasonTrapsitesWithStatus(
+            @PathParam("season") Integer season
+            )
+    {
+        return Response.ok().entity(BarkbeetleBean.getInstance().getSeasonTrapsitesStatusKml(season, ServletUtil.getServerName(httpServletRequest))).build();
+    }
 }

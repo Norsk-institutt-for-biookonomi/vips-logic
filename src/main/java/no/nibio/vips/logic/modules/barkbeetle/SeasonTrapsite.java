@@ -21,8 +21,16 @@ package no.nibio.vips.logic.modules.barkbeetle;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.WeekFields;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -45,6 +53,7 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.SystemTime;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 
@@ -64,7 +73,14 @@ import org.locationtech.jts.geom.Point;
     @NamedQuery(name = "SeasonTrapsite.findByOwnerPhone", query = "SELECT s FROM SeasonTrapsite s WHERE s.ownerPhone = :ownerPhone"),
     @NamedQuery(name = "SeasonTrapsite.findByDateInstalled", query = "SELECT s FROM SeasonTrapsite s WHERE s.dateInstalled = :dateInstalled"),
     @NamedQuery(name = "SeasonTrapsite.findByInstallationRemarks", query = "SELECT s FROM SeasonTrapsite s WHERE s.installationRemarks = :installationRemarks")})
-public class SeasonTrapsite implements Serializable {
+public class SeasonTrapsite implements Serializable, Comparable {
+    
+    public final static Integer WARNING_NOT_APPLICABLE = 1;
+    public final static Integer WARNING_MISSING_DATA = 1;
+    public final static Integer WARNING_NO_RISK = 2;
+    public final static Integer WARNING_LOW_RISK = 3;
+    public final static Integer WARNING_MEDIUM_RISK = 4;
+    public final static Integer WARNING_HIGH_RISK = 5;
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -363,4 +379,124 @@ public class SeasonTrapsite implements Serializable {
         this.municipalityName = municipalityName;
     }
 
+    // Thresholds for warning status
+    @Transient
+    private final Integer THRESHOLD_LOW_RISK = 1000;
+    @Transient
+    private final Integer THRESHOLD_MEDIUM_RISK = 5000;
+    @Transient
+    private final Integer THRESHOLD_HIGH_RISK = 10000;
+    
+    @Transient
+    public Integer getWarningStatus(){
+        // Are we before week 21? Return the "gray" status
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        Integer systemTimeWeek = LocalDate.ofInstant(SystemTime.getSystemTime().toInstant(), ZoneId.of("Europe/Oslo")).get(weekFields.weekOfWeekBasedYear());
+        if(systemTimeWeek < this.getFirstPossibleRegistrationWeek())
+        {
+            return SeasonTrapsite.WARNING_NOT_APPLICABLE;
+        }
+        
+        // If we're in week 21 or later, expect there to be registrations
+        List<TrapsiteRegistration> siteRegs = new ArrayList(this.getTrapsiteRegistrationCollection());
+        if(siteRegs == null || siteRegs.isEmpty())
+        {
+            return SeasonTrapsite.WARNING_MISSING_DATA;
+        }
+        
+        // If the most recent registration is from before the last expected
+        // registration, we have missing data
+        Collections.sort(siteRegs);
+        TrapsiteRegistration lastReg = siteRegs.get(siteRegs.size()-1);
+        Integer lastWeekOfRegistration = lastReg.getTrapsiteRegistrationPK().getWeek();
+        if(lastWeekOfRegistration < this.getExpectedLastRegistrationWeek(systemTimeWeek))
+        {
+            return SeasonTrapsite.WARNING_MISSING_DATA;
+        }
+        // OK so all the gotchas are taken care of. Now evaluate the value
+        if(lastReg.getRegistrationAverage() == null)
+        {
+            return SeasonTrapsite.WARNING_MISSING_DATA;
+        }
+        if(lastReg.getRegistrationAverage() < this.THRESHOLD_LOW_RISK)
+        {
+            return SeasonTrapsite.WARNING_NO_RISK;
+        }
+        if(lastReg.getRegistrationAverage() < this.THRESHOLD_MEDIUM_RISK)
+        {
+            return SeasonTrapsite.WARNING_LOW_RISK;
+        }
+        if(lastReg.getRegistrationAverage() < this.THRESHOLD_HIGH_RISK)
+        {
+            return SeasonTrapsite.WARNING_MEDIUM_RISK;
+        }
+        return SeasonTrapsite.WARNING_HIGH_RISK;
+    }
+        
+    @Transient
+    public Integer getExpectedLastRegistrationWeek(Integer currentWeek)
+    {
+        // There are two types of trapsites. The standard with last reg week 33,
+        // and the extended with last reg week 37
+        Integer[] registrationWeeks;
+        if(this.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD))
+        {
+            registrationWeeks = new Integer[]{21,24,28,33};
+        }
+        else
+        {
+            registrationWeeks = new Integer[]{21,24,28,33,37};
+        }
+        
+        /*
+          currentWeek == 24, registrationWeeks[i] == 21 => Iterate
+          currentWeek == 24, registrationWeeks[i] == 24 => Iterate
+          currentWeek == 24, registrationWeeks[i] == 28 => Return registrationWeeks[i-1], which is 24          
+        */
+        for(int i=0;i < registrationWeeks.length; i++)
+        {
+            if(registrationWeeks[i] > currentWeek)
+            {
+                return registrationWeeks[i-1];
+            }
+        }
+        // Past last week (late in season), return the last week
+        return registrationWeeks[registrationWeeks.length-1];
+    }
+    
+    @Transient
+    public Integer getFirstPossibleRegistrationWeek()
+    {
+        return 21;
+    }
+
+    @Override
+    public int compareTo(Object t) {
+        SeasonTrapsite other = (SeasonTrapsite) t;
+        // No nulls => compare strings normally
+        if(this.getCountyName() != null && other.getCountyName() != null && this.getCountyName().compareTo(other.getCountyName()) != 0)
+        {
+            return this.getCountyName().compareTo(other.getCountyName());
+        }
+        // One of them is null?
+        if(this.getCountyName() == null || other.getCountyName() == null)
+        {
+            return this.getCountyName() == null ? -1 : 1;
+        }
+        // If both are null, they are equal and we check the municipality name
+        // No nulls => compare strings normally
+        if(this.getMunicipalityName() != null && other.getMunicipalityName() != null && this.getMunicipalityName().compareTo(other.getMunicipalityName()) != 0)
+        {
+            return this.getMunicipalityName().compareTo(other.getMunicipalityName());
+        }
+        // One of them is null?
+        if(this.getMunicipalityName() == null || other.getMunicipalityName() == null)
+        {
+            return this.getMunicipalityName() == null ? -1 : 1;
+        }
+        // Both are null => They are equal
+        return 0;
+        
+    }
+    
 }

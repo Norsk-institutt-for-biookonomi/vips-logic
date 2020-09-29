@@ -31,6 +31,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -55,7 +56,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "TrapsiteRegistration.findByTrap4Remarks", query = "SELECT t FROM TrapsiteRegistration t WHERE t.trap4Remarks = :trap4Remarks"),
     @NamedQuery(name = "TrapsiteRegistration.findByRegistrationStatusTypeId", query = "SELECT t FROM TrapsiteRegistration t WHERE t.registrationStatusTypeId = :registrationStatusTypeId")})
 public class TrapsiteRegistration implements Serializable, Comparable {
-
+    
     private static final long serialVersionUID = 1L;
     @EmbeddedId
     protected TrapsiteRegistrationPK trapsiteRegistrationPK;
@@ -232,4 +233,37 @@ public class TrapsiteRegistration implements Serializable, Comparable {
         this.dateRegistration = dateRegistration;
     }
 
+    @Transient
+    public Double getRegistrationAverage()
+    {
+        if(this.getDateRegistration() == null)
+        {
+            return null;
+        }
+        int counter = 0;
+        Double sum = 0.0;
+        if(this.getTrap1() != null)
+        {
+            sum += this.getTrap1();
+            counter++;
+        }
+        if(this.getTrap2() != null)
+        {
+            sum += this.getTrap2();
+            counter++;
+        }
+        if(this.getTrap3() != null)
+        {
+            sum += this.getTrap3();
+            counter++;
+        }
+        if(this.getTrap4() != null)
+        {
+            sum += this.getTrap4();
+            counter++;
+        }
+        
+        return counter > 0 ? sum/counter : null;
+    }
+    
 }
