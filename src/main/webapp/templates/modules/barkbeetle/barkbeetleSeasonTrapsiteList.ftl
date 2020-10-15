@@ -23,7 +23,7 @@
 <h1>Fellelokaliteter for sesongen ${season}</h1>
 <div class="row">
 	<div class="col-md-7">
-	<p>Barkbilleovervåkingen er organisert gjennom «"Barkbilleadministratorer» 
+	<p>Barkbilleovervåkingen er organisert gjennom «Barkbilleadministratorer» 
 	ved Nibio, «Barkbillefylkeskontakter» og «Registranter». Alle feller må være 
 	av typen BEKA (også kalt Novefella) (se bildet), og feromonet som brukes må 
 	være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>

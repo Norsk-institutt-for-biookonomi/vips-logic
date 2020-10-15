@@ -72,8 +72,8 @@
 				<#if userIsAdmin><th></th></#if>
 			</thead>
 			<thead>
-				<th>Uke</th>
-				<th>Dato</th>
+				<th>Tømmeuke (periode)</th>
+				<th>Tømmedato</th>
 				<th>ml</th>
 				<th>antall</th>
 				<th>ml</th>
@@ -88,7 +88,7 @@
 			<tbody>
 			<#list trapsiteRegistrations as reg>
 				<tr>
-					<td rowspan="2">${reg.trapsiteRegistrationPK.week}</td>
+					<td rowspan="2">${reg.trapsiteRegistrationPK.week} (${reg?counter})</td>
 					<td rowspan="2"><input class="form-control" type="date" name="${reg.trapsiteRegistrationPK.week}_dateRegistration" value="${reg.dateRegistration!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"<#else> required="required"</#if>/></td>
 					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap1_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap1" value="${reg.trap1!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
