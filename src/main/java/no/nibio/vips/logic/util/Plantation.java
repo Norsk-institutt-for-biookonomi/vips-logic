@@ -10,26 +10,17 @@ import java.util.Date;
 
 
 public class Plantation {
-     private String  varietyId;
+    private String  typeName;
     private String  phaseName;
-    private String  baseTemp;
+    //private String  baseTemp;
     private Double  heatReq;
-    private Date    startDate;
+    //private Date    startDate;
 
     public Plantation() {
     }
 
-    
-    
-    public Plantation(String varietyId, String phaseName, String baseTemp, Double heatReq) {
-        this.varietyId = varietyId;
-        this.phaseName = phaseName;
-        this.baseTemp = baseTemp;
-        this.heatReq = heatReq;
-    }
-
-    public Plantation(String varietyId, String phaseName, Double heatReq) {
-        this.varietyId = varietyId;
+    public Plantation(String typeName, String phaseName, Double heatReq) {
+        this.typeName = typeName;
         this.phaseName = phaseName;
         this.heatReq = heatReq;
         } 
@@ -39,12 +30,12 @@ public class Plantation {
         this.heatReq = heatReq;
         }  
     
-    public String getVarietyId() {
-        return varietyId;
+    public String getTypeName() {
+        return typeName;
     }
 
-    public void setVarietyId(String varietyId) {
-        this.varietyId = varietyId;
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
     }
 
     public String getPhaseName() {
@@ -55,14 +46,6 @@ public class Plantation {
         this.phaseName = phaseName;
     }
 
-    public String getBaseTemp() {
-        return baseTemp;
-    }
-
-    public void setBaseTemp(String baseTemp) {
-        this.baseTemp = baseTemp;
-    }
-
     public Double getHeatReq() {
         return heatReq;
     }
@@ -71,22 +54,9 @@ public class Plantation {
         this.heatReq = heatReq;
     }
 
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
     @Override
     public String toString() {
-        return "Plantation{" + "varietyId=" + varietyId + ", phaseName=" + phaseName + ", baseTemp=" + baseTemp + ", heatSum=" + heatReq + ", sowingDate=" + startDate + '}';
+        return "Plantation{" + "typeName=" + typeName + ", phaseName=" + phaseName + ", heatReq=" + heatReq + '}';
     }
-
-    
-
-    
-    
 
 }

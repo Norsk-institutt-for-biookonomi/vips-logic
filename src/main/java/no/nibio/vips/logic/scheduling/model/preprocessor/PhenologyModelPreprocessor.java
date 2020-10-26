@@ -26,6 +26,7 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
+import no.nibio.vips.logic.util.Plant;
 import no.nibio.vips.logic.util.Plantation;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -46,19 +47,19 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
      public final           Logger      LOGGER              =   Logger.getLogger(this.getClass().getName());
     private final           boolean     DEBUG               =   false;
     private final   static  String      MODEL_ID            =   "PHENOLOGYM";
-    private final   static  String      MAIZE_VARITY        =   "maizeVarity";
+    private final   static  String      TYPE_NAME           =   "typeName";
     private final   static  String      SOWING_DATE         =   "sowingDate";
     
-    private final   static  String      SOWING_DATA         =   "sowingData";
+    //private final   static  String      SOWING_DATA         =   "sowingData";
     private final   static  String      PLANTATION_DATA     =   "plantationData";
     private final   static  String      FILE_PLANTATION     =   "/dataset/plantationData.json";
     
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
-        String      PHENOLOGY_MAZE_VARIETY                  = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(MODEL_ID, MAIZE_VARITY);
+        String      PHENOLOGY_TYPE_NAME                     = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(MODEL_ID, TYPE_NAME);
         String      PHENOLOGY_SOWING_DATE                   = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(MODEL_ID, SOWING_DATE);
         
-        String      paramMazeVariety                        = null;          
+        String      paramPhenologyTypeName                  = null;          
         Date        paramSowingDate                         = null;
         
         
@@ -79,7 +80,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         cal.set(Calendar.MONTH, Calendar.JANUARY);
         cal.set(Calendar.DATE, 1);
         
-        Plantation  sowdata  = new Plantation();
+        Plant         plant  = new Plant();
         
         try
         {
@@ -119,7 +120,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
 
         
         
-        paramMazeVariety    = configuration.getForecastModelConfigurationValue(PHENOLOGY_MAZE_VARIETY);
+        paramPhenologyTypeName    = configuration.getForecastModelConfigurationValue(PHENOLOGY_TYPE_NAME);
     
  
         Collections.sort(observations);
@@ -156,14 +157,23 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             LOGGER.log(Level.CONFIG, "Observations=" + observations.toString());
         }
     
-        sowdata.setVarietyId(paramMazeVariety);
-        sowdata.setStartDate(paramSowingDate);
+        Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION);
+        
+        if(plantDBData.getTypeName().equals(paramPhenologyTypeName))
+        {
+            plant = plantDBData;
+            plant.setStartDate(paramSowingDate);
+        }
+        
+        //plant.setTypeName(paramPhenologyTypeName);
+        //plant.setStartDate(paramSowingDate);
+        
         
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
-        retVal.setConfigParameter(SOWING_DATA, sowdata);
-        retVal.setConfigParameter(PLANTATION_DATA, getConfigurationPlantation(FILE_PLANTATION));
+        //retVal.setConfigParameter(SOWING_DATA, plant);
+        retVal.setConfigParameter(PLANTATION_DATA, plant);
 
         
         return retVal;
@@ -271,6 +281,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             
             
             // Fallback if missing leaf wetness: If we have relative humidity. leaf wetness may be calculated
+        /*
             if((BT.size() != TM.size()) && (UM.size() == TM.size()))
             {
                 BT = wUtil.calculateLeafWetnessHourSeriesBestEffort(BT,TM, RR, Q0, FM2, UM);
@@ -285,16 +296,21 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                 LOGGER.log(Level.WARNING, "TM starts " + TM.get(0).getTimeMeasured() + ", ends " + TM.get(TM.size()-1).getTimeMeasured());
                 throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() + ", UM.size()=" + UM.size() );
             }
+            */
         }
         List<WeatherObservation> retVal = new ArrayList<>();
         retVal.addAll(TM);
-        retVal.addAll(RR);
-        retVal.addAll(BT);
+       // retVal.addAll(RR);
+       // retVal.addAll(BT);
+       Collections.sort(retVal);
         return retVal;
     }
     
-    private List<Plantation> getConfigurationPlantation(String fileName)
+    private Plant getConfigurationPlantation(String fileName)
     {
+        Plant   plant   = new Plant();
+                
+        
         List<Plantation> plantations    = new ArrayList<Plantation>();
         
         
@@ -304,6 +320,11 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             JsonParser jp = f.createParser(inputStream);
             JsonNode all = jp.readValueAsTree();
             JsonNode nodePhaseInfo = all.path("phaseInfo");
+            
+            plant.setSpeciesLatinName(all.get("speciesLatinName").asText());
+            plant.setTypeName(all.get("typeName").asText());
+            plant.setBaseTemp(all.get("baseTemp").asDouble());
+            
             if(nodePhaseInfo.isArray())
             {
                 for(JsonNode node : nodePhaseInfo)
@@ -317,32 +338,14 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                 }
             }
             
-            
-            /*
-            if(all.isArray())
-            {
-               for(JsonNode node : all)
-               {
-                   Plantation   plantation  =   new Plantation
-                                                (
-                                                            node.get("maizeVarity").asText()
-                                                       ,    node.get("phaseName").asText()
-                                                       ,    node.get("baseTemp").asText()
-                                                       ,    node.get("heatReq").asDouble()
-                                                );
-                  plantations.add(plantation);
-                  
-                } 
-            }
-            
-            */
+            plant.setPlantations(plantations);
             
             
         } catch (IOException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
         }
         
-        return plantations;
+        return plant;
     }
        
 }

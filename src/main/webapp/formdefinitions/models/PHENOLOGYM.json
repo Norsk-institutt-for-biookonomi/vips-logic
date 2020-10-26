@@ -19,7 +19,7 @@
     "_comment" : "Structure of the specific fields for FAWPHENOLO",
         "fields": [
             {
-                "name" : "maizeVarity",
+                "name" : "typeName",
                 "dataType" : "STRING",
                 "fieldType" : "SELECT_SINGLE",
                 "required" : false,
