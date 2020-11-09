@@ -205,22 +205,22 @@
 		  </div>
 		  <div class="form-group">
 			<label for="countyNo">Fylkesnr</label>
-			<input type="number" class="form-control" name="countyNo" placeholder="Fylkesnr" value="${(seasonTrapsite.countyNo)!""}" onblur="validateField(this);"/>
+			<input type="number" class="form-control" name="countyNo" placeholder="Fylkesnr" value="${(seasonTrapsite.countyNo)!""}" onblur="validateField(this);" <#if !userIsAdmin>readonly</#if>/>
 			<span class="help-block" id="${formId}_countyNo_validation"></span>
 		  </div>
 		  <div class="form-group">
 			<label for="countyName">Fylkesnavn</label>
-			<input type="text" class="form-control" name="countyName" placeholder="Fylkesnavn" value="${(seasonTrapsite.countyName)!""}" onblur="validateField(this);"/>
+			<input type="text" class="form-control" name="countyName" placeholder="Fylkesnavn" value="${(seasonTrapsite.countyName)!""}" onblur="validateField(this);" <#if !userIsAdmin>readonly</#if>/>
 			<span class="help-block" id="${formId}_countyName_validation"></span>
 		  </div>
 		  <div class="form-group">
 			<label for="municipalityNo">Kommunenr</label>
-			<input type="number" class="form-control" name="municipalityNo" placeholder="Kommunenr" value="${(seasonTrapsite.municipalityNo)!""}" onblur="validateField(this);"/>
+			<input type="number" class="form-control" name="municipalityNo" placeholder="Kommunenr" value="${(seasonTrapsite.municipalityNo)!""}" onblur="validateField(this);" <#if !userIsAdmin>readonly</#if>/>
 			<span class="help-block" id="${formId}_municipalityNo_validation"></span>
 		  </div>
 		  <div class="form-group">
 			<label for="municipalityName">Kommunenavn</label>
-			<input type="text" class="form-control" name="municipalityName" placeholder="Kommunenavn" value="${(seasonTrapsite.municipalityName)!""}" onblur="validateField(this);"/>
+			<input type="text" class="form-control" name="municipalityName" placeholder="Kommunenavn" value="${(seasonTrapsite.municipalityName)!""}" onblur="validateField(this);" <#if !userIsAdmin>readonly</#if>/>
 			<span class="help-block" id="${formId}_municipalityName_validation"></span>
 		  </div>
 		  <div class="form-group">
