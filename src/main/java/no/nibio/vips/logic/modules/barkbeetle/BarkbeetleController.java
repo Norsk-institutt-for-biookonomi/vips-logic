@@ -71,7 +71,8 @@ public class BarkbeetleController extends HttpServlet {
         if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.BARKBEETLE_REGISTRATOR, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
         {
             request.setAttribute("user",user);
-            request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.SUPERUSER));
+            request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER));
+            request.setAttribute("userIsCountyAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN));
             Integer season = request.getParameter("season") != null?  Integer.valueOf(request.getParameter("season"))
                         : LocalDate.ofInstant(SystemTime.getSystemTime().toInstant(),ZoneId.of("Europe/Oslo")).getYear();
             String action = request.getParameter("action");
@@ -103,7 +104,7 @@ public class BarkbeetleController extends HttpServlet {
             }
             else if(action.equals("seasonTrapsiteFormSubmit"))
             {
-                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
@@ -168,7 +169,8 @@ public class BarkbeetleController extends HttpServlet {
                         : null;
                 if(trapsite != null)
                 {
-                    request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.SUPERUSER));
+                    request.setAttribute("userIsAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER));
+                    request.setAttribute("userIsCountyAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN));
                     request.setAttribute("seasonTrapsite", trapsite);
                     request.setAttribute("isExtended", trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_EXTENDED));
                     Set<Integer> missingWeeks = new HashSet(trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)?
