@@ -157,24 +157,13 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             LOGGER.log(Level.CONFIG, "Observations=" + observations.toString());
         }
     
-        Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION);
+        Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION,paramPhenologyTypeName);
         
-        if(!plantDBData.getTypeNames().isEmpty())
+        if(!plantDBData.getPlantations().isEmpty())
         {
-            for(Plantation objTypeNames: plantDBData.getTypeNames())
-            {
-                if(objTypeNames.getTypeName().equals((paramPhenologyTypeName)))
-                {
-                    
-                    plant.setSpeciesLatinName(plantDBData.getSpeciesLatinName());
-                    plant.setBaseTemp(objTypeNames.getBaseTemp());
-                    List<Plantation>  typeNames   = new ArrayList<Plantation>();
-                    typeNames.add(objTypeNames);
-                    plant.setTypeNames(typeNames);
-                    plant.setStartDate(paramSowingDate);
-                    break;
-                }
-            }
+            plant = plantDBData;
+            plant.setStartDate(paramSowingDate);
+
         }
         
         /*
@@ -326,7 +315,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         return retVal;
     }
     
-    private Plant getConfigurationPlantation(String fileName)
+    private Plant getConfigurationPlantation(String fileName, String strParamTypeName)
     {
         Plant   plant   = new Plant();
                 
@@ -338,53 +327,62 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             BufferedInputStream inputStream = new BufferedInputStream(this.getClass().getResourceAsStream(fileName));
             JsonFactory f = new MappingJsonFactory();
             JsonParser jp = f.createParser(inputStream);
-            JsonNode all = jp.readValueAsTree();
+            JsonNode nodeSpecies = jp.readValueAsTree();
             
-            JsonNode nodeTypeNames = all.path("typeNames");
+            JsonNode nodeTypeNames = nodeSpecies.path("typeNames");
+            
+            plant.setSpeciesLatinName(nodeSpecies.get("speciesLatinName").asText());
+            plant.setBaseTemp(nodeSpecies.get("baseTemp").asDouble());
+            
+            
             if(nodeTypeNames.isArray())
             {
                  for(JsonNode nodeTypeName : nodeTypeNames)
                  {
-                     Plantation plantation  = new Plantation();
-                     plantation.setTypeName(nodeTypeName.get("typeName").asText());
-                     if(null != nodeTypeName.get("baseTemp").asText())
+                     if(nodeTypeName.get("typeName").asText().trim().equalsIgnoreCase(strParamTypeName))
                      {
-                         plantation.setBaseTemp(nodeTypeName.get("baseTemp").asDouble());
-                     }
+                         plant.setTypeName(strParamTypeName);
+                        if(null != nodeTypeName.get("baseTemp").asText())
+                        {
+                            plant.setBaseTemp(nodeTypeName.get("baseTemp").asDouble());
+                        }
+                         
                      JsonNode nodeAllPhaseInfo = nodeTypeName.path("phaseInfo");
                      if(nodeAllPhaseInfo.isArray())
                      {
-                         List<Plantation.PhaseInfo> listPhaseInfo = new ArrayList<Plantation.PhaseInfo>();
                          for(JsonNode nodePhaseInfo : nodeAllPhaseInfo)
                          {
-                             Plantation.PhaseInfo phaseInfo = new Plantation().new PhaseInfo();
-                             phaseInfo.setPhaseName(nodePhaseInfo.get("phaseName").asText());
-                             phaseInfo.setHeatReq(nodePhaseInfo.get("heatReq").asDouble());
-                             listPhaseInfo.add(phaseInfo);
+                            Plantation plantation  = new Plantation();
+                            plantation.setTypeName(nodeTypeName.get("typeName").asText());
+
+
+                             plantation.setPhaseName(nodePhaseInfo.get("phaseName").asText());
+                             plantation.setHeatReq(nodePhaseInfo.get("heatReq").asDouble());
+                             
+                             plantations.add(plantation);
                          }
-                         if(listPhaseInfo.size() != 0)
-                         {
-                             plantation.setPhaseInfo(listPhaseInfo);
-                         }
+
                      }
-                     plantations.add(plantation);
+                     
+                     } 
+                     
                  }
                  
             }
             
             
         /*  
-            JsonNode nodePhaseInfo = all.path("phaseInfo");
-            plant.setSpeciesLatinName(all.get("speciesLatinName").asText());
-            plant.setTypeName(all.get("typeName").asText());
-            plant.setBaseTemp(all.get("baseTemp").asDouble());
+            JsonNode nodePhaseInfo = nodeSpecies.path("phaseInfo");
+            plant.setSpeciesLatinName(nodeSpecies.get("speciesLatinName").asText());
+            plant.setTypeName(nodeSpecies.get("typeName").asText());
+            plant.setBaseTemp(nodeSpecies.get("baseTemp").asDouble());
             
             if(nodePhaseInfo.isArray())
             {
                 for(JsonNode node : nodePhaseInfo)
                 {
                      Plantation   plantation  =   new Plantation
-                                                (           all.get("typeName").asText()
+                                                (           nodeSpecies.get("typeName").asText()
                                                         ,   node.get("phaseName").asText()
                                                        ,    node.get("heatReq").asDouble()
                                                 );
@@ -392,7 +390,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                 }
             }
         */    
-            plant.setTypeNames(plantations);
+            plant.setPlantations(plantations);
             
             
         } catch (IOException ex) {
