@@ -2,6 +2,7 @@
 package no.nibio.vips.logic.util;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -11,25 +12,23 @@ import java.util.Date;
 
 public class Plantation {
     private String  typeName;
-    private String  phaseName;
-    //private String  baseTemp;
-    private Double  heatReq;
-    //private Date    startDate;
-
+    private Double  baseTemp;
+    List<PhaseInfo>   phaseInfo;
+    
     public Plantation() {
     }
 
-    public Plantation(String typeName, String phaseName, Double heatReq) {
-        this.typeName = typeName;
-        this.phaseName = phaseName;
-        this.heatReq = heatReq;
+    public Plantation(String typeName, List<PhaseInfo> phaseInfo) {
+        this.typeName   = typeName;
+        this.phaseInfo  = phaseInfo;
         } 
     
-      public Plantation(String phaseName, Double heatReq) {
-        this.phaseName = phaseName;
-        this.heatReq = heatReq;
+      public Plantation(String typeName,Double baseTemp, List<PhaseInfo> phaseInfo) {
+        this.typeName   = typeName;
+        this.baseTemp  = baseTemp;
+        this.phaseInfo  = phaseInfo;
         }  
-    
+
     public String getTypeName() {
         return typeName;
     }
@@ -38,25 +37,56 @@ public class Plantation {
         this.typeName = typeName;
     }
 
-    public String getPhaseName() {
-        return phaseName;
+    public Double getBaseTemp() {
+        return baseTemp;
     }
 
-    public void setPhaseName(String phaseName) {
-        this.phaseName = phaseName;
+    public void setBaseTemp(Double baseTemp) {
+        this.baseTemp = baseTemp;
     }
 
-    public Double getHeatReq() {
-        return heatReq;
+    public List<PhaseInfo> getPhaseInfo() {
+        return phaseInfo;
     }
 
-    public void setHeatReq(Double heatReq) {
-        this.heatReq = heatReq;
+    public void setPhaseInfo(List<PhaseInfo> phaseInfo) {
+        this.phaseInfo = phaseInfo;
     }
 
+      
     @Override
     public String toString() {
-        return "Plantation{" + "typeName=" + typeName + ", phaseName=" + phaseName + ", heatReq=" + heatReq + '}';
+        return "Plantation{" + "typeName=" + typeName + ", baseTemp=" + baseTemp + ", phaseInfo=" + phaseInfo + '}';
     }
+    
+    public class PhaseInfo
+    {
+            private String  phaseName;
+            private Double  heatReq;
 
+        public String getPhaseName() {
+            return phaseName;
+        }
+
+        public void setPhaseName(String phaseName) {
+            this.phaseName = phaseName;
+        }
+
+        public Double getHeatReq() {
+            return heatReq;
+        }
+
+        public void setHeatReq(Double heatReq) {
+            this.heatReq = heatReq;
+        }
+
+        @Override
+        public String toString() {
+            return "PhaseInfo{" + "phaseName=" + phaseName + ", heatReq=" + heatReq + '}';
+        }
+        
+    }
+    
+    
 }
+

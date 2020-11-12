@@ -1,49 +1,56 @@
 {
     "speciesLatinName"        : "Zea mays",
-    "typeName"                : "TESTVARIETY 2",
     "baseTemp"                : "10",
-    "phaseInfo":
-[
-    {
-        "phaseName": "VE",
-        "heatReq"  : "66.67"
-    },
-    {
-        "phaseName": "V2",
-         "heatReq"  : "111.11"
-    },
-     {
-        "phaseName": "V3",
-        "heatReq"  : "194.44"
-    },
-     {
-        "phaseName": "V4-V6",
-        "heatReq"  : "263.89"
-    }, 
-    {
-        "phaseName": "V7-V9",
-        "heatReq"  : "338.89"
-    }, 
-    {
-        "phaseName": "V10",
-        "heatReq"  : "411.11"
-    }, 
-    {
-        "phaseName": "VT",
-        "heatReq"  : "630.55"
-    }, 
-    {
-        "phaseName": "R2",
-        "heatReq"  : "922.22"
-    }, 
-    {
-        "phaseName": "R5",
-        "heatReq"  : "1361.11"
-    }, 
-    {
-        "phaseName": "R6",
-        "heatReq"  : "1500"
-    }
- 
-]
+    "typeNames"               :
+    [
+        {
+            "typeName"                : "TESTVARIETY 2",
+            "baseTemp"                : "10",
+            "phaseInfo":
+            [
+                {
+                    "phaseName": "VE",
+                    "heatReq"  : "66.67"
+                },
+                {
+                    "phaseName": "V2",
+                     "heatReq"  : "111.11"
+                },
+                 {
+                    "phaseName": "V3",
+                    "heatReq"  : "194.44"
+                },
+                 {
+                    "phaseName": "V4-V6",
+                    "heatReq"  : "263.89"
+                }, 
+                {
+                    "phaseName": "V7-V9",
+                    "heatReq"  : "338.89"
+                }, 
+                {
+                    "phaseName": "V10",
+                    "heatReq"  : "411.11"
+                }, 
+                {
+                    "phaseName": "VT",
+                    "heatReq"  : "630.55"
+                }, 
+                {
+                    "phaseName": "R2",
+                    "heatReq"  : "922.22"
+                }, 
+                {
+                    "phaseName": "R5",
+                    "heatReq"  : "1361.11"
+                }, 
+                {
+                    "phaseName": "R6",
+                    "heatReq"  : "1500"
+                }
+             
+            ]
+        }
+    ]
+
 }
