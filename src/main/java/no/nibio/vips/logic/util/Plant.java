@@ -56,5 +56,10 @@ public class Plant {
     public void setPlantations(List<Plantation> plantations) {
         this.plantations = plantations;
     }
+
+    @Override
+    public String toString() {
+        return "Plant{" + "speciesLatinName=" + speciesLatinName + ", typeName=" + typeName + ", baseTemp=" + baseTemp + ", startDate=" + startDate + ", plantations=" + plantations + '}';
+    }
         
 }

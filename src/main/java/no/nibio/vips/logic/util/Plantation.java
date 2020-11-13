@@ -12,9 +12,7 @@ import java.util.Date;
 public class Plantation {
     private String  typeName;
     private String  phaseName;
-    //private String  baseTemp;
     private Double  heatReq;
-    //private Date    startDate;
 
     public Plantation() {
     }

@@ -44,21 +44,32 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 
 public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
-     public final           Logger      LOGGER              =   Logger.getLogger(this.getClass().getName());
-    private final           boolean     DEBUG               =   false;
-    private final   static  String      MODEL_ID            =   "PHENOLOGYM";
-    private final   static  String      TYPE_NAME           =   "typeName";
-    private final   static  String      SOWING_DATE         =   "sowingDate";
+     public final           Logger      LOGGER                  =   Logger.getLogger(this.getClass().getName());
+    private final           boolean     DEBUG                   =   false;
+    private final   static  String      MODEL_ID                =   "PHENOLOGYM";
+    private final   static  String      SPECIES_NAME            =   "speciesName";
+    private final   static  String      TYPE_NAME               =   "typeName";
+    private final   static  String      SOWING_DATE             =   "sowingDate";
     
-    //private final   static  String      SOWING_DATA         =   "sowingData";
-    private final   static  String      PLANTATION_DATA     =   "plantationData";
-    private final   static  String      FILE_PLANTATION     =   "/dataset/plantationData.json";
+    private final   static  String      PLANTATION_DATA         =   "plantationData";
+    private final   static  String      FILE_PLANTATION         =   "/dataset/plantationData.json";
+    
+    private final   static  String      NODE_SPECIES            =   "species";
+    private final   static  String      NODE_SPECIES_LATIN_NAME =   "speciesLatinName";
+    private final   static  String      NODE_BASE_TEMP          =   "baseTemp";
+    private final   static  String      NODE_TYPE_NAMES         =   "typeNames";
+    private final   static  String      NODE_TYPE_NAME          =   "typeName";
+    private final   static  String      NODE_PHASE_INFO         =   "phaseInfo";
+    private final   static  String      NODE_PHASE_NAME         =   "phaseName";
+    private final   static  String      NODE_HEAT_REQ           =   "heatReq";
     
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
+        String      PHENOLOGY_SPECIES_NAME                  = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(MODEL_ID, SPECIES_NAME);  
         String      PHENOLOGY_TYPE_NAME                     = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(MODEL_ID, TYPE_NAME);
         String      PHENOLOGY_SOWING_DATE                   = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(MODEL_ID, SOWING_DATE);
         
+        String      paramPhenologySpeciesName               = null;          
         String      paramPhenologyTypeName                  = null;          
         Date        paramSowingDate                         = null;
         
@@ -99,6 +110,8 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         
         List<WeatherObservation>        observations    =   null;
         
+        
+        
         try {
             observations    = wdsUtil.getWeatherObservations(
                                                               weatherStation
@@ -117,10 +130,8 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             throw new PreprocessorException(ex.getMessage());
         }
         
-
-        
-        
-        paramPhenologyTypeName    = configuration.getForecastModelConfigurationValue(PHENOLOGY_TYPE_NAME);
+        paramPhenologySpeciesName   = configuration.getForecastModelConfigurationValue(PHENOLOGY_SPECIES_NAME);
+        paramPhenologyTypeName      = configuration.getForecastModelConfigurationValue(PHENOLOGY_TYPE_NAME);
     
  
         Collections.sort(observations);
@@ -157,33 +168,18 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             LOGGER.log(Level.CONFIG, "Observations=" + observations.toString());
         }
     
-        Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION,paramPhenologyTypeName);
-        
+        Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION,paramPhenologySpeciesName,paramPhenologyTypeName);
+
         if(!plantDBData.getPlantations().isEmpty())
         {
             plant = plantDBData;
             plant.setStartDate(paramSowingDate);
-
         }
-        
-        /*
-        if(plantDBData.getTypeName().equals(paramPhenologyTypeName))
-        {
-            plant = plantDBData;
-            plant.setStartDate(paramSowingDate);
-        }
-        */
-        
-        //plant.setTypeName(paramPhenologyTypeName);
-        //plant.setStartDate(paramSowingDate);
-        
         
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
-        //retVal.setConfigParameter(SOWING_DATA, plant);
         retVal.setConfigParameter(PLANTATION_DATA, plant);
-
         
         return retVal;
     }
@@ -315,81 +311,75 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         return retVal;
     }
     
-    private Plant getConfigurationPlantation(String fileName, String strParamTypeName)
+    private Plant getConfigurationPlantation(String fileName,String strParamSpeciesName, String strParamTypeName)
     {
         Plant   plant   = new Plant();
                 
         
         List<Plantation> plantations    = new ArrayList<Plantation>();
         
-        
         try {
             BufferedInputStream inputStream = new BufferedInputStream(this.getClass().getResourceAsStream(fileName));
             JsonFactory f = new MappingJsonFactory();
             JsonParser jp = f.createParser(inputStream);
-            JsonNode nodeSpecies = jp.readValueAsTree();
             
-            JsonNode nodeTypeNames = nodeSpecies.path("typeNames");
+            JsonNode all = jp.readValueAsTree();
             
-            plant.setSpeciesLatinName(nodeSpecies.get("speciesLatinName").asText());
-            plant.setBaseTemp(nodeSpecies.get("baseTemp").asDouble());
+            JsonNode nodeAllSpecies = all.path(NODE_SPECIES);
             
-            
-            if(nodeTypeNames.isArray())
+            if(nodeAllSpecies.isArray())
             {
-                 for(JsonNode nodeTypeName : nodeTypeNames)
-                 {
-                     if(nodeTypeName.get("typeName").asText().trim().equalsIgnoreCase(strParamTypeName))
-                     {
-                         plant.setTypeName(strParamTypeName);
-                        if(null != nodeTypeName.get("baseTemp").asText())
-                        {
-                            plant.setBaseTemp(nodeTypeName.get("baseTemp").asDouble());
-                        }
-                         
-                     JsonNode nodeAllPhaseInfo = nodeTypeName.path("phaseInfo");
-                     if(nodeAllPhaseInfo.isArray())
-                     {
-                         for(JsonNode nodePhaseInfo : nodeAllPhaseInfo)
-                         {
-                            Plantation plantation  = new Plantation();
-                            plantation.setTypeName(nodeTypeName.get("typeName").asText());
-
-
-                             plantation.setPhaseName(nodePhaseInfo.get("phaseName").asText());
-                             plantation.setHeatReq(nodePhaseInfo.get("heatReq").asDouble());
-                             
-                             plantations.add(plantation);
-                         }
-
-                     }
-                     
-                     } 
-                     
-                 }
-                 
-            }
-            
-            
-        /*  
-            JsonNode nodePhaseInfo = nodeSpecies.path("phaseInfo");
-            plant.setSpeciesLatinName(nodeSpecies.get("speciesLatinName").asText());
-            plant.setTypeName(nodeSpecies.get("typeName").asText());
-            plant.setBaseTemp(nodeSpecies.get("baseTemp").asDouble());
-            
-            if(nodePhaseInfo.isArray())
-            {
-                for(JsonNode node : nodePhaseInfo)
+                for(JsonNode nodeSpecies : nodeAllSpecies)
                 {
-                     Plantation   plantation  =   new Plantation
-                                                (           nodeSpecies.get("typeName").asText()
-                                                        ,   node.get("phaseName").asText()
-                                                       ,    node.get("heatReq").asDouble()
-                                                );
-                     plantations.add(plantation);
+                    if(nodeSpecies.get(NODE_SPECIES_LATIN_NAME).asText().trim().equalsIgnoreCase(strParamSpeciesName))
+                    {
+                        plant.setSpeciesLatinName(nodeSpecies.get(NODE_SPECIES_LATIN_NAME).asText());
+                        if(null != nodeSpecies.get(NODE_BASE_TEMP).asText())
+                        {
+                            plant.setBaseTemp(nodeSpecies.get(NODE_BASE_TEMP).asDouble());
+                        }
+                       JsonNode nodeTypeNames = nodeSpecies.path(NODE_TYPE_NAMES); 
+                       
+                        if(nodeTypeNames.isArray())
+                        {
+                             for(JsonNode nodeTypeName : nodeTypeNames)
+                             {
+                                 if(nodeTypeName.get(NODE_TYPE_NAME).asText().trim().equalsIgnoreCase(strParamTypeName))
+                                 {
+                                    plant.setTypeName(strParamTypeName);
+                                    if(null != nodeTypeName.get(NODE_BASE_TEMP).asText())
+                                    {
+                                        plant.setBaseTemp(nodeTypeName.get(NODE_BASE_TEMP).asDouble());
+                                    }
+
+                                    JsonNode nodeAllPhaseInfo = nodeTypeName.path(NODE_PHASE_INFO);
+                                    if(nodeAllPhaseInfo.isArray())
+                                    {
+                                         for(JsonNode nodePhaseInfo : nodeAllPhaseInfo)
+                                         {
+                                            Plantation plantation  = new Plantation();
+                                            plantation.setTypeName(nodeTypeName.get(NODE_TYPE_NAME).asText());
+
+
+                                             plantation.setPhaseName(nodePhaseInfo.get(NODE_PHASE_NAME).asText());
+                                             plantation.setHeatReq(nodePhaseInfo.get(NODE_HEAT_REQ).asDouble());
+
+                                             plantations.add(plantation);
+                                         }
+
+                                    }
+                                 } 
+
+                             }
+
+                        }
+                       
+                       
+                    }
                 }
+
             }
-        */    
+     
             plant.setPlantations(plantations);
             
             

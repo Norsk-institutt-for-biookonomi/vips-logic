@@ -19,6 +19,16 @@
     "_comment" : "Structure of the specific fields for FAWPHENOLO",
         "fields": [
             {
+                "name" : "speciesName",
+                "dataType" : "STRING",
+                "fieldType" : "SELECT_SINGLE",
+                "required" : false,
+                "required" : true,
+                            "selectOptions": [
+                                    {"value":"Zea mays", "label":{"en":"Zea mays","nb":"Zea mays"}, "selected":"true"}
+                            ]
+            },
+            {
                 "name" : "typeName",
                 "dataType" : "STRING",
                 "fieldType" : "SELECT_SINGLE",
