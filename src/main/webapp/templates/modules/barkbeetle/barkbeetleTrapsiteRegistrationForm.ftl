@@ -39,6 +39,8 @@
 			(= Norlure; tilsendt fra Nibio).</li>
 			<li>antall biller legges inn for rett tømmeperiode i rett ukenummer</li>
 			<li>tallet legges inn på rett sted, som enten antall biller eller antall ml (volum målt med målebeger; omregning til antall biller skjer automatisk).</li>
+                        <li>manglende data markeres med en "M" i "antall"-kolonnen for en felle. NB! Manglende data betyr at telling ikke er mulig,
+                        for eksempel grunnet en feil med fella. Legger man inn tallet 0, betyr det at alt er i orden med fella, men den var tom for biller.</li>
 		</ul>
 		<p>
 		Se utdypende informasjon i 
