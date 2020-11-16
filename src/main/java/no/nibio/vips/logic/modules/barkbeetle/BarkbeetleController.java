@@ -86,14 +86,17 @@ public class BarkbeetleController extends HttpServlet {
             }
             else if(action.equals("editSeasonTrapsite"))
             {
-                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                SeasonTrapsite trapsite = request.getParameter("seasonTrapsiteId") != null ? 
+                        BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
+                        : new SeasonTrapsite();
+                // Only admins and designated registrants can edit the trapsite
+                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        && (trapsite != null && ! user.getUserId().equals(trapsite.getUserId().getUserId()))
+                        )
                 {
                     response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
                 request.setAttribute("trapsiteRegistrators", SessionControllerGetter.getUserBean().getUsersByVipsLogicRoles(new Integer[]{VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_REGISTRATOR, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN}));
-                SeasonTrapsite trapsite = request.getParameter("seasonTrapsiteId") != null ? 
-                        BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
-                        : new SeasonTrapsite();
                 
                 List<TrapsiteType> trapsiteTypes = BarkbeetleBean.getInstance().getTrapsiteTypes();
                 request.setAttribute("season", season);
@@ -104,7 +107,12 @@ public class BarkbeetleController extends HttpServlet {
             }
             else if(action.equals("seasonTrapsiteFormSubmit"))
             {
-                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                SeasonTrapsite trapsite = (request.getParameter("seasonTrapsiteId") != null && Integer.valueOf(request.getParameter("seasonTrapsiteId")) > 0) ? 
+                                BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
+                                : new SeasonTrapsite();
+                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        && (trapsite != null && ! user.getUserId().equals(trapsite.getUserId().getUserId()))
+                        )
                 {
                     response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
@@ -113,9 +121,7 @@ public class BarkbeetleController extends HttpServlet {
                     FormValidation formValidation = FormValidator.validateForm("modules/barkbeetle/seasonTrapsiteForm", request, getServletContext());
                     if(formValidation.isValid())
                     {
-                        SeasonTrapsite trapsite = (request.getParameter("seasonTrapsiteId") != null && Integer.valueOf(request.getParameter("seasonTrapsiteId")) > 0) ? 
-                                BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
-                                : new SeasonTrapsite();
+                        
                         trapsite.setSeason(formValidation.getFormField("season").getValueAsInteger());
                         trapsite.setTrapsiteType(BarkbeetleBean.getInstance().getTrapsiteType(formValidation.getFormField("trapsiteTypeId").getValueAsInteger()));
                         
