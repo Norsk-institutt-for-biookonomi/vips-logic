@@ -233,13 +233,13 @@ public class BarkbeetleController extends HttpServlet {
                                 tr.setTrapsiteRegistrationPK(new TrapsiteRegistrationPK(trapsite.getSeasonTrapsiteId(), week));
                                 tr.setDateRegistration(Date.from(LocalDate.parse(request.getParameter(parameterName)).atStartOfDay(ZoneId.systemDefault()).toInstant()));
                                 String trap1 = request.getParameter(week + "_trap1");
-                                tr.setTrap1(!trap1.equals("M") && ! trap1.isBlank() ? Integer.valueOf(trap1) : null);
+                                tr.setTrap1(!trap1.toLowerCase().equals("m") && ! trap1.isBlank() ? Integer.valueOf(trap1) : null);
                                 String trap2 = request.getParameter(week + "_trap2");
-                                tr.setTrap2(!trap2.equals("M") && ! trap2.isBlank() ? Integer.valueOf(trap2) : null);
+                                tr.setTrap2(!trap2.toLowerCase().equals("m") && ! trap2.isBlank() ? Integer.valueOf(trap2) : null);
                                 String trap3 = request.getParameter(week + "_trap3");
-                                tr.setTrap3(!trap3.equals("M") && ! trap3.isBlank() ? Integer.valueOf(trap3) : null);
+                                tr.setTrap3(trap3 != null && !trap3.toLowerCase().equals("m") && ! trap3.isBlank() ? Integer.valueOf(trap3) : null);
                                 String trap4 = request.getParameter(week + "_trap4");
-                                tr.setTrap4(!trap4.equals("M") && ! trap4.isBlank() ? Integer.valueOf(trap4) : null);
+                                tr.setTrap4(trap4 != null && !trap4.toLowerCase().equals("m") && ! trap4.isBlank() ? Integer.valueOf(trap4) : null);
 
                                 tr.setTrap1Remarks(request.getParameter(week + "_trap1Remarks"));
                                 tr.setTrap2Remarks(request.getParameter(week + "_trap2Remarks"));
