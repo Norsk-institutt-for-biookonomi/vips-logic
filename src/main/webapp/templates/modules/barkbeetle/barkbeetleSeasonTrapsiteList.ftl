@@ -71,7 +71,7 @@
 		</div>
 	</div>
 </div>
-<#if userIsAdmin>
+<#if userIsAdmin || userIsCountyAdmin>
 <p>
 	<a href="/barkbeetle?action=editSeasonTrapsite&season=${season}" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
 </p>
@@ -98,9 +98,9 @@
 				<td>${site.altitude!""}</td>
 				<td>${site.ownerName!""}</td>
 				<td>${site.userId.firstName} ${site.userId.lastName}</td>
-				<#if userIsAdmin || user.userId == site.userId.userId>
+				<#if userIsAdmin || userIsCountyAdmin || user.userId == site.userId.userId>
 				<td><a href="/barkbeetle?action=editSeasonTrapsite&season=${season}&seasonTrapsiteId=${site.seasonTrapsiteId}" class="btn btn-default" role="button">Endre lokalitetsinfo</a></td>
-				<td<#if userIsAdmin> class="status_${site.mostSevereRegistrationStatus}"</#if>><a href="/barkbeetle?action=registerData&seasonTrapsiteId=${site.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer<#if userIsAdmin>/godkjenn</#if> data</a></td>
+				<td<#if userIsAdmin || userIsCountyAdmin> class="status_${site.mostSevereRegistrationStatus}"</#if>><a href="/barkbeetle?action=registerData&seasonTrapsiteId=${site.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer<#if userIsAdmin || userIsCountyAdmin>/godkjenn</#if> data</a></td>
 				<#else>
 				<td colspan="2"></td>
 				</#if>

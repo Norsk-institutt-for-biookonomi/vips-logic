@@ -51,7 +51,7 @@
 		<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 150px;"/>
 		</div>
 	</div>
-	<#if userIsAdmin>
+	<#if userIsAdmin || userIsCountyAdmin>
 	<div class="alert alert-info">Registrant: <strong>${seasonTrapsite.userId.firstName} ${seasonTrapsite.userId.lastName}</strong>, tlf <strong>${seasonTrapsite.userId.phone!"Ikke oppgitt"}</strong>, e-post <strong>${seasonTrapsite.userId.email}</strong></div>
 	</#if>
 	<div class="singleBlockContainer">
@@ -69,7 +69,7 @@
 				<th></th>
 				<th></th>
 				<th></th>
-				<#if userIsAdmin><th></th></#if>
+				<#if userIsAdmin || userIsCountyAdmin><th></th></#if>
 			</thead>
 			<thead>
 				<th>Tømmeuke (periode)</th>
@@ -82,7 +82,7 @@
 				<th>antall</th>
 				<th>ml</th>
 				<th>antall</th>
-				<#if userIsAdmin><th>Status</th></#if>
+				<#if userIsAdmin || userIsCountyAdmin><th>Status</th></#if>
 			</thead>
 			
 			<tbody>
@@ -101,7 +101,7 @@
 					
 					<td rowspan="2">
 					<#if reg.dateRegistration?has_content>
-						<#if userIsAdmin>
+						<#if userIsAdmin || userIsCountyAdmin>
 							<select class="form-control status_${reg.registrationStatusTypeId}" name="${reg.trapsiteRegistrationPK.week}_registrationStatusTypeId" onchange="this.className='form-control status_' + this.options[this.selectedIndex].value;">
 							<#list registrationStatusTypes as registrationStatusType>
 								<option class="status_${registrationStatusType.registrationStatusTypeId}" value="${registrationStatusType.registrationStatusTypeId}"

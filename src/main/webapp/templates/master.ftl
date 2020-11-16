@@ -63,13 +63,18 @@
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isMessageAuthor()>
 		  	<li><a href="/message">${i18nBundle.messages}</a></li>
 		  </#if>
-		  <li><a href="/observation">${i18nBundle.observations}</a></li>
+                  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator() || user.hasRole(3?int) || user.hasRole(4?int)>
+                    <li><a href="/observation">${i18nBundle.observations}</a></li>
+                  </#if>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
                   <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isOrganismEditor()>
 		  	 <li><a href="/organism">${i18nBundle.organisms}</a></li>
 		  </#if>
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator() || user.hasRole(8?int)>
 		  	<li><a href="/applefruitmoth">${i18nBundle.appleFruitMoth}</a></li>
+		  </#if>
+                  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.hasRole(9?int) || user.hasRole(10?int) || user.hasRole(11?int)>
+		  	<li><a href="/barkbeetle">${i18nBundle.barkbeetle}</a></li>
 		  </#if>
 		</ul>
 	      </li>

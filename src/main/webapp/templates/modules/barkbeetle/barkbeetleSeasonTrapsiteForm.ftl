@@ -243,7 +243,7 @@
 			<input type="text" class="form-control" name="ownerPhone" placeholder="Tlf til eier av lokalitet" value="${(seasonTrapsite.ownerPhone)!""}" onblur="validateField(this);"/>
 			<span class="help-block" id="${formId}_ownerPhone_validation"></span>
 		  </div>
-		  <#if userIsAdmin>
+		  <#if userIsAdmin || userIsCountyAdmin>
 		  <div class="form-group">
 			<label for="userId">Registrant*</label>
 			<select class="form-control" name="userId">
