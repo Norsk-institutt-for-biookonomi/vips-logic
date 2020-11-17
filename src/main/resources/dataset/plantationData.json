@@ -4,11 +4,13 @@
                 {
                     "speciesLatinName"          : "Zea mays",
                     "baseTemp"                  : "10",
+                    "weatherParameters"         : ["TN","TX","TM"], 
                     "typeNames"                 :
                                                 [
                                                     {
-                                                        "typeName"      : "TESTVARIETY 2",
-                                                        "baseTemp"      : "10",
+                                                        "typeName"          : "TESTVARIETY 2",
+                                                        "baseTemp"          : "10",
+                                                        "weatherParameters" : ["TN","TX","TM"],
                                                         "phaseInfo"     :
                                                                         [
                                                                             {

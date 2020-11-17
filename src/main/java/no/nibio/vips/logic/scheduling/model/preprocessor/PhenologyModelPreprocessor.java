@@ -4,8 +4,10 @@ package no.nibio.vips.logic.scheduling.model.preprocessor;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.text.ParseException;
@@ -62,6 +64,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
     private final   static  String      NODE_PHASE_INFO         =   "phaseInfo";
     private final   static  String      NODE_PHASE_NAME         =   "phaseName";
     private final   static  String      NODE_HEAT_REQ           =   "heatReq";
+    private final   static  String      NODE_WEATHER_PARAMS     =   "weatherParameters";
     
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
@@ -110,18 +113,13 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         
         List<WeatherObservation>        observations    =   null;
         
-        
+        Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION,paramPhenologySpeciesName,paramPhenologyTypeName);
         
         try {
             observations    = wdsUtil.getWeatherObservations(
                                                               weatherStation
                                                             , WeatherObservation.LOG_INTERVAL_ID_1H
-                                                            , new String[]{
-                                                                            WeatherElements.TEMPERATURE_MEAN,
-                                                                            WeatherElements.PRECIPITATION,
-                                                                            WeatherElements.LEAF_WETNESS_DURATION,
-                                                                            WeatherElements.RELATIVE_HUMIDITY_MEAN
-                                                                        }
+                                                            , plantDBData.getWeatherParams()
                                                             , startDate
                                                             , endDate);
         }
@@ -136,22 +134,6 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
  
         Collections.sort(observations);
 
-        try {
-            List<WeatherObservation>  calcObs  = wdsUtil.getWeatherObservations(
-                                                                                    weatherStation
-                                                                                ,   WeatherObservation.LOG_INTERVAL_ID_1H
-                                                                                ,   new String[] {
-                                                                                                WeatherElements.GLOBAL_RADIATION,
-                                                                                                WeatherElements.WIND_SPEED_2M
-                                                                                                }
-                                                                                , startDate
-                                                                                , endDate
-                                                                                );
-            observations.addAll(calcObs);
-        }catch (WeatherDataSourceException ex)
-        {
-            // TODO nothing reported
-        }
         
        if(DEBUG)
         {
@@ -168,7 +150,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             LOGGER.log(Level.CONFIG, "Observations=" + observations.toString());
         }
     
-        Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION,paramPhenologySpeciesName,paramPhenologyTypeName);
+        
 
         if(!plantDBData.getPlantations().isEmpty())
         {
@@ -233,80 +215,9 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             }
         }
         
-        List<WeatherObservation> BT = new ArrayList<>();
-        List<WeatherObservation> UM = new ArrayList<>();
-        List<WeatherObservation> Q0 = new ArrayList<>();
-        List<WeatherObservation> FM2 = new ArrayList<>();
-        for(WeatherObservation o:observations)
-        {
-            switch(o.getElementMeasurementTypeId())
-            {
-                case WeatherElements.LEAF_WETNESS_DURATION:
-                    BT.add(o); 
-                    break;
-                case WeatherElements.RELATIVE_HUMIDITY_MEAN:
-                    UM.add(o); 
-                    break;
-                case WeatherElements.GLOBAL_RADIATION:
-                    Q0.add(o);
-                    break;
-                case WeatherElements.WIND_SPEED_2M:
-                    FM2.add(o);
-                    break;
-                default:
-                    // Let it pass in silence 
-                    break;
-            }
-        }
-        
-        // Problems with weather observations
-        
-        // Holes in series
-        if(DEBUG)
-        {
-            LOGGER.log(Level.CONFIG, "checkForAndFixHourlyTimeSeriesHoles");
-        }
 
-        
-        
-        // Unequal length of lists
-        if  (        
-                RR.size() != TM.size()
-                || BT.size() != TM.size()
-                || RR.size() != TM.size()
-            )
-        {
-            UM = wUtil.fixHourlyValuesForParameters(
-                    UM, 
-                    new HashSet(Arrays.asList("UM")), 
-                    firstTimeStamp, 
-                    null
-            );
-            
-            
-            
-            // Fallback if missing leaf wetness: If we have relative humidity. leaf wetness may be calculated
-        /*
-            if((BT.size() != TM.size()) && (UM.size() == TM.size()))
-            {
-                BT = wUtil.calculateLeafWetnessHourSeriesBestEffort(BT,TM, RR, Q0, FM2, UM);
-                
-                if(BT.size() != TM.size())
-                {
-                   throw new ConfigValidationException("Missing leaf wetness data. Also, attempting to calculate leaf wetness from other weather parameters failed.");
-                }
-            }
-            else
-            {
-                LOGGER.log(Level.WARNING, "TM starts " + TM.get(0).getTimeMeasured() + ", ends " + TM.get(TM.size()-1).getTimeMeasured());
-                throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() + ", UM.size()=" + UM.size() );
-            }
-            */
-        }
         List<WeatherObservation> retVal = new ArrayList<>();
         retVal.addAll(TM);
-       // retVal.addAll(RR);
-       // retVal.addAll(BT);
        Collections.sort(retVal);
         return retVal;
     }
@@ -314,9 +225,9 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
     private Plant getConfigurationPlantation(String fileName,String strParamSpeciesName, String strParamTypeName)
     {
         Plant   plant   = new Plant();
-                
-        
-        List<Plantation> plantations    = new ArrayList<Plantation>();
+               
+        ObjectMapper        mapper          = new ObjectMapper();
+        List<Plantation>    plantations     = new ArrayList<Plantation>();
         
         try {
             BufferedInputStream inputStream = new BufferedInputStream(this.getClass().getResourceAsStream(fileName));
@@ -338,7 +249,19 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                         {
                             plant.setBaseTemp(nodeSpecies.get(NODE_BASE_TEMP).asDouble());
                         }
-                       JsonNode nodeTypeNames = nodeSpecies.path(NODE_TYPE_NAMES); 
+                       JsonNode nodeSpeciesWeatherParams   = nodeSpecies.path(NODE_WEATHER_PARAMS);
+                       if( null != nodeSpeciesWeatherParams && nodeSpeciesWeatherParams.isArray())
+                       {
+                           String[] strWeatherParams    = new String[nodeSpeciesWeatherParams.size()];
+                           int i = 0;
+                           for (JsonNode nodeWeather: nodeSpeciesWeatherParams)
+                           {
+                               strWeatherParams[i++] = mapper.convertValue(nodeWeather,  new TypeReference<String>(){});
+                           }
+                           plant.setWeatherParams(strWeatherParams);
+                       }
+                       
+                       JsonNode nodeTypeNames       = nodeSpecies.path(NODE_TYPE_NAMES); 
                        
                         if(nodeTypeNames.isArray())
                         {
@@ -352,6 +275,18 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                                         plant.setBaseTemp(nodeTypeName.get(NODE_BASE_TEMP).asDouble());
                                     }
 
+                                    JsonNode nodeTypeNameWeatherParams   = nodeTypeName.path(NODE_WEATHER_PARAMS);
+                                    if( null != nodeTypeNameWeatherParams && nodeTypeNameWeatherParams.isArray())
+                                        {
+                                            String[] strWeatherParams    = new String[nodeTypeNameWeatherParams.size()];
+                                            int i = 0;
+                                            for (JsonNode nodeWeather: nodeTypeNameWeatherParams)
+                                            {
+                                                strWeatherParams[i++] = mapper.convertValue(nodeWeather,  new TypeReference<String>(){});
+                                            }
+                                            plant.setWeatherParams(strWeatherParams);
+                                        }
+                                    
                                     JsonNode nodeAllPhaseInfo = nodeTypeName.path(NODE_PHASE_INFO);
                                     if(nodeAllPhaseInfo.isArray())
                                     {

@@ -14,6 +14,7 @@ public class Plant {
     private String              typeName;
     private Double              baseTemp;
     private Date                startDate;
+    private String[]            weatherParams;
     
     private List<Plantation>    plantations;
 
@@ -57,9 +58,19 @@ public class Plant {
         this.plantations = plantations;
     }
 
+    public String[] getWeatherParams() {
+        return weatherParams;
+    }
+
+    public void setWeatherParams(String[] weatherParams) {
+        this.weatherParams = weatherParams;
+    }
+
     @Override
     public String toString() {
-        return "Plant{" + "speciesLatinName=" + speciesLatinName + ", typeName=" + typeName + ", baseTemp=" + baseTemp + ", startDate=" + startDate + ", plantations=" + plantations + '}';
+        return "Plant{" + "speciesLatinName=" + speciesLatinName + ", typeName=" + typeName + ", baseTemp=" + baseTemp + ", startDate=" + startDate + ", weatherParams=" + weatherParams + ", plantations=" + plantations + '}';
     }
+
+
         
 }
