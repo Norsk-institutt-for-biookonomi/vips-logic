@@ -54,11 +54,25 @@
     popOverlay = new ol.Overlay({
       element: document.getElementById("popover")
     });
+    var parser = new ol.format.WMTSCapabilities();
+  fetch('https://opencache.statkart.no/gatekeeper/gk/gk.open_wmts?Version=1.0.0&service=wmts&request=getcapabilities').then(function(response) {
+        return response.text();
+      }).then(function(text) {
+        var result = parser.read(text);
+        var options = ol.source.WMTS.optionsFromCapabilities(result, {
+          layer: 'topo4',
+          matrixSet: 'EPSG:3857'
+        });
+        var topo4 = 
+          new ol.layer.Tile({
+            opacity: 1,
+            source: new ol.source.WMTS(/** @type {!olx.source.WMTSOptions} */ (options))
+          });
     
     // Creating the map
     map = new ol.Map({
                     target: 'seasonTrapsiteListMap',
-                    layers: [backgroundLayer, trapLayer],
+                    layers: [topo4, trapLayer],
                     overlays: [popOverlay],
                     renderer: 'canvas'
     });
@@ -76,6 +90,7 @@
             var pixel = map.getEventPixel(evt.originalEvent);
               displayFeatureDetails(pixel);
             });
+    }); // END FETCH
  }
  
  // Displays popup with forecasts for a given station

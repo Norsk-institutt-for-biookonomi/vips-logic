@@ -71,7 +71,7 @@
 				<th></th>
 				<th></th>
 				<th></th>
-				<#if userIsAdmin || userIsCountyAdmin><th></th></#if>
+				<#if userIsAdmin><th></th></#if>
 			</thead>
 			<thead>
 				<th>Tømmeuke (periode)</th>
@@ -84,7 +84,7 @@
 				<th>antall</th>
 				<th>ml</th>
 				<th>antall</th>
-				<#if userIsAdmin || userIsCountyAdmin><th>Status</th></#if>
+				<#if userIsAdmin><th>Status</th></#if>
 			</thead>
 			
 			<tbody>
@@ -103,7 +103,7 @@
 					
 					<td rowspan="2">
 					<#if reg.dateRegistration?has_content>
-						<#if userIsAdmin || userIsCountyAdmin>
+						<#if userIsAdmin>
 							<select class="form-control status_${reg.registrationStatusTypeId}" name="${reg.trapsiteRegistrationPK.week}_registrationStatusTypeId" onchange="this.className='form-control status_' + this.options[this.selectedIndex].value;">
 							<#list registrationStatusTypes as registrationStatusType>
 								<option class="status_${registrationStatusType.registrationStatusTypeId}" value="${registrationStatusType.registrationStatusTypeId}"

@@ -146,9 +146,12 @@
 		og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a>
 	   </p>
+	   <p>Merk at fylkesnr, fylkesnavn, kommunenr og kommunenavn som genereres er 
+	   fra før sammenslåinger (2012). Registrant sørger bare for riktig plassering i kart.
+	   </p>
 		<p>
 			<#if seasonTrapsite.seasonTrapsiteId?has_content>
-			<a href="/barkbeetle?action=registerData&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer data</a>
+			<a href="/barkbeetle?action=registerData&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer fangstdata</a>
 			</#if>
 		</p>
 		</div>
@@ -200,7 +203,7 @@
 		  </div>
 		  <div class="form-group">
 			<label for="altitude">Høyde over havet (m)</label>
-			<input type="number" class="form-control" name="altitude" step="0.1" placeholder="Høyde over havet" value="${(seasonTrapsite.altitude?c)!""}" onblur="validateField(this);"/>
+			<input type="number" class="form-control" name="altitude" step="0.1" placeholder="Høyde over havet" value="${(seasonTrapsite.altitude?c)!""}" onblur="validateField(this);" <#if !userIsAdmin>readonly</#if>/>
 			<span class="help-block" id="${formId}_altitude_validation"></span>
 		  </div>
 		  <div class="form-group">
@@ -281,7 +284,7 @@
 	</form>
 	</div>
 	<div class="col-md-4">
-		<div id="seasonTrapsiteFormMap" class="map">
+		<div id="seasonTrapsiteFormMap" class="map" style="border: 1px solid black;">
 				<div id="popover"></div>
 			</div>
 	</div>

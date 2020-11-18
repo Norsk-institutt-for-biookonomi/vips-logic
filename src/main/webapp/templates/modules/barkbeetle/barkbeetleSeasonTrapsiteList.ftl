@@ -27,11 +27,13 @@
 <div class="row">
 	<div class="col-md-7">
 	<p>Barkbilleovervåkingen er organisert gjennom «Barkbilleadministratorer» 
-	ved Nibio, «Barkbillefylkeskontakter» og «Registranter». Alle feller må være 
-	av typen BEKA (også kalt Novefella) (se bildet), og feromonet som brukes må 
+	ved Nibio, «Barkbillefylkeskontakter» og «Registranter». «Barkbillefylkeskontakter» 
+	oppretter en liste over fellelokaliteter og tilordner «Registranter» til disse. 
+	Etter dette kan <em>«Registrantene»</em> oppdatere informasjon (plassere riktig 
+	i kart m.m.) og legge inn data for sin(e) lokalitet(er).<br/>
+	Alle feller må være av typen BEKA (også kalt Novefella) (se bildet), og feromonet som brukes må 
 	være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>
-	(=Norlure; tilsendt fra Nibio). Les instruksjoner som 
-	er aktuelle for deg nøye, slik som 
+	(=Norlure; tilsendt fra Nibio). Les instruksjoner som er aktuelle for deg nøye, slik som 
 	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
 	Barkbillefylkeskontakter</a>,
 	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a>, og 
@@ -64,12 +66,15 @@
 	Registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a></p>
+	<p>Merk at fylkesnr, fylkesnavn, kommunenr og kommunenavn som genereres er 
+	   fra før sammenslåinger (2012).
+	   </p>
 	</div>
 	<div class="col-md-1">
 	<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 250px;"/>
 	</div>
 	<div class="col-md-4">
-		<div id="seasonTrapsiteListMap" class="map">
+		<div id="seasonTrapsiteListMap" class="map" style="border: 1px solid black;">
 				<div id="popover"></div>
 		</div>
 	</div>
@@ -103,7 +108,7 @@
 				<td>${site.userId.firstName} ${site.userId.lastName}</td>
 				<#if userIsAdmin || userIsCountyAdmin || user.userId == site.userId.userId>
 				<td><a href="/barkbeetle?action=editSeasonTrapsite&season=${season}&seasonTrapsiteId=${site.seasonTrapsiteId}" class="btn btn-default" role="button">Endre lokalitetsinfo</a></td>
-				<td<#if userIsAdmin || userIsCountyAdmin> class="status_${site.mostSevereRegistrationStatus}"</#if>><a href="/barkbeetle?action=registerData&seasonTrapsiteId=${site.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer<#if userIsAdmin || userIsCountyAdmin>/godkjenn</#if> data</a></td>
+				<td<#if userIsAdmin || userIsCountyAdmin> class="status_${site.mostSevereRegistrationStatus}"</#if>><a href="/barkbeetle?action=registerData&seasonTrapsiteId=${site.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer<#if userIsAdmin || userIsCountyAdmin>/godkjenn</#if> fangstdata</a></td>
 				<#else>
 				<td colspan="2"></td>
 				</#if>
