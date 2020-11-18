@@ -112,7 +112,7 @@ public class BarkbeetleController extends HttpServlet {
                 SeasonTrapsite trapsite = (request.getParameter("seasonTrapsiteId") != null && Integer.valueOf(request.getParameter("seasonTrapsiteId")) > 0) ? 
                                 BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
                                 : new SeasonTrapsite();
-                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                         && (trapsite != null && ! user.getUserId().equals(trapsite.getUserId().getUserId()))
                         )
                 {
