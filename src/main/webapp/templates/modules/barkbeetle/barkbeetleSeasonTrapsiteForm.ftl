@@ -275,6 +275,9 @@
 				<span class="help-block" id="${formId}_installationRemarks_validation"></span>
 		  </div>
 		  <button type="submit" class="btn btn-default">Lagre</button>
+		  <#if userIsAdmin && seasonTrapsite.seasonTrapsiteId?has_content>
+		  	<button type="button" class="btn btn-danger" onclick="if(confirm('Ønsker du virkelig å slette?')){window.location.href='/barkbeetle?action=seasonTrapsiteDeleteForm&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}';}">Slett</button>
+		  </#if>
 	</form>
 	</div>
 	<div class="col-md-4">

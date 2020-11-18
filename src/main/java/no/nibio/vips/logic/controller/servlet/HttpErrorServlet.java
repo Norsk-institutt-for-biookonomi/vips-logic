@@ -62,6 +62,10 @@ public class HttpErrorServlet extends HttpServlet {
         {
             request.getRequestDispatcher("/404.ftl").forward(request, response);
         }
+        else if(statusCode.equals(400))
+        {
+            request.getRequestDispatcher("/400.ftl").forward(request, response);
+        }
         else
         {
             request.getRequestDispatcher("/error_unknown.ftl").forward(request, response);

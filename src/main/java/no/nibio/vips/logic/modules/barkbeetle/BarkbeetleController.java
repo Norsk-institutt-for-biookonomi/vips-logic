@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.ejb.EJBException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -82,6 +83,7 @@ public class BarkbeetleController extends HttpServlet {
                 Collections.sort(seasonTrapSites);
                 request.setAttribute("season", season);
                 request.setAttribute("seasonTrapsites", seasonTrapSites);
+                request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/modules/barkbeetle/barkbeetleSeasonTrapsiteList.ftl").forward(request, response);
             }
             else if(action.equals("editSeasonTrapsite"))
@@ -275,6 +277,62 @@ public class BarkbeetleController extends HttpServlet {
                 else
                 {
                     response.sendError(Response.Status.BAD_REQUEST.getStatusCode(),"Kan ikke registrere data, fordi fellelokalitet med id=" + request.getParameter("seasonTrapsiteId") + " ikke ble funnet.");
+                }
+            }
+            // Only admins can do this
+            else if(action.equals("seasonTrapsiteDeleteForm"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER))
+                {
+                    SeasonTrapsite trapsite = request.getParameter("seasonTrapsiteId") != null ? 
+                        BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
+                        : null;
+                
+                    if(trapsite != null)
+                    {
+                        // Get any registrations
+                        request.setAttribute("seasonTrapsite", trapsite);
+                        // Display them
+                        
+                        request.getRequestDispatcher("/modules/barkbeetle/barkbeetleSeasonTrapsiteDeleteForm.ftl").forward(request, response);
+                    }
+                    else
+                    {
+                        response.sendError(404,"Den etterspurte fellelokaliteten finnes ikke i databasen"); // HTTP Forbidden
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            }
+            // Only admins can do this
+            else if(action.equals("seasonTrapsiteDelete"))
+            {
+                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER))
+                {
+                    try
+                    {
+                        if(BarkbeetleBean.getInstance().deleteSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId"))))
+                        {
+                            response.sendRedirect(Globals.PROTOCOL + "://"
+                                    + ServletUtil.getServerName(request)
+                                    + "/barkbeetle?messageKey=deleteOK"
+                            );
+                        }
+                        else
+                        {
+                            response.sendError(404,"Den etterspurte fellelokaliteten finnes ikke i databasen. <a href='/barkbeetle'>Gå tilbake til listen over fellelokaliteter</a>."); // HTTP Not found
+                        }
+                    }
+                    catch(NumberFormatException ex)
+                    {
+                        response.sendError(400, "Feil med id for fellelokalitet. <a href='/barkbeetle'>Gå tilbake til listen over fellelokaliteter</a>."); // HTTP Bad request
+                    }
+                }
+                else
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
             }
         }

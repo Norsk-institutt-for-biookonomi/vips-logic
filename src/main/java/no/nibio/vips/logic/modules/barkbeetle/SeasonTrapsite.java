@@ -120,7 +120,7 @@ public class SeasonTrapsite implements Serializable, Comparable {
     private Integer propertyNo;
     @Column(name = "property_section_no")
     private Integer propertySectionNo;
-    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "seasonTrapsite", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "seasonTrapsite", fetch = FetchType.EAGER)
     private Collection<TrapsiteRegistration> trapsiteRegistrationCollection;
     @JoinColumn(name = "trapsite_type", referencedColumnName = "trapsite_type_id")
     @ManyToOne

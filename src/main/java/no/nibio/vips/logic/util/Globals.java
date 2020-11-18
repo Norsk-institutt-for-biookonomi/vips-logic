@@ -42,6 +42,7 @@ public class Globals {
         "/css",
         "/403",
         "/404",
+        "/400",
         "/rest",
         "/user",
         "/test/testlogin.jsp",

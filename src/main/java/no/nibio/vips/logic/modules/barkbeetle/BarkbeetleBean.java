@@ -228,4 +228,19 @@ public class BarkbeetleBean {
         });
         return kml;
     }
+    
+    public Boolean deleteSeasonTrapsite(Integer seasonTrapsiteId)
+    {
+        SeasonTrapsite stToDelete = em.find(SeasonTrapsite.class, seasonTrapsiteId);
+        if(stToDelete == null)
+        {
+            return false;
+        }
+        // Need to manually delete bivolt model calculations for this trap site
+        em.createNativeQuery("DELETE FROM barkbeetle.season_trapsite_bivolt WHERE season_trapsite_id = :seasonTrapsiteId")
+                .setParameter("seasonTrapsiteId", seasonTrapsiteId)
+                .executeUpdate();
+        em.remove(stToDelete);
+        return true;
+    }
 }

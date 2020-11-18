@@ -20,6 +20,9 @@
 	<title>Barkbilleregistrering: Fellelokaliteter for sesongen ${season}</title>
 </#macro>
 <#macro page_contents>
+<#if messageKey?has_content && messageKey=="deleteOK">
+		<div class="alert alert-success">Fellelokaliteten ble slettet</div>
+	</#if>
 <h1>Fellelokaliteter for sesongen ${season}</h1>
 <div class="row">
 	<div class="col-md-7">
