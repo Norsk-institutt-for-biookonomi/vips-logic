@@ -145,8 +145,22 @@
 <script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 <script type="text/javascript">
                 // Make sure that hitting the ENTER key when inside a form input field doesn't 
-                // accidentally submit the form
-                window.addEventListener('keydown',function(e){if(e.keyIdentifier=='U+000A'||e.keyIdentifier=='Enter'||e.keyCode==13){if(e.target.nodeName=='INPUT'{e.preventDefault();return false;}}},true);
+                // accidentally submit the form. Also, that the ml to barkbeetle count is performed
+                window.addEventListener('keydown',function(e){
+					if(e.keyIdentifier=='U+000A'||e.keyIdentifier=='Enter'||e.keyCode==13)
+					{
+						if(e.target.nodeName=='INPUT'){
+							if(e.target.name.indexOf("_ml") > 0)
+							{
+								setCalculatedAmount(e.target);
+							}
+							e.preventDefault();
+							return false;
+						}
+					}
+				},
+				true
+				);
 		var theForm = document.getElementById("trapsiteRegistrationForm");
 		// Make sure that there is a date picker present for HTML5 
 		// date input fields
