@@ -1,8 +1,6 @@
 
 package no.nibio.vips.logic.util;
 
-import java.util.Date;
-
 /**
  *
  * @author wildfly

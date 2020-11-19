@@ -1,4 +1,21 @@
- 
+ /*
+ * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
+ * later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * NIBIO Open Source License for more details.
+ * 
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * 
+ */
 package no.nibio.vips.logic.scheduling.model.preprocessor;
 
 
@@ -113,6 +130,8 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         
         List<WeatherObservation>        observations    =   null;
         
+        paramPhenologySpeciesName   = configuration.getForecastModelConfigurationValue(PHENOLOGY_SPECIES_NAME);
+        paramPhenologyTypeName      = configuration.getForecastModelConfigurationValue(PHENOLOGY_TYPE_NAME);
         Plant   plantDBData   =   getConfigurationPlantation(FILE_PLANTATION,paramPhenologySpeciesName,paramPhenologyTypeName);
         
         try {
@@ -127,10 +146,6 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         {
             throw new PreprocessorException(ex.getMessage());
         }
-        
-        paramPhenologySpeciesName   = configuration.getForecastModelConfigurationValue(PHENOLOGY_SPECIES_NAME);
-        paramPhenologyTypeName      = configuration.getForecastModelConfigurationValue(PHENOLOGY_TYPE_NAME);
-    
  
         Collections.sort(observations);
 
@@ -140,7 +155,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             LOGGER.log(Level.CONFIG, "Finished getting weather data at  "+new Date().toString());
         }
         try {
-            observations = validateAndSanitizeObservations(observations, startDate);
+            observations = validateAndSanitizeObservations(observations,plantDBData.getWeatherParams(), startDate);
         } catch (ConfigValidationException | WeatherObservationListException ex) {
             //ex.printStackTrace();
             throw new PreprocessorException(ex.getMessage());
@@ -157,7 +172,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
             plant = plantDBData;
             plant.setStartDate(paramSowingDate);
         }
-        
+
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", timeZone.getID());
         retVal.setConfigParameter("observations", observations);
@@ -175,7 +190,7 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
     }
     
     
-       private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations, Date firstTimeStamp) throws ConfigValidationException, WeatherObservationListException 
+       private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations,String[] paramsWeather, Date firstTimeStamp) throws ConfigValidationException, WeatherObservationListException 
        {
        
          if(DEBUG)
@@ -189,9 +204,8 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         observations = wUtil.removeDuplicateWeatherObservations(observations, null);
         
         // Fix weather data
-        List<WeatherObservation> fixedObservations = wUtil.fixHourlyValuesForParameters(
-                observations, 
-                new HashSet(Arrays.asList("TM","RR")), 
+        List<WeatherObservation> fixedObservations = wUtil.fixHourlyValuesForParameters(observations, 
+                new HashSet(Arrays.asList(paramsWeather)), 
                 firstTimeStamp, 
                 null
         );
@@ -199,7 +213,8 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
         
         // Now we need to validate and possibly try to fix the weather data
         List<WeatherObservation> TM = new ArrayList<>();
-        List<WeatherObservation> RR = new ArrayList<>();
+        List<WeatherObservation> TN = new ArrayList<>();
+        List<WeatherObservation> TX = new ArrayList<>();
         
         for(WeatherObservation o:fixedObservations)
         {
@@ -208,16 +223,21 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                 case WeatherElements.TEMPERATURE_MEAN:
                     TM.add(o); 
                     break;
-                case WeatherElements.PRECIPITATION:
-                    RR.add(o); 
+                case WeatherElements.TEMPERATURE_MINIMUM:
+                    TN.add(o); 
                     break;
+                case WeatherElements.TEMPERATURE_MAXIMUM:
+                    TX.add(o); 
+                    break;                    
                     
             }
         }
         
 
         List<WeatherObservation> retVal = new ArrayList<>();
-        retVal.addAll(TM);
+        if(!TM.isEmpty()) retVal.addAll(TM);
+        if(!TN.isEmpty()) retVal.addAll(TN);
+        if(!TX.isEmpty()) retVal.addAll(TX);
        Collections.sort(retVal);
         return retVal;
     }
@@ -228,7 +248,6 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                
         ObjectMapper        mapper          = new ObjectMapper();
         List<Plantation>    plantations     = new ArrayList<Plantation>();
-        
         try {
             BufferedInputStream inputStream = new BufferedInputStream(this.getClass().getResourceAsStream(fileName));
             JsonFactory f = new MappingJsonFactory();
