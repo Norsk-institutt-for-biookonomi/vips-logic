@@ -74,7 +74,7 @@
 	<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 250px;"/>
 	</div>
 	<div class="col-md-4">
-		<div id="seasonTrapsiteListMap" class="map" style="border: 1px solid black;">
+		<div id="seasonTrapsiteListMap" class="map" style="border: 1px solid black; background-color: white;">
 				<div id="popover"></div>
 		</div>
 	</div>
