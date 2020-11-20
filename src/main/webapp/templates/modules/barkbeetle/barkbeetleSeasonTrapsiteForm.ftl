@@ -287,6 +287,7 @@
 		<div id="seasonTrapsiteFormMap" class="map" style="border: 1px solid black;">
 				<div id="popover"></div>
 			</div>
+			Klikk i kartet for å plassere/flytte fellelokaliteten
 	</div>
 	</div>
 	<div style="display: none;"><div id="trapMarker" title="Marker"><img src="/images/modules/barkbeetle/trapsite.png"/></div></div>

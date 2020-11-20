@@ -29,7 +29,7 @@
 	<p>Barkbilleovervåkingen er organisert gjennom «Barkbilleadministratorer» 
 	ved Nibio, «Barkbillefylkeskontakter» og «Registranter». «Barkbillefylkeskontakter» 
 	oppretter en liste over fellelokaliteter og tilordner «Registranter» til disse. 
-	Etter dette kan <em>«Registrantene»</em> oppdatere informasjon (plassere riktig 
+	<u>Etter dette</u> kan <em>«Registrantene»</em> oppdatere informasjon (plassere riktig 
 	i kart m.m.) og legge inn data for sin(e) lokalitet(er).<br/>
 	Alle feller må være av typen BEKA (også kalt Novefella) (se bildet), og feromonet som brukes må 
 	være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>
