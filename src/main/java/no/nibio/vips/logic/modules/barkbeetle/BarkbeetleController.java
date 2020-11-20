@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -81,6 +82,10 @@ public class BarkbeetleController extends HttpServlet {
             {
                 List<SeasonTrapsite> seasonTrapSites = BarkbeetleBean.getInstance().getSeasonTrapsites(season);
                 Collections.sort(seasonTrapSites);
+                Integer firstAvailableSeason = BarkbeetleBean.getInstance().getFirstAvailableSeason();
+                Integer lastAvailableSeason = Calendar.getInstance().get(Calendar.YEAR);
+                request.setAttribute("firstAvailableSeason", firstAvailableSeason);
+                request.setAttribute("lastAvailableSeason", lastAvailableSeason);
                 request.setAttribute("season", season);
                 request.setAttribute("seasonTrapsites", seasonTrapSites);
                 request.setAttribute("messageKey", request.getParameter("messageKey"));

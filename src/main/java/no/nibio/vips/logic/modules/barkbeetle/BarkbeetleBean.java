@@ -243,4 +243,8 @@ public class BarkbeetleBean {
         em.remove(stToDelete);
         return true;
     }
+
+    public Integer getFirstAvailableSeason() {
+        return (Integer) em.createNativeQuery("SELECT MIN(season) FROM barkbeetle.season_trapsite;").getSingleResult();
+    }
 }
