@@ -76,12 +76,14 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
     private final   static  String      NODE_SPECIES            =   "species";
     private final   static  String      NODE_SPECIES_LATIN_NAME =   "speciesLatinName";
     private final   static  String      NODE_BASE_TEMP          =   "baseTemp";
+    private final   static  String      NODE_LOG_INTERVAL_ID    =   "weatherLogIntervalId";
     private final   static  String      NODE_TYPE_NAMES         =   "typeNames";
     private final   static  String      NODE_TYPE_NAME          =   "typeName";
     private final   static  String      NODE_PHASE_INFO         =   "phaseInfo";
     private final   static  String      NODE_PHASE_NAME         =   "phaseName";
     private final   static  String      NODE_HEAT_REQ           =   "heatReq";
     private final   static  String      NODE_WEATHER_PARAMS     =   "weatherParameters";
+    private final   static  String      NODE_DD_ALGORITHM_ID    =   "dayDegreeAlgorithmId";
     
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
@@ -268,6 +270,14 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                         {
                             plant.setBaseTemp(nodeSpecies.get(NODE_BASE_TEMP).asDouble());
                         }
+                        if(null != nodeSpecies.get(NODE_LOG_INTERVAL_ID).asText())
+                        {
+                            plant.setLogIntervalId(nodeSpecies.get(NODE_LOG_INTERVAL_ID).asInt());
+                        }
+                        if(null != nodeSpecies.get(NODE_DD_ALGORITHM_ID).asText())
+                        {
+                            plant.setAlgorithmId(nodeSpecies.get(NODE_DD_ALGORITHM_ID).asInt());
+                        }
                        JsonNode nodeSpeciesWeatherParams   = nodeSpecies.path(NODE_WEATHER_PARAMS);
                        if( null != nodeSpeciesWeatherParams && nodeSpeciesWeatherParams.isArray())
                        {
@@ -289,6 +299,14 @@ public class PhenologyModelPreprocessor extends ModelRunPreprocessor{
                                  if(nodeTypeName.get(NODE_TYPE_NAME).asText().trim().equalsIgnoreCase(strParamTypeName))
                                  {
                                     plant.setTypeName(strParamTypeName);
+                                    if(null != nodeTypeName.get(NODE_LOG_INTERVAL_ID).asText())
+                                    {
+                                        plant.setLogIntervalId(nodeTypeName.get(NODE_LOG_INTERVAL_ID).asInt());
+                                    }
+                                    if(null != nodeTypeName.get(NODE_DD_ALGORITHM_ID).asText())
+                                    {
+                                        plant.setAlgorithmId(nodeTypeName.get(NODE_DD_ALGORITHM_ID).asInt());
+                                    }                                    
                                     if(null != nodeTypeName.get(NODE_BASE_TEMP).asText())
                                     {
                                         plant.setBaseTemp(nodeTypeName.get(NODE_BASE_TEMP).asDouble());

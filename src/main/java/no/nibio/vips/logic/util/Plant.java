@@ -13,6 +13,8 @@ public class Plant {
     private String              speciesLatinName;
     private String              typeName;
     private Double              baseTemp;
+    private Integer             logIntervalId;
+    private Integer             algorithmId;
     private Date                startDate;
     private String[]            weatherParams;
     
@@ -42,6 +44,22 @@ public class Plant {
         this.baseTemp = baseTemp;
     }
 
+    public Integer getLogIntervalId() {
+        return logIntervalId;
+    }
+
+    public void setLogIntervalId(Integer logIntervalId) {
+        this.logIntervalId = logIntervalId;
+    }
+
+    public Integer getAlgorithmId() {
+        return algorithmId;
+    }
+
+    public void setAlgorithmId(Integer algorithmId) {
+        this.algorithmId = algorithmId;
+    }
+
     public Date getStartDate() {
         return startDate;
     }
@@ -68,8 +86,10 @@ public class Plant {
 
     @Override
     public String toString() {
-        return "Plant{" + "speciesLatinName=" + speciesLatinName + ", typeName=" + typeName + ", baseTemp=" + baseTemp + ", startDate=" + startDate + ", weatherParams=" + weatherParams + ", plantations=" + plantations + '}';
+        return "Plant{" + "speciesLatinName=" + speciesLatinName + ", typeName=" + typeName + ", baseTemp=" + baseTemp + ", logIntervalId=" + logIntervalId + ", algorithmId=" + algorithmId + ", startDate=" + startDate + ", weatherParams=" + weatherParams + ", plantations=" + plantations + '}';
     }
+
+
 
 
         
