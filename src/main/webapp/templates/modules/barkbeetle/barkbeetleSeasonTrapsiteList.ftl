@@ -24,6 +24,15 @@
 		<div class="alert alert-success">Fellelokaliteten ble slettet</div>
 	</#if>
 <h1>Fellelokaliteter for sesongen ${season}</h1>
+<div class="form-inline">
+	<div class="form-group">
+	Velg sesong <select class="form-control" onchange="window.location.href='/barkbeetle?season=' + this.options[this.selectedIndex].value;">
+		<#list firstAvailableSeason..lastAvailableSeason as availableSeason>
+		<option value="${availableSeason}" <#if availableSeason==season>selected</#if>>${availableSeason}</option>
+		</#list>
+	</select>
+	</div>
+</div>
 <div class="row">
 	<div class="col-md-7">
 	<p>Barkbilleovervåkingen er organisert gjennom «Barkbilleadministratorer» 
