@@ -134,6 +134,15 @@
 	<script type="text/javascript" src="/js/modules/barkbeetle/seasonTrapsiteListMap.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
+		// Check for Internet Explorer
+		var ua = window.navigator.userAgent;
+		//console.info(ua);
+		if(ua.indexOf("MSIE ") >= 0 || navigator.userAgent.match(/Trident.*rv\:11\./))
+		{
+			alert("Hei! Det ser ut som du bruker Internet Explorer. Vi anbefaler Firefox, Edge eller Chrome når du er på denne nettsiden.");
+			return;
+		}
+		
 		initMap(${season});
 });
 </script>
