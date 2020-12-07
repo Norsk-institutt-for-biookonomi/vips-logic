@@ -69,19 +69,17 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-spatial</artifactId>
-            <version>5.4.2.Final</version>
+            <version>5.4.24.Final</version>
             <exclusions>
                 <exclusion>
                     <artifactId>postgresql</artifactId>
                     <groupId>postgresql</groupId>
                 </exclusion>
+                <exclusion>
+                	<groupId>org.dom4j</groupId>
+                	<artifactId>dom4j</artifactId>
+                </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-            <version>1.6.1</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -186,7 +184,13 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.4.2.Final</version>
+            <version>5.4.24.Final</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.dom4j</groupId>
+            		<artifactId>dom4j</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -266,11 +270,7 @@
             <artifactId>icu4j</artifactId>
             <version>52.1</version>
         </dependency>
-        <dependency>
-            <groupId>jaxen</groupId>
-            <artifactId>jaxen</artifactId>
-            <version>1.1.1</version>
-        </dependency>
+        
         <!--dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
