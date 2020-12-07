@@ -2,3 +2,7 @@ target/
 classes/
 *~
 /nbproject/
+.classpath
+.project
+.settings/
+
