@@ -59,7 +59,7 @@
 	</#if>
 	<div class="singleBlockContainer">
 		<div class="row">
-		<form id="trapsiteRegistrationForm" action="/barkbeetle?action=trapsiteRegistrationFormSubmit" method="post">
+		<form id="trapsiteRegistrationForm" action="/barkbeetle?action=trapsiteRegistrationFormSubmit" method="post" onsubmit="try{ return validateForm(this);}catch(e){console.info(e);return false;}">
 		<input type="hidden" name="seasonTrapsiteId" value="${seasonTrapsite.seasonTrapsiteId}"/>
 		<table class="table table-striped">
 			<thead>
@@ -94,7 +94,7 @@
 					<td rowspan="2">${reg.trapsiteRegistrationPK.week} (${reg?counter})</td>
 					<td rowspan="2"><input class="form-control" type="date" name="${reg.trapsiteRegistrationPK.week}_dateRegistration" value="${reg.dateRegistration!""}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"<#else> required="required"</#if>/></td>
 					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap1_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap1" value="${reg.trap1!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
+					<td><input class="form-control" type="text" onblur="validateRegField(this, true);" name="${reg.trapsiteRegistrationPK.week}_trap1" value="${reg.trap1!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap2_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap2" value="${reg.trap2!"M"}"<#if reg.trapsiteRegistrationPK.week gt currentWeek> disabled="disabled"</#if>/></td>
 					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap3_ml" onblur="setCalculatedAmount(this);" value=""<#if reg.trapsiteRegistrationPK.week gt currentWeek || isExtended> disabled="disabled"</#if>/></td>
@@ -179,6 +179,42 @@
 			}
 		}
 		
+		function validateForm(theForm){
+			var weeks = [21,24,28,33];
+			for(var wi in weeks)
+			{
+				for(var i=1;i<=4;i++)
+				{
+					var regField = theForm[weeks[wi] + "_trap" + i];
+					if(!validateRegField(regField,false))
+					{
+						alert("FEIL: Registreringsverdi for uke " + weeks[wi] + ", felle nr " + i + " må enten være et tall eller \"M\" for manglende data. ");
+						return false;
+					}
+				}
+			}
+			return true;
+		
+		}
+		
+		function validateRegField(regField, issueAlert)
+		{
+			if(isNaN(regField.value))
+			{
+				if(regField.value.trim() != "M")
+				{
+					if(issueAlert)
+					{
+						alert("FEIL: Registreringsverdi må enten være et tall eller \"M\" for manglende data.");
+					}
+					regField.classList.add("validateFalse");
+					return false;
+				}
+			}
+			regField.classList.remove("validateFalse");
+			return true;
+		}
+		
 </script>
 </#macro>
 <#macro custom_css>
@@ -194,6 +230,9 @@
 			background-color: #ff6e66 !important;
 		}
 
+		input.validateFalse {
+			border-color: red; 
+		}
 			
 	</style>
 </#macro>
