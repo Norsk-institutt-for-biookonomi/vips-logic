@@ -54,6 +54,7 @@
         <input type="hidden" name="userId" value="${viewUser.userId}"/>
           
           <h2>${i18nBundle.forecastNotifications}</h2>
+          <p>${i18nBundle.forecastNotificationsDescription}</p>
           <div class="form-group">
 		<label for="forecastN_universalMessageFormatId">${i18nBundle.messageFormat}</label>
 		<select name="forecastN_universalMessageFormatId" onblur="validateField(this);">
@@ -85,6 +86,7 @@
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
 	  <h2>${i18nBundle.observationNotifications}</h2>
+	  <p>${i18nBundle.observationNotificationsDescription}</p>
           <div class="form-group">
 		<label for="observationN_universalMessageFormatId">${i18nBundle.messageFormat}</label>
 		<select name="observationN_universalMessageFormatId" onblur="validateField(this);">
@@ -106,6 +108,7 @@
 		</select>
 	</div>
           <h2>${i18nBundle.messageNotifications}</h2>
+          <p>${i18nBundle.messageNotificationsDescription}</p>
           <div class="form-group">
 		<label for="messageN_universalMessageFormatId">${i18nBundle.messageFormat}</label>
 		<select name="messageN_universalMessageFormatId" onblur="validateField(this);">
