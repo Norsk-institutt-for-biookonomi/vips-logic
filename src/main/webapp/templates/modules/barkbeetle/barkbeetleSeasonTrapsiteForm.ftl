@@ -71,7 +71,7 @@
 					
 			});
 			// Get County and municipality
-			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/2019?lon=" + lon + "&lat=" + lat)
+			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())
 			.then(municInfo =>{
 					if(municInfo.length == 0)
@@ -88,6 +88,28 @@
 						theForm["countyName"].value=municInfo[0]["fylkenavn"];
 						theForm["municipalityNo"].value=municInfo[0]["komnr"];
 						theForm["municipalityName"].value=municInfo[0]["komnavn"];
+					}
+				}
+			)
+			.catch( error => console.info(error));
+			
+			// Get County and municipality from before 2012
+			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/2019?lon=" + lon + "&lat=" + lat)
+			.then(response => response.json())
+			.then(municInfo =>{
+					if(municInfo.length == 0)
+					{
+						theForm["county2012No"].value = 0;
+						theForm["county2012Name"].value = "Utlandet";
+						theForm["municipality2012No"].value = 0;
+						theForm["municipality2012Name"].value = "Utlandet";
+					}
+					else
+					{
+						theForm["county2012No"].value=municInfo[0]["fylkenr"];
+						theForm["county2012Name"].value=municInfo[0]["fylkenavn"];
+						theForm["municipality2012No"].value=municInfo[0]["komnr"];
+						theForm["municipality2012Name"].value=municInfo[0]["komnavn"];
 					}
 				}
 			)
@@ -146,9 +168,9 @@
 		og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a>
 	   </p>
-	   <p>Merk at fylkesnr, fylkesnavn, kommunenr og kommunenavn som genereres er 
+	   <!--p>Merk at fylkesnr, fylkesnavn, kommunenr og kommunenavn som genereres er 
 	   fra før sammenslåinger (2012). Registrant sørger bare for riktig plassering i kart.
-	   </p>
+	   </p-->
 		<p>
 			<#if seasonTrapsite.seasonTrapsiteId?has_content>
 			<a href="/barkbeetle?action=registerData&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default" role="button">Registrer fangstdata</a>
@@ -201,6 +223,10 @@
 			<input type="text" class="form-control" id="gisGeom" name="gisGeom" placeholder="Lokalitet" value="${(seasonTrapsite.longitude?c)!""},${(seasonTrapsite.latitude?c)!""}" onblur="validateField(this);" onchange="if(validateField(this)){handleLocationChanged(this);updateMarkerPosition();}" />
 			<span class="help-block" id="${formId}_gisGeom_validation"></span>
 		  </div>
+		  <input type="hidden" name="county2012No" value="${(seasonTrapsite.county2012No)!""}"/>
+		  <input type="hidden" name="county2012Name" value="${(seasonTrapsite.county2012Name)!""}"/>
+		  <input type="hidden" name="municipality2012No" value="${(seasonTrapsite.municipality2012No)!""}"/>
+		  <input type="hidden" name="municipality2012Name" value="${(seasonTrapsite.municipality2012Name)!""}"/>
 		  <div class="form-group">
 			<label for="altitude">Høyde over havet (m)</label>
 			<input type="number" class="form-control" name="altitude" step="0.1" placeholder="Høyde over havet" value="${(seasonTrapsite.altitude?c)!""}" onblur="validateField(this);" <#if !userIsAdmin>readonly</#if>/>

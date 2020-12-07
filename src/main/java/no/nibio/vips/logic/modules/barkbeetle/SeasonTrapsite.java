@@ -116,6 +116,14 @@ public class SeasonTrapsite implements Serializable, Comparable {
     private Integer municipalityNo;
     @Column(name = "municipality_name")
     private String municipalityName;
+    @Column(name = "county2012_no")
+    private Integer county2012No;
+    @Column(name = "county2012_name")
+    private String county2012Name;
+    @Column(name = "municipality2012_no")
+    private Integer municipality2012No;
+    @Column(name = "municipality2012_name")
+    private String municipality2012Name;
     @Column(name = "property_no")
     private Integer propertyNo;
     @Column(name = "property_section_no")
@@ -498,5 +506,37 @@ public class SeasonTrapsite implements Serializable, Comparable {
         return 0;
         
     }
+
+	public Integer getCounty2012No() {
+		return county2012No;
+	}
+
+	public void setCounty2012No(Integer county2012No) {
+		this.county2012No = county2012No;
+	}
+
+	public String getCounty2012Name() {
+		return county2012Name;
+	}
+
+	public void setCounty2012Name(String county2012Name) {
+		this.county2012Name = county2012Name;
+	}
+
+	public Integer getMunicipality2012No() {
+		return municipality2012No;
+	}
+
+	public void setMunicipality2012No(Integer municipality2012No) {
+		this.municipality2012No = municipality2012No;
+	}
+
+	public String getMunicipality2012Name() {
+		return municipality2012Name;
+	}
+
+	public void setMunicipality2012Name(String municipality2012Name) {
+		this.municipality2012Name = municipality2012Name;
+	}
     
 }

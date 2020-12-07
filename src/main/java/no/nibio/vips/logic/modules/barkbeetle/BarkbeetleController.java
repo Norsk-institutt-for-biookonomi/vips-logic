@@ -136,6 +136,10 @@ public class BarkbeetleController extends HttpServlet {
                         trapsite.setCountyName(formValidation.getFormField("countyName").getWebValue());
                         trapsite.setMunicipalityNo(formValidation.getFormField("municipalityNo").isEmpty() ? null : formValidation.getFormField("municipalityNo").getValueAsInteger());
                         trapsite.setMunicipalityName(formValidation.getFormField("municipalityName").getWebValue());
+                        trapsite.setCounty2012No(formValidation.getFormField("county2012No").isEmpty() ? null : formValidation.getFormField("countyNo").getValueAsInteger());
+                        trapsite.setCounty2012Name(formValidation.getFormField("county2012Name").getWebValue());
+                        trapsite.setMunicipality2012No(formValidation.getFormField("municipality2012No").isEmpty() ? null : formValidation.getFormField("municipalityNo").getValueAsInteger());
+                        trapsite.setMunicipality2012Name(formValidation.getFormField("municipality2012Name").getWebValue());
                         trapsite.setPropertyNo(formValidation.getFormField("propertyNo").isEmpty() ? null : formValidation.getFormField("propertyNo").getValueAsInteger());
                         trapsite.setPropertySectionNo(formValidation.getFormField("propertySectionNo").isEmpty() ? null : formValidation.getFormField("propertySectionNo").getValueAsInteger());
                         trapsite.setOwnerName(formValidation.getFormField("ownerName").getWebValue());

@@ -92,6 +92,26 @@
             "dataType" : "STRING",
             "required" : false
         },
+{
+            "name" : "county2012No",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
+            "name" : "county2012Name",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
+            "name" : "municipality2012No",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
+            "name" : "municipality2012Name",
+            "dataType" : "STRING",
+            "required" : false
+        },
         {
             "name" : "propertyNo",
             "dataType" : "INTEGER",
