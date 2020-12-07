@@ -42,11 +42,11 @@
     source: new ol.source.Vector({
         url: "/rest/barkbeetle/seasontrapsites/" + season + "/kml/" + (currentSeasonTrapsiteId != null ? "?excludeSeasonTrapsiteId=" + currentSeasonTrapsiteId : ""),
 		projection: "EPSG:3857",
-		format: new ol.format.KML()
+		format: new ol.format.KML({showPointNames:false})
       })
     });
     var parser = new ol.format.WMTSCapabilities();
-  fetch('https://opencache.statkart.no/gatekeeper/gk/gk.open_wmts?Version=1.0.0&service=wmts&request=getcapabilities').then(function(response) {
+    fetch('https://opencache.statkart.no/gatekeeper/gk/gk.open_wmts?Version=1.0.0&service=wmts&request=getcapabilities').then(function(response) {
         return response.text();
       }).then(function(text) {
         var result = parser.read(text);
