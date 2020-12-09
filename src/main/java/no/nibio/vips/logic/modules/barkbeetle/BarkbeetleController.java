@@ -83,7 +83,7 @@ public class BarkbeetleController extends HttpServlet {
                 List<SeasonTrapsite> seasonTrapSites = BarkbeetleBean.getInstance().getSeasonTrapsites(season);
                 Collections.sort(seasonTrapSites);
                 Integer firstAvailableSeason = BarkbeetleBean.getInstance().getFirstAvailableSeason();
-                Integer lastAvailableSeason = Calendar.getInstance().get(Calendar.YEAR);
+                Integer lastAvailableSeason = Calendar.getInstance().get(Calendar.YEAR) + 1;
                 request.setAttribute("firstAvailableSeason", firstAvailableSeason);
                 request.setAttribute("lastAvailableSeason", lastAvailableSeason);
                 request.setAttribute("season", season);
@@ -106,7 +106,7 @@ public class BarkbeetleController extends HttpServlet {
                 request.setAttribute("trapsiteRegistrators", SessionControllerGetter.getUserBean().getUsersByVipsLogicRoles(new Integer[]{VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_REGISTRATOR, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN}));
                 
                 List<TrapsiteType> trapsiteTypes = BarkbeetleBean.getInstance().getTrapsiteTypes();
-                request.setAttribute("season", season);
+                request.setAttribute("season", request.getParameter("seasonTrapsiteId") != null ? trapsite.getSeason() : season);
                 request.setAttribute("seasonTrapsite", trapsite);
                 request.setAttribute("seasonTrapsiteTypes", trapsiteTypes);
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
@@ -147,6 +147,7 @@ public class BarkbeetleController extends HttpServlet {
                         trapsite.setDateInstalled(formValidation.getFormField("dateInstalled").isEmpty() ? null : formValidation.getFormField("dateInstalled").getValueAsDate());
                         trapsite.setInstallationRemarks(formValidation.getFormField("installationRemarks").getWebValue());
                         trapsite.setUserId(SessionControllerGetter.getUserBean().getVipsLogicUser(formValidation.getFormField("userId").getValueAsInteger()));
+                        trapsite.setLocationUpdated(formValidation.getFormField("locationUpdated").getWebValue().equals("true"));
                         
                         // Handling the GIS
                         Point p2d = formValidation.getFormField("gisGeom").getValueAsPointWGS84();
@@ -320,13 +321,22 @@ public class BarkbeetleController extends HttpServlet {
             {
                 if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.SUPERUSER))
                 {
+                	
                     try
                     {
-                        if(BarkbeetleBean.getInstance().deleteSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId"))))
+                    	SeasonTrapsite trapsite = request.getParameter("seasonTrapsiteId") != null ? 
+                                BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
+                                : null;
+                        
+                        if(trapsite != null && BarkbeetleBean.getInstance().deleteSeasonTrapsite(trapsite.getSeasonTrapsiteId()))
                         {
+                        	Integer siteSeason = trapsite.getSeason();
+                        	String redirectAction = request.getParameter("redirectAction") != null ? "&action=" + request.getParameter("redirectAction") : "";
                             response.sendRedirect(Globals.PROTOCOL + "://"
                                     + ServletUtil.getServerName(request)
                                     + "/barkbeetle?messageKey=deleteOK"
+                                    + "&season=" + siteSeason
+                                    + redirectAction
                             );
                         }
                         else
@@ -343,6 +353,65 @@ public class BarkbeetleController extends HttpServlet {
                 {
                     response.sendError(403,"Access not authorized"); // HTTP Forbidden
                 }
+            }
+            else if(action.equals("listSeasonTrapsiteCandidates"))
+            {
+            	List<SeasonTrapsite> seasonTrapSiteCandidates = BarkbeetleBean.getInstance().getSeasonTrapsiteCandidates(season);
+                Collections.sort(seasonTrapSiteCandidates);
+                Integer firstAvailableSeason = BarkbeetleBean.getInstance().getFirstAvailableSeason();
+                Integer lastAvailableSeason = Calendar.getInstance().get(Calendar.YEAR) + 1;
+                request.setAttribute("firstAvailableSeason", firstAvailableSeason);
+                request.setAttribute("lastAvailableSeason", lastAvailableSeason);
+                request.setAttribute("season", season);
+                request.setAttribute("seasonTrapsites", seasonTrapSiteCandidates);
+                request.setAttribute("messageKey", request.getParameter("messageKey"));
+                request.getRequestDispatcher("/modules/barkbeetle/barkbeetleSeasonTrapsiteCandidateList.ftl").forward(request, response);
+            }
+            else if(action.equals("activateSeasonTrapsite"))
+            {
+            	if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            	
+            	SeasonTrapsite trapsite = request.getParameter("seasonTrapsiteId") != null ? 
+                        BarkbeetleBean.getInstance().getSeasonTrapsite(Integer.valueOf(request.getParameter("seasonTrapsiteId")))
+                        : null;
+            
+                if(trapsite != null)
+                {
+                	trapsite.setActivated(Boolean.TRUE);
+                	BarkbeetleBean.getInstance().storeSeasonTrapsite(trapsite);
+                	response.sendRedirect(Globals.PROTOCOL + "://"
+                            + ServletUtil.getServerName(request)
+                            + "/barkbeetle?action=listSeasonTrapsiteCandidates&messageKey=activateOK&season=" + trapsite.getSeason()
+                    );
+                }
+                else
+                {
+                    response.sendError(404,"Den etterspurte fellelokaliteten finnes ikke i databasen"); // HTTP Forbidden
+                }
+            }
+            else if(action.equals("copySeasonTrapsites"))
+            {
+            	if(!SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_ADMIN, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                {
+                    response.sendError(403,"Access not authorized"); // HTTP Forbidden
+                }
+            	try
+            	{
+            		Integer fromSeason = Integer.valueOf(request.getParameter("fromSeason"));
+            		Integer toSeason = Integer.valueOf(request.getParameter("toSeason"));
+            		BarkbeetleBean.getInstance().copySeasonTrapsites(fromSeason, toSeason);
+            		response.sendRedirect(Globals.PROTOCOL + "://"
+                            + ServletUtil.getServerName(request)
+                            + "/barkbeetle?action=listSeasonTrapsiteCandidates&season=" + toSeason
+                            );
+            	}
+            	catch(NullPointerException | NumberFormatException ex)
+            	{
+            		response.sendError(500, ex.getMessage());
+            	}
             }
         }
         else

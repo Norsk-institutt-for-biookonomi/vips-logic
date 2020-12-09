@@ -67,7 +67,8 @@ import org.locationtech.jts.geom.Point;
 @NamedQueries({
     @NamedQuery(name = "SeasonTrapsite.findAll", query = "SELECT s FROM SeasonTrapsite s"),
     @NamedQuery(name = "SeasonTrapsite.findBySeasonTrapsiteId", query = "SELECT s FROM SeasonTrapsite s WHERE s.seasonTrapsiteId = :seasonTrapsiteId"),
-    @NamedQuery(name = "SeasonTrapsite.findBySeason", query = "SELECT s FROM SeasonTrapsite s WHERE s.season = :season"),
+    @NamedQuery(name = "SeasonTrapsite.findBySeason", query = "SELECT s FROM SeasonTrapsite s WHERE s.season = :season AND s.activated IS TRUE"),
+    @NamedQuery(name = "SeasonTrapsite.findUnactivatedBySeason", query = "SELECT s FROM SeasonTrapsite s WHERE s.season = :season AND s.activated IS FALSE"),
     @NamedQuery(name = "SeasonTrapsite.findByUserId", query = "SELECT s FROM SeasonTrapsite s WHERE s.userId = :userId"),
     @NamedQuery(name = "SeasonTrapsite.findByOwnerName", query = "SELECT s FROM SeasonTrapsite s WHERE s.ownerName = :ownerName"),
     @NamedQuery(name = "SeasonTrapsite.findByOwnerPhone", query = "SELECT s FROM SeasonTrapsite s WHERE s.ownerPhone = :ownerPhone"),
@@ -133,6 +134,10 @@ public class SeasonTrapsite implements Serializable, Comparable {
     @JoinColumn(name = "trapsite_type", referencedColumnName = "trapsite_type_id")
     @ManyToOne
     private TrapsiteType trapsiteType;
+    @Column(name = "activated")
+    private Boolean activated;
+    @Column(name = "location_updated")
+    private Boolean locationUpdated;
 
     public SeasonTrapsite() {
     }
@@ -537,6 +542,22 @@ public class SeasonTrapsite implements Serializable, Comparable {
 
 	public void setMunicipality2012Name(String municipality2012Name) {
 		this.municipality2012Name = municipality2012Name;
+	}
+
+	public Boolean getActivated() {
+		return activated;
+	}
+
+	public void setActivated(Boolean activated) {
+		this.activated = activated;
+	}
+
+	public Boolean getLocationUpdated() {
+		return locationUpdated;
+	}
+
+	public void setLocationUpdated(Boolean locationUpdated) {
+		this.locationUpdated = locationUpdated;
 	}
     
 }

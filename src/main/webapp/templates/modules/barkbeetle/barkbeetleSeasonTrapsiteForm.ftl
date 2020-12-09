@@ -88,6 +88,7 @@
 						theForm["countyName"].value=municInfo[0]["fylkenavn"];
 						theForm["municipalityNo"].value=municInfo[0]["komnr"];
 						theForm["municipalityName"].value=municInfo[0]["komnavn"];
+						theForm["locationUpdated"].value="true"; // This is for candidate trapsites copied from last year
 					}
 				}
 			)
@@ -152,7 +153,7 @@
 		<div class="alert alert-success">Data ble lagret ${.now}</div>
 	</#if>
 	<p>
-		<a href="/barkbeetle?season=${season}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
+		<a href="/barkbeetle?season=${season}<#if seasonTrapsite.seasonTrapsiteId?has_content && !seasonTrapsite.activated>&action=listSeasonTrapsiteCandidates</#if>" class="btn btn-default back" role="button">${i18nBundle.back}</a>
 	</p>
 	<h1><#if seasonTrapsite.seasonTrapsiteId?has_content>Rediger<#else>Ny</#if> fellelokalitet</h1>
 	<div class="row">
@@ -189,6 +190,7 @@
 	<p>Felt merket med * må være utfylt</p>
 	<form id="${formId}" role="form" action="/barkbeetle?action=seasonTrapsiteFormSubmit" method="POST" onsubmit="return validateForm(this);"">
 		<input type="hidden" name="seasonTrapsiteId" value="${seasonTrapsite.seasonTrapsiteId!"-1"}"/>
+		<input type="hidden" name="locationUpdated" value="${seasonTrapsite.locationUpdated?string("true","false")}"/>
 		<div class="form-group">
 	    <label for="trapsiteType">Type fellelokalitet *</label>
 	    <select class="form-control" name="trapsiteTypeId" onblur="validateField(this);">

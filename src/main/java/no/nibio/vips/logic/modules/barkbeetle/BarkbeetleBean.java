@@ -61,6 +61,17 @@ public class BarkbeetleBean {
     }
     
     /**
+     * Get the list of trapsites for the given season
+     * @param season
+     * @return 
+     */
+    public List<SeasonTrapsite> getSeasonTrapsiteCandidates(Integer season){
+        return em.createNamedQuery("SeasonTrapsite.findUnactivatedBySeason")
+                .setParameter("season", season)
+                .getResultList();
+    }
+    
+    /**
      * Get a specific trapsite
      * @param seasonTrapsiteId
      * @return 
@@ -246,5 +257,50 @@ public class BarkbeetleBean {
 
     public Integer getFirstAvailableSeason() {
         return (Integer) em.createNativeQuery("SELECT MIN(season) FROM barkbeetle.season_trapsite;").getSingleResult();
+    }
+    
+    /**
+     * This effectively makes a copy of all trap sites of one season to another. Registrations are not kept
+     * @param fromSeason
+     * @param toSeason
+     */
+    public void copySeasonTrapsites(Integer fromSeason, Integer toSeason)
+    {
+    	em.createNativeQuery("INSERT INTO barkbeetle.season_trapsite("
+    			+ "season,"
+    			+ "gis_geom,"
+    			+ "trapsite_type,"
+    			+ "county_no,"
+    			+ "county_name,"
+    			+ "municipality_no,"
+    			+ "municipality_name,"
+    			+ "county2012_no,"
+    			+ "county2012_name,"
+    			+ "municipality2012_no,"
+    			+ "municipality2012_name,"
+    			+ "user_id,"
+    			+ "activated"
+    			+ ")\n"
+    			+ "SELECT "
+    			+ ":toSeason,"
+    			+ "gis_geom,"
+    			+ "trapsite_type,"
+    			+ "county_no,"
+    			+ "county_name,"
+    			+ "municipality_no,"
+    			+ "municipality_name,"
+    			+ "county2012_no,"
+    			+ "county2012_name,"
+    			+ "municipality2012_no,"
+    			+ "municipality2012_name,"
+    			+ "user_id,"
+    			+ "FALSE \n"
+    			+ "FROM barkbeetle.season_trapsite "
+    			+ "WHERE season=:fromSeason"
+    			)
+    	.setParameter("fromSeason", fromSeason)
+    	.setParameter("toSeason", toSeason)
+    	.executeUpdate();
+    	
     }
 }

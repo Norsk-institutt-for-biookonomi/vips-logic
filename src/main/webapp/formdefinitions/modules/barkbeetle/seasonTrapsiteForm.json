@@ -121,6 +121,11 @@
             "name" : "propertySectionNo",
             "dataType" : "INTEGER",
             "required" : false
+        },
+        {
+            "name" : "locationUpdated",
+            "dataType" : "STRING",
+            "required" : true
         }
         
         
