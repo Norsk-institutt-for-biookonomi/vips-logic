@@ -100,6 +100,13 @@
 	<div class="row">
 	<table class="table table-striped">
 		<thead>
+			<th><div class="input-group">
+	      	<div class="input-group-addon"><span class="fa fa-search"></span></div>
+			<input class="form-control" type="text" id="textSearchField" placeholder="Filtrer på fylke" oninput="filter(this.value);"/>
+		</div></th>
+			<th colspan="7"></th>
+		</thead>
+		<thead>
 			<th>Fylke</th>
 			<th>Kommune</th>
 			<th>Gårdsnr/bruksnr</th>
@@ -109,7 +116,7 @@
 			<th></th>
 			<th></th>
 		</thead>
-		<tbody>
+		<tbody id="seasonTrapsiteTBody">
 		<#list seasonTrapsites as site>
 			<tr>
 				<td>${site.countyName!""}</td>
@@ -148,6 +155,17 @@ $(document).ready(function() {
 		
 		initMap(${season});
 });
+
+function filter(searchTxt){
+	var rows = document.getElementById("seasonTrapsiteTBody").getElementsByTagName("tr");
+	for(var i=0;i<rows.length;i++)
+	{
+		var countyCell = rows[i].getElementsByTagName("td")[0];
+		var visible = searchTxt.trim() == "" ? true 
+		: countyCell.textContent.toLowerCase().indexOf(searchTxt.toLowerCase()) > -1;
+		rows[i].setAttribute("style","display:" + (visible ? "table-row" : "none"));
+	}
+}
 </script>
 </#macro>
 <#macro custom_css>
