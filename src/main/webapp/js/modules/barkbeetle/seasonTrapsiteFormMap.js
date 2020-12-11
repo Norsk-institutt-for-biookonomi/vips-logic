@@ -103,6 +103,7 @@
     var locationEl = document.getElementById("gisGeom");
     //console.log(locationEl);
     locationEl.value=locationPosition;
+	showGisGeom();
 
     // Adding a little animation
     $("#gisGeom").animate({borderWidth: "4"},500, function(){

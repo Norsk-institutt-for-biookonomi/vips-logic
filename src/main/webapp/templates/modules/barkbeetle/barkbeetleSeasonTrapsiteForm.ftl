@@ -39,6 +39,7 @@
 			// Load main form definition (for validation)
 			loadFormDefinition("seasonTrapsiteForm","/formdefinitions/modules/barkbeetle/");
 			initMap(${season},${seasonTrapsite.seasonTrapsiteId!"null"},[${(seasonTrapsite.longitude?c)!"0"},${(seasonTrapsite.latitude?c)!"0"}]);
+			showGisGeom();
 		});
 		
 		
@@ -137,6 +138,24 @@
 			handleLocationChanged(gisGeomField);
 			
 		}
+		
+		/**
+		 * Takes the value of gisGeom and displays it in the manual location field, based on that field's projection
+		 */
+		function showGisGeom()
+		{
+			var projFromEPSG = document.getElementById("projFromEPSG").options[document.getElementById("projFromEPSG").selectedIndex].value;
+			var gisGeomField = document.getElementById("gisGeom"); 
+			console.info(gisGeomField);
+			var lon = gisGeomField.value.split(",")[0];
+			var lat = gisGeomField.value.split(",")[1];
+			console.info(lon + "/" + lat);
+			
+			var wgs84coord = proj4("EPSG:4326", projFromEPSG, [lon, lat]);
+			console.info(wgs84coord);
+			document.getElementById("projectionConversionTool_lon").value = wgs84coord[0];
+			document.getElementById("projectionConversionTool_lat").value = wgs84coord[1];
+		}
 	</script>
 </#macro>
 <#macro custom_css>
@@ -190,7 +209,7 @@
 	<p>Felt merket med * må være utfylt</p>
 	<form id="${formId}" role="form" action="/barkbeetle?action=seasonTrapsiteFormSubmit" method="POST" onsubmit="return validateForm(this);"">
 		<input type="hidden" name="seasonTrapsiteId" value="${seasonTrapsite.seasonTrapsiteId!"-1"}"/>
-		<input type="hidden" name="locationUpdated" value="${seasonTrapsite.locationUpdated?string("true","false")}"/>
+		<input type="hidden" name="locationUpdated" value="<#if seasonTrapsite.locationUpdated?has_content>${seasonTrapsite.locationUpdated?c}<#else>false</#if>"/>
 		<div class="form-group">
 	    <label for="trapsiteType">Type fellelokalitet *</label>
 	    <select class="form-control" name="trapsiteTypeId" onblur="validateField(this);">
@@ -209,22 +228,7 @@
 			<input type="text" class="form-control" name="season" placeholder="Sesong" value="${season}" onblur="validateField(this);"/>
 			<span class="help-block" id="${formId}_season_validation"></span>
 		  </div>
-		<div class="form-group">
-			<label for="gisGeom">
-			Lokalitet * angitt i <a href="http://en.wikipedia.org/wiki/World_Geodetic_System#A_new_World_Geodetic_System:_WGS_84" target="new">WGS84</a>: lengdegrad, breddegrad. 
-			<button class="btn btn-default" type="button" onclick="document.getElementById('projectionConversionTool').style.display='inline';">Vis konverteringsverktøy</button><br/>
-			<div id="projectionConversionTool" style="display: none;">
-				<select name="projection" id="projFromEPSG">
-					<option value="EPSG:2077">UTM Sone 32N</option>
-					<option value="EPSG:2078">UTM Sone 33N</option>
-				</select>
-				<input type="number" name="projectionConversionTool_lon" id="projectionConversionTool_lon" value="Lengdegrad/E" placeholder="Lengdegrad/E"/><input type="number" name="projectionConversionTool_lat" id="projectionConversionTool_lat" value="Breddegrad/N" placeholder="Breddegrad/N"/>
-				<button class="btn btn-default" type="button" onclick="convertProjection();">Konverter til WGS84</button>
-			</div>
-			</label>
-			<input type="text" class="form-control" id="gisGeom" name="gisGeom" placeholder="Lokalitet" value="${(seasonTrapsite.longitude?c)!""},${(seasonTrapsite.latitude?c)!""}" onblur="validateField(this);" onchange="if(validateField(this)){handleLocationChanged(this);updateMarkerPosition();}" />
-			<span class="help-block" id="${formId}_gisGeom_validation"></span>
-		  </div>
+		  <input type="hidden" name="gisGeom" id="gisGeom" value="${(seasonTrapsite.longitude?c)!""},${(seasonTrapsite.latitude?c)!""}" />
 		  <input type="hidden" name="county2012No" value="${(seasonTrapsite.county2012No)!""}"/>
 		  <input type="hidden" name="county2012Name" value="${(seasonTrapsite.county2012Name)!""}"/>
 		  <input type="hidden" name="municipality2012No" value="${(seasonTrapsite.municipality2012No)!""}"/>
@@ -315,7 +319,31 @@
 		<div id="seasonTrapsiteFormMap" class="map" style="border: 1px solid black;">
 				<div id="popover"></div>
 			</div>
-			Klikk i kartet for å plassere/flytte fellelokaliteten
+			<p>
+			Klikk i kartet for å plassere/flytte fellelokaliteten. 
+			</p>
+			<p>
+			<button type="button" class="btn btn-default" onclick="document.getElementById('manualLocationForm').style.display='block';">Skriv inn posisjon manuelt</button>
+			</p>
+			<div class="form-inline" id="manualLocationForm" style="display:none;">
+				<div class="form-group">
+					<label for="manualLocationProjection">Koordinatsystem</label>
+					<select name="manualLocationProjection" id="projFromEPSG" onchange="showGisGeom();">
+						<option value="EPSG:4326" selected>Desimalgrader (WGS84)</option>
+						<option value="EPSG:2077">UTM Sone 32N</option>
+						<option value="EPSG:2078">UTM Sone 33N</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="projectionConversionTool_lon">Lengdegrad (E)</label>
+					<input type="number" class="form-control" id="projectionConversionTool_lon" name="projectionConversionTool_lon" placeholder="Lengdegrad(E)" value=""/>
+				</div>
+				<div class="form-group">
+					<label for="projectionConversionTool_lat">Breddegrad (N)</label>
+					<input type="number" class="form-control" id="projectionConversionTool_lat" name="projectionConversionTool_lat" placeholder="Breddegrad(N)" value=""/>
+				</div>
+				<button type="button" class="btn btn-primary" onclick="convertProjection();updateMarkerPosition();">Registrer</button>
+			</div>
 	</div>
 	</div>
 	<div style="display: none;"><div id="trapMarker" title="Marker"><img src="/images/modules/barkbeetle/trapsite.png"/></div></div>
