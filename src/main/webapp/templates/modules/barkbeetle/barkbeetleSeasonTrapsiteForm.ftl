@@ -146,13 +146,10 @@
 		{
 			var projFromEPSG = document.getElementById("projFromEPSG").options[document.getElementById("projFromEPSG").selectedIndex].value;
 			var gisGeomField = document.getElementById("gisGeom"); 
-			console.info(gisGeomField);
 			var lon = gisGeomField.value.split(",")[0];
 			var lat = gisGeomField.value.split(",")[1];
-			console.info(lon + "/" + lat);
 			
 			var wgs84coord = proj4("EPSG:4326", projFromEPSG, [lon, lat]);
-			console.info(wgs84coord);
 			document.getElementById("projectionConversionTool_lon").value = wgs84coord[0];
 			document.getElementById("projectionConversionTool_lat").value = wgs84coord[1];
 		}
