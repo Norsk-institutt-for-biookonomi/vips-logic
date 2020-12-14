@@ -125,6 +125,14 @@
 			</#list>
 			</tbody>
 		</table>
+		<p>
+		
+		</p>
+		<div class="form-group" style="padding-left: 5px;">
+			<label for="observedAttacksDescription">Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen?
+		Beskriv hva som er observert (omfang, når, m.m.)</label>
+			<textarea class="form-control" name="observedAttacksDescription">${seasonTrapsite.observedAttacksDescription!""}</textarea>
+		</div>
 			<div class="form-group" style="padding-left: 5px;">
 				  <div class="checkbox">
 					  <label>

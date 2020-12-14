@@ -272,6 +272,11 @@ public class BarkbeetleController extends HttpServlet {
                             }
                         });
                         BarkbeetleBean.getInstance().storeTrapsiteRegistrations(trapsite.getSeasonTrapsiteId(), registrations);
+                        // Also, store the observedAttacksDescription on the SeasonTrapsite object
+                        String observedAttacksDescription = request.getParameter("observedAttacksDescription");
+                        trapsite.setObservedAttacksDescription(observedAttacksDescription);
+                        BarkbeetleBean.getInstance().storeSeasonTrapsite(trapsite);
+                        
                         // Redirect to form
                         response.sendRedirect(Globals.PROTOCOL + "://"
                                 + ServletUtil.getServerName(request)
