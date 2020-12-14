@@ -37,11 +37,48 @@
 		<option value="${availableSeason}" <#if availableSeason==season>selected</#if>>${availableSeason}</option>
 		</#list>
 	</select>
+	<div class="alert alert-warning"><i class="fa fa-arrow-up"></i> <span style="font-weight: bold; font-style: italic;">Pass på at du har valgt rett sesong!</span></div>
 	</div>
 </div>
 <div class="row">
 	<div class="col-md-12">
-	FORKLARING HER
+	<p>
+	Første steg er å <u>stille inn på riktig sesong som</u> det planlegges for under 
+	«Velg sesong» øverst på siden. I en ny sesong mangler tabellen over 
+	lokaliteter. For å lette forberedelsene videre kan du nå velge å <u>kopiere 
+	fjorårets liste som et utkast ved å trykke på knappen «Snu bunken»</u>. Det kommer 
+	nå opp en kandidatliste, men informasjon for hver ny lokalitet må oppdateres. 
+	Dessuten kan det være aktuelt å legge til nye lokaliteter (knapp over listen), 
+	eller slette lokaliteter som ikke skal være med (knapp til høyre ved hver 
+	lokalitet i tabellen). Du går nå inn på <u>«Endre lokalitetsinfo»</u> for hver lokalitet 
+	i listen som skal oppdateres. Her må du panorere og forstørre kart for å plassere 
+	lokaliteten med et <u>trykk i kartet</u>. Dermed genereres høyde over havet og 
+	navn og numre for fylke og kommune automatisk (de genererte feltene skal ikke 
+	redigeres etterpå, men den kan omplasseres med et nytt trykk i kartet). Bortsett 
+	fra at lokaliteten er plassert i riktig kommune, behøver den ikke være helt riktig 
+	plassert i første omgang. Riktig plassering gjøres gjerne senere av Registrant når 
+	han/hun oppdaterer informasjon og legger inn data. Du må også <u>fylle inn alle felter 
+	med stjerne</u>, før du <u>lagrer med lagreknappen</u> i bunnen av skjemaet. Det kommer nå en 
+	melding øverst på siden at lagringen har vært vellykket. Etter dette trykker du «Tilbake» 
+	over skjemaet for å komme tilbake til kandidatlisten. I kandidatlisten leter du opp den 
+	samme lokaliteten (alfabetisk plassering) og trykker på <u>«Aktiver fellelokalitet»</u>. 
+	Først nå er lokaliteten aktivert og i bruk. Den forsvinner nå fra kopieringslisten hvor du 
+	er, og den legger seg til i den oppdaterte listen for året du planlegger (for å se den 
+	oppdaterte listen trykker du «Tilbake» over kopieringslisten som du står i).
+	</p>
+ 	<p>
+	Om oppdatering av listen: Det bør være lokaliteter i alle kommuner som tidligere har vært 
+	med. For kommuner som har vært slått sammen, bør det fortsatt være lokaliteter i hver av 
+	de tidligere delkommunene (dvs. flere lokaliteter innenfor den sammenslåtte kommunen). 
+	Fellestedet skal være på en <u>hogstflate på minst 2 dekar hvor det i høst-/vintersesongen 
+	før denne sommersesongen ble avvirket gran</u>. Det innebærer at lokaliteten ikke kan 
+	ligge på samme hogstflate flere år. For alle lokaliteter i listen gjelder det at årets 
+	fellested bør om mulig ligge nær fjorårets fellested, og på tilnærmet samme skogtype 
+	(ønske om nærhet og skogtype kan avvikes når det ikke er mulig). Både Registrant og 
+	Barkbille­fylkeskontakt kan endre lokalitetsinformasjon på et senere tidspunkt for å gjøre 
+	den mer korrekt.
+	</p>
+
 	</div>
 </div>
 <div class="singleBlockContainer">

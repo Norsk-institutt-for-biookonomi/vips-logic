@@ -93,7 +93,7 @@
 	<a href="/barkbeetle?action=editSeasonTrapsite&season=${season}" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
 </p>
 <p>
-	<a href="/barkbeetle?action=listSeasonTrapsiteCandidates&season=${season}" class="btn btn-default" role="button">Hent en kopi fra fjoråret</a>
+	<a href="/barkbeetle?action=listSeasonTrapsiteCandidates&season=${season}" class="btn btn-default" role="button">Hent en kopi fra fjoråret (${season-1})</a>
 </p>
 </#if>
 <div class="singleBlockContainer">
