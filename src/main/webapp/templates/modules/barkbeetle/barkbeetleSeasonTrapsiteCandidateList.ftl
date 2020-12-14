@@ -21,7 +21,7 @@
 </#macro>
 <#macro page_contents>
 <#if messageKey?has_content && messageKey=="activateOK">
-	<div class="alert alert-success">Fellelokaliteten ble aktivert ${.now}</div>
+	<div class="alert alert-success">Fellelokaliteten ble aktivert ${.now}, og ble dermed flyttet over til <a href="/barkbeetle?season=${season}">lista over sesongens fellelokaliteter</a></div>
 </#if>
 <#if messageKey?has_content && messageKey=="deleteOK">
 	<div class="alert alert-success">Fellelokaliteten ble slettet ${.now}</div>
