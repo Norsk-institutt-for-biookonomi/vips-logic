@@ -52,7 +52,7 @@ import org.xml.sax.SAXException;
  */
 public class YrWeatherForecastProvider implements WeatherForecastProvider{
 
-    private final static String YR_API_URL = "https://api.met.no/weatherapi/locationforecastlts/1.3/?lat={0};lon={1};msl={2}";
+    private final static String YR_API_URL = "https://api.met.no/weatherapi/locationforecast/1.9/?lat={0};lon={1};msl={2}";
     
     @Override
     public List<WeatherObservation> getWeatherForecasts(PointOfInterest location) throws ParseWeatherDataException 

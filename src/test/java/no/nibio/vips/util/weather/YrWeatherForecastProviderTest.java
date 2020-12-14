@@ -63,7 +63,7 @@ public class YrWeatherForecastProviderTest {
      */
     @Test
     public void testGetWeatherForecasts() throws Exception {
-        System.out.println("getWeatherForecasts");
+        System.out.println("getWeatherForecasts"); 
         PointOfInterestWeatherStation weatherStation = new PointOfInterestWeatherStation();
         //Testing in Bosnia (Rodoc, Mostar)
         GISUtil gisUtil = new GISUtil();
