@@ -191,12 +191,12 @@ public class BarkbeetleController extends HttpServlet {
                     request.setAttribute("userIsCountyAdmin",SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN));
                     request.setAttribute("seasonTrapsite", trapsite);
                     request.setAttribute("isExtended", trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_EXTENDED));
-                    Set<Integer> missingWeeks = new HashSet(trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)?
+                    Set<Integer> missingWeeks = new HashSet<Integer>(trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)?
                             Arrays.asList(new Integer[]{21,24,28,33})
                             : Arrays.asList(new Integer[]{21,24,28,33,37}));
                     //request.setAttribute("weeks", weeks);
                     request.setAttribute("traps", trapsite.getTrapsiteType().getTrapsiteTypeId().equals(TrapsiteType.TRAPSITE_TYPE_STANDARD)? 4 : 2 );
-                    List<TrapsiteRegistration> trapsiteReg = new ArrayList(trapsite.getTrapsiteRegistrationCollection());
+                    List<TrapsiteRegistration> trapsiteReg = new ArrayList<TrapsiteRegistration>(trapsite.getTrapsiteRegistrationCollection());
                     request.setAttribute("firstTimeReg", trapsiteReg.isEmpty());
 
                     // Finding which registrations are present, removing them from "missing" collection
@@ -273,8 +273,8 @@ public class BarkbeetleController extends HttpServlet {
                         });
                         BarkbeetleBean.getInstance().storeTrapsiteRegistrations(trapsite.getSeasonTrapsiteId(), registrations);
                         // Also, store the observedAttacksDescription on the SeasonTrapsite object
-                        String observedAttacksDescription = request.getParameter("observedAttacksDescription");
-                        trapsite.setObservedAttacksDescription(observedAttacksDescription);
+                        trapsite.setObservedAttacksDescription(request.getParameter("observedAttacksDescription"));
+                        trapsite.setMaintenanceDescription(request.getParameter("maintenanceDescription"));
                         BarkbeetleBean.getInstance().storeSeasonTrapsite(trapsite);
                         
                         // Redirect to form
