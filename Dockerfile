@@ -1,8 +1,16 @@
+# Since we are including resources from the parent folder,
+# this Dockerfile has to be executed from the project's parent folder, like this:
+# sudo docker build --tag vips/logic:TEST01 -f VIPSLocic/Dockerfile .
+
 # the first stage of our build will use a maven 3.6 parent image
 FROM maven:3.6-openjdk-11 AS MAVEN_BUILD
- 
+
+# We need VIPSCommon too, so the source code must be available in the parent folder
+COPY ./VIPSCommon ./VIPSCommon
+RUN cd VIPSCommon && mvn clean install
+
 # copy the pom and src code to the container
-COPY ./ ./
+COPY ./VIPSLogic ./
  
 # package our application code
 RUN mvn clean install
@@ -32,9 +40,10 @@ RUN cd $HOME \
 
 # copy only the artifacts we need from the first stage and discard the rest
 COPY --from=MAVEN_BUILD /target/VIPSLogic-1.0-SNAPSHOT.war /VIPSLogic-1.0-SNAPSHOT.war
+COPY --from=MAVEN_BUILD /root/.m2 /root/.m2
 # Use the sample wildfly_config/standalone.xml, add the correct configs, and copy to the parent folder of the 
 # VIPSLogic source folder
-COPY  ../standalone.xml ${JBOSS_HOME}/standalone/configuration/standalone.xml
+COPY  ./standalone.xml ${JBOSS_HOME}/standalone/configuration/standalone.xml
 #TODO Download and install the required modules
 # PostgreSQL and PostGIS jdbc drivers
 RUN mkdir -p ${JBOSS_HOME}/modules/org/postgresql/main
@@ -48,8 +57,9 @@ RUN echo '<?xml version="1.0" encoding="UTF-8"?>\
         <module name="javax.api"/>\
         <module name="javax.transaction.api"/>\
     </dependencies>\
-</module>' > ${JBOSS_HOME}/modules/org/postgresql/module.xml
-
+</module>' > ${JBOSS_HOME}/modules/org/postgresql/main/module.xml
+RUN cp /root/.m2/repository/org/postgresql/postgresql/42.2.18/postgresql-42.2.18.jar ${JBOSS_HOME}/modules/org/postgresql/main
+RUN cp /root/.m2/repository/net/postgis/postgis-jdbc/2.2.2/postgis-jdbc-2.2.2.jar ${JBOSS_HOME}/modules/org/postgresql/main
 
 RUN ln -s /VIPSLogic-1.0-SNAPSHOT.war ${JBOSS_HOME}/standalone/deployments/VIPSLogic-1.0-SNAPSHOT.war
 
