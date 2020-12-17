@@ -18,7 +18,7 @@
 --><#include "../../master.ftl">
 <#assign siteName= seasonTrapsite.countyName + "/" + seasonTrapsite.municipalityName + "/" + seasonTrapsite.ownerName>
 <#macro page_head>
-	<title>Barkbilleregistrering: Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</title>
+	<title>Barkbilleovervåking: Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</title>
 </#macro>
 <#macro page_contents>
 	<#if messageKey?has_content>
@@ -27,7 +27,8 @@
 	<p>
 		<a href="/barkbeetle?action=editSeasonTrapsite&season=${seasonTrapsite.season}&seasonTrapsiteId=${seasonTrapsite.seasonTrapsiteId}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
 	</p>
-	<h1>Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</h1>
+	<h1>Barkbilleovervåking</h1>
+	<h2>Registrer data for lokalitet ${siteName}, sesong ${seasonTrapsite.season}</h2>
 	<div class="row">
 		<div class="col-md-11">
 		<p>

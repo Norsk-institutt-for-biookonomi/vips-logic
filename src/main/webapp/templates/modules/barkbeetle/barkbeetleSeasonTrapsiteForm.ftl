@@ -17,7 +17,7 @@
 	
 --><#include "../../master.ftl">
 <#macro page_head>
-	<title>Barkbilleregistrering: Rediger fellelokalitet for ${season}</title>
+	<title>Barkbilleovervåking: Rediger fellelokalitet for ${season}</title>
 </#macro>
 <#macro custom_js>
 	<script type="text/javascript" src="/js/constants.js"></script>
@@ -171,7 +171,8 @@
 	<p>
 		<a href="/barkbeetle?season=${season}<#if seasonTrapsite.seasonTrapsiteId?has_content && !seasonTrapsite.activated>&action=listSeasonTrapsiteCandidates</#if>" class="btn btn-default back" role="button">${i18nBundle.back}</a>
 	</p>
-	<h1><#if seasonTrapsite.seasonTrapsiteId?has_content>Rediger<#else>Ny</#if> fellelokalitet</h1>
+	<h1>Barkbilleovervåking</h1>
+	<h2><#if seasonTrapsite.seasonTrapsiteId?has_content>Rediger<#else>Ny</#if> fellelokalitet</h2>
 	<div class="row">
 		<div class="col-md-11">
 		<p>Alle feller må være av typen BEKA (=Nove, se bildet) og feromon av typen 

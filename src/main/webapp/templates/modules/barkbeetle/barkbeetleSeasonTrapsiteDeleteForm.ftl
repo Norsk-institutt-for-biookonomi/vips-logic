@@ -17,7 +17,7 @@
 	
 --><#include "../../master.ftl">
 <#macro page_head>
-	<title>Barkbilleregistrering: Slett fellelokalitet for ${seasonTrapsite.season}</title>
+	<title>Barkbilleovervåking: Slett fellelokalitet for ${seasonTrapsite.season}</title>
 </#macro>
 <#macro custom_js>
 	
@@ -26,8 +26,8 @@
 	
 </#macro>
 <#macro page_contents>
-	
-	<h1>Slett fellelokalitet for sesongen ${seasonTrapsite.season}</h1>
+	<h1>Barkbilleovervåking</h1>
+	<h2>Slett fellelokalitet for sesongen ${seasonTrapsite.season}</h2>
 	
 	
 	

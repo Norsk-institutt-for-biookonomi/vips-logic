@@ -17,13 +17,14 @@
 	
 --><#include "../../master.ftl">
 <#macro page_head>
-	<title>Barkbilleregistrering: Fellelokaliteter for sesongen ${season}</title>
+	<title>Barkbilleovervåking: Fellelokaliteter for sesongen ${season}</title>
 </#macro>
 <#macro page_contents>
 <#if messageKey?has_content && messageKey=="deleteOK">
 		<div class="alert alert-success">Fellelokaliteten ble slettet</div>
 	</#if>
-<h1>Fellelokaliteter for sesongen ${season}</h1>
+	<h1>Barkbilleovervåking</h1>
+<h2>Fellelokaliteter for sesongen ${season}</h2>
 <div class="form-inline">
 	<div class="form-group">
 	Velg sesong <select class="form-control" onchange="window.location.href='/barkbeetle?season=' + this.options[this.selectedIndex].value;">
@@ -31,6 +32,7 @@
 		<option value="${availableSeason}" <#if availableSeason==season>selected</#if>>${availableSeason}</option>
 		</#list>
 	</select>
+	<div class="alert alert-warning"><i class="fa fa-arrow-up"></i> <span style="font-weight: bold; font-style: italic;">Pass på at du har valgt rett sesong!</span></div>
 	</div>
 </div>
 <div class="row">

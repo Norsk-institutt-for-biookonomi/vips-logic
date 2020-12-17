@@ -17,7 +17,7 @@
 	
 --><#include "../../master.ftl">
 <#macro page_head>
-	<title>Barkbilleregistrering: Fellelokalitet-kandidater for sesongen ${season}</title>
+	<title>Barkbilleovervåking: Fellelokalitet-kandidater for sesongen ${season}</title>
 </#macro>
 <#macro page_contents>
 <#if messageKey?has_content && messageKey=="activateOK">
@@ -29,7 +29,8 @@
 <p>
 	<a href="/barkbeetle?season=${season}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
 </p>
-<h1>Fellelokalitet-kandidater for sesongen ${season}</h1>
+<h1>Barkbilleovervåking</h1>
+<h2>Fellelokalitet-kandidater for sesongen ${season}</h2>
 <div class="form-inline">
 	<div class="form-group">
 	Velg sesong <select class="form-control" onchange="window.location.href='/barkbeetle?action=listSeasonTrapsiteCandidates&season=' + this.options[this.selectedIndex].value;">
