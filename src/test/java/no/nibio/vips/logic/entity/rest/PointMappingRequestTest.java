@@ -104,7 +104,7 @@ public class PointMappingRequestTest {
         ReferencedPoint[] instance = points.toArray(new ReferencedPoint[points.size()]);
         
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target("http://proxy1utv.int.nibio.no/municipality_cache_ws/pointmapping/1/4326");
+        WebTarget target = client.target("https://proxy1.nibio.no/municipality_cache_ws/pointmapping/1/4326");
 
         //PointMappingResponse response = 
         PointMappingResponse response =    target.request(MediaType.APPLICATION_JSON)
