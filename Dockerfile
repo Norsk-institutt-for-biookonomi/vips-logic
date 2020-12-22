@@ -1,6 +1,8 @@
 # Since we are including resources from the parent folder,
 # this Dockerfile has to be executed from the project's parent folder, like this:
-# sudo docker build --tag vips/logic:TEST01 -f VIPSLocic/Dockerfile .
+# sudo docker build --tag vips/logic:TEST01 -f VIPSLogic/Dockerfile .
+
+## Challenge: database connection to "localhost" ?? IP address? What?? :-)
 
 # the first stage of our build will use a maven 3.6 parent image
 FROM maven:3.6-openjdk-11 AS MAVEN_BUILD
@@ -51,7 +53,7 @@ RUN echo '<?xml version="1.0" encoding="UTF-8"?>\
 <module xmlns="urn:jboss:module:1.0" name="org.postgresql">\
     <resources>\
         <resource-root path="postgresql-42.2.18.jar"/>\
-        <resource-root path="postgis-jdbc-2.1.0.jar"/>\
+        <resource-root path="postgis-jdbc-2.2.2.jar"/>\
     </resources>\
     <dependencies>\
         <module name="javax.api"/>\
