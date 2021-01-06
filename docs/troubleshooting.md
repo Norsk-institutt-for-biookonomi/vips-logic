@@ -11,7 +11,7 @@ n id 0:ffff8027c039:65d436c5:5ff4a101:6f invoked while multiple threads active w
 [...]
 ```
 
-...this may be because the JEE application server has a transaction timeout. In WildFly (at least in Wildfly 16), the default timeout is 300 seconds. This can be adjusted, e.g. in standalone.xml. In the transaction subsystem add the `default-timeout="900"` attribute inside the `<coordinator-environment>` element below. 900 seconds equals 15 minutes.
+...this may be because the JEE application server has a transaction timeout. In WildFly (at least in versions >= 16), the default timeout is 300 seconds. This can be adjusted, e.g. in standalone.xml. In the transaction subsystem add the `default-timeout="900"` attribute inside the `<coordinator-environment>` element below. 900 seconds equals 15 minutes.
 
 ```xml
 <subsystem xmlns="urn:jboss:domain:transactions:5.0">
