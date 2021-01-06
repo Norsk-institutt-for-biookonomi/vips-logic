@@ -776,7 +776,7 @@ public class LogicService {
     }
     
     /**
-     * Get a list of crops
+     * Get a list of all crops
      * @return 
      */
     @GET
@@ -786,6 +786,20 @@ public class LogicService {
     public Response getCropOrganismList()
     {
         List<Organism> organismList = SessionControllerGetter.getOrganismBean().getAllCrops();
+        return Response.ok().entity(organismList).build();
+    }
+    
+    /**
+     * Get a list of all pests
+     * @return 
+     */
+    @GET
+    @Path("organism/pest/list")
+    @Produces("application/json;charset=UTF-8")
+    @Facet("restricted")
+    public Response getPestOrganismList()
+    {
+        List<Organism> organismList = SessionControllerGetter.getOrganismBean().getAllPests();
         return Response.ok().entity(organismList).build();
     }
     

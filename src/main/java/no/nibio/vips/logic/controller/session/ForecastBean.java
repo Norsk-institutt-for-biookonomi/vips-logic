@@ -50,6 +50,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.transaction.Transactional;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -956,7 +957,7 @@ public class ForecastBean {
                 }
                 
             }
-            em.flush();
+            //em.flush();
         }
         
         if(activeForecastIds != null && ! activeForecastIds.isEmpty())
