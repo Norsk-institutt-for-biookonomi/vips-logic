@@ -98,6 +98,11 @@
 	<a href="/barkbeetle?action=listSeasonTrapsiteCandidates&season=${season}" class="btn btn-default" role="button">Hent en kopi fra fjoråret (${season-1})</a>
 </p>
 </#if>
+<#if userIsAdmin>
+<p>
+	<a href="/barkbeetle?action=seasonTrapsiteMaintenanceList&season=${season}" class="btn btn-default" role="button">Se vedlikeholdsliste</a>
+</p>
+</#if>
 <div class="singleBlockContainer">
 	<div class="row">
 	<table class="table table-striped">

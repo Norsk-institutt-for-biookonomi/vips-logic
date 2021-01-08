@@ -142,6 +142,8 @@ public class SeasonTrapsite implements Serializable, Comparable {
     private String observedAttacksDescription;
     @Column(name = "maintenance_description")
     private String maintenanceDescription;
+    @Column(name = "maintenance_completed")
+    private Boolean maintenanceCompleted;
 
     public SeasonTrapsite() {
     }
@@ -578,6 +580,14 @@ public class SeasonTrapsite implements Serializable, Comparable {
 
 	public void setMaintenanceDescription(String maintenanceDescription) {
 		this.maintenanceDescription = maintenanceDescription;
+	}
+
+	public Boolean getMaintenanceCompleted() {
+		return maintenanceCompleted;
+	}
+
+	public void setMaintenanceCompleted(Boolean maintenanceCompleted) {
+		this.maintenanceCompleted = maintenanceCompleted;
 	}
     
 }

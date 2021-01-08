@@ -23,6 +23,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -60,5 +61,22 @@ public class BarkbeetleService {
             )
     {
         return Response.ok().entity(BarkbeetleBean.getInstance().getSeasonTrapsitesStatusKml(season, ServletUtil.getServerName(httpServletRequest))).build();
+    }
+    
+    /**
+     * 
+     * @param seasonTrapsiteId
+     * @param isMaintenanceCompleted
+     * @return 200 (OK) or 204 (No Content). 404 (Not Found), if ID not found or invalid.
+     */
+    @PATCH
+    @Path("seasontrapsite/{seasonTrapsiteId}/maintenancecompleted/{isMaintenanceCompleted}")
+    public Response setMaintenanceCompleted(
+    		@PathParam("seasonTrapsiteId") Integer seasonTrapsiteId,
+    		@PathParam("isMaintenanceCompleted") String isMaintenanceCompleted
+    		)
+    {
+    	BarkbeetleBean.getInstance().setMaintenanceCompleted(seasonTrapsiteId, isMaintenanceCompleted != null && isMaintenanceCompleted.equals("true"));
+    	return Response.ok().build();
     }
 }

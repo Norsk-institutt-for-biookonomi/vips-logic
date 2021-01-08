@@ -303,4 +303,9 @@ public class BarkbeetleBean {
     	.executeUpdate();
     	
     }
+
+	public void setMaintenanceCompleted(Integer seasonTrapsiteId, boolean isMaintenanceCompleted) {
+		SeasonTrapsite site = em.find(SeasonTrapsite.class, seasonTrapsiteId);
+		site.setMaintenanceCompleted(isMaintenanceCompleted);
+	}
 }
