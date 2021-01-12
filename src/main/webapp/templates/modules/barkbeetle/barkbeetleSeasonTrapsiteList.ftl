@@ -49,9 +49,7 @@
 	Barkbillefylkeskontakter</a>,
 	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
-	Beka-felle</a> (kun noen få har i tillegg 
-	<a href="/images/modules/barkbeetle/Instruks_utvidet_sesong.pdf" target="new">utvidet 
-	sesong</a> med egen instruksjon).</p>
+	Beka-felle</a>.</p>
 	
 	<p><strong>Barkbillefylkeskontakt</strong> oppretter her lokaliteter for sitt fylke («Legg til 
 	ny») og tildeler disse registranter som sørger for fellemontering, tømming 

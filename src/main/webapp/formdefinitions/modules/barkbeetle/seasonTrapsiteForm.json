@@ -31,9 +31,7 @@
         {
             "name" : "trapsiteTypeId",
             "dataType" : "INTEGER",
-            "fieldType" : "SELECT_SINGLE",
-            "required" : true,
-            "nullValue" : "-1"
+            "required" : true
         },
         {
             "name" : "userId",

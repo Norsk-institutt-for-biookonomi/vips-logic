@@ -140,7 +140,11 @@ public class BarkbeetleController extends HttpServlet {
                     FormValidation formValidation = FormValidator.validateForm("modules/barkbeetle/seasonTrapsiteForm", request, getServletContext());
                     if(formValidation.isValid())
                     {
-                        
+                        // New trapsites are always activated
+                    	if(trapsite.getSeasonTrapsiteId() == null)
+                    	{
+                    		trapsite.setActivated(true);
+                    	}
                         trapsite.setSeason(formValidation.getFormField("season").getValueAsInteger());
                         trapsite.setTrapsiteType(BarkbeetleBean.getInstance().getTrapsiteType(formValidation.getFormField("trapsiteTypeId").getValueAsInteger()));
                         

@@ -208,20 +208,8 @@
 	<form id="${formId}" role="form" action="/barkbeetle?action=seasonTrapsiteFormSubmit" method="POST" onsubmit="return validateForm(this);"">
 		<input type="hidden" name="seasonTrapsiteId" value="${seasonTrapsite.seasonTrapsiteId!"-1"}"/>
 		<input type="hidden" name="locationUpdated" value="<#if seasonTrapsite.locationUpdated?has_content>${seasonTrapsite.locationUpdated?c}<#else>false</#if>"/>
+		<input type="hidden" name="trapsiteTypeId" value="1"/>
 		<div class="form-group">
-	    <label for="trapsiteType">Type fellelokalitet *</label>
-	    <select class="form-control" name="trapsiteTypeId" onblur="validateField(this);">
-			<#list seasonTrapsiteTypes as trapsite>
-				<option value="${trapsite.trapsiteTypeId}"
-				<#if (seasonTrapsite.trapsiteType?has_content && seasonTrapsite.trapsiteType.trapsiteTypeId == trapsite.trapsiteTypeId) 
-				||  (!(seasonTrapsite.trapsiteType?has_content) && trapsite.trapsiteTypeId == 1)>
-				selected="selected"</#if>
-				>${trapsite.description}</option>
-			</#list>
-		
-	     </select>
-	</div>
-	<div class="form-group">
 			<label for="season">Sesong *</label>
 			<input type="text" class="form-control" name="season" placeholder="Sesong" value="${season}" onblur="validateField(this);"/>
 			<span class="help-block" id="${formId}_season_validation"></span>
