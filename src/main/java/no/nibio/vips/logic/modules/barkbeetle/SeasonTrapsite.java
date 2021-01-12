@@ -583,7 +583,7 @@ public class SeasonTrapsite implements Serializable, Comparable {
 	}
 
 	public Boolean getMaintenanceCompleted() {
-		return maintenanceCompleted;
+		return maintenanceCompleted != null ? maintenanceCompleted : false;
 	}
 
 	public void setMaintenanceCompleted(Boolean maintenanceCompleted) {
