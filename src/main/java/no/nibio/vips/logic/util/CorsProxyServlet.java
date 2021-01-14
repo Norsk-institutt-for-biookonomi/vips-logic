@@ -21,6 +21,7 @@ package no.nibio.vips.logic.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
@@ -46,9 +47,10 @@ public class CorsProxyServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+
         // Analyze request
         // Get the path
-        String completePath = request.getRequestURI() + "?" + request.getQueryString();
+        String completePath = request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
         String urlToProxy = completePath.substring(completePath.indexOf(request.getServletPath()) + request.getServletPath().length() + 1);
         // Sometimes (for what reason??) the http(s):// is being converted to http(s):/ (double to single slash)
         // We need to ensure double slashes!
@@ -64,7 +66,9 @@ public class CorsProxyServlet extends HttpServlet {
         URL url = new URL(urlToProxy);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+        InputStream theContent = con.getResponseCode() == 200 ? con.getInputStream() : con.getErrorStream();
+        BufferedReader in = new BufferedReader(new InputStreamReader(theContent));
         String inputLine;
         String contents = "";
         while((inputLine = in.readLine()) != null)
@@ -77,6 +81,7 @@ public class CorsProxyServlet extends HttpServlet {
         try (PrintWriter out = response.getWriter()) {
             out.println(contents);
         }
+    	
     } 
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
