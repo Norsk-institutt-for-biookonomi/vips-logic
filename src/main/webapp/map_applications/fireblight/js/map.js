@@ -185,6 +185,57 @@ function getAndRenderObservations(fromSeason)
     });
 }
 
+
+/**
+ * 
+ * @param {type} fromSeason
+*  @param {type} countyNo
+ * @returns {undefined}
+ */
+function getAndRenderObservationsForReport(fromSeason, countyNo = "-1")
+{
+    //console.info("getAndRenderObservations(" + season + ")");
+    $.getJSON("/rest/observation/filter/1/geoJSON?from=" + fromSeason + "-01-01&pestId=" + paerebrann.organismId, function(geoData){
+        //console.info(geoData)
+		// Filter by county
+		$.getJSON("/corsproxy/https://ws.geonorge.no/kommuneinfo/v1/fylker/" + countyNo + "/omrade")
+		.always(function(serviceResponse){
+			//console.info(geoData);
+			//console.info(serviceResponse);
+			
+			if(parseInt(countyNo) > 0)
+			{
+				var filteredFeatures = [];
+				for(var i=0;i < geoData.features.length;i++)
+				{
+					var featureToBeFiltered = geoData.features[i];
+					coordinate = proj4("EPSG:4326","EPSG:4258",[featureToBeFiltered.geometry.coordinates[0],featureToBeFiltered.geometry.coordinates[1]]);
+					// For some weird reason, d3 returns NOT contains in our case
+					if(!d3.geoContains(serviceResponse.omrade, coordinate))
+					{
+						//console.info(featureToBeFiltered);
+						filteredFeatures.push(featureToBeFiltered);
+					}
+					//console.info(featureToBeFiltered);
+				}
+				//console.info(filteredFeatures);
+				geoData.features = filteredFeatures;
+			}
+			
+	        var format = new ol.format.GeoJSON();
+	
+	        var drawnfeatures = format.readFeatures(geoData, {
+	          //dataProjection: "EPSG:32633",
+	          dataProjection: "EPSG:4326",
+	          featureProjection: map.getView().getProjection().getCode()
+	        });
+	        featureOverlay.getSource().clear();
+	        featureOverlay.getSource().addFeatures(drawnfeatures);
+			}
+		);
+		});
+}
+
 function toggleRegistration(theButton)
 {
     if(registration)
