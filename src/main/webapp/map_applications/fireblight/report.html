@@ -127,6 +127,17 @@
                 left: 10px;
                 z-index: 1999;
             }
+
+			#headingBox {
+				position: absolute;
+                bottom: auto;
+                top: 1em;
+                left: 10px;
+				border: 1px solid black;
+                z-index: 1999;
+				padding: 10px;
+                opacity: 0.85;
+			}
             
             #legend {
                 position: absolute;
@@ -241,32 +252,13 @@
   <body>
       
       <div id="map" class="map">
-          <div class="geo-location ol-unselectable ol-control">
-              <button onclick="navToLocation();" title="Finn min posisjon"></button>
-          </div>
-          <div id="registerButton" class="ol-unselectable ol-control">
-          <button type="button" onclick="toggleRegistration(this);" title="Registrering er AV"><i class="fa fa-pencil" aria-hidden="true"></i></button>
-      </div>
-      </div>
-      <div id="searchFieldContainer">
-          <div id="searchFieldInnerContainer">
           
-          <input id="searchField" type="text" placeholder="S&oslash;k etter stedsnavn" onkeyup="showResults(this);"/>
-          <div id="searchResults"></div>
-          </div>
-          <!--div class="text" >
-              <div  style="margin-left: 30px;">
-                <div style="float: right; width: 100%;">
-                  
-                  
-                </div>
-                <div class="logo" style="float: left; width: 30px; margin-left: -30px;background-color: #FFA;">
-                    <img src="/images/logo_vips.png" alt="VIPS Logo" style="height: 20px;"/>
-                </div>
-              </div>
-          </div-->
+       
       </div>
-      
+      <div id="headingBox">
+		<h1>Rapportering pr fylke</h1>
+		<p>Velg fylke i lista nedenfor. Vær tålmodig, <br/>det tar noen sekunder før utvalget er ferdig generert.</p>
+	  </div>
       <div id="featureForm"></div>
       <div id="seasons">
           <select name="startSeason" id="startSeason" onchange="getAndRenderObservationsForReport(this.options[this.options.selectedIndex].value, document.getElementById('countyId').options[document.getElementById('countyId').options.selectedIndex].value);">

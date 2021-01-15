@@ -6,7 +6,7 @@ var hardcodedLanguage = "nb";
 
 // If false, touching map will not create a new item
 var registration = false;
-
+var geolocation;
 function initMap()
 {
     
@@ -19,7 +19,7 @@ var styles = {
     'cotoneaster bullatus': [new ol.style.Style({
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [255,0,0,1] }),
-            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+            stroke: new ol.style.Stroke({width: 1,  color: [0,0,0,1] }),
             radius: iconRadius
         })
     })],
@@ -27,7 +27,7 @@ var styles = {
     'cotoneaster divaricata': [new ol.style.Style({
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [239,133,19,1] }),
-            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+            stroke: new ol.style.Stroke({width: 1,  color: [0,0,0,1] }),
             radius: iconRadius
         })
     })],
@@ -35,7 +35,7 @@ var styles = {
     'cotoneaster salicifolia': [new ol.style.Style({
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [239,236,19,1] }),
-            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+            stroke: new ol.style.Stroke({width: 1,  color: [0,0,0,1] }),
             radius: iconRadius
         })
     })],
@@ -43,7 +43,7 @@ var styles = {
     'malus domestica': [new ol.style.Style({
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [0,255,0,1] }),
-            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+            stroke: new ol.style.Stroke({ width: 1, color: [0,0,0,1] }),
             radius: iconRadius
         })
     })],
@@ -51,18 +51,19 @@ var styles = {
     'pyrus communis': [new ol.style.Style({
         image: new ol.style.Circle({
             fill: new ol.style.Fill({ color: [122,175,131,1] }),
-            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+            stroke: new ol.style.Stroke({width: 1,  color: [0,0,0,1] }),
             radius: iconRadius
         })
     })],
     // Planteriket = blå 
     'plantae': [new ol.style.Style({
-        image: new ol.style.Circle({
-            fill: new ol.style.Fill({ color: [0,0,255,1] }),
-            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-            radius: iconRadius
-        })
-    })]
+	        image: new ol.style.Circle({
+	            fill: new ol.style.Fill({ color: [0,0,255,1] }),
+	            stroke: new ol.style.Stroke({ width: 1, color: [0,0,0,1] }),
+	            radius: iconRadius
+	        })
+    	})
+	]
 };
   
   featureOverlay = new ol.layer.Vector({
@@ -70,14 +71,43 @@ var styles = {
       features: features
     }),
     style: function(feature, resolution){
+		// Site that has been cleared is all black
+		var observationData = JSON.parse(feature.get("observationData"));
+		if(observationData["tiltak"] == "Ryddet")
+		{
+			return [new ol.style.Style({
+		        image: new ol.style.Circle({
+		            fill: new ol.style.Fill({ color: [0,0,0,1] }),
+		            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+		            radius: iconRadius
+		        })
+		    })];
+		}
+		
+		var retVal = null;
         if(feature.get("cropOrganism") != null && feature.get("cropOrganism")["latinName"] != null)
         {
-            return styles[feature.get("cropOrganism")["latinName"].toLowerCase()];
+            retVal = styles[feature.get("cropOrganism")["latinName"].toLowerCase()];
         }
         else 
         {
-            return styles["plantae"];
+            retVal = styles["plantae"];
         }
+		//console.info(retVal[0].getImage().getStroke().getWidth());
+		// If symptom has been registered, mark with inner black dot
+		if(observationData["symptom"] == "Symptom")
+		{
+			retVal = [
+				new ol.style.Style({
+				        image: new ol.style.Circle({
+				            fill: new ol.style.Fill({ color: [0,0,0,1]  }),
+				            stroke: new ol.style.Stroke({ width: 8, color: retVal[0].getImage().getFill().getColor() }),
+				            radius: iconRadius
+				        })
+			    	})
+			];
+		}
+		return retVal;
     }
             
   });
@@ -128,6 +158,41 @@ var styles = {
               })
             });
 
+		// Configure geolocation tracker
+		geolocation = new ol.Geolocation({
+			trackingOptions: {
+				enableHighAccuracy: true
+			},
+			projection: map.getView().getProjection()
+		});
+		var positionFeature = new ol.Feature();
+		positionFeature.setStyle(
+		  new ol.style.Style({
+		    image: new ol.style.Circle({
+		      radius: 6,
+		      fill: new ol.style.Fill({
+		        color: '#3399CC',
+		      }),
+		      stroke: new ol.style.Stroke({
+		        color: '#fff',
+		        width: 2,
+		      }),
+		    }),
+		  })
+		);
+		
+		geolocation.on('change:position', function () {
+		  var coordinates = geolocation.getPosition();
+		  positionFeature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
+		});
+		
+		new ol.layer.Vector({
+		  map: map,
+		  source: new ol.source.Vector({
+		    features: [positionFeature],
+		  }),
+		});
+
         // TODO feature properties must be synchronized
         var lastYear = new Date().getFullYear() - 1;
         // Population the season select list, setting last year as default selected
@@ -145,7 +210,7 @@ var styles = {
                 // Remove any new features already created
                 vectorSource.clear();
 
-                if (feature) {
+                if (feature && feature.getProperties()["observationId"] != undefined) {
                     // Create a fake icon for highlighting
                     var fakeFeature = createFeature(feature.getGeometry().getCoordinates());
                     vectorSource.addFeature(fakeFeature);
@@ -249,6 +314,13 @@ function toggleRegistration(theButton)
         theButton.style.color="red";
     }
     registration = ! registration;
+}
+
+function toggleTracking(theButton)
+{
+	geolocation.setTracking(!geolocation.getTracking());
+	theButton.style.backgroundColor = geolocation.getTracking() ? "green" : "rgba(0,60,136,.5)";
+	theButton.title = geolocation.getTracking() ? "Vis min posisjon er PÅ" : "Vis min posisjon er AV";
 }
 
 /**
@@ -577,6 +649,30 @@ var navigateTo = function(center)
     searchResultsEl.innerHTML = "";
     searchResultsEl.style.display="none";
 };
+
+/**
+ * Uses the client's geolocation information - displays it on the map
+ */
+function showLocation() {
+	if (navigator.geolocation) {
+        if(window.location.protocol === "http:")
+        {
+            navigator.geolocation.getCurrentPosition(function(geopositionObj){
+                // TODO: position and display location icon
+                }
+            );
+        }
+        else
+        {
+            if(confirm("Lokalisering fungerer bare over https (sikker tilkobling mellom nettleser og tjener). Klikk OK for å gå til sikker tilkobling."))
+            {
+                window.location = "https:" + window.location.href.substring(window.location.protocol.length);
+            }
+        }
+    } else {
+        alert( "Lokaliseringsfunksjonen er ikke tilgjengelig i denne nettleseren.");
+    }
+}
 
 function navToLocation() {
     if (navigator.geolocation) {
