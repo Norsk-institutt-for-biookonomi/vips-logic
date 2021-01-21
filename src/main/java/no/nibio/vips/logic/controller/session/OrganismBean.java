@@ -354,6 +354,18 @@ public class OrganismBean {
     }
     
     /**
+     * 
+     * @param cropOrganismId
+     * @return List of Pests associated with this crop
+     */
+    public List<Organism> getCropPests(Integer cropOrganismId)
+    {
+    	return em.createNativeQuery("SELECT DISTINCT * FROM public.organism WHERE organism_id = ANY ((SELECT pest_organism_ids FROM public.crop_pest where crop_organism_id = :cropOrganismId)\\:\\:int[])", Organism.class)
+                .setParameter("cropOrganismId", cropOrganismId)
+                .getResultList();
+    }
+    
+    /**
      * Searching recursively upwards in organism tree to find a cropPest.
      * @param cropOrganismId id of the crop
      * @param isPrimaryCrop false if this is the original crop, true if search upwards

@@ -790,16 +790,27 @@ public class LogicService {
     }
     
     /**
-     * Get a list of all pests
+     * Get a list of all pests, OR if cropOrganismId is specified,
+     * get a list of all pests that are connected with this crop
      * @return 
      */
     @GET
     @Path("organism/pest/list")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
-    public Response getPestOrganismList()
+    public Response getPestOrganismList(
+    		@QueryParam("cropOrganismId") Integer cropOrganismId
+    		)
     {
-        List<Organism> organismList = SessionControllerGetter.getOrganismBean().getAllPests();
+    	List<Organism> organismList;
+    	if(cropOrganismId == null)
+    	{
+    		organismList = SessionControllerGetter.getOrganismBean().getAllPests();
+    	}
+    	else
+    	{
+    		organismList = SessionControllerGetter.getOrganismBean().getCropPests(cropOrganismId);
+    	}
         return Response.ok().entity(organismList).build();
     }
     
