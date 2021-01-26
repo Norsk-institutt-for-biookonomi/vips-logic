@@ -815,6 +815,21 @@ public class LogicService {
     }
     
     /**
+     * Returns a list of all Crop ids with connected
+     * pest ids as arrays.
+     * @return 
+     */
+    @GET
+    @Path("organism/crop/pest/list")
+    @Produces("application/json;charset=UTF-8")
+    @Facet("restricted")
+    public Response getCropPestList(
+    		)
+    {
+        return Response.ok().entity(SessionControllerGetter.getOrganismBean().getCropPestsMapped()).build();
+    }
+    
+    /**
      * 
      * @param messageId
      * @return 
