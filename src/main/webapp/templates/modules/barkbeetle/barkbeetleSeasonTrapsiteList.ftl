@@ -75,9 +75,6 @@
 	Registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a></p>
-	<p>Merk at fylkesnr, fylkesnavn, kommunenr og kommunenavn som genereres er 
-	   fra før sammenslåinger (2012).
-	   </p>
 	</div>
 	<div class="col-md-1">
 	<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 250px;"/>
