@@ -2,7 +2,7 @@
 ## But first: A deployment note
 Whether you deploy using Docker or Wildfly (or another JEE server), the context path of the app is always /VIPSLogic. However, the app is designed to be accessible at the root level. So you always need to proxy it behind e.g. Apache or Nginx. Here's an example vhost for Apache:
 
-```
+``` apache
 <VirtualHost *:80>
         ServerName vipslogic-local.no
 

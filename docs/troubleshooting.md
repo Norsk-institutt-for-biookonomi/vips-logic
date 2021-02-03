@@ -1,6 +1,7 @@
-#Troubleshooting
+# Troubleshooting
+Various tips and tricks for fixing problems are added here
 
-##Transaction timeouts
+## [2021] Transaction timeouts
 If you get weird errors when running jobs, e.g. like this:
 
 ```
