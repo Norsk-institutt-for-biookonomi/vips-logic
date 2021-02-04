@@ -43,24 +43,24 @@
         <property name="no.nibio.vips.logic.VIPSLOGIC_PROTOCOL" value="http"/>
         <property name="no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS" value="-13"/>
         <property name="no.nibio.vips.logic.START_SCHEDULING_ON_BOOT" value="false"/>
-        <property name="no.nibio.vips.logic.MD5_SALT" value="lkfajoihure98877683736575KLJBYUEFIUYEBUYF"/>
+        <property name="no.nibio.vips.logic.MD5_SALT" value="XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"/>
         <property name="no.nibio.vips.logic.VIPSCOREMANAGER_URL" value="http://localhost:8080/VIPSCoreManager"/>
         <property name="no.nibio.vips.logic.CORE_BATCH_USERNAME" value="vipsbatch"/>
-        <property name="no.nibio.vips.logic.CORE_BATCH_PASSWORD" value="testpass2014"/>
+        <property name="no.nibio.vips.logic.CORE_BATCH_PASSWORD" value="XXXXXXXX"/>
         <property name="no.nibio.vips.logic.SMTP_SERVER" value="mail4.nibio.no"/>
-        <property name="no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH" value="/home/treinar/prosjekter/vips/temp/static/images/messages"/>
-        <property name="no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH" value="/home/treinar/prosjekter/vips/temp/static/images/observations"/>
-        <property name="no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID" value="852658596506-npgg3d8mkej1asog8jftpabeve7gafsl.apps.googleusercontent.com"/>
-        <property name="no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_SECRET" value="jmstWQ3LTDQXlOKqLGxgVjfM"/>
+        <property name="no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH" value="/home/developer/vips/temp/static/images/messages"/>
+        <property name="no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH" value="/home/developer/vips/temp/static/images/observations"/>
+        <property name="no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID" value="XXXXXXXXXXXXXXXXXXXXXX"/>
+        <property name="no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_SECRET" value="XXXXXXXXXXXXXXXXXXXXXX"/>
         <property name="no.nibio.vips.logic.ALLOWED_X_DOMAINS" value="vipsweb,localhost"/>
         <property name="no.nibio.vips.logic.AVAILABLE_LANGUAGES" value="en,nb,zh_CN"/>
         <property name="no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM" value="true"/>
         <property name="no.nibio.vips.logic.weather.VIPS_WEATHER_PROXY_BASE_URL" value="http://localhost:8080/VIPSWeatherProxy"/>
         <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_USERNAME" value="nibiovips"/>
-        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD" value="q22bspFVPwkaohImV21m"/>
-        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID" value="MetosDemo"/>
-        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET" value="aa8f4b62b72986bac7c84be78836c2c6"/>
-        <property name="no.nibio.vips.logic.weather.METNOTHREDDS_TMP_FILE_PATH" value="/home/treinar/prosjekter/vips/projects/2017_SpotIT/Task 3.2/"/>
+        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD" value="XXXXXXXXXXXX"/>
+        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID" value="XXXXXXXXXXXXXXXX"/>
+        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET" value="XXXXXXXXXXXXXXXXXXXXXX"/>
+        <property name="no.nibio.vips.logic.weather.METNOTHREDDS_TMP_FILE_PATH" value="/home/tdeveloper/vips/projects/2017_SpotIT/Task 3.2/"/>
         <property name="no.nibio.vips.logic.USER_COUNTRY_CODES" value="NO,SE,BA,LV,US,FI,LT,CH"/>
         <property name="no.nibio.vips.logic.AVAILABLE_TIMEZONES" value="Europe/Oslo,Europe/Zurich,Europe/Stockholm,Europe/Vilnius,Europe/Helsinki"/>
     </system-properties>
