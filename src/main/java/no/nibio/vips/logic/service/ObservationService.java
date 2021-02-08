@@ -68,7 +68,6 @@ import org.wololo.geojson.Feature;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/observation")
-@Facet("restricted")
 public class ObservationService {
     
     @Context
@@ -449,9 +448,15 @@ public class ObservationService {
                 : Response.status(404).entity("No observations of organism with id=" + organismId).build();
     }
     
+    /**
+     * When was the last time a change was made in cropCategories or organisms?
+     * 
+     * @responseExample application/json {"lastUpdated": "2021-02-08"}
+     */
     @GET
     @Path("organismsystemupdated")
     @Produces(MediaType.APPLICATION_JSON)
+    
     public Response getDateOfLastOrganismSystemUpdate()
     {
     	ObjectMapper objectMapper = new ObjectMapper();

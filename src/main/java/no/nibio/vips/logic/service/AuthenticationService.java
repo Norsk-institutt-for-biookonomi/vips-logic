@@ -51,7 +51,6 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/auth")
-@Facet("restricted")
 public class AuthenticationService {
 	
 	@Context

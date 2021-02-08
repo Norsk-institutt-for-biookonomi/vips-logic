@@ -30,6 +30,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+
+import com.webcohesion.enunciate.metadata.Facet;
+
 import no.nibio.vips.util.ServletUtil;
 
 /**
@@ -37,6 +40,7 @@ import no.nibio.vips.util.ServletUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/barkbeetle")
+@Facet("restricted")
 public class BarkbeetleService {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
