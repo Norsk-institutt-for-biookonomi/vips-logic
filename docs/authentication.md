@@ -3,7 +3,7 @@
 There are two end points that you can use for authentication
 
 ``` 
-[VIPSLogic_URL]/auth/login
+[VIPSLogic_URL]/rest/auth/login
 ```
 
 This is a POST service where you provide the credentials like this in the request body:
@@ -31,7 +31,7 @@ The response upon a successful login is with a status of 201 (created) and this 
 The UUID is valid for 30 days. To check if it's still valid, use this endpoint:
 
 ``` 
-[VIPSLogic_URL]/auth/uuid
+[VIPSLogic_URL]/rest/auth/uuid
 ```
 
 And provide the UUID in the Authorization header. If the UUID is invalid, either because it never existed or has expired, the service returns HTTP status code 404 (Not found). If the UUID is valid, you get the basic user information, for example this:
