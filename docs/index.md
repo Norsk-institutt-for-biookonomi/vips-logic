@@ -2,6 +2,8 @@
 
 [The data model](./data_model.md)
 
+[Authentication](./authentication.md)
+
 [Troubleshooting](./troubleshooting.md)
 
 ## Building VIPSLogic

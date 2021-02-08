@@ -34,18 +34,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.jboss.resteasy.spi.interception.PreProcessInterceptor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
 
 import no.nibio.vips.logic.entity.UserUuid;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 
 /**
+ * Authentication services
  * @copyright 2021 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
@@ -58,6 +59,13 @@ public class AuthenticationService {
 	
 	/**
 	 * Authenticates user
+	 * Example input
+     * <pre>
+     * {
+        "username": "foo",
+        "password": "bar"
+      }
+     </pre>
 	 * @responseExample application/json {"success":"true", "UUID": "01bce95b-0004-4567-a4a2-3c184954fc15"}
 	 * @responseExample application/json {"success":"false"}
 	 */
@@ -92,9 +100,14 @@ public class AuthenticationService {
         return Response.status(user != null ? Status.CREATED : Status.NOT_FOUND).entity(result).build();
 	}
 	
+	/**
+	 * 
+	 * @return The VIPSLogic user associated with this uuid, or 404 if not found
+	 */
 	@GET
 	@Path("uuid")
 	@Produces(MediaType.APPLICATION_JSON)
+	@TypeHint(VipsLogicUser.class)
 	public Response getUserByUuidInAuthorizationHeader()
 	{
 		String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
