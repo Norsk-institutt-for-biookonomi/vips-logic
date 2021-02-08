@@ -19,8 +19,8 @@
 
 package no.nibio.vips.logic.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
 import java.net.URI;
@@ -32,9 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -57,19 +54,17 @@ import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.entity.rest.PointMappingRequest;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.annotations.GZIP;
+import org.joda.time.LocalDate;
 import org.wololo.geojson.Feature;
-import org.wololo.geojson.FeatureCollection;
-import org.wololo.geojson.Polygon;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2021 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/observation")
@@ -453,6 +448,19 @@ public class ObservationService {
         return firstObsTime != null ? Response.ok().entity(firstObsTime).build()
                 : Response.status(404).entity("No observations of organism with id=" + organismId).build();
     }
+    
+    @GET
+    @Path("organismsystemupdated")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDateOfLastOrganismSystemUpdate()
+    {
+    	ObjectMapper objectMapper = new ObjectMapper();
+    	ObjectNode result = objectMapper.createObjectNode();
+    	LocalDate lastUpdated = LocalDate.now();
+    	result.put("lastUpdated", lastUpdated.toString());
+    	return Response.ok().entity(result).build();
+    }
+    
 
     private List<Observation> getFilteredObservationsFromBackend(Integer organizationId, Integer pestId, Integer cropId, List<Integer> cropCategoryId, String fromStr, String toStr, VipsLogicUser user) {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
