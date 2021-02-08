@@ -46,6 +46,7 @@ public class VIPSLogicApplication extends Application
      */
     private void addRestResourceClassesManually(Set<Class<?>> resources) {
         resources.add(no.nibio.vips.logic.service.LogicService.class);
+        resources.add(no.nibio.vips.logic.service.AuthenticationService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
         resources.add(no.nibio.vips.logic.modules.wheatleafblotch.WheatLeafBlotchModelService.class);

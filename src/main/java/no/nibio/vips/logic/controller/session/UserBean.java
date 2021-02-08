@@ -715,6 +715,31 @@ public class UserBean {
     }
     
     /**
+     * Extends the validity of the uuid by the default duration (see Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS)
+     * @param uuid
+     */
+    public void renewUserUuid(UUID uuid)
+    {
+    	try
+        {
+            UserUuid u = (UserUuid) em.createNamedQuery("UserUuid.findByUserUUID").setParameter("userUUID", uuid).getSingleResult();
+            Date expiresAt = u.getExpiresAt();
+            Date now = new Date();
+            // Just in case the cleanup routine hasn't yet deleted an expired uuid
+            if(now.after(expiresAt))
+            {
+            	deleteUserUuid(uuid);
+            	return;
+            }
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(now);
+            cal.add(Calendar.DATE, Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS);
+            u.setExpiresAt(cal.getTime());
+        }
+        catch(NoResultException ex) {}
+    }
+    
+    /**
      * Cleanup method. Should be run daily as a batch job
      */
     public void deleteAllExpiredUserUuids()
