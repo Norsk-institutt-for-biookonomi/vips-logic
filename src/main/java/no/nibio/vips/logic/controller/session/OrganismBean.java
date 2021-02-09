@@ -20,10 +20,13 @@
 package no.nibio.vips.logic.controller.session;
 
 import com.ibm.icu.util.ULocale;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +39,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.CropPest;
+import no.nibio.vips.logic.entity.DbUpdate;
 import no.nibio.vips.logic.entity.ExternalResource;
 import no.nibio.vips.logic.entity.ExternalResourceType;
 import no.nibio.vips.logic.entity.HierarchyCategory;
@@ -164,6 +168,7 @@ public class OrganismBean {
             //SessionControllerGetter.getOrganismBean().removeOrganismLocalName(organism, currentLocale);
             this.removeOrganismLocalName(organism, currentLocale);
         }
+        this.notifyUpdateOfOrganisms();
         return organism;
     }
 
@@ -193,6 +198,7 @@ public class OrganismBean {
         {
             Organism organism = em.find(Organism.class, organismId);
             em.remove(organism);
+            this.notifyUpdateOfOrganisms();
             return true;
         }
         else
@@ -399,6 +405,7 @@ public class OrganismBean {
     
     public CropPest storeCropPest(CropPest cropPest)
     {
+    	this.notifyUpdateOfOrganisms();
         return em.merge(cropPest);
     }
 
@@ -480,6 +487,8 @@ public class OrganismBean {
                 cropCategory.removeCropOrganismId(organism.getOrganismId());
             }
         }
+        
+        this.notifyUpdateOfOrganisms();
     }
 
     public CropCategory getCropCategory(Integer cropCategoryId) {
@@ -488,6 +497,7 @@ public class OrganismBean {
 
     public void storeCropCategory(CropCategory cropCategory) {
         em.merge(cropCategory);
+        this.notifyUpdateOfOrganisms();
     }
 
     public List<Organism> findOrganismsByLatinNames(List<String> latinNames) {
@@ -499,5 +509,23 @@ public class OrganismBean {
                 .setParameter("localNames", localNames)
                 .setParameter("locale", locale)
                 .getResultList();
+    }
+    
+    /**
+     * The purpose of this was originally to give information to e.g. the VIPS Observation App
+     * that a synchronization is required
+     */
+    public void notifyUpdateOfOrganisms() {
+    	DbUpdate cropCategoriesAndOrganisms = em.find(DbUpdate.class, DbUpdate.CROP_CATEGORIES_AND_ORGANISMS);
+    	cropCategoriesAndOrganisms.setLastUpdate(new Date());
+    }
+    
+    /**
+     * The purpose of this was originally to give information to e.g. the VIPS Observation App
+     * that a synchronization is required
+     */
+    public Instant getLatestUpdateOfOrganisms() {
+    	DbUpdate cropCategoriesAndOrganisms = em.find(DbUpdate.class, DbUpdate.CROP_CATEGORIES_AND_ORGANISMS);
+    	return cropCategoriesAndOrganisms.getLastUpdate() != null ? cropCategoriesAndOrganisms.getLastUpdate().toInstant() : null;
     }
 }

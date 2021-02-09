@@ -76,6 +76,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
         resources.add(no.nibio.vips.logic.modules.roughage.RoughageService.class);
         resources.add(no.nibio.vips.logic.modules.wheatleafblotch.WheatLeafBlotchModelService.class);
+        resources.add(no.nibio.vips.logic.service.AuthenticationService.class);
         resources.add(no.nibio.vips.logic.service.GrowthStageService.class);
         resources.add(no.nibio.vips.logic.service.JSONBConfig.class);
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);

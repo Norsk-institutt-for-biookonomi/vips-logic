@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -451,18 +453,16 @@ public class ObservationService {
     /**
      * When was the last time a change was made in cropCategories or organisms?
      * 
-     * @responseExample application/json {"lastUpdated": "2021-02-08"}
+     * @responseExample application/json {"lastUpdated": "2021-02-08T00:00:00Z"}
      */
     @GET
     @Path("organismsystemupdated")
     @Produces(MediaType.APPLICATION_JSON)
-    
     public Response getDateOfLastOrganismSystemUpdate()
     {
-    	ObjectMapper objectMapper = new ObjectMapper();
-    	ObjectNode result = objectMapper.createObjectNode();
-    	LocalDate lastUpdated = LocalDate.now();
-    	result.put("lastUpdated", lastUpdated.toString());
+    	HashMap<String, Object> result = new HashMap<>();
+    	Instant lastUpdated = SessionControllerGetter.getOrganismBean().getLatestUpdateOfOrganisms();
+    	result.put("lastUpdated", lastUpdated != null ? lastUpdated: "1970-01-01T00:00:00Z");
     	return Response.ok().entity(result).build();
     }
     
