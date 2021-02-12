@@ -60,9 +60,9 @@
 	å opprette tilgang i systemet for registrantene. Etter dette får registrantene 
 	innloggingsadgang tilsendt per epost. Se utdypende informasjon i 
 	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
-	Barkbillefylkeskontakter</a> (se også 
+	Barkbillefylkeskontakter</a> og <a href="https://vimeo.com/511036698" target="new">instruksjonsvideo</a> (se også 
 	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks 
-	Registranter</a> for å forstå deres oppgaver).</p>
+	Registranter</a> og <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a> for å forstå deres oppgaver).</p>
 	
 	<p><strong>Registranter</strong> må oppdatere informasjon under «Endre lokalitetsinfo» for 
 	sin(e) lokalitet(er) så snart som mulig og sørge for at feller blir montert 
@@ -74,7 +74,7 @@
 	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks 
 	Registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
-	Beka-felle</a></p>
+	Beka-felle</a>, samt <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a></p>
 	</div>
 	<div class="col-md-1">
 	<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 250px;"/>
