@@ -184,7 +184,7 @@
 		Se utdypende informasjon i 
 		<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a> 
 		og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
-	Beka-felle</a>
+	Beka-felle</a>, samt <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a>.
 	   </p>
 	   <!--p>Merk at fylkesnr, fylkesnavn, kommunenr og kommunenavn som genereres er 
 	   fra før sammenslåinger (2012). Registrant sørger bare for riktig plassering i kart.
