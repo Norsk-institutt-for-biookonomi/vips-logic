@@ -38,3 +38,6 @@ Crops, pests, diseases and weeds are all organisms subject to [classification](h
 
 ### Crop categories
 Each organization (NIBIO, Jordbruksverket, ADAS etc.) has their own set of crop categories. They can be e.g. cereals, fruit, vegetables. Each of these links to one or more organisms.
+
+### Field observations
+An Observation is a registration of a pest in space and time.

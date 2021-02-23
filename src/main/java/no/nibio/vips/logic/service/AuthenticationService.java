@@ -100,7 +100,7 @@ public class AuthenticationService {
 	}
 	
 	/**
-	 * 
+	 * Provide the UUID as the contents of the Authorization header
 	 * @return The VIPSLogic user associated with this uuid, or 404 if not found
 	 */
 	@GET

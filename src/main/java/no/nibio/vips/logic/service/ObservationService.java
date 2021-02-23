@@ -49,8 +49,11 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.PolygonService;
@@ -275,6 +278,29 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     public Response getObservations(@PathParam("organizationId") Integer organizationId){
         return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
+    }
+    
+    /**
+     * Get observations for a user
+     * Requires a valid UUID to be provided in the Authorization header
+     * @return
+     */
+    @GET
+    @Path("list/user")
+    @Produces("application/json;charset=UTF-8")
+    public Response getObservationsForUser()
+    {
+    	String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+		UUID uuid = UUID.fromString(uuidStr);
+		VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+		if(user != null)
+		{
+			return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservationsForUser(user)).build();
+		}
+		else
+		{
+			return Response.status(Status.NOT_FOUND).build();
+		}
     }
     
     /**
