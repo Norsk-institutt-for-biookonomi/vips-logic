@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -52,8 +54,12 @@ import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherObservationListException;
 import no.nibio.vips.util.WeatherUtil;
+import no.nibio.vips.util.weather.ParseWeatherDataException;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
+import no.nibio.vips.util.weather.WeatherForecastProvider;
+import no.nibio.vips.util.weather.WeatherStationProviderFactory;
+import no.nibio.vips.util.weather.YrWeatherForecastProvider;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -160,11 +166,11 @@ public class RoughageService {
         } catch (WeatherDataSourceException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
         }
-        
+
         // If we're still in the season, add forecasts
         if(dateOfLastWeatherData.before(endOfSeptember) )
         {
-            // We must do some special adjustmens to get weather forecasts from 3-9 days in 
+            // We must do some special adjustments to get weather forecasts from 3-9 days in 
             // the future
             // For EPP and Q0 we simply add the last value
             //System.out.println("observations.size=" + observations.size());
@@ -191,8 +197,10 @@ public class RoughageService {
                 lastQ0Date = newQ0.getTimeMeasured();
             }
 
-            // For TM and RR we get long time forecasts from LMT (Norwegian service only)
+            // For TM and RR we get long time forecasts from the Norwegian Met office's
+            // Locationforecast API via VIPS Weather Proxy
             try {
+
                 //System.out.println("dateOfLastWeatherData=" + dateOfLastWeatherData + ", last TM dated " + wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured());
                 cal.setTime(wUtil.getLastObservations(observations, "TM", 1).get(0).getTimeMeasured());
                 cal.add(Calendar.DATE, 1);
@@ -201,47 +209,41 @@ public class RoughageService {
                 // weather data that you asked for. So skip getting the long time forecasts
                 if(dateOfLastWeatherData.after(firstLongTermForecastTime))
                 {
-                    String[] TMel = {"TM"};
-                    List<WeatherObservation> TMLongTime = wsdUtil.getWeatherObservations(
-                            "http://lmt.nibio.no/agrometbase/export/getLongTermForecastVIPSJSONWeatherData.php?weatherStationId=" + weatherStation.getWeatherStationRemoteId(), 
-                            1, 
-                            TMel, 
-                            firstLongTermForecastTime, 
-                            dateOfLastWeatherData, 
-                            timeZone,
-                            false
-                    );
-                    Collections.sort(TMLongTime);
-                    TMLongTime = wUtil.fillHourlyHolesBruteForce(TMLongTime, WeatherUtil.AGGREGATION_TYPE_AVERAGE, firstLongTermForecastTime, dateOfLastWeatherData);
+                	WeatherForecastProvider forecastProvider = WeatherStationProviderFactory.getWeatherForecastProvider(WeatherStationProviderFactory.YR);
+                	// This list has TM and RR from "Now". We only want the long time ones
+                    List<WeatherObservation> forecasts = forecastProvider.getWeatherForecasts(weatherStation);
+                    List<WeatherObservation> TMLongTime = forecasts.stream().filter(obs->{
+                    	return	obs.getElementMeasurementTypeId().equals("TM")
+                    		&&	obs.getTimeMeasured().compareTo(firstLongTermForecastTime) >= 0
+                    		;
+                    	
+                    }).collect(Collectors.toList());
+                    
+                    List<WeatherObservation> RRLongTime = forecasts.stream().filter(obs->{
+                    	return	obs.getElementMeasurementTypeId().equals("RR")
+                    		&&	obs.getTimeMeasured().compareTo(firstLongTermForecastTime) >= 0
+                    		;
+                    	
+                    }).collect(Collectors.toList());
+                    
+                    
 
-                    /*for(WeatherObservation obs:TMLongTime)
+                    Collections.sort(TMLongTime);
+                    
+                    for(WeatherObservation obs:TMLongTime)
                     {
                         if(obs.getElementMeasurementTypeId().equals("TM"))
                         {
                             System.out.println(obs);
                         }
-                    }*/
+                    }
 
+                    
                     List<WeatherObservation> TMDLongTime = wUtil.getAggregatedDailyValues(TMLongTime, timeZone, 15, WeatherUtil.AGGREGATION_TYPE_AVERAGE);
                     if(TMDLongTime != null)
                     {
                         observations.addAll(TMDLongTime);
                     }
-
-
-
-                    String[] RRel = {"RR"};
-                    List<WeatherObservation> RRLongTime = wsdUtil.getWeatherObservations(
-                            "http://lmt.nibio.no/agrometbase/export/getLongTermForecastVIPSJSONWeatherData.php?weatherStationId=" + weatherStation.getWeatherStationRemoteId(), 
-                            1, 
-                            RRel, 
-                            firstLongTermForecastTime, 
-                            dateOfLastWeatherData, 
-                            timeZone,
-                            false
-                    );
-
-                    RRLongTime = wUtil.fillHourlyHolesBruteForce(RRLongTime, WeatherUtil.AGGREGATION_TYPE_SUM, firstLongTermForecastTime, dateOfLastWeatherData);
 
                     List<WeatherObservation> RRDLongTime = wUtil.getAggregatedDailyValues(RRLongTime, timeZone, 15, WeatherUtil.AGGREGATION_TYPE_SUM);
                     if(RRDLongTime != null)
@@ -250,7 +252,7 @@ public class RoughageService {
                     }
                 }
             }
-            catch(WeatherDataSourceException | InvalidAggregationTypeException | WeatherObservationListException ex)
+            catch(InvalidAggregationTypeException | WeatherObservationListException | ParseWeatherDataException ex)
             {
                 ex.printStackTrace();
                 // ? DO WHAT ?
