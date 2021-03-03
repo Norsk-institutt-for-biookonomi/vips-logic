@@ -28,6 +28,7 @@
 	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/proj4.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript">
 		var theForm = document.getElementById("${formId}"); 
 		$(document).ready(function() {
@@ -95,8 +96,8 @@
 			)
 			.catch( error => console.info(error));
 			
-			// Get County and municipality from before 2012
-			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/2019?lon=" + lon + "&lat=" + lat)
+			// Get County and municipality from before 2018
+			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/2017?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())
 			.then(municInfo =>{
 					if(municInfo.length == 0)
