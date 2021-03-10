@@ -113,17 +113,17 @@ public class RoughageService {
         // Start is April 1st
         Calendar cal = Calendar.getInstance(timeZone);
         cal.setTime(firstHarvest);
-        cal.set(Calendar.MONTH, Calendar.APRIL);
+        cal.set(Calendar.MONTH, Calendar.MARCH);
         cal.set(Calendar.DATE, 1);
 
         WeatherUtil wUtil = new WeatherUtil();
-        Date aprilFirst = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
+        Date marchFirst = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
 
         // End date for weather data depends on season
         // We try September 30th. If that's in the future,
         // We add 10 days to today
         Date dateOfLastWeatherData;
-        cal.setTime(aprilFirst);
+        cal.setTime(marchFirst);
         cal.set(Calendar.MONTH, Calendar.SEPTEMBER);
         cal.set(Calendar.DATE, 30);
         Date endOfSeptember = cal.getTime();
@@ -154,7 +154,7 @@ public class RoughageService {
                         WeatherElements.SOIL_TEMPERATURE_10CM_MEAN,
                         WeatherElements.POTENTIAL_EVAPORATION
                     },
-                    aprilFirst, 
+                    marchFirst, 
                     dateOfLastWeatherData
             );
         } catch (WeatherDataSourceException ex) {
@@ -414,7 +414,7 @@ public class RoughageService {
                         WeatherElements.SOIL_TEMPERATURE_10CM_MEAN,
                         WeatherElements.POTENTIAL_EVAPORATION
                     },
-                    aprilFirst, 
+                    marchFirst, 
                     //dateOfLastWeatherData
                     latestObsDate
                 );
