@@ -27,14 +27,30 @@ import de.micromata.opengis.kml.v_2_2_0.LabelStyle;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Units;
 import de.micromata.opengis.kml.v_2_2_0.Vec2;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
+
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
@@ -307,5 +323,99 @@ public class BarkbeetleBean {
 	public void setMaintenanceCompleted(Integer seasonTrapsiteId, boolean isMaintenanceCompleted) {
 		SeasonTrapsite site = em.find(SeasonTrapsite.class, seasonTrapsiteId);
 		site.setMaintenanceCompleted(isMaintenanceCompleted);
+	}
+	
+	public String getSeasonTrapsitesReportCsv(Integer season)
+	{
+		Integer[] weeks = {21,24,28,33};
+		List<SeasonTrapsite> seasonTrapsites = this.getSeasonTrapsites(season);
+		String[] heading = {
+				"Fylke",
+				"Fylkesnr",
+				"Kommune",
+				"Kommunenr",
+				"Registrant",
+				"Tel-registrant",
+				"Epost-registrant",
+				"Eier",
+				"Tel-eier",
+				"Høyde o.h.",
+				"UTM32N",
+				"UTM32E",
+				"Breddegrad",
+				"Lengdegrad",
+				"Uke",
+				"Dato",
+				"BEKA1",
+				"BEKA2",
+				"BEKA3",
+				"BEKA4",
+				"SNITT"
+		};
+		
+		String csv = String.join(",", heading) + "\n";
+		for(SeasonTrapsite st:seasonTrapsites) {
+			org.locationtech.jts.geom.Coordinate UMT32coord = this.getUTMCoordinate(st.getLongitude(), st.getLatitude());
+			String[] stInfo = {
+					
+					st.getCounty2012Name(),
+					st.getCounty2012No() != null ? st.getCounty2012No().toString() : "",
+					st.getMunicipality2012Name(),
+					st.getMunicipality2012No() != null ? st.getMunicipality2012No().toString() : "",
+					st.getUserId().getFirstName() + " " + st.getUserId().getLastName(),
+					st.getUserId().getPhone(),
+					st.getUserId().getEmail(),
+					st.getOwnerName(),
+					st.getOwnerPhone() != null ? st.getOwnerPhone() : "",
+					st.getAltitude() != null ? st.getAltitude().toString() : "",
+					UMT32coord != null ? String.valueOf(UMT32coord.getY()) : "",
+					UMT32coord != null ? String.valueOf(UMT32coord.getX()) : "",
+					st.getLatitude().toString(),
+					st.getLongitude().toString()
+			};
+			String[] emptyCells = new String[14];
+			Arrays.fill(emptyCells, "");
+			Collection<TrapsiteRegistration> regs = st.getTrapsiteRegistrationCollection();
+			Map<Integer, String[]> regsPerWeek = new HashMap<>();
+			for(TrapsiteRegistration r:regs)
+			{
+				String[] stDataWeek = {
+						r.getTrapsiteRegistrationPK().getWeek().toString(),
+						r.getDateRegistration().toString(), // TODO Format
+						r.getTrap1() != null ? r.getTrap1().toString() : "M",
+						r.getTrap2() != null ? r.getTrap2().toString() : "M",
+						r.getTrap3() != null ? r.getTrap3().toString() : "M",
+						r.getTrap4() != null ? r.getTrap4().toString() : "M",
+						r.getRegistrationAverage() != null ? r.getRegistrationAverage().toString() : ""
+				};
+				regsPerWeek.put(r.getTrapsiteRegistrationPK().getWeek(), stDataWeek);
+			}
+		
+			String[][] trapSiteLines = new String[4][23];
+			Integer counter = 0;
+			for(Integer week:weeks)
+			{
+				List<String> trapSiteLine = new ArrayList(Arrays.asList(week.equals(21) ? stInfo:emptyCells)); 
+				trapSiteLine.addAll(Arrays.asList(regsPerWeek.get(week) != null ? regsPerWeek.get(week) : new String[7]));
+				csv += String.join(",",trapSiteLine.toArray(new String[0])) + "\n";
+
+			}
+		}
+		
+		return csv;
+	}
+	
+	public org.locationtech.jts.geom.Coordinate getUTMCoordinate(Double longitude, Double latitude)
+	{
+		try {
+			CoordinateReferenceSystem fromCRS = CRS.decode("EPSG:4326");
+	        CoordinateReferenceSystem toCRS = CRS.decode("EPSG:2077");
+	        MathTransform transform = CRS.findMathTransform(fromCRS, toCRS, true);
+	        // For some reason the x/y coordinates have to be switched to make this work. Beats me!
+	        return (org.locationtech.jts.geom.Coordinate) JTS.transform(new org.locationtech.jts.geom.Coordinate(latitude, longitude), null, transform);
+		} catch (FactoryException | TransformException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

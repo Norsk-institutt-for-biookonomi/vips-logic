@@ -67,6 +67,16 @@ public class BarkbeetleService {
         return Response.ok().entity(BarkbeetleBean.getInstance().getSeasonTrapsitesStatusKml(season, ServletUtil.getServerName(httpServletRequest))).build();
     }
     
+    @GET
+    @Path("report/seasontrapsites/{season}")
+    @Produces("text/csv")
+    public Response getSeasonTrapsitesReport(@PathParam("season") Integer season)
+    {
+    	
+    	String csv = BarkbeetleBean.getInstance().getSeasonTrapsitesReportCsv(season);
+    	return Response.ok().entity(csv).build();
+    }
+    
     /**
      * 
      * @param seasonTrapsiteId
