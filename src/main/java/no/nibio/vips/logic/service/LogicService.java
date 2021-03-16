@@ -52,6 +52,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
@@ -718,12 +719,19 @@ public class LogicService {
      * @return 
      */
     @GET
-    @Path("poi/user/")
+    @Path("poi/user")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     public Response getPoisForCurrentUser()
     {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        // Could be the VIPS obs app or some other client using UUID
+        if(user == null)
+        {
+        	String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+    		UUID uuid = UUID.fromString(uuidStr);
+    		user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+        }
         List<PointOfInterest> retVal = SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user);
         return Response.ok().entity(retVal).build();
     }
