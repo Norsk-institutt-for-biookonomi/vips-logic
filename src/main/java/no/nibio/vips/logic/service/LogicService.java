@@ -715,7 +715,7 @@ public class LogicService {
     }
     
     /**
-     * 
+     * If used outside of VIPSLogic: Requires a valid UUID to be provided in the Authorization header
      * @return 
      */
     @GET
