@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -52,7 +53,7 @@ import org.xml.sax.SAXException;
  */
 public class YrWeatherForecastProvider implements WeatherForecastProvider{
 
-    private final static String YR_API_URL = "https://api.met.no/weatherapi/locationforecast/1.9/?lat={0};lon={1};msl={2}";
+    private final static String YR_API_URL = "https://api.met.no/weatherapi/locationforecast/2.0/classic?lat={0}&lon={1}";
     
     @Override
     public List<WeatherObservation> getWeatherForecasts(PointOfInterest location) throws ParseWeatherDataException 
@@ -76,9 +77,13 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
             yrURL = new URL(MessageFormat.format(
                     YrWeatherForecastProvider.YR_API_URL, 
                     latitude,
-                    longitude,
-                    altitude.intValue())
+                    longitude)
             );
+            
+            URLConnection connection = yrURL.openConnection();
+            connection.setRequestProperty("User-Agent", "www.vips-landbruk.no vips@nibio.no");
+            connection.addRequestProperty("accept", "application/xml");
+            connection.connect();
             
             //System.out.println("yrURL=" + yrURL.toString());
             //System.out.println(getStringFromInputStream(yrURL.openStream()));
@@ -87,7 +92,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
             // TODO: Parse with DOM parser
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(yrURL.openStream());
+            Document doc = db.parse(connection.getInputStream());
             NodeList nodes = doc.getElementsByTagName("time");
             Long hourDelta = 3600l * 1000l;
             Long threeHoursDelta = 3 * hourDelta;
