@@ -122,12 +122,21 @@
 		
 		proj4.defs([
 			  [
-				'EPSG:2077',
-				'+proj=utm +zone=32 +ellps=intl +units=m +no_defs '],
+				'EPSG:25832',
+				'+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs '
+			  ],
 			  [
-				'EPSG:2078',
-				'+proj=utm +zone=33 +ellps=intl +units=m +no_defs '
-			  ]
+				'EPSG:25833',
+				'+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs '
+			  ],
+			  [
+				'EPSG:32632',
+				'+proj=utm +zone=32 +ellps=WGS84 +datum=WGS84 +units=m +no_defs '
+			  ],
+			  [
+				'EPSG:32633',
+				'+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs '
+			  ],
 			]);
 		
 		function convertProjection()
@@ -317,8 +326,8 @@
 					<label for="manualLocationProjection">Koordinatsystem</label>
 					<select name="manualLocationProjection" id="projFromEPSG" onchange="showGisGeom();">
 						<option value="EPSG:4326" selected>Desimalgrader (WGS84)</option>
-						<option value="EPSG:2077">UTM Sone 32N</option>
-						<option value="EPSG:2078">UTM Sone 33N</option>
+						<option value="EPSG:32632">UTM Sone 32N</option>
+						<option value="EPSG:32633">UTM Sone 33N</option>
 					</select>
 				</div>
 				<div class="form-group">

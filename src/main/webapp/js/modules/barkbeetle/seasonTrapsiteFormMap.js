@@ -96,7 +96,7 @@
  
  function updateLocationPosition(coordinate)
 {
-    var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, map.getView().getProjection().getCode(), 'EPSG:4326'),4);
+    var locationPosition = ol.coordinate.toStringXY(ol.proj.transform(coordinate, map.getView().getProjection().getCode(), 'EPSG:4326'),5);
     // Set/move location pin
     trapMarker.setPosition(coordinate);
     // Update form field "location"
