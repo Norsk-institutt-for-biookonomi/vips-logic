@@ -75,6 +75,9 @@
 	Registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a>, samt <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a></p>
+	<p>
+	<a href="https://www.nibio.no/tema/skog/barkbilleovervaking" target="new">Her</a> kan du følge med på resultatene for barkbilleovervåkingen.
+	</p>
 	</div>
 	<div class="col-md-1">
 	<img src="/images/modules/barkbeetle/Bilde_BEKA_felle.jpg" style="height: 250px;"/>
