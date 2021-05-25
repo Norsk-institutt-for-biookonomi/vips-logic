@@ -28,7 +28,9 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -253,10 +255,14 @@ public class BarkbeetleController extends HttpServlet {
                     {
                         // Build all objects, send to bean for storage
                         // If date is set, the row is valid for storage
-                        List<TrapsiteRegistration> registrations = new ArrayList();
-                        request.getParameterNames().asIterator().forEachRemaining(parameterName->{
+                        List<TrapsiteRegistration> registrations = new ArrayList<>();
+                        Enumeration<String> e = request.getParameterNames();
+                        while(e.hasMoreElements())
+                        {
+                        	String parameterName = e.nextElement();
                             if(parameterName.contains("dateRegistration") && !request.getParameter(parameterName).isBlank())
                             {
+                            	
                                 Integer week = Integer.valueOf(parameterName.split("_")[0]);
                                 TrapsiteRegistration tr = new TrapsiteRegistration();
                                 tr.setTrapsiteRegistrationPK(new TrapsiteRegistrationPK(trapsite.getSeasonTrapsiteId(), week));
@@ -287,8 +293,8 @@ public class BarkbeetleController extends HttpServlet {
                                 
                                 registrations.add(tr);
                             }
-                        });
-                        BarkbeetleBean.getInstance().storeTrapsiteRegistrations(trapsite.getSeasonTrapsiteId(), registrations);
+                        }
+                        trapsite = BarkbeetleBean.getInstance().storeTrapsiteRegistrations(trapsite.getSeasonTrapsiteId(), registrations);
                         // Also, store the observedAttacksDescription on the SeasonTrapsite object
                         trapsite.setObservedAttacksDescription(request.getParameter("observedAttacksDescription"));
                         trapsite.setMaintenanceDescription(request.getParameter("maintenanceDescription"));

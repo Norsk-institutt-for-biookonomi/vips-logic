@@ -149,6 +149,12 @@ public class BarkbeetleBean {
         return em.createNamedQuery("RegistrationStatusType.findAll").getResultList();
     }
 
+    /**
+     * Replaces the old set with a new one
+     * @param seasonTrapsiteId
+     * @param registrations
+     * @return
+     */
     public SeasonTrapsite storeTrapsiteRegistrations(Integer seasonTrapsiteId, List<TrapsiteRegistration> registrations) {
         SeasonTrapsite trapsite = em.find(SeasonTrapsite.class, seasonTrapsiteId);
         trapsite.setTrapsiteRegistrationCollection(registrations);
