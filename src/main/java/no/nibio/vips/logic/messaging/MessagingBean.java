@@ -25,6 +25,7 @@ import com.ibm.icu.text.MessageFormat;
 import com.ibm.icu.util.ULocale;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -136,9 +137,13 @@ public class MessagingBean {
         return uMessage;
     }
 
+    /**
+     * Based on the message characteristics (type(s) of message and what crop(s) it concerns), 
+     * pull the subscribing users from the database
+     * @param message
+     * @return
+     */
     private List<MessageRecipient> getMessageNotificationSubscribers(Message message) {
-        
-        // TODO??? also filter by crops??
         String sql = 
         
                 "SELECT \n" +
@@ -150,22 +155,22 @@ public class MessagingBean {
                 "           WHEN " + UniversalMessageFormat.FORMAT_SMS + " THEN u.phone " +
                 "           ELSE '' " +
                 "       END AS msg_delivery_address, \n" + // Needs update as more options are added
-                "	u.first_name || ' ' || u.last_name AS name,\n" +
-                "	u.user_id AS recipient_id\n" +
-                "FROM public.vips_logic_user u, messaging.message_notification_subscription mns, messaging.universal_message_format umf\n" +
-                "WHERE mns.user_id=u.user_id\n" +
-                "AND mns.universal_message_format_id = umf.universal_message_format_id\n" +
-                "AND u.user_id IN (\n" +
+                "	u.first_name || ' ' || u.last_name AS name, \n" +
+                "	u.user_id AS recipient_id \n" +
+                "FROM public.vips_logic_user u, messaging.message_notification_subscription mns, messaging.universal_message_format umf \n" +
+                "WHERE mns.user_id=u.user_id \n" +
+                "AND mns.universal_message_format_id = umf.universal_message_format_id \n" +
+                "AND u.user_id IN ( \n" +
                 "	SELECT mns.user_id FROM messaging.message_notification_subscription mns, public.vips_logic_user u \n" +
-                "	WHERE  mns.user_id = u.user_id " +
+                "	WHERE  mns.user_id = u.user_id \n" +
+                (message.getCropCategoryIds() != null && message.getCropCategoryIds().length != 0 ? "       AND mns.crop_category_ids && ARRAY" + Arrays.asList(message.getCropCategoryIds()).toString() + " \n" : "") +
                 (message.getMessageTagIds() != null && !message.getMessageTagIds().isEmpty() ? "       AND mns.message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" : "" )+ // && is the array_overlaps operator
                 "       AND (mns.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (mns.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
-                ");\n";
-
+                "); \n";
+        //System.out.println(sql);
         Query q = em.createNativeQuery(sql,
                 MessageRecipient.class);
         
-        //q.setParameter("messageTagIds", message.getMessageTagIds());
         return q.getResultList();
     }
     
