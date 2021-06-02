@@ -356,7 +356,8 @@ public class BarkbeetleBean {
 				"BEKA2",
 				"BEKA3",
 				"BEKA4",
-				"SNITT"
+				"SNITT",
+				"Angrep"
 		};
 		
 		String csv = String.join(",", heading) + "\n";
@@ -403,9 +404,12 @@ public class BarkbeetleBean {
 			{
 				List<String> trapSiteLine = new ArrayList(Arrays.asList(week.equals(21) ? stInfo:emptyCells)); 
 				trapSiteLine.addAll(Arrays.asList(regsPerWeek.get(week) != null ? regsPerWeek.get(week) : new String[7]));
-				csv += String.join(",",trapSiteLine.toArray(new String[0])) + "\n";
-
+				csv += String.join(",",trapSiteLine.toArray(new String[0]));
+				csv += "," + (week.equals(21) ? 
+						st.getObservedAttacksDescription() != null ? st.getObservedAttacksDescription() : "" 
+						: "") + "\n";
 			}
+			
 		}
 		
 		return csv;
