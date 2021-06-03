@@ -62,71 +62,73 @@
 		<div class="row">
 		<form id="trapsiteRegistrationForm" action="/barkbeetle?action=trapsiteRegistrationFormSubmit" method="post" onsubmit="try{ return validateForm(this);}catch(e){console.info(e);return false;}">
 		<input type="hidden" name="seasonTrapsiteId" value="${seasonTrapsite.seasonTrapsiteId}"/>
-		<table class="table table-striped">
-			<thead>
-				<th></th>
-				<th></th>
-				<th colspan="2">BEKAFelle 1</th>
-				<th colspan="2">BEKAFelle 2</th>
-				<th colspan="2">BEKAFelle 3</th>
-				<th colspan="2">BEKAFelle 4</th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<#if userIsAdmin><th></th></#if>
-			</thead>
-			<thead>
-				<th>Tømmeuke (periode)</th>
-				<th>Tømmedato</th>
-				<th>ml</th>
-				<th>antall</th>
-				<th>ml</th>
-				<th>antall</th>
-				<th>ml</th>
-				<th>antall</th>
-				<th>ml</th>
-				<th>antall</th>
-				<#if userIsAdmin><th>Status</th></#if>
-			</thead>
-			
-			<tbody>
-			<#list trapsiteRegistrations as reg>
-			    <#assign tooEarly = reg.trapsiteRegistrationPK.week gt currentWeek && ! (currentWeek == 27 && reg.trapsiteRegistrationPK.week == 28)>
-				<tr>
-					<td rowspan="2">${reg.trapsiteRegistrationPK.week} (${reg?counter})</td>
-					<td rowspan="2"><input class="form-control" type="date" name="${reg.trapsiteRegistrationPK.week}_dateRegistration" value="${reg.dateRegistration!""}"<#if tooEarly> disabled="disabled"<#else> required="required"</#if>/></td>
-					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap1_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="text" onblur="validateRegField(this, true);" name="${reg.trapsiteRegistrationPK.week}_trap1" value="${reg.trap1!"M"}"<#if tooEarly> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap2_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap2" value="${reg.trap2!"M"}"<#if tooEarly> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap3_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3" value="${reg.trap3!"M"}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="number" name="${reg.trapsiteRegistrationPK.week}_trap4_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
-					<td><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4" value="${reg.trap4!"M"}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
-					
-					<td rowspan="2">
-					<#if reg.dateRegistration?has_content>
-						<#if userIsAdmin>
-							<select class="form-control status_${reg.registrationStatusTypeId}" name="${reg.trapsiteRegistrationPK.week}_registrationStatusTypeId" onchange="this.className='form-control status_' + this.options[this.selectedIndex].value;">
-							<#list registrationStatusTypes as registrationStatusType>
-								<option class="status_${registrationStatusType.registrationStatusTypeId}" value="${registrationStatusType.registrationStatusTypeId}"
-								<#if reg.registrationStatusTypeId?has_content && reg.registrationStatusTypeId==registrationStatusType.registrationStatusTypeId>selected="selected"</#if>
-								>${registrationStatusType.title}</option>
-							</#list>
-							</select>
-						</#if>
-					</#if></td>
-				</tr>
-				<tr>
-					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap1Remarks" placeholder="Kommentar felle 1" value="${reg.trap1Remarks!""}"<#if tooEarly> disabled="disabled"</#if>/></td>
-					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap2Remarks" placeholder="Kommentar felle 2" value="${reg.trap2Remarks!""}"<#if tooEarly> disabled="disabled"</#if>/></td>
-					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3Remarks" placeholder="Kommentar felle 3" value="${reg.trap3Remarks!""}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
-					<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4Remarks" placeholder="Kommentar felle 4" value="${reg.trap4Remarks!""}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
-
-				</tr>
-			</#list>
-			</tbody>
-		</table>
+		<div class="table-responsive">
+			<table class="table table-striped">
+				<thead>
+					<th></th>
+					<th></th>
+					<th colspan="2">BEKAFelle 1</th>
+					<th colspan="2">BEKAFelle 2</th>
+					<th colspan="2">BEKAFelle 3</th>
+					<th colspan="2">BEKAFelle 4</th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<#if userIsAdmin><th></th></#if>
+				</thead>
+				<thead>
+					<th>Tømmeuke (periode)</th>
+					<th>Tømmedato</th>
+					<th>ml</th>
+					<th>antall</th>
+					<th>ml</th>
+					<th>antall</th>
+					<th>ml</th>
+					<th>antall</th>
+					<th>ml</th>
+					<th>antall</th>
+					<#if userIsAdmin><th>Status</th></#if>
+				</thead>
+				
+				<tbody>
+				<#list trapsiteRegistrations as reg>
+				    <#assign tooEarly = reg.trapsiteRegistrationPK.week gt currentWeek && ! (currentWeek == 27 && reg.trapsiteRegistrationPK.week == 28)>
+					<tr>
+						<td rowspan="2">${reg.trapsiteRegistrationPK.week} (${reg?counter})</td>
+						<td rowspan="2"><input class="form-control" type="date" name="${reg.trapsiteRegistrationPK.week}_dateRegistration" value="${reg.dateRegistration!""}"<#if tooEarly> disabled="disabled"<#else> required="required"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="number" name="${reg.trapsiteRegistrationPK.week}_trap1_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly> disabled="disabled"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="text" onblur="validateRegField(this, true);" name="${reg.trapsiteRegistrationPK.week}_trap1" value="${reg.trap1!"M"}"<#if tooEarly> disabled="disabled"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="number" name="${reg.trapsiteRegistrationPK.week}_trap2_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly> disabled="disabled"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="text" name="${reg.trapsiteRegistrationPK.week}_trap2" value="${reg.trap2!"M"}"<#if tooEarly> disabled="disabled"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="number" name="${reg.trapsiteRegistrationPK.week}_trap3_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3" value="${reg.trap3!"M"}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="number" name="${reg.trapsiteRegistrationPK.week}_trap4_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
+						<td><input class="form-control squeezemenot" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4" value="${reg.trap4!"M"}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
+						
+						<td rowspan="2">
+						<#if reg.dateRegistration?has_content>
+							<#if userIsAdmin>
+								<select class="form-control status_${reg.registrationStatusTypeId}" name="${reg.trapsiteRegistrationPK.week}_registrationStatusTypeId" onchange="this.className='form-control status_' + this.options[this.selectedIndex].value;">
+								<#list registrationStatusTypes as registrationStatusType>
+									<option class="status_${registrationStatusType.registrationStatusTypeId}" value="${registrationStatusType.registrationStatusTypeId}"
+									<#if reg.registrationStatusTypeId?has_content && reg.registrationStatusTypeId==registrationStatusType.registrationStatusTypeId>selected="selected"</#if>
+									>${registrationStatusType.title}</option>
+								</#list>
+								</select>
+							</#if>
+						</#if></td>
+					</tr>
+					<tr>
+						<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap1Remarks" placeholder="Kommentar felle 1" value="${reg.trap1Remarks!""}"<#if tooEarly> disabled="disabled"</#if>/></td>
+						<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap2Remarks" placeholder="Kommentar felle 2" value="${reg.trap2Remarks!""}"<#if tooEarly> disabled="disabled"</#if>/></td>
+						<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap3Remarks" placeholder="Kommentar felle 3" value="${reg.trap3Remarks!""}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
+						<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4Remarks" placeholder="Kommentar felle 4" value="${reg.trap4Remarks!""}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
+	
+					</tr>
+				</#list>
+				</tbody>
+			</table>
+		</div>
 		<p>
 		
 		</p>
@@ -256,7 +258,9 @@
 		input.validateFalse {
 			border-color: red; 
 		}
-			
+		input.squeezemenot {
+			min-width: 70px;
+		}	
 	</style>
 </#macro>
 <@page_html/>
