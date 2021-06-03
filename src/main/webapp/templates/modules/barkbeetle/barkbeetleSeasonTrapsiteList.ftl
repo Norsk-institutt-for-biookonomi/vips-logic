@@ -102,7 +102,7 @@
 </p>
 </#if>
 <div class="singleBlockContainer">
-	<div class="row">
+	<div class="row table-responsive">
 	<table class="table table-striped">
 		<thead>
 			<th><div class="input-group">
