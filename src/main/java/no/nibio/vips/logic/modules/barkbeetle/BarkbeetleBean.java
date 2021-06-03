@@ -331,6 +331,134 @@ public class BarkbeetleBean {
 		site.setMaintenanceCompleted(isMaintenanceCompleted);
 	}
 	
+	public String getCountyAverageCsv(Integer season)
+	{
+		Integer[] weeks = {21,24,28,33};
+		List<SeasonTrapsite> seasonTrapsites = this.getSeasonTrapsites(season);
+		String[] heading = {
+				"Fylke",
+				"21_avg",
+				"21_min",
+				"21_max",
+				"24_avg",
+				"24_min",
+				"24_max",
+				"24_tot_avg",
+				"24_tot_min",
+				"24_tot_max",
+				"28_avg",
+				"28_min",
+				"28_max",
+				"28_tot_avg",
+				"28_tot_min",
+				"28_tot_max",
+				"33_avg",
+				"33_min",
+				"33_max",
+				"33_tot_avg",
+				"33_tot_min",
+				"33_tot_max"
+		};
+		
+		String csv = String.join(",", heading) + "\n";
+		
+		// Group by county
+		Map<String, List<SeasonTrapsite>> sitesByCounty = new HashMap<>();
+		for(SeasonTrapsite st:seasonTrapsites)
+		{
+			List<SeasonTrapsite> sitesForCounty = sitesByCounty.get(st.getCounty2012Name().toLowerCase());
+			if(sitesForCounty == null)
+			{
+				sitesForCounty = new ArrayList<>();
+			}
+			sitesForCounty.add(st);
+			sitesByCounty.put(st.getCounty2012Name().toLowerCase(),sitesForCounty);
+		}
+		
+		for(String county:sitesByCounty.keySet())
+		{
+			Map<Integer,Double> countyWeekMin = new HashMap<>();
+			Map<Integer,Double> countyWeekMax = new HashMap<>();
+			Map<Integer,Double> countyWeekAvg = new HashMap<>();
+			Map<Integer,Double> countyWeekSum = new HashMap<>();
+			Map<Integer,Integer> countyWeekSampleSize = new HashMap<>();
+			
+			// TODO Awaiting clarification whether max and min is to be caught from site avg or from single BEKA traps
+			
+			for(SeasonTrapsite st: sitesByCounty.get(county))
+			{
+				Collection<TrapsiteRegistration> regs = st.getTrapsiteRegistrationCollection();
+				for(TrapsiteRegistration reg:regs)
+				{
+					if(reg.getRegistrationAverage() != null)
+					{
+						Integer week = reg.getTrapsiteRegistrationPK().getWeek();
+						// Max
+						countyWeekMax.put(week,countyWeekMax.get(week) != null ? Math.max(countyWeekMax.get(week), reg.getRegistrationAverage()): reg.getRegistrationAverage());
+						// Min
+						countyWeekMin.put(week,countyWeekMin.get(week) != null ? Math.min(countyWeekMin.get(week), reg.getRegistrationAverage()): reg.getRegistrationAverage());
+						// Add to sum and sample size
+						countyWeekSum.put(week, countyWeekSum.get(week) != null ? countyWeekSum.get(week) + reg.getRegistrationAverage() : reg.getRegistrationAverage());
+						countyWeekSampleSize.put(week, countyWeekSampleSize.get(week) != null ? countyWeekSampleSize.get(week) + 1 : 1);
+					}
+				}
+				
+			}
+			
+			csv += county;
+			// Hopefully I'll be able to restructure this to avoid all this repetition....ugh
+			for(Integer week : weeks)
+			{
+				csv += "," + (countyWeekSum.get(week) != null ? Math.round(countyWeekSum.get(week) / countyWeekSampleSize.get(week)) : "")
+					+  "," + (countyWeekMin.get(week) != null ? Math.round(countyWeekMin.get(week)) : "")
+					+  "," + (countyWeekMax.get(week) != null ? Math.round(countyWeekMax.get(week)) : "");
+				if(week == 24)
+				{
+					if(countyWeekSum.get(week) != null)
+					{
+						csv += "," + Math.round(countyWeekSum.get(21) + countyWeekSum.get(24)) / (countyWeekSampleSize.get(21) + countyWeekSampleSize.get(24))
+						     + "," + Math.round(Math.min(countyWeekMin.get(21), countyWeekMin.get(24)))
+						     + "," + Math.round(Math.max(countyWeekMin.get(21), countyWeekMax.get(24)));
+					}
+					else
+					{
+						csv += ",,,";
+					}
+				}
+				if(week == 28)
+				{
+					if(countyWeekSum.get(week) != null)
+					{
+						csv += "," + Math.round(countyWeekSum.get(21) + countyWeekSum.get(24) + countyWeekSum.get(28)) / (countyWeekSampleSize.get(21) + countyWeekSampleSize.get(24) + countyWeekSampleSize.get(28))
+						     + "," + Math.round(Math.min(countyWeekMin.get(21), Math.min(countyWeekMin.get(24),countyWeekMin.get(28))))
+						     + "," + Math.round(Math.max(countyWeekMin.get(21), Math.max(countyWeekMax.get(24),countyWeekMax.get(28))));
+					}
+					else
+					{
+						csv += ",,,";
+					}
+				}
+				if(week == 33)
+				{
+					if(countyWeekSum.get(week) != null)
+					{
+						csv += "," + Math.round(countyWeekSum.get(21) + countyWeekSum.get(24) + countyWeekSum.get(28) + countyWeekSum.get(33)) / (countyWeekSampleSize.get(21) + countyWeekSampleSize.get(24) + countyWeekSampleSize.get(28) + countyWeekSampleSize.get(33))
+						     + "," + Math.round(Math.min(countyWeekMin.get(21), Math.min(countyWeekMin.get(24),Math.min(countyWeekMin.get(28),countyWeekMin.get(33)))))
+						     + "," + Math.round(Math.max(countyWeekMin.get(21), Math.max(countyWeekMax.get(24),Math.max(countyWeekMax.get(28),countyWeekMax.get(33)))));
+					}
+					else
+					{
+						csv += ",,,";
+					}
+				}
+			}
+			csv += "\n";
+		}
+		
+		
+		return csv;
+	}
+	
 	public String getSeasonTrapsitesReportCsv(Integer season)
 	{
 		Integer[] weeks = {21,24,28,33};

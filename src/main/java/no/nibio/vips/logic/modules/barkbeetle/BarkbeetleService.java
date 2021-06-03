@@ -72,8 +72,16 @@ public class BarkbeetleService {
     @Produces("text/csv")
     public Response getSeasonTrapsitesReport(@PathParam("season") Integer season)
     {
-    	
     	String csv = BarkbeetleBean.getInstance().getSeasonTrapsitesReportCsv(season);
+    	return Response.ok().entity(csv).build();
+    }
+    
+    @GET
+    @Path("report/countyaverage/{season}")
+    @Produces("text/csv")
+    public Response getSeasonCountyAverage(@PathParam("season") Integer season)
+    {
+    	String csv = BarkbeetleBean.getInstance().getCountyAverageCsv(season);
     	return Response.ok().entity(csv).build();
     }
     
