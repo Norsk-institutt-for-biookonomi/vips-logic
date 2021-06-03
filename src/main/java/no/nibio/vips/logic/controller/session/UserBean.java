@@ -223,7 +223,7 @@ public class UserBean {
         }
         user = em.find(VipsLogicUser.class, user.getUserId());
         // If it's an archive user, do NOT delete it!
-        if(user.getOrganizationId().getArchiveUser().getUserId().equals(user.getUserId()))
+        if(user.getOrganizationId().getArchiveUser() != null && user.getOrganizationId().getArchiveUser().getUserId().equals(user.getUserId()))
         {
             throw new DeleteUserException("User is an archive user for organization " + user.getOrganizationId().getOrganizationName() + ". Can't delete it");
         }
