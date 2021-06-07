@@ -21,8 +21,12 @@ package no.nibio.vips.logic.scheduling.model.preprocessor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -38,6 +42,7 @@ import no.nibio.vips.observation.Observation;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherObservationListException;
 import no.nibio.vips.util.WeatherUtil;
+import no.nibio.vips.util.XDate;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
@@ -84,7 +89,16 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
             List<WeatherObservation> UM = wUtil.filterWeatherObservationsByParameter(observations, new HashSet(Arrays.asList(WeatherElements.RELATIVE_HUMIDITY_MEAN)));
             if(BT.size() != TM.size())
             {
-                BT = wUtil.calculateLeafWetnessHourSeriesSimple(TM, RR, UM);
+            	// Start calculating BT after last occurence of BT
+            	Collections.sort(BT);
+            	Date lastBTTime = BT.get(BT.size()-1).getTimeMeasured();
+            	
+                BT.addAll(wUtil.calculateLeafWetnessHourSeriesSimple(
+                		TM.stream().filter(o->o.getTimeMeasured().after(lastBTTime)).collect(Collectors.toList()), 
+                		RR.stream().filter(o->o.getTimeMeasured().after(lastBTTime)).collect(Collectors.toList()), 
+                		UM.stream().filter(o->o.getTimeMeasured().after(lastBTTime)).collect(Collectors.toList())
+                		)
+                );
             }
             observations = new ArrayList<>();
             observations.addAll(BT);
