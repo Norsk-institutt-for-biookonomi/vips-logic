@@ -379,12 +379,10 @@ public class BarkbeetleBean {
 		{
 			Map<Integer,Double> countyWeekMin = new HashMap<>();
 			Map<Integer,Double> countyWeekMax = new HashMap<>();
-			Map<Integer,Double> countyWeekAvg = new HashMap<>();
 			Map<Integer,Double> countyWeekSum = new HashMap<>();
 			Map<Integer,Integer> countyWeekSampleSize = new HashMap<>();
 			
-			// TODO Awaiting clarification whether max and min is to be caught from site avg or from single BEKA traps
-			
+			// Max and min are aggregated from site avg (NOT from single BEKA traps)
 			for(SeasonTrapsite st: sitesByCounty.get(county))
 			{
 				Collection<TrapsiteRegistration> regs = st.getTrapsiteRegistrationCollection();
