@@ -364,15 +364,20 @@ public class BarkbeetleBean {
 		
 		// Group by county
 		Map<String, List<SeasonTrapsite>> sitesByCounty = new HashMap<>();
+		
 		for(SeasonTrapsite st:seasonTrapsites)
 		{
-			List<SeasonTrapsite> sitesForCounty = sitesByCounty.get(st.getCounty2012Name().toLowerCase());
+			// Hard coded merging of two counties (Oslo and Akershus)
+			String countyName = st.getCounty2012Name().toLowerCase().equals("oslo") || st.getCounty2012Name().toLowerCase().equals("akershus") ?
+					"oslo og akershus"
+					: st.getCounty2012Name().toLowerCase();
+			List<SeasonTrapsite> sitesForCounty = sitesByCounty.get(countyName);
 			if(sitesForCounty == null)
 			{
 				sitesForCounty = new ArrayList<>();
 			}
 			sitesForCounty.add(st);
-			sitesByCounty.put(st.getCounty2012Name().toLowerCase(),sitesForCounty);
+			sitesByCounty.put(countyName,sitesForCounty);
 		}
 		
 		for(String county:sitesByCounty.keySet())
