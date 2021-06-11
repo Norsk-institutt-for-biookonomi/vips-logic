@@ -85,6 +85,15 @@ public class BarkbeetleService {
     	return Response.ok().entity(csv).build();
     }
     
+    @GET
+    @Path("report/bivolt/{season}")
+    @Produces("text/csv")
+    public Response getLatestBivoltCalculations(@PathParam("season") Integer season)
+    {
+    	String csv = BarkbeetleBean.getInstance().getLatestBivoltCalculations(season);
+    	return Response.ok().entity(csv).build();
+    }
+    
     /**
      * 
      * @param seasonTrapsiteId

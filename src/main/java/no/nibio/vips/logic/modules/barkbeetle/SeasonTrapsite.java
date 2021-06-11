@@ -45,6 +45,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -144,6 +146,10 @@ public class SeasonTrapsite implements Serializable, Comparable {
     private String maintenanceDescription;
     @Column(name = "maintenance_completed")
     private Boolean maintenanceCompleted;
+    
+    @OneToOne(mappedBy = "seasonTrapsite", cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    private SeasonTrapsiteBivolt bivolt;
 
     public SeasonTrapsite() {
     }
@@ -589,5 +595,13 @@ public class SeasonTrapsite implements Serializable, Comparable {
 	public void setMaintenanceCompleted(Boolean maintenanceCompleted) {
 		this.maintenanceCompleted = maintenanceCompleted;
 	}
-    
+
+	public SeasonTrapsiteBivolt getBivolt() {
+		return bivolt;
+	}
+
+	public void setBivolt(SeasonTrapsiteBivolt bivolt) {
+		this.bivolt = bivolt;
+	}
+
 }

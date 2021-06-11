@@ -546,6 +546,42 @@ public class BarkbeetleBean {
 		return csv;
 	}
 	
+	public String getLatestBivoltCalculations(Integer season)
+	{
+		List<SeasonTrapsite> seasonTrapsites = this.getSeasonTrapsites(season);
+		String[] heading = {
+				"Fylke",
+				"Kommune",
+				"Eier",
+				"Siste værdatadato",
+				"gen1_maturity_rate",
+				"gen1_doy",
+				"gen2_maturity_rate",
+				"gen2_doy"
+		};
+		
+		String csv = String.join(",", heading) + "\n";
+		for(SeasonTrapsite st:seasonTrapsites) {
+			csv += st.getCounty2012Name() 
+				+ "," + st.getMunicipality2012Name()
+				+ "," + st.getOwnerName();
+			if(st.getBivolt() != null)
+			{
+				csv += 	"," + st.getBivolt().getDateLastWeatherData()
+						+ "," + st.getBivolt().getGen1MaturityRate() 
+						+ "," + st.getBivolt().getGen1MatureDoy()
+						+ "," + st.getBivolt().getGen2MaturityRate()
+						+ "," + st.getBivolt().getGen1MatureDoy();
+			}
+			else
+			{
+				csv += ",,,,";
+			}
+			csv += "\n";
+		}
+		return csv;
+	}
+	
 	public org.locationtech.jts.geom.Coordinate getUTMCoordinate(Double longitude, Double latitude)
 	{
 		try {
