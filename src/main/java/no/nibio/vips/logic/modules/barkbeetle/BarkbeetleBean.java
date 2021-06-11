@@ -571,7 +571,7 @@ public class BarkbeetleBean {
 						+ "," + st.getBivolt().getGen1MaturityRate() 
 						+ "," + st.getBivolt().getGen1MatureDoy()
 						+ "," + st.getBivolt().getGen2MaturityRate()
-						+ "," + st.getBivolt().getGen1MatureDoy();
+						+ "," + st.getBivolt().getGen2MatureDoy();
 			}
 			else
 			{
