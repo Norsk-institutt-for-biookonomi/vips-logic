@@ -551,7 +551,9 @@ public class BarkbeetleBean {
 		List<SeasonTrapsite> seasonTrapsites = this.getSeasonTrapsites(season);
 		String[] heading = {
 				"Fylke",
+				"Fylkesnr (2012)",
 				"Kommune",
+				"Kommunenr (2012)",
 				"Eier",
 				"Siste værdatadato",
 				"gen1_maturity_rate",
@@ -563,7 +565,9 @@ public class BarkbeetleBean {
 		String csv = String.join(",", heading) + "\n";
 		for(SeasonTrapsite st:seasonTrapsites) {
 			csv += st.getCounty2012Name() 
+				+ "," + st.getCounty2012No()
 				+ "," + st.getMunicipality2012Name()
+				+ "," + st.getMunicipality2012No()
 				+ "," + st.getOwnerName();
 			if(st.getBivolt() != null)
 			{
