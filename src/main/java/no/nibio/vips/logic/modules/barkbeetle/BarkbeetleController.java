@@ -279,7 +279,7 @@ public class BarkbeetleController extends HttpServlet {
                                 tr.setTrap1Remarks(request.getParameter(week + "_trap1Remarks"));
                                 tr.setTrap2Remarks(request.getParameter(week + "_trap2Remarks"));
                                 tr.setTrap3Remarks(request.getParameter(week + "_trap3Remarks"));
-                                tr.setTrap4Remarks(request.getParameter("_trap4Remarks"));
+                                tr.setTrap4Remarks(request.getParameter(week + "_trap4Remarks"));
                                 
                                 String registrationStatusTypeIdFieldValue = request.getParameter(week + "_registrationStatusTypeId");
                                 if(registrationStatusTypeIdFieldValue != null && ! registrationStatusTypeIdFieldValue.isBlank())
