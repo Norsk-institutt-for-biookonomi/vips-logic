@@ -343,21 +343,21 @@ public class BarkbeetleBean {
 				"24_avg",
 				"24_min",
 				"24_max",
-				"24_tot_avg",
-				"24_tot_min",
-				"24_tot_max",
+				"24_akk_avg",
+				"24_akk_min",
+				"24_akk_max",
 				"28_avg",
 				"28_min",
 				"28_max",
-				"28_tot_avg",
-				"28_tot_min",
-				"28_tot_max",
+				"28_akk_avg",
+				"28_akk_min",
+				"28_akk_max",
 				"33_avg",
 				"33_min",
 				"33_max",
-				"33_tot_avg",
-				"33_tot_min",
-				"33_tot_max"
+				"33_akk_avg",
+				"33_akk_min",
+				"33_akk_max"
 		};
 		
 		String csv = String.join(",", heading) + "\n";
@@ -419,7 +419,7 @@ public class BarkbeetleBean {
 				{
 					if(countyWeekSum.get(week) != null)
 					{
-						csv += "," + Math.round(countyWeekSum.get(21) + countyWeekSum.get(24)) / (countyWeekSampleSize.get(21) + countyWeekSampleSize.get(24))
+						csv += "," + Math.round(countyWeekSum.get(21)/countyWeekSampleSize.get(21) + countyWeekSum.get(24)/countyWeekSampleSize.get(24))
 						     + "," + Math.round(Math.min(countyWeekMin.get(21), countyWeekMin.get(24)))
 						     + "," + Math.round(Math.max(countyWeekMin.get(21), countyWeekMax.get(24)));
 					}
@@ -432,7 +432,7 @@ public class BarkbeetleBean {
 				{
 					if(countyWeekSum.get(week) != null)
 					{
-						csv += "," + Math.round(countyWeekSum.get(21) + countyWeekSum.get(24) + countyWeekSum.get(28)) / (countyWeekSampleSize.get(21) + countyWeekSampleSize.get(24) + countyWeekSampleSize.get(28))
+						csv += "," + Math.round(countyWeekSum.get(21)/countyWeekSampleSize.get(21) + countyWeekSum.get(24)/countyWeekSampleSize.get(24) + countyWeekSum.get(28)/countyWeekSampleSize.get(28))
 						     + "," + Math.round(Math.min(countyWeekMin.get(21), Math.min(countyWeekMin.get(24),countyWeekMin.get(28))))
 						     + "," + Math.round(Math.max(countyWeekMin.get(21), Math.max(countyWeekMax.get(24),countyWeekMax.get(28))));
 					}
@@ -445,7 +445,7 @@ public class BarkbeetleBean {
 				{
 					if(countyWeekSum.get(week) != null)
 					{
-						csv += "," + Math.round(countyWeekSum.get(21) + countyWeekSum.get(24) + countyWeekSum.get(28) + countyWeekSum.get(33)) / (countyWeekSampleSize.get(21) + countyWeekSampleSize.get(24) + countyWeekSampleSize.get(28) + countyWeekSampleSize.get(33))
+						csv += "," + Math.round(countyWeekSum.get(21)/countyWeekSampleSize.get(21) + countyWeekSum.get(24)/countyWeekSampleSize.get(24) + countyWeekSum.get(28)/countyWeekSampleSize.get(28) + countyWeekSum.get(33)/countyWeekSampleSize.get(33))
 						     + "," + Math.round(Math.min(countyWeekMin.get(21), Math.min(countyWeekMin.get(24),Math.min(countyWeekMin.get(28),countyWeekMin.get(33)))))
 						     + "," + Math.round(Math.max(countyWeekMin.get(21), Math.max(countyWeekMax.get(24),Math.max(countyWeekMax.get(28),countyWeekMax.get(33)))));
 					}
