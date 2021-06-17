@@ -556,7 +556,7 @@ public class BarkbeetleBean {
 				trapSiteLine.addAll(Arrays.asList(regsPerWeek.get(week) != null ? regsPerWeek.get(week) : new String[7]));
 				csv += String.join(",",trapSiteLine.toArray(new String[0]));
 				csv += "," + (week.equals(21) ? 
-						st.getObservedAttacksDescription() != null ? st.getObservedAttacksDescription() : "" 
+						st.getObservedAttacksDescription() != null ? st.getObservedAttacksDescription().replaceAll("\\r|\\n", ";") : "" 
 						: "") + "\n";
 			}
 			
