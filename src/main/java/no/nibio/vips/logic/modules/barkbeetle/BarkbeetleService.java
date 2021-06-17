@@ -79,6 +79,7 @@ public class BarkbeetleService {
     @GET
     @Path("report/countyaverage/{season}")
     @Produces("text/csv")
+    //@Produces("text/plain")
     public Response getSeasonCountyAverage(@PathParam("season") Integer season)
     {
     	String csv = BarkbeetleBean.getInstance().getCountyAverageCsv(season);
