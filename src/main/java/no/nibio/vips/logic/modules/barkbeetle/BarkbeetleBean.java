@@ -32,9 +32,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -367,7 +370,7 @@ public class BarkbeetleBean {
 		Map<String, List<SeasonTrapsite>> sitesByCounty = new HashMap<>();
 		
 		Map<String,Map<Integer,List<Long>>> countyWeekData = new HashMap<>();
-		
+		Integer latestRegisterWeek = 0;
 		for(SeasonTrapsite st:seasonTrapsites)
 		{
 			// Hard coded merging of two counties (Oslo and Akershus)
@@ -381,10 +384,16 @@ public class BarkbeetleBean {
 			}
 			sitesForCounty.add(st);
 			sitesByCounty.put(countyName,sitesForCounty);
-			
+			for(TrapsiteRegistration reg: st.getTrapsiteRegistrationCollection())
+			{
+				latestRegisterWeek = Math.max(latestRegisterWeek, reg.getTrapsiteRegistrationPK().getWeek());
+			}
 		}
 		
-		
+		if(DEBUG)
+		{
+			System.out.println("Latest week of registration: " + latestRegisterWeek); 
+		}
 		
 		for(String county:sitesByCounty.keySet())
 		{
@@ -402,14 +411,66 @@ public class BarkbeetleBean {
 				List<Long> accData = new ArrayList<>();
 				accWeekTrapsiteResults.put(week, accData);
 			}
-			countyWeekData.put(county, weekTrapsiteResults);
 			
 			for(SeasonTrapsite st: sitesByCounty.get(county))
 			{
-				Collection<TrapsiteRegistration> regs = st.getTrapsiteRegistrationCollection();
+				List<TrapsiteRegistration> regs = new ArrayList<>(st.getTrapsiteRegistrationCollection());
+				// TODO: Only exclude those who are missing earlier weeks than its own maximum!!!
+				// First check: Does it have registrations for all weeks including the latest?
+				Set<Integer> siteWeeks = regs.stream().map(r->r.getTrapsiteRegistrationPK().getWeek()).collect(Collectors.toSet());
+				// Skipping sites without registrations
+				if(siteWeeks.size() == 0)
+				{
+					continue;
+				}
+				
+				// Get the max week of the set
+				Integer maxWeek = siteWeeks.stream().mapToInt(Integer::intValue).max().getAsInt();
+				// Count backwards from it and down to 21
+				boolean hasContinuousWeeks = true;
+				for(int i=weeks.length-1;i>=0;i--)
+				{
+					if(weeks[i] <= maxWeek && !siteWeeks.contains(weeks[i]))
+					{
+						hasContinuousWeeks = false;
+					}
+				}
+				if(!hasContinuousWeeks)
+				{
+					continue;
+				}
+				
+				// Check for null values too
+				boolean hasWeekWithMissingValue = false;
+				Collections.reverse(regs);
+				for(TrapsiteRegistration reg:regs)
+				{
+					if(reg.getRegistrationAverage() == null)
+					{
+						// We accept that the last x registrations are empty, but not anyone before the last
+						// non-empty registration object
+						if(reg.getTrapsiteRegistrationPK().getWeek() == maxWeek && maxWeek >= 21)
+						{
+							maxWeek--;
+						}
+						else
+						{
+							hasWeekWithMissingValue = true;
+							break;
+						}
+					}
+				}
+				
+				if(hasWeekWithMissingValue)
+				{
+					continue;
+				}
+				
+				// All tests passed, start aggregating
 				Long acc24 = 0l;
 				Long acc28 = 0l;
 				Long acc33 = 0l;
+				
 				for(TrapsiteRegistration reg:regs)
 				{
 					if(reg.getRegistrationAverage() != null)
@@ -439,11 +500,23 @@ public class BarkbeetleBean {
 						}
 							
 					}
+					
 				}
+				
 				// Adding accumulations
-				accWeekTrapsiteResults.get(24).add(acc24);
-				accWeekTrapsiteResults.get(28).add(acc28);
-				accWeekTrapsiteResults.get(33).add(acc33);
+				// Only if all previous weeks have registrations
+				if(maxWeek >= 24)
+				{
+					accWeekTrapsiteResults.get(24).add(acc24);
+				}
+				if(maxWeek >= 28)
+				{
+					accWeekTrapsiteResults.get(28).add(acc28);
+				}
+				if(maxWeek == 33)
+				{
+					accWeekTrapsiteResults.get(33).add(acc33);
+				}
 			}
 			
 			csv += county;
