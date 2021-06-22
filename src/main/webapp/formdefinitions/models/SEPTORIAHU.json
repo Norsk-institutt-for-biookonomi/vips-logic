@@ -63,42 +63,50 @@
         {
             "name" : "thresholdRelativeHumidity",
             "dataType" : "DOUBLE",
-            "required" : true
+            "required" : true,
+            "defaultValue":"85"
         },
         {
             "name" : "thresholdLeafWetness",
             "dataType" : "DOUBLE",
-            "required" : true
+            "required" : true,
+            "defaultValue": "30"
         },
         {
             "name" : "thresholdPrecipitation",
             "dataType" : "DOUBLE",
-            "required" : true
+            "required" : true,
+            "defaultValue": "0.2"
         },
         {
             "name" : "slidingHoursPast",
             "dataType" : "INTEGER",
-            "required" : true
+            "required" : true,
+            "defaultValue": "36"
         },
         {
             "name" : "slidingHoursAhead",
             "dataType" : "INTEGER",
-            "required" : true
+            "required" : true,
+            "defaultValue": "36"
         },
         {
             "name" : "thresholdHumidPeriodHours",
             "dataType" : "INTEGER",
-            "required" : true
+            "required" : true,
+            "defaultValue": "20"
         },
         {
             "name" : "sprayingProtectionDays",
             "dataType" : "INTEGER",
-            "required" : true
+            "required" : true,
+            "defaultValue": "10"
         },
         {
             "name" : "leafLifeTime",
             "dataType" : "INTEGER",
-            "required" : true
+            "required" : true,
+            "defaultValue": 75
         }
     ]
 }

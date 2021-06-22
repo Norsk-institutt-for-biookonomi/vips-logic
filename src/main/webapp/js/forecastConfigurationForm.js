@@ -162,7 +162,7 @@ function createFieldHTML(modelId, formId, fieldDefinition)
     if(fieldDefinition.fieldType !== fieldTypes.TYPE_SELECT_SINGLE && fieldDefinition.fieldType !== fieldTypes.TYPE_SELECT_MULTIPLE)
     {
         var inputType = getHTMLInputType(fieldDefinition.dataType);
-        fieldHTML = '<input type="' + inputType + '" class="form-control" name="' + fieldDefinition.name + '" placeholder="' + getI18nMsg(fieldDefinition.name) + '" onblur="validateField(this,\'' + modelId + '\');" />';
+        fieldHTML = '<input type="' + inputType + '" class="form-control" name="' + fieldDefinition.name + '" placeholder="' + getI18nMsg(fieldDefinition.name) + '" onblur="validateField(this,\'' + modelId + '\');" value="' + (fieldDefinition.defaultValue != null ? fieldDefinition.defaultValue : "")  + '" />';
     }
     else if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE || fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_MULTIPLE)
     {
