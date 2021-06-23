@@ -229,7 +229,7 @@ public class RoughageService {
                     
 
                     Collections.sort(TMLongTime);
-                    
+                    /*
                     for(WeatherObservation obs:TMLongTime)
                     {
                         if(obs.getElementMeasurementTypeId().equals("TM"))
@@ -237,7 +237,7 @@ public class RoughageService {
                             System.out.println(obs);
                         }
                     }
-
+                    */
                     
                     List<WeatherObservation> TMDLongTime = wUtil.getAggregatedDailyValues(TMLongTime, timeZone, 15, WeatherUtil.AGGREGATION_TYPE_AVERAGE);
                     if(TMDLongTime != null)
@@ -515,6 +515,11 @@ public class RoughageService {
     {
         Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(timeOfHarvestStr);
         Date timeOfHarvest = cal.getTime();
+        // timeOfHarvest can't be later than "today"
+        if(timeOfHarvest.after(new Date()))
+        {
+        	return Response.status(Response.Status.BAD_REQUEST).entity("Slåttedato kan ikke være senere enn dagens dato når du kjører tørkefartsmodellen").build();
+        }
         cal.add(Calendar.HOUR_OF_DAY, 48);
         Date endTimeGrassDryingModel = cal.getTime();
         
