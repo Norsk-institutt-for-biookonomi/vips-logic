@@ -82,7 +82,7 @@ public class RoughageService {
     @Produces("application/json;charset=UTF-8")
     public Response getWeatherStations()
     {
-        String[] stationNames = {"Apelsvoll","Fureneset","Holt","Kvithamar","Landvik","Løken","Særheim","Tjøtta", "Ås"};
+        String[] stationNames = {"Apelsvoll","Fureneset","Holt","Kvithamar","Landvik","Løken","Særheim","Tingvoll","Tjøtta", "Ås"};
         Query q = em.createNamedQuery("PointOfInterestWeatherStation.findByNames");
         q.setParameter("names", Arrays.asList(stationNames));
         List<PointOfInterestWeatherStation> stations = q.getResultList();
