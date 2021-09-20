@@ -142,16 +142,19 @@ public class ObservationService {
             @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr,
-            @QueryParam("userUUID") String userUUID
-            
+            @QueryParam("userUUID") String userUUID,
+            @QueryParam("locale") String localeStr
     )
     {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        
         if(user == null && userUUID != null)
         {
             user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(userUUID));
         }
-        //System.out.println("getFilteredObservationListItems");
+        String locale = localeStr != null ? localeStr : 
+        	user != null ? user.getOrganizationId().getDefaultLocale() : 
+        		SessionControllerGetter.getUserBean().getOrganization(organizationId).getDefaultLocale();
         return Response.ok().entity(
                 getFilteredObservationsFromBackend(
                         organizationId,
@@ -161,7 +164,7 @@ public class ObservationService {
                         fromStr,
                         toStr,
                         user
-                ).stream().map(obs -> obs.getListItem("nb")).collect(Collectors.toList())
+                ).stream().map(obs -> obs.getListItem(locale)).collect(Collectors.toList())
         ).build();
     }
             

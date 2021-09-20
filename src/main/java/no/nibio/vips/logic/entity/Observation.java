@@ -639,9 +639,9 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 this.getObservationId(),
                 this.getTimeOfObservation(),
                 this.getOrganismId(),
-                this.getOrganism().getLocalName(locale),
+                this.getOrganism().getLocalName(locale).trim() != "" ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
                 this.getCropOrganismId(),
-                this.getCropOrganism().getLocalName(locale),
+                this.getCropOrganism().getLocalName(locale).trim() != "" ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
                 // Specific geoInfo trumps location. This is to be interpreted 
                 // as that the observation has been geographically masked by
                 // choice of the observer
