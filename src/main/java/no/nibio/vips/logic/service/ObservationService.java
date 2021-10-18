@@ -360,6 +360,14 @@ public class ObservationService {
     ){
         // Observation needs to be masked here as well, or does it create trouble for VIPSLogic observation admin?
         Observation o = SessionControllerGetter.getObservationBean().getObservation(observationId);
+        if(o == null)
+        {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        // Which organization does this observation belong to?
+        VipsLogicUser observer = SessionControllerGetter.getUserBean().getVipsLogicUser(o.getUserId());
+        o.setObservationDataSchema(SessionControllerGetter.getObservationBean().getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId(), httpServletRequest));
+      
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
         if(user == null && userUUID != null)
         {

@@ -50,6 +50,7 @@ import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.util.StringJsonUserType;
+import no.nibio.vips.observationdata.ObservationDataSchema;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -107,7 +108,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Boolean locationIsPrivate;
     private PolygonService polygonService;
     
-    private String observationDataSchema;
+    private ObservationDataSchema observationDataSchema;
     
     private VipsLogicUser user; // Transient
     private VipsLogicUser lastEditedByUser; //
@@ -451,12 +452,12 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     }
     
     @Transient
-    public String getObservationDataSchema()
+    public ObservationDataSchema getObservationDataSchema()
     {
-        return this.observationDataSchema != null ? this.observationDataSchema : "";
+        return this.observationDataSchema != null ? this.observationDataSchema : null;
     }
     
-    public void setObservationDataSchema(String observationDataSchema)
+    public void setObservationDataSchema(ObservationDataSchema observationDataSchema)
     {
         this.observationDataSchema = observationDataSchema;
     }

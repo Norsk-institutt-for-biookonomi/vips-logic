@@ -55,6 +55,12 @@ public class ObservationDataService {
     
 
 
+    /**
+     * TODO Integrate with ObservationBean.getObservationDataSchema(...)
+     * @param organizationId
+     * @param organismId
+     * @return 
+     */
     @GET
     @Path("schema/{organizationId}/{organismId}")
     @Produces("application/json;charset=UTF-8")

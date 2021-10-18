@@ -19,7 +19,9 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,8 +30,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ejb.Stateless;
@@ -37,6 +42,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.servlet.http.HttpServletRequest;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
@@ -49,8 +55,11 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.observationdata.ObservationDataSchema;
+import no.nibio.vips.observationdata.ObservationDataSchemaPK;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
 import org.wololo.geojson.Feature;
@@ -180,7 +189,6 @@ public class ObservationBean {
             {
                 retVal.setLastEditedByUser(em.find(VipsLogicUser.class, retVal.getLastEditedBy()));
             }
-            //ObservationDataSchema schema = 
         }
         return retVal;
     }
@@ -763,5 +771,55 @@ public class ObservationBean {
                 .getResultList().stream()
                 .forEach(obs -> em.remove(obs));
     }
+    
+    /**
+     * Returns the appropriate observation data schema 
+     * If no existing schema, returns the standard (Requring just a number)
+     * @param organizationId
+     * @param organismId
+     * @param httpServletRequest
+     * @return 
+     */
+    public ObservationDataSchema getObservationDataSchema(Integer organizationId, Integer organismId, HttpServletRequest httpServletRequest)
+    {
+        try
+        {
+            return em.createNamedQuery("ObservationDataSchema.findByPK", ObservationDataSchema.class)
+                .setParameter("organizationId", organizationId)
+                .setParameter("organismId", organismId)
+                .getSingleResult();
+            
+            
+        }
+        catch(NoResultException ex)
+        {
+            System.out.println("Could not find schema for orgId " + organizationId + " and organismId " + organismId);
+            return this.getStandardSchema(organizationId);
+        }
+    }
+    
+    /**
+     * 
+     * @param organizationId
+     * @return 
+     */
+    private ObservationDataSchema getStandardSchema(Integer organizationId){
+        ObservationDataSchema retVal = new ObservationDataSchema();
+        retVal.setDataSchema("{"
+                + "\"number\":{\"title\":\"Number\"},"
+                + "\"unit\":{\"title\":\"Unit\"}"
+                + "}");
+        retVal.setDataModel("{"
+                + "\"number\":0,"
+                + "\"unit\":\"Number\""
+                + "}");
+        ObservationDataSchemaPK pk = new ObservationDataSchemaPK();
+        pk.setOrganismId(-1);
+        pk.setOrganizationId(organizationId);
+        retVal.setObservationDataSchemaPK(pk);
+        return retVal;
+    }
+    
+    
 
 }
