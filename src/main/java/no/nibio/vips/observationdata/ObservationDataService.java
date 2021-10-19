@@ -39,6 +39,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.util.SessionControllerGetter;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -65,15 +66,12 @@ public class ObservationDataService {
     @Path("schema/{organizationId}/{organismId}")
     @Produces("application/json;charset=UTF-8")
     public Response getSchema(@PathParam("organizationId") Integer organizationId,@PathParam("organismId") Integer organismId){
-        // Try to find schema for given organism/organization
-        ObservationDataSchema ods = null;
+        
         try
         {
-            ods = em.createNamedQuery("ObservationDataSchema.findByPK", ObservationDataSchema.class)
-                .setParameter("organizationId", organizationId)
-                .setParameter("organismId", organismId)
-                .getSingleResult();
-            
+            // Try to find schema for given organism/organization
+            ObservationDataSchema ods = SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, organismId);
+            /*
             ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
             
             // We iterate the schema, replacing default field labels with
@@ -100,11 +98,16 @@ public class ObservationDataService {
                 }
             }
             return Response.ok().entity(rootNode).build();
+            */
+            ods = SessionControllerGetter.getObservationBean().getLocalizedObservationDataSchema(ods, httpServletRequest);
+            return Response.ok().entity(ods.getDataSchema()).build();
             
-        }catch(IOException | NoResultException ex){}
-        
-        // If not found, return standard nominator/denominator (unit) form 
-        return Response.ok().entity(ods != null ? ods.getDataSchema() : this.getStandardSchema()).build();
+        }
+        catch(IOException ex)
+        {
+            return Response.serverError().entity(ex).build();
+        }
+
     }
     
     @GET

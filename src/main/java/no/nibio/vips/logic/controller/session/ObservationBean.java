@@ -780,7 +780,7 @@ public class ObservationBean {
      * @param httpServletRequest
      * @return 
      */
-    public ObservationDataSchema getObservationDataSchema(Integer organizationId, Integer organismId, HttpServletRequest httpServletRequest)
+    public ObservationDataSchema getObservationDataSchema(Integer organizationId, Integer organismId)
     {
         try
         {
@@ -796,6 +796,43 @@ public class ObservationBean {
             System.out.println("Could not find schema for orgId " + organizationId + " and organismId " + organismId);
             return this.getStandardSchema(organizationId);
         }
+    }
+    
+    /**
+     * If there exist title translations for this schema, it
+     * @param schema
+     * @param httpServletRequest
+     * @return 
+     */
+    public ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, HttpServletRequest httpServletRequest) throws IOException
+    {
+        ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
+            
+            // We iterate the schema, replacing default field labels with
+            // translated ones
+            // First: Convert to Jackson JsonNode tree
+            ObjectMapper m = new ObjectMapper();
+            JsonNode rootNode = m.readTree(ods.getDataSchema());
+            Iterator<Entry<String, JsonNode>> nodeIterator = rootNode.fields();
+            
+            String fieldKeyPrefix = "observationDataField_";
+            // Loop through each field
+            while (nodeIterator.hasNext()) {
+                Map.Entry<String, JsonNode> schemaPropertyField = (Map.Entry<String, JsonNode>) nodeIterator.next();
+                // Get the property field key (e.g. "counting2")
+                String fieldKey = schemaPropertyField.getKey();
+                // Find a translation. 
+                if(bundle.containsKey(fieldKeyPrefix + fieldKey))
+                {
+                    // If found, replace with translation
+                    // Get the property field (e.g. {"title":"Counting 2"} )
+                    JsonNode schemaProperty = schemaPropertyField.getValue();
+                    ((ObjectNode)schemaProperty).put("title", bundle.getString(fieldKeyPrefix + fieldKey));
+                    ((ObjectNode)rootNode).replace(fieldKey, schemaProperty);
+                }
+            }
+            ods.setDataSchema(m.writeValueAsString(rootNode));
+            return ods;
     }
     
     /**

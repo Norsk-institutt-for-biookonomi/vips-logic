@@ -366,7 +366,7 @@ public class ObservationService {
         }
         // Which organization does this observation belong to?
         VipsLogicUser observer = SessionControllerGetter.getUserBean().getVipsLogicUser(o.getUserId());
-        o.setObservationDataSchema(SessionControllerGetter.getObservationBean().getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId(), httpServletRequest));
+        o.setObservationDataSchema(SessionControllerGetter.getObservationBean().getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
       
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
         if(user == null && userUUID != null)
