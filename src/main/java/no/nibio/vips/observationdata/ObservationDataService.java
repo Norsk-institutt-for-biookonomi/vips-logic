@@ -71,34 +71,7 @@ public class ObservationDataService {
         {
             // Try to find schema for given organism/organization
             ObservationDataSchema ods = SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, organismId);
-            /*
-            ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
             
-            // We iterate the schema, replacing default field labels with
-            // translated ones
-            // First: Convert to Jackson JsonNode tree
-            ObjectMapper m = new ObjectMapper();
-            JsonNode rootNode = m.readTree(ods.getDataSchema());
-            Iterator<Entry<String, JsonNode>> nodeIterator = rootNode.fields();
-            
-            String fieldKeyPrefix = "observationDataField_";
-            // Loop through each field
-            while (nodeIterator.hasNext()) {
-                Map.Entry<String, JsonNode> schemaPropertyField = (Map.Entry<String, JsonNode>) nodeIterator.next();
-                // Get the property field key (e.g. "counting2")
-                String fieldKey = schemaPropertyField.getKey();
-                // Find a translation. 
-                if(bundle.containsKey(fieldKeyPrefix + fieldKey))
-                {
-                    // If found, replace with translation
-                    // Get the property field (e.g. {"title":"Counting 2"} )
-                    JsonNode schemaProperty = schemaPropertyField.getValue();
-                    ((ObjectNode)schemaProperty).put("title", bundle.getString(fieldKeyPrefix + fieldKey));
-                    ((ObjectNode)rootNode).replace(fieldKey, schemaProperty);
-                }
-            }
-            return Response.ok().entity(rootNode).build();
-            */
             ods = SessionControllerGetter.getObservationBean().getLocalizedObservationDataSchema(ods, httpServletRequest);
             return Response.ok().entity(ods.getDataSchema()).build();
             

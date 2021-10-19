@@ -133,6 +133,11 @@
 		
 		var buildForm = function(schemaProperties)
 		{
+				// Check if we're getting the whole schema or just the properties
+				if(schemaProperties.properties != undefined)
+				{
+					schemaProperties = schemaProperties.properties;
+				}
                     observationSchema = schemaProperties;
                     // Erasing whatever was there before
                     var metawidgetC = document.getElementById( 'metawidget' );

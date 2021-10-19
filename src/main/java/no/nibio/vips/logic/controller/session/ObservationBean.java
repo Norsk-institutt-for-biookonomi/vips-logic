@@ -813,7 +813,10 @@ public class ObservationBean {
             // First: Convert to Jackson JsonNode tree
             ObjectMapper m = new ObjectMapper();
             JsonNode rootNode = m.readTree(ods.getDataSchema());
-            Iterator<Entry<String, JsonNode>> nodeIterator = rootNode.fields();
+            // Is this the full schema or just the "properties" property?
+            JsonNode propertiesNode = rootNode.get("properties") == null ? rootNode : rootNode.get("properties");
+
+            Iterator<Entry<String, JsonNode>> nodeIterator = propertiesNode.fields();
             
             String fieldKeyPrefix = "observationDataField_";
             // Loop through each field
@@ -828,8 +831,18 @@ public class ObservationBean {
                     // Get the property field (e.g. {"title":"Counting 2"} )
                     JsonNode schemaProperty = schemaPropertyField.getValue();
                     ((ObjectNode)schemaProperty).put("title", bundle.getString(fieldKeyPrefix + fieldKey));
-                    ((ObjectNode)rootNode).replace(fieldKey, schemaProperty);
+                    ((ObjectNode)propertiesNode).replace(fieldKey, schemaProperty);
                 }
+            }
+            
+            // I repeat: Is this the full schema or just the "properties" property?
+            if(rootNode.get("properties") != null)
+            {
+                ((ObjectNode)rootNode).replace("properties", propertiesNode);
+            }
+            else
+            {
+                rootNode = propertiesNode;
             }
             ods.setDataSchema(m.writeValueAsString(rootNode));
             return ods;
