@@ -20,6 +20,7 @@
 package no.nibio.vips.logic.entity.rest;
 
 import java.util.Date;
+import no.nibio.vips.observationdata.ObservationDataSchema;
 
 /**
  * A JSON friendly, public representation of the Observation
@@ -32,6 +33,8 @@ public class ObservationListItem {
     private String organismName, cropOrganismName;
     private String geoInfo;
     private String observationHeading;
+    private String observationData;
+    private ObservationDataSchema observationDataSchema;
     private Boolean broadcastMessage, locationIsPrivate;
 
     public ObservationListItem(
@@ -44,7 +47,9 @@ public class ObservationListItem {
             String geoinfo,
             String observationHeading,
             Boolean broadcastMessage,
-            Boolean locationIsPrivate
+            Boolean locationIsPrivate,
+            String observationData,
+            ObservationDataSchema observationDataSchema
     ){
         this.observationId = observationId;
         this.timeOfObservation = timeOfObservation;
@@ -56,6 +61,8 @@ public class ObservationListItem {
         this.observationHeading = observationHeading;
         this.broadcastMessage = broadcastMessage;
         this.locationIsPrivate = locationIsPrivate;
+        this.observationData = observationData;
+        this.observationDataSchema = observationDataSchema;
     }
     
     /**
@@ -196,5 +203,33 @@ public class ObservationListItem {
      */
     public void setLocationIsPrivate(Boolean locationIsPrivate) {
         this.locationIsPrivate = locationIsPrivate;
+    }
+
+    /**
+     * @return the observationDataSchema
+     */
+    public ObservationDataSchema getObservationDataSchema() {
+        return observationDataSchema;
+    }
+
+    /**
+     * @param observationDataSchema the observationDataSchema to set
+     */
+    public void setObservationDataSchema(ObservationDataSchema observationDataSchema) {
+        this.observationDataSchema = observationDataSchema;
+    }
+
+    /**
+     * @return the observationData
+     */
+    public String getObservationData() {
+        return observationData;
+    }
+
+    /**
+     * @param observationData the observationData to set
+     */
+    public void setObservationData(String observationData) {
+        this.observationData = observationData;
     }
 }

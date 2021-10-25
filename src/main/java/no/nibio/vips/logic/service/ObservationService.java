@@ -59,6 +59,7 @@ import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
@@ -155,8 +156,8 @@ public class ObservationService {
         String locale = localeStr != null ? localeStr : 
         	user != null ? user.getOrganizationId().getDefaultLocale() : 
         		SessionControllerGetter.getUserBean().getOrganization(organizationId).getDefaultLocale();
-        return Response.ok().entity(
-                getFilteredObservationsFromBackend(
+        
+        List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                         organizationId,
                         pestId,
                         cropId,
@@ -164,8 +165,12 @@ public class ObservationService {
                         fromStr,
                         toStr,
                         user
-                ).stream().map(obs -> obs.getListItem(locale)).collect(Collectors.toList())
-        ).build();
+                ).stream().map(obs -> { 
+                    return obs.getListItem(locale, SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, obs.getOrganismId()));
+                }).collect(Collectors.toList());
+        
+        //o.setObservationDataSchema(SessionControllerGetter.getObservationBean().getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
+        return Response.ok().entity(observations).build();
     }
             
             

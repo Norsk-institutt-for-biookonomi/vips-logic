@@ -629,7 +629,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      * @param locale
      * @return 
      */
-    public ObservationListItem getListItem(String locale)
+    public ObservationListItem getListItem(String locale, ObservationDataSchema observationDataSchema)
     {
         // If geoInfo is from POI, need to add observationId
         if(this.location != null)
@@ -649,7 +649,9 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
                 this.getObservationHeading(),
                 this.getBroadcastMessage(),
-                this.getLocationIsPrivate()
+                this.getLocationIsPrivate(),
+                this.getObservationData(),
+                observationDataSchema
         );
     }
     
