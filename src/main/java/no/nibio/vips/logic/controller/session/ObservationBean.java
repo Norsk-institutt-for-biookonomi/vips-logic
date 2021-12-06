@@ -793,7 +793,7 @@ public class ObservationBean {
         }
         catch(NoResultException ex)
         {
-            System.out.println("Could not find schema for orgId " + organizationId + " and organismId " + organismId);
+            //System.out.println("Could not find schema for orgId " + organizationId + " and organismId " + organismId);
             return this.getStandardSchema(organizationId);
         }
     }
@@ -855,9 +855,14 @@ public class ObservationBean {
      */
     private ObservationDataSchema getStandardSchema(Integer organizationId){
         ObservationDataSchema retVal = new ObservationDataSchema();
-        retVal.setDataSchema("{"
+        retVal.setDataSchema("{\n"
+        		+ "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n"
+        		+ "  \"type\": \"object\",\n"
+        		+ "  \"title\": \"Default schema\",\n"
+        		+ "  \"properties\": {"
                 + "\"number\":{\"title\":\"Number\"},"
                 + "\"unit\":{\"title\":\"Unit\"}"
+                + "}"
                 + "}");
         retVal.setDataModel("{"
                 + "\"number\":0,"
