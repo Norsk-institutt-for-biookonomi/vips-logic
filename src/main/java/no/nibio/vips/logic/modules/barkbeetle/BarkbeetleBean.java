@@ -691,4 +691,9 @@ public class BarkbeetleBean {
 			return null;
 		}
 	}
+	
+	public List<SeasonTrapsite> getSeasonTrapsitesForCounty2012(Integer season, String county2012)
+	{
+		
+	}
 }

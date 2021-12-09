@@ -95,6 +95,9 @@
 <p>
 	<a href="/barkbeetle?action=listSeasonTrapsiteCandidates&season=${season}" class="btn btn-default" role="button">Hent kopi av en eller flere lokaliteter fra fjoråret (${season-1})</a>
 </p>
+<p>
+	<a href="/barkbeetle?action=listSeasonTrapsitesStatus&season=${season}" class="btn btn-default" role="button">Se status for tømming av feller i ${season}</a>
+</p>
 </#if>
 <#if userIsAdmin>
 <p>

@@ -90,8 +90,21 @@ public class BarkbeetleController extends HttpServlet {
                 request.setAttribute("lastAvailableSeason", lastAvailableSeason);
                 request.setAttribute("season", season);
                 request.setAttribute("seasonTrapsites", seasonTrapSites);
+                List<String> countiesSorted = seasonTrapSites.stream().map(sts->sts.getCounty2012Name()).collect(Collectors.toSet()).stream().sorted().collect(Collectors.toList());
+                //List<String> countiesSorted = new ArrayList
+                request.setAttribute("counties", countiesSorted);
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/modules/barkbeetle/barkbeetleSeasonTrapsiteList.ftl").forward(request, response);
+            }
+            else if(action.equals("listSeasonTrapsitesStatus"))
+            {
+            	request.setAttribute("season", season);
+            	Integer firstAvailableSeason = BarkbeetleBean.getInstance().getFirstAvailableSeason();
+                Integer lastAvailableSeason = Calendar.getInstance().get(Calendar.YEAR) + 1;
+                request.setAttribute("firstAvailableSeason", firstAvailableSeason);
+                request.setAttribute("lastAvailableSeason", lastAvailableSeason);
+            	request.setAttribute("seasonTrapsites", BarkbeetleBean.getInstance().getSeasonTrapsites(season));
+            	request.getRequestDispatcher("/modules/barkbeetle/barkbeetleSeasonTrapsitesStatus.ftl").forward(request, response);
             }
             else if(action.equals("seasonTrapsiteMaintenanceList"))
             {
