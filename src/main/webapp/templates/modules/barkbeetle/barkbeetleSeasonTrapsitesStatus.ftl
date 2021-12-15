@@ -1,5 +1,5 @@
 <#--
-    Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
+    Copyright (c) 2021 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
   VIPSLogic is free software: you can redistribute it and/or modify
@@ -17,12 +17,19 @@
 	
 --><#include "../../master.ftl">
 <#macro page_head>
-	<title>Barkbilleovervåking: Fangststatus for fellelokaliteter for sesongen</title>
+	<title>Barkbilleovervåking: Fangststatus for fellelokaliteter for sesongen ${season}</title>
 </#macro>
 <#macro page_contents>
-
-	<h1>Barkbilleovervåking</h1>
-<h2>Fangststatus for fellelokaliteter for sesongen</h2>
+<p>
+	<a href="/barkbeetle?season=${season}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
+</p>
+<h1>Barkbilleovervåking</h1>
+<h2>Fangststatus for fellelokaliteter for sesongen ${season}</h2>
+<p>
+	Ved å huke av på "Purr opp" for en fellelokalitet, vil registrantens e-postadresse legges til i tekstfeltet 
+	over tabellen. Herfra kan du kopiere (f.eks. merk alt med [CTRL]-A og kopier til utklippstavlen med 
+	[CTRL]-C) og lime inn i	e-postprogrammet ditt.
+</p>
 <div class="form-inline">
 	<div class="form-group">
 	Velg sesong <select class="form-control" onchange="window.location.href='/barkbeetle?action=listSeasonTrapsitesStatus&season=' + this.options[this.selectedIndex].value;">
@@ -37,11 +44,16 @@
 	<div class="row table-responsive">
 	<table id="seasonTrapsitesTable" class="table table-striped">
 		<thead>
-			<th><div class="input-group">
-	      	<div class="input-group-addon"><span class="fa fa-search"></span></div>
-			<input class="form-control" type="text" id="textSearchField" placeholder="Filtrer på fylke" oninput="filter(this.value);"/>
-		</div></th>
-			<th colspan="7"></th>
+			<th colspan="2">
+				<div class="input-group">
+		      		<div class="input-group-addon"><span class="fa fa-search"></span></div>
+					<input class="form-control" type="text" id="textSearchField" placeholder="Filtrer på fylke" oninput="filter(this.value);"/>
+				</div>
+			</th>
+			<th></th>
+			<th colspan="4">
+				<input class="form-control" type="text" id="emails" placeholder="E-poster til purring"/>
+			</th>
 		</thead>
 		<thead>
 			<th>Fylke</th>
@@ -50,6 +62,7 @@
 			<th>Høyde o.h.</th>
 			<th>Eier</th>
 			<th>Registrant</th>
+			<th>Purr opp</th>
 		</thead>
 		<#list seasonTrapsites as site>
 		<tbody id="seasonTrapsiteTBody_${site.seasonTrapsiteId}">
@@ -60,25 +73,27 @@
 				<td>${site.altitude!""}</td>
 				<td>${site.ownerName!""}</td>
 				<td>${site.userId.firstName} ${site.userId.lastName}</td>
+				<td><input type="checkbox" name="followUp_${site.seasonTrapsiteId}" onclick="updateEmailList();"/></td>
 			</tr>
 			<tr>
 				<td colspan="3"></td>
 				<td>Tømmerunde (ukenr)</td>
 				<td>Tømmedato</td>
-				<td>Snittverdi</td>
+				<td colspan="2">Snittverdi</td>
 			</tr>
-			<#list site.trapsiteRegistrationCollection as tr>
+			<#list site.trapsiteRegistrationCollectionSortedWithBlanks as tReg>
 			<tr>
 				<td colspan="3"></td>
-				<td>${tr.trapsiteRegistrationPK.week}</td>
-				<td>${tr.dateRegistration}</td>
-				<td>${tr.registrationAverage!"IKKE UTFYLT"}</td>
+				<td>${tReg.trapsiteRegistrationPK.week}</td>
+				<td>${tReg.dateRegistration!""}</td>
+				<td colspan="2">${tReg.registrationAverage!"IKKE UTFYLT"}</td>
 			</tr>
 			</#list>
 		</tbody>
 		</#list>
 	</table>
 	</div>
+	
 </div>
 </#macro>
 <#macro custom_js>
@@ -92,6 +107,27 @@
 			: countyCell.textContent.toLowerCase().indexOf(searchTxt.toLowerCase()) > -1;
 			rowSets[i].setAttribute("style","display:" + (visible ? "table-row-group" : "none"));
 		}
+	}
+	
+	var siteEmails = {
+		<#list seasonTrapsites as site>
+		${site.seasonTrapsiteId}: "${site.userId.email}",
+		</#list>
+	};
+	
+	function updateEmailList(){
+		var emails = "";
+		var checkedBoxes = document.getElementById("seasonTrapsitesTable").querySelectorAll("input[type=checkbox]:checked");
+		for(var i=0; i<checkedBoxes.length;i++)
+		{
+			var cb = checkedBoxes[i];
+			console.info(cb);
+			var sti = parseInt(cb.name.split("_")[1]);
+			emails += siteEmails[sti] + ", ";
+		}
+		console.info(emails);
+		document.getElementById("emails").value=emails;
+		//console.info(checkedBoxes);
 	}
 </script>
 </#macro>

@@ -226,6 +226,38 @@ public class SeasonTrapsite implements Serializable, Comparable {
     public Collection<TrapsiteRegistration> getTrapsiteRegistrationCollection() {
         return trapsiteRegistrationCollection;
     }
+    
+    /**
+     * Including all "tømmerunder", even the future/unregistered ones. Sorted
+     * @return
+     */
+    @XmlTransient
+    public Collection<TrapsiteRegistration> getTrapsiteRegistrationCollectionSortedWithBlanks() {
+    	List<TrapsiteRegistration> registered = new ArrayList<>(this.getTrapsiteRegistrationCollection());
+    	Integer[] weeks = {21,24,28,33};
+    	List<TrapsiteRegistration> retVal = new ArrayList<>();
+    	for(Integer week : weeks)
+    	{
+    		System.out.println(week);
+    		Boolean foundWeek = false;
+    		for(TrapsiteRegistration tReg:registered)
+    		{
+    			if(tReg.getTrapsiteRegistrationPK().getWeek().equals(week))
+    			{
+    				foundWeek = true;
+    			}
+    		}
+    		if(!foundWeek)
+    		{
+    			System.out.println("Adding week " + week);
+    			TrapsiteRegistration blank = new TrapsiteRegistration(this.getSeasonTrapsiteId(),week);
+    			retVal.add(blank);
+    		}
+    	}
+    	retVal.addAll(registered);
+    	Collections.sort(retVal);
+        return retVal;
+    }
 
     public void setTrapsiteRegistrationCollection(Collection<TrapsiteRegistration> trapsiteRegistrationCollection) {
         this.trapsiteRegistrationCollection = trapsiteRegistrationCollection;
