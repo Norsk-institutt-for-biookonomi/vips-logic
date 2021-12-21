@@ -123,7 +123,7 @@
 			var cb = checkedBoxes[i];
 			console.info(cb);
 			var sti = parseInt(cb.name.split("_")[1]);
-			emails += siteEmails[sti] + ", ";
+			emails += siteEmails[sti] + "; ";
 		}
 		console.info(emails);
 		document.getElementById("emails").value=emails;
