@@ -21,6 +21,7 @@ package no.nibio.vips.logic.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
 import java.net.URI;
@@ -153,9 +154,9 @@ public class ObservationService {
         {
             user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(userUUID));
         }
-        String locale = localeStr != null ? localeStr : 
+        ULocale locale = new ULocale(localeStr != null ? localeStr : 
         	user != null ? user.getOrganizationId().getDefaultLocale() : 
-        		SessionControllerGetter.getUserBean().getOrganization(organizationId).getDefaultLocale();
+        		SessionControllerGetter.getUserBean().getOrganization(organizationId).getDefaultLocale());
         
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                         organizationId,
@@ -166,7 +167,19 @@ public class ObservationService {
                         toStr,
                         user
                 ).stream().map(obs -> { 
-                    return obs.getListItem(locale, SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, obs.getOrganismId()));
+                    try {
+						return obs.getListItem(locale.getLanguage(), 
+								SessionControllerGetter.getObservationBean().getLocalizedObservationDataSchema(
+										SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, obs.getOrganismId()),
+										httpServletRequest,
+										locale
+										)
+								);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return null;
+					}
                 }).collect(Collectors.toList());
         
         //o.setObservationDataSchema(SessionControllerGetter.getObservationBean().getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));

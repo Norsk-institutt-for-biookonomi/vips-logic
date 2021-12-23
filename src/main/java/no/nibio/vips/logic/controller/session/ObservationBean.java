@@ -22,6 +22,8 @@ package no.nibio.vips.logic.controller.session;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ibm.icu.util.ULocale;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -804,8 +806,12 @@ public class ObservationBean {
      * @param httpServletRequest
      * @return 
      */
-    public ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, HttpServletRequest httpServletRequest) throws IOException
+    public ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, HttpServletRequest httpServletRequest, ULocale locale) throws IOException
     {
+        if(locale != null)
+        {
+        	SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
+        }
         ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
             
             // We iterate the schema, replacing default field labels with
@@ -824,7 +830,7 @@ public class ObservationBean {
                 Map.Entry<String, JsonNode> schemaPropertyField = (Map.Entry<String, JsonNode>) nodeIterator.next();
                 // Get the property field key (e.g. "counting2")
                 String fieldKey = schemaPropertyField.getKey();
-                // Find a translation. 
+                // Find a translation.
                 if(bundle.containsKey(fieldKeyPrefix + fieldKey))
                 {
                     // If found, replace with translation
