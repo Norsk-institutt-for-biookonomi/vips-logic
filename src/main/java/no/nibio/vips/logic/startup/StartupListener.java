@@ -51,8 +51,10 @@ public class StartupListener implements javax.servlet.ServletContextListener{
         System.out.println("VIPSLogic system initializing");
         System.out.println("VIPSLogic checking for database migrations");
         // Migrate DB on startup using flywaydb.org
-        Flyway flyway = new Flyway();
-        flyway.setDataSource(vipslogicDS);
+        Flyway flyway = Flyway.configure()
+                .table("schema_version") // This was done to ease the upgrade from v4 to v8 - which has "flyway_schema_history" as default name for this table
+                .dataSource(vipslogicDS)
+                .load();
         flyway.migrate();
         
         schedulingBean.initSystemScheduler();
