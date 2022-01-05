@@ -22,6 +22,7 @@ package no.nibio.vips.observationdata;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
 import java.util.Iterator;
@@ -71,8 +72,8 @@ public class ObservationDataService {
         {
             // Try to find schema for given organism/organization
             ObservationDataSchema ods = SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, organismId);
-            
-            ods = SessionControllerGetter.getObservationBean().getLocalizedObservationDataSchema(ods, httpServletRequest);
+            ULocale locale = new ULocale(SessionControllerGetter.getUserBean().getOrganization(organizationId).getDefaultLocale());
+            ods = SessionControllerGetter.getObservationBean().getLocalizedObservationDataSchema(ods, httpServletRequest, locale);
             return Response.ok().entity(ods.getDataSchema()).build();
             
         }
