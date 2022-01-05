@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -59,7 +60,6 @@ import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.OrganizationGroup;
 import no.nibio.vips.logic.entity.PointOfInterest;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.UserAuthentication;
 import no.nibio.vips.logic.entity.UserAuthenticationPK;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
@@ -68,8 +68,8 @@ import no.nibio.vips.logic.entity.UserUuidPK;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
 import no.nibio.vips.util.MD5Encrypter;
@@ -99,6 +99,19 @@ public class UserBean {
     
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    UserBean userBean;
+    @EJB
+    ForecastBean forecastBean;
+    @EJB
+    MessagingBean messagingBean;
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+    @EJB
+    MessageBean messageBean;
+    @EJB
+    ObservationBean observationBean;
     
     private Properties serverProperties;
     private List<Rule> defaultPasswordValidatorRuleList;
@@ -216,7 +229,7 @@ public class UserBean {
     {
         // Must double check: NO user can be force deleted without first
         // transferring resources to another user
-        UserResources userResources = SessionControllerGetter.getUserBean().getUserResources(user);
+        UserResources userResources = userBean.getUserResources(user);
         if(! userResources.isEmpty())
         {
             throw new DeleteUserException("User still has resources connected to them.");
@@ -228,12 +241,12 @@ public class UserBean {
             throw new DeleteUserException("User is an archive user for organization " + user.getOrganizationId().getOrganizationName() + ". Can't delete it");
         }
         // Remove all notification subscriptions
-        SessionControllerGetter.getMessagingBean().deleteAllNotificationSubscriptions(user);
+        messagingBean.deleteAllNotificationSubscriptions(user);
         // Remove all User UUIDs
         this.deleteAllUserUuidsForUser(user);
         
         // Delete all of the user's private forecast configurations and results
-        SessionControllerGetter.getForecastBean().deleteAllPrivateForecastConfigurationsForUser(user);
+        forecastBean.deleteAllPrivateForecastConfigurationsForUser(user);
         
         em.remove(user);
     }
@@ -241,12 +254,12 @@ public class UserBean {
     public UserResources getUserResources(VipsLogicUser user)
     {
         UserResources retVal = new UserResources();
-        retVal.setPois(SessionControllerGetter.getPointOfInterestBean().getPoisForUser(user));
-        retVal.setMessageLocales(SessionControllerGetter.getMessageBean().getMessageLocaleList(user));
-        retVal.setForecastConfigurations(SessionControllerGetter.getForecastBean().getForecastConfigurationsForUser(user.getUserId()));
-        List<Observation> observations = SessionControllerGetter.getObservationBean().getObservationsForUser(user);
-        observations.addAll(SessionControllerGetter.getObservationBean().getObservationsLastEditedByUser(user));
-        observations.addAll(SessionControllerGetter.getObservationBean().getObservationsStatusChangedByUser(user));
+        retVal.setPois(pointOfInterestBean.getPoisForUser(user));
+        retVal.setMessageLocales(messageBean.getMessageLocaleList(user));
+        retVal.setForecastConfigurations(forecastBean.getForecastConfigurationsForUser(user.getUserId()));
+        List<Observation> observations = observationBean.getObservationsForUser(user);
+        observations.addAll(observationBean.getObservationsLastEditedByUser(user));
+        observations.addAll(observationBean.getObservationsStatusChangedByUser(user));
         retVal.setObservations(observations);
         return retVal;
     }

@@ -32,13 +32,14 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.model.ConfigValidationException;
 import no.nibio.vips.util.WeatherElements;
@@ -49,10 +50,15 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  *
- * @author bhabesh
+ * @author Bhabesh Mukhopadyay
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
-   public final   Logger      LOGGER              =   Logger.getLogger(this.getClass().getName());
+public class AltenariaModelPreprocessor extends ModelRunPreprocessor {
+   
+    @EJB
+    ForecastBean forecastBean;
+    
+    public final   Logger      LOGGER              =   Logger.getLogger(this.getClass().getName());
     private final boolean DEBUG = false;
     
     /**
@@ -62,15 +68,15 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor{
      *
      * purpose     :
      *
-     * date        : Expression date is undefined on line 20, column 19 in Templates/Classes/Code/GeneratedMethodBody. Expression time is undefined on line 20, column 27 in Templates/Classes/Code/GeneratedMethodBody.
+     * date        : 
      */
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
-        String      ALTERNARIA_SPRAYING_DATES_01    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate01");
-        String      ALTERNARIA_SPRAYING_DATES_02    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate02");
-        String      ALTERNARIA_SPRAYING_DATES_03    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate03");
-        String      ALTERNARIA_SPRAYING_DATES_04    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate04");
+        String      ALTERNARIA_SPRAYING_DATES_01    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate01");
+        String      ALTERNARIA_SPRAYING_DATES_02    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate02");
+        String      ALTERNARIA_SPRAYING_DATES_03    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate03");
+        String      ALTERNARIA_SPRAYING_DATES_04    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate04");
         
         String      paramConfigValue                = null;
         List<Date>  lstSprayingDates                = new ArrayList(){};

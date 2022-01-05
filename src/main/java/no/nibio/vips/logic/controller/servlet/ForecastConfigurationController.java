@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -36,6 +37,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
@@ -62,6 +64,15 @@ public class ForecastConfigurationController extends HttpServlet {
     
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    ForecastBean forecastBean;
+    
+    @EJB
+    UserBean userBean;
+    
+    @EJB
+    OrganismBean organismBean;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -78,8 +89,6 @@ public class ForecastConfigurationController extends HttpServlet {
         
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        ForecastBean forecastBean = SessionControllerGetter.getForecastBean();
-        UserBean userBean = SessionControllerGetter.getUserBean();
         
         // Default: View list of forecast configurations
         // for SUPERUSERS and ORGANIZATION ADMINS
@@ -233,8 +242,8 @@ public class ForecastConfigurationController extends HttpServlet {
                         request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
                         request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
                         // Hierarchy categories
-                        request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
-                        request.setAttribute("modelInformations", SessionControllerGetter.getForecastBean().getBatchableModels());
+                        request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                        request.setAttribute("modelInformations", forecastBean.getBatchableModels());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
                        
@@ -267,7 +276,7 @@ public class ForecastConfigurationController extends HttpServlet {
                     request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
                     request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
                     // Hierarchy categories
-                    request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                    request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);

@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -37,12 +38,12 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.Preparation;
 import no.nibio.vips.logic.util.RunModelException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.observation.ObservationImpl;
 import no.nibio.vips.pestmanagement.SprayingImpl;
@@ -62,6 +63,9 @@ public class BarleyNetBlotchModelService {
     
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    ForecastBean forecastBean;
 
     @GET
     @Path("barleyvarieties/{organizationId}")
@@ -246,7 +250,7 @@ public class BarleyNetBlotchModelService {
         List<Result> results;
         try
         {
-             results = SessionControllerGetter.getForecastBean().runForecast(config, VIPSCoreUserId);
+             results = forecastBean.runForecast(config, VIPSCoreUserId);
         }
         catch(RunModelException ex)
         {

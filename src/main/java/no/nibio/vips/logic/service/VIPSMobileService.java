@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TimeZone;
+import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -40,6 +41,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.Result;
+import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.MessageBean;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastSummary;
@@ -78,6 +85,19 @@ public class VIPSMobileService {
     @Context
     private HttpServletRequest httpServletRequest;
     
+    @EJB
+    MessageBean messageBean;
+    @EJB
+    ObservationBean observationBean;
+    @EJB
+    OrganismBean organismBean;
+    @EJB
+    ForecastBean forecastBean;
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+    @EJB
+    UserBean userBean;
+    
     // TODO: Add observation messages
     @GET
     @Path("melding")
@@ -89,7 +109,7 @@ public class VIPSMobileService {
     {
             Date datePublishedFrom = SystemTime.getSystemTime();
             Date datePublishedTo = datePublishedFrom;
-            List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId, datePublishedFrom, datePublishedTo);
+            List<Message> messageList = messageBean.getMessageList(organizationId, datePublishedFrom, datePublishedTo);
             
             List<VIPSMobileMessage> retVal = new ArrayList<>();
             for(Message message: messageList)
@@ -151,7 +171,7 @@ public class VIPSMobileService {
             Calendar cal = Calendar.getInstance();
             cal.setTime(datePublishedFrom);
             Integer observationMessageTagId = 1;
-            List<Observation> broadcastObservations = SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId, cal.get(Calendar.YEAR));
+            List<Observation> broadcastObservations = observationBean.getBroadcastObservations(organizationId, cal.get(Calendar.YEAR));
             // Making an observation message valid for 3 months by default
             
             broadcastObservations.stream().filter(
@@ -187,12 +207,12 @@ public class VIPSMobileService {
             @QueryParam("locale") String locale
         )
     {
-        List<Organism> cropList = SessionControllerGetter.getOrganismBean().getAllCrops();
+        List<Organism> cropList = organismBean.getAllCrops();
         Map<Integer, Organism> allCrops = new HashMap<>();
         cropList.forEach((crop) -> {
             allCrops.put(crop.getOrganismId(), crop);
         });
-        List<CropCategory> cropCategories = SessionControllerGetter.getOrganismBean().getCropCategories(organizationId);
+        List<CropCategory> cropCategories = organismBean.getCropCategories(organizationId);
         List<VIPSMobileCropCategory> retVal = new ArrayList<>();
         cropCategories.stream().forEach(
                 cc -> {
@@ -224,7 +244,7 @@ public class VIPSMobileService {
         }
         
         // Get model info
-        Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedModelInformation();
+        Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedModelInformation();
         
         TimeZone timeZone = timeZoneStr != null ? TimeZone.getTimeZone(timeZoneStr)
                 : TimeZone.getDefault();
@@ -240,7 +260,7 @@ public class VIPSMobileService {
         List<VIPSMobilePresentation> retVal = new ArrayList<>();
         if(!parsedIds.isEmpty())
         {
-            List<ForecastConfiguration> configsWithSummaries = SessionControllerGetter.getForecastBean().getForecastConfigurationWithSummaries(parsedIds);
+            List<ForecastConfiguration> configsWithSummaries = forecastBean.getForecastConfigurationWithSummaries(parsedIds);
             // Initializing the array of summaries
             Date today = new WeatherUtil().normalizeToExactDate(SystemTime.getSystemTime(), timeZone);
             List<Date> datesList = new ArrayList<>();
@@ -346,8 +366,8 @@ public class VIPSMobileService {
         cal.set(Calendar.MONTH, Calendar.JANUARY);
         Date from = cal.getTime();
         
-        PointOfInterestWeatherStation station = (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(klimastasjonId);
-        List<ForecastConfiguration> forecasts = SessionControllerGetter.getForecastBean().getForecastConfigurations(station, from, to);
+        PointOfInterestWeatherStation station = (PointOfInterestWeatherStation) pointOfInterestBean.getPointOfInterest(klimastasjonId);
+        List<ForecastConfiguration> forecasts = forecastBean.getForecastConfigurations(station, from, to);
         List<VIPSMobileForecast> retVal = new ArrayList<>();
         for(ForecastConfiguration forecast:forecasts)
         {
@@ -415,7 +435,7 @@ public class VIPSMobileService {
         }
 
         // First: Get all users for organization
-        List<VipsLogicUser> organizationUsers = SessionControllerGetter.getUserBean().getUsersByOrganization(organizationId);
+        List<VipsLogicUser> organizationUsers = userBean.getUsersByOrganization(organizationId);
         // Then: Get forecasts for these users, collate and return
         List<ForecastConfiguration> forecasts = new ArrayList<>();
         
@@ -423,8 +443,8 @@ public class VIPSMobileService {
         {
             Integer userId = user.getUserId();
             List<ForecastConfiguration> result = cropOrganismIds != null && ! cropOrganismIds.isEmpty() ?
-                    SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndCropsAndDate(userId,cropOrganismIds, from, to)
-                    : SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndDate(userId, from, to);
+                    forecastBean.getForecastConfigurationsForUserAndCropsAndDate(userId,cropOrganismIds, from, to)
+                    : forecastBean.getForecastConfigurationsForUserAndDate(userId, from, to);
             if(forecasts == null)
                 forecasts = result;
             else

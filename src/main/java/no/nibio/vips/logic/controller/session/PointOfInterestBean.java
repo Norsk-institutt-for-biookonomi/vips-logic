@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -66,6 +67,11 @@ import no.nibio.web.forms.FormField;
 public class PointOfInterestBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    ForecastBean forecastBean;
+    @EJB
+    ObservationBean observationBean;
     
     public List<PointOfInterest> getWeatherstations(String countryCode)
     {
@@ -324,7 +330,7 @@ public class PointOfInterestBean {
     public void deleteWeatherStation(Integer pointOfInterestId)
     {
         PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
-        SessionControllerGetter.getForecastBean().deleteForecastConfigurationsForWeatherStation(weatherStation);
+        forecastBean.deleteForecastConfigurationsForWeatherStation(weatherStation);
         em.remove(weatherStation);
     }
 
@@ -360,8 +366,8 @@ public class PointOfInterestBean {
 
     public void deletePoi(Integer pointOfInterestId) {
         PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
-        SessionControllerGetter.getForecastBean().deleteForecastConfigurationsForLocation(poi);
-        SessionControllerGetter.getObservationBean().deleteObservationsForLocation(poi);
+        forecastBean.deleteForecastConfigurationsForLocation(poi);
+        observationBean.deleteObservationsForLocation(poi);
         em.remove(poi);
     }
 

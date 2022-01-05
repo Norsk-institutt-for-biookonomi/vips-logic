@@ -23,13 +23,6 @@ import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
-import java.io.BufferedReader;
-import java.io.IOError;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -57,6 +51,11 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
+import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.MessageBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.ForecastResult;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -71,7 +70,6 @@ import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
@@ -92,6 +90,17 @@ public class LogicService {
     private HttpRequest httpRequest;
     @Context
     private HttpServletRequest httpServletRequest;
+    
+    @EJB
+    ForecastBean forecastBean;
+    @EJB
+    UserBean userBean;
+    @EJB
+    OrganismBean organismBean;
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+    @EJB
+    MessageBean messageBean;
     
     /**
      * Get all results for one pest prediction
@@ -129,9 +138,9 @@ public class LogicService {
             @QueryParam("userUUID") String userUUID
     )
     {
-        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
+        if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
-            List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId);
+            List<ForecastResult> results = forecastBean.getForecastResults(forecastConfigurationId);
             if(results == null)
             {
                 results = new ArrayList<>();
@@ -159,10 +168,10 @@ public class LogicService {
             @QueryParam("userUUID") String userUUID
     )
     {
-        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
+        if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
             String CSVOutput = "";
-            List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId);
+            List<ForecastResult> results = forecastBean.getForecastResults(forecastConfigurationId);
             if(results != null && ! results.isEmpty())
             {
                 List<String> parameters = new ArrayList<>();//new String[results.get(0).getKeys().size() + 3];
@@ -214,9 +223,9 @@ public class LogicService {
             @QueryParam("userUUID") String userUUID
     )
     {
-        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
+        if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
-            List<ForecastResult> results = SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, latestDays);
+            List<ForecastResult> results = forecastBean.getForecastResults(forecastConfigurationId, latestDays);
             if(results == null)
             {
                 results = new ArrayList<>();
@@ -244,7 +253,7 @@ public class LogicService {
         {
             Date dateStart = format.parse(dateStartStr);
             Date dateEnd = format.parse(dateEndStr);
-            return Response.ok().entity(SessionControllerGetter.getForecastBean().getForecastResults(forecastConfigurationId, dateStart, dateEnd)).build();
+            return Response.ok().entity(forecastBean.getForecastResults(forecastConfigurationId, dateStart, dateEnd)).build();
         }
         catch(ParseException ex)
         {
@@ -274,11 +283,11 @@ public class LogicService {
         try
         {
             UUID uUUID = UUID.fromString(userUUID);
-            user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            user = userBean.findVipsLogicUser(uUUID);
         }
         catch(NullPointerException | IllegalArgumentException ex) {}
         
-        List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(organizationId, user);
+        List<ForecastConfiguration> summaries = forecastBean.getForecastConfigurationSummaries(organizationId, user);
         
         if(includeOrganizationIds != null)
         {
@@ -292,7 +301,7 @@ public class LogicService {
                     {
                         continue;
                     }
-                    summaries.addAll(SessionControllerGetter.getForecastBean().getForecastConfigurationSummaries(includeOrgId, user));
+                    summaries.addAll(forecastBean.getForecastConfigurationSummaries(includeOrgId, user));
                 }
                 catch(NumberFormatException ex){}
             }
@@ -315,10 +324,10 @@ public class LogicService {
     )
     {
         UUID uUUID = UUID.fromString(userUUID);
-        VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+        VipsLogicUser user = userBean.findVipsLogicUser(uUUID);
         if(user != null)
         {
-            List<ForecastConfiguration> summaries = SessionControllerGetter.getForecastBean().getPrivateForecastConfigurationSummaries(user);
+            List<ForecastConfiguration> summaries = forecastBean.getPrivateForecastConfigurationSummaries(user);
             return Response.ok().entity(summaries).build();
         }
         else
@@ -339,9 +348,9 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getForecastConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId,@QueryParam("userUUID") String userUUID)
     {
-        if(SessionControllerGetter.getForecastBean().isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
+        if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
-            ForecastConfiguration forecastConfiguration = SessionControllerGetter.getForecastBean().getForecastConfiguration(forecastConfigurationId);
+            ForecastConfiguration forecastConfiguration = forecastBean.getForecastConfiguration(forecastConfigurationId);
             return Response.ok().entity(forecastConfiguration).build();
         }
         else
@@ -361,7 +370,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getForecastConfigurationsForModel(@PathParam("modelId") String modelId, @PathParam("year") Integer year)
     {
-        return Response.ok().entity(SessionControllerGetter.getForecastBean().getForecastConfigurationsForModel(modelId, year)).build();
+        return Response.ok().entity(forecastBean.getForecastConfigurationsForModel(modelId, year)).build();
     }
     
     
@@ -379,10 +388,10 @@ public class LogicService {
         try
         {
             UUID uUUID = UUID.fromString(userUUID);
-            VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            VipsLogicUser user = userBean.findVipsLogicUser(uUUID);
             if(user != null)
             {
-                List<ForecastConfiguration> retVal = SessionControllerGetter.getForecastBean().getPrivateForecastConfigurationsForUser(user.getUserId());
+                List<ForecastConfiguration> retVal = forecastBean.getPrivateForecastConfigurationsForUser(user.getUserId());
                 return Response.ok().entity(retVal).build();
             }
             else
@@ -444,7 +453,7 @@ public class LogicService {
                 catch(NumberFormatException ex){}
             }
         }
-        List<ForecastConfiguration> forecastConfigs = SessionControllerGetter.getForecastBean().getForecastConfigurations(orgIds, from, to);
+        List<ForecastConfiguration> forecastConfigs = forecastBean.getForecastConfigurations(orgIds, from, to);
         return Response.ok().entity(forecastConfigs).build();
     }
     
@@ -484,7 +493,7 @@ public class LogicService {
         
 
         // First: Get all users for organization
-        List<VipsLogicUser> organizationUsers = SessionControllerGetter.getUserBean().getUsersByOrganization(organizationId);
+        List<VipsLogicUser> organizationUsers = userBean.getUsersByOrganization(organizationId);
         // Then: Get forecasts for these users, collate and return
         List<ForecastConfiguration> forecasts = new ArrayList<>();
         
@@ -492,8 +501,8 @@ public class LogicService {
         {
             Integer userId = user.getUserId();
             List<ForecastConfiguration> result = cropOrganismIds != null && ! cropOrganismIds.isEmpty() ?
-                    SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndCropsAndDate(userId,cropOrganismIds, from, to)
-                    : SessionControllerGetter.getForecastBean().getForecastConfigurationsForUserAndDate(userId, from, to);
+                    forecastBean.getForecastConfigurationsForUserAndCropsAndDate(userId,cropOrganismIds, from, to)
+                    : forecastBean.getForecastConfigurationsForUserAndDate(userId, from, to);
             if(forecasts == null)
                 forecasts = result;
             else
@@ -521,7 +530,7 @@ public class LogicService {
         ULocale currentLocale = SessionLocaleUtil.getCurrentLocale(httpServletRequest);
         try
         {
-            boolean isPasswordValid = SessionControllerGetter.getUserBean().isPasswordValid(password, currentLocale);
+            boolean isPasswordValid = userBean.isPasswordValid(password, currentLocale);
             return Response.ok().entity("true").build();
             
         }
@@ -537,7 +546,7 @@ public class LogicService {
     @Facet("restricted")
     public Response getForecastModelConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
     {
-        List<ForecastModelConfiguration> forecastModelConfigurations = SessionControllerGetter.getForecastBean().getForecastModelConfigurations(forecastConfigurationId);
+        List<ForecastModelConfiguration> forecastModelConfigurations = forecastBean.getForecastModelConfigurations(forecastConfigurationId);
         return Response.ok().entity(forecastModelConfigurations).build();
     }
     
@@ -562,7 +571,7 @@ public class LogicService {
             try
             {
                 UUID uUUID = UUID.fromString(userUUID);
-                viewUser = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+                viewUser = userBean.findVipsLogicUser(uUUID);
             }
             catch(IllegalArgumentException ex)
             {
@@ -577,8 +586,8 @@ public class LogicService {
         }
         else
         {
-            List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
+            List<Integer> cropOrganismIds = organismBean.getCropCategoryOrganismIds(cropCategoryIds);
+            Kml retVal = forecastBean.getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
             return Response.ok().entity(retVal).build();
         }
     }
@@ -610,15 +619,15 @@ public class LogicService {
                 try
                 {
                     UUID uUUID = UUID.fromString(userUUID);
-                    viewUser = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+                    viewUser = userBean.findVipsLogicUser(uUUID);
                 }
                 catch(IllegalArgumentException ex)
                 {
                     // Skip this
                 }
             }
-            List<Integer> cropOrganismIds = SessionControllerGetter.getOrganismBean().getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = SessionControllerGetter.getForecastBean().getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
+            List<Integer> cropOrganismIds = organismBean.getCropCategoryOrganismIds(cropCategoryIds);
+            Kml retVal = forecastBean.getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
             return Response.ok().entity(retVal).build();
         }
     }
@@ -634,7 +643,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getLatestForecastResultsForPoi(@PathParam("poiId") Integer poiId)
     {
-        Map<String, Object> latestResults = SessionControllerGetter.getForecastBean().getLatestForecastResultsForPoi(poiId);
+        Map<String, Object> latestResults = forecastBean.getLatestForecastResultsForPoi(poiId);
         return Response.ok().entity(latestResults).build();
     }
     
@@ -650,7 +659,7 @@ public class LogicService {
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getWeatherStations(@QueryParam("excludeWeatherStationId") Integer excludeWeatherStationId, @QueryParam("highlightWeatherStationId") Integer highlightWeatherStationId, @PathParam("organizationId") Integer organizationId)
     {
-        Kml retVal = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
+        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
         return Response.ok().entity(retVal).build();
     }
     
@@ -666,7 +675,7 @@ public class LogicService {
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getPois(@QueryParam("excludePoiId") Integer excludePoiId, @QueryParam("highlightPoiId") Integer highlightPoiId, @PathParam("organizationId") Integer organizationId)
     {
-        Kml retVal = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organizationId, excludePoiId, highlightPoiId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), null);
+        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludePoiId, highlightPoiId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), null);
         return Response.ok().entity(retVal).build();
     }
     
@@ -681,8 +690,8 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId)
     {
-        Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
-        List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE);
+        Organization organization = userBean.getOrganization(organizationId);
+        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getWeatherstationsForOrganization(organization, Boolean.TRUE);
         return Response.ok().entity(retVal).build();
     }
     
@@ -696,7 +705,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId)
     {
-        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(pointOfInterestId);
+        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(pointOfInterestId);
         return Response.ok().entity(retVal).build();
     }
     
@@ -710,7 +719,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getPoiByName(@PathParam("poiName") String poiName)
     {
-        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(poiName);
+        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(poiName);
         return retVal != null ? Response.ok().entity(retVal).build() : Response.noContent().build();
     }
     
@@ -730,9 +739,9 @@ public class LogicService {
         {
         	String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
     		UUID uuid = UUID.fromString(uuidStr);
-    		user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+    		user = userBean.findVipsLogicUser(uuid);
         }
-        List<PointOfInterest> retVal = SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user);
+        List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
         return Response.ok().entity(retVal).build();
     }
     
@@ -746,7 +755,7 @@ public class LogicService {
     @Facet("restricted")
     public Response getOrganismList()
     {
-        List<Organism> organismList = SessionControllerGetter.getOrganismBean().getOrganismSubTree(null);
+        List<Organism> organismList = organismBean.getOrganismSubTree(null);
         return Response.ok().entity(organismList).build();
     }
     
@@ -761,7 +770,7 @@ public class LogicService {
     public Response findOrganismsByLatinNames(@QueryParam("keywords") String keywords)
     {
         List<String> latinNames = Arrays.asList(keywords.split(","));
-        List<Organism> organismList = SessionControllerGetter.getOrganismBean().findOrganismsByLatinNames(latinNames);
+        List<Organism> organismList = organismBean.findOrganismsByLatinNames(latinNames);
         return Response.ok().entity(organismList).build();
     }
     
@@ -779,7 +788,7 @@ public class LogicService {
     )
     {
         List<String> localNames = Arrays.asList(keywords.split(",")).stream().map(String::trim).collect(Collectors.toList());
-        List<Organism> organismList = SessionControllerGetter.getOrganismBean().findOrganismsByLocalNames(localNames, locale);
+        List<Organism> organismList = organismBean.findOrganismsByLocalNames(localNames, locale);
         return Response.ok().entity(organismList).build();
     }
     
@@ -793,7 +802,7 @@ public class LogicService {
     @Facet("restricted")
     public Response getCropOrganismList()
     {
-        List<Organism> organismList = SessionControllerGetter.getOrganismBean().getAllCrops();
+        List<Organism> organismList = organismBean.getAllCrops();
         return Response.ok().entity(organismList).build();
     }
     
@@ -813,11 +822,11 @@ public class LogicService {
     	List<Organism> organismList;
     	if(cropOrganismId == null)
     	{
-    		organismList = SessionControllerGetter.getOrganismBean().getAllPests();
+    		organismList = organismBean.getAllPests();
     	}
     	else
     	{
-    		organismList = SessionControllerGetter.getOrganismBean().getCropPests(cropOrganismId);
+    		organismList = organismBean.getCropPests(cropOrganismId);
     	}
         return Response.ok().entity(organismList).build();
     }
@@ -834,7 +843,7 @@ public class LogicService {
     public Response getCropPestList(
     		)
     {
-        return Response.ok().entity(SessionControllerGetter.getOrganismBean().getCropPestsMapped()).build();
+        return Response.ok().entity(organismBean.getCropPestsMapped()).build();
     }
     
     /**
@@ -848,7 +857,7 @@ public class LogicService {
     @Facet("restricted")
     public Response getMessage(@PathParam("messageId") Integer messageId)
     {
-        Message message = SessionControllerGetter.getMessageBean().getMessage(messageId);
+        Message message = messageBean.getMessage(messageId);
         
         return Response.ok().entity(message).build();
     }
@@ -888,7 +897,7 @@ public class LogicService {
                 datePublishedTo = publishedTo == null ? null : format.parse(publishedTo);
             }
             
-            List<Message> messageList = SessionControllerGetter.getMessageBean().getMessageList(organizationId, datePublishedFrom, datePublishedTo);
+            List<Message> messageList = messageBean.getMessageList(organizationId, datePublishedFrom, datePublishedTo);
             return Response.ok().entity(messageList).build();
         }
         catch(ParseException ex){
@@ -909,7 +918,7 @@ public class LogicService {
     @Facet("restricted")
     public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
     {
-        List<Message> messageListWithTags = SessionControllerGetter.getMessageBean().getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
+        List<Message> messageListWithTags = messageBean.getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
         return Response.ok().entity(messageListWithTags).build();
     }
     
@@ -923,7 +932,7 @@ public class LogicService {
     @Facet("restricted")
     public Response getMessageTagList()
     {
-        List<MessageTag> messageTags = SessionControllerGetter.getMessageBean().getMessageTagList();
+        List<MessageTag> messageTags = messageBean.getMessageTagList();
         return Response.ok().entity(messageTags).build();
     }
     
@@ -1074,8 +1083,8 @@ public class LogicService {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         Date start = new Date();
-        SessionControllerGetter.getForecastBean().updateForecastResultCacheTable();
-        SessionControllerGetter.getForecastBean().updateForecastSummaryTable(SystemTime.getSystemTime());
+        forecastBean.updateForecastResultCacheTable();
+        forecastBean.updateForecastSummaryTable(SystemTime.getSystemTime());
         Long timeLapsed = new Date().getTime() - start.getTime();
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         return Response.ok().entity("Forecast caches were successfully updated with data from today (" 
@@ -1097,7 +1106,7 @@ public class LogicService {
         try
         {
             UUID uUUID = UUID.fromString(userUUID);
-            VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            VipsLogicUser user = userBean.findVipsLogicUser(uUUID);
             if(user != null)
             {
                 return Response.ok().entity(user).build();
@@ -1127,7 +1136,7 @@ public class LogicService {
         try
         {
             UUID uUUID = UUID.fromString(userUUID);
-            SessionControllerGetter.getUserBean().deleteUserUuid(uUUID);
+            userBean.deleteUserUuid(uUUID);
             return Response.ok().build();
         }
         catch(IllegalArgumentException ex)
@@ -1147,7 +1156,7 @@ public class LogicService {
     @Facet("restricted")
     public Response getCropPest(@PathParam("cropOrganismId") Integer cropOrganismId)
     {
-        CropPest retVal = SessionControllerGetter.getOrganismBean().getCropPestRecursive(cropOrganismId,true);
+        CropPest retVal = organismBean.getCropPestRecursive(cropOrganismId,true);
         if(retVal != null)
         {
             return Response.ok().entity(retVal).build();
@@ -1171,7 +1180,7 @@ public class LogicService {
     {
         if(organizationId != null)
         {
-            return Response.ok().entity(SessionControllerGetter.getOrganismBean().getCropCategories(organizationId)).build();
+            return Response.ok().entity(organismBean.getCropCategories(organizationId)).build();
         }
         else
         {
@@ -1184,7 +1193,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getOrganizations()
     {
-        return Response.ok().entity(SessionControllerGetter.getUserBean().getOrganizations()).build();
+        return Response.ok().entity(userBean.getOrganizations()).build();
     }
     
     @GET
@@ -1192,7 +1201,7 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     public Response getModelInformation(@PathParam("modelId") String modelId)
     {
-        ModelInformation retVal = SessionControllerGetter.getForecastBean().getModelInformation(modelId);
+        ModelInformation retVal = forecastBean.getModelInformation(modelId);
         return retVal != null ? Response.ok().entity(retVal).build() 
                 : Response.status(Response.Status.NOT_FOUND).entity("ERROR: Could not find model with id=" + modelId).build();
     }

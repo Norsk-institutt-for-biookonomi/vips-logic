@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
+import javax.ejb.EJB;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -35,6 +36,9 @@ import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfigurationPK;
@@ -44,7 +48,6 @@ import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.scheduling.model.preprocessor.SeptoriaHumidityModelPreprocessor;
 import no.nibio.vips.logic.util.RunModelException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherUtil;
@@ -53,12 +56,19 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  * This is a collection of services for models run from forms (not as part of batch) 
- * @copyright 2018 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2018-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/modelform")
 @Facet("restricted")
 public class ModelFormService {
+    
+    @EJB
+    UserBean userBean;
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+    @EJB
+    ForecastBean forecastBean;
 
     @GET
     @Path("SEPTORIAHU/runmodel")
@@ -108,7 +118,7 @@ public class ModelFormService {
             // Data parsing
 
             Integer organizationId = Integer.valueOf(organizationId_countryCode.split("_")[0]);
-            Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
+            Organization organization = userBean.getOrganization(organizationId);
             fConf.setTimeZone(organization.getDefaultTimeZone());
             TimeZone timeZone =  TimeZone.getTimeZone(organization.getDefaultTimeZone());
             ParseRESTParamUtil pUtil = new ParseRESTParamUtil();
@@ -141,7 +151,7 @@ public class ModelFormService {
                 GISUtil gisUtil = new GISUtil();
                 Coordinate UTMc = new Coordinate(UTM32vE, UTM32vN); 
                 Coordinate coordinate = gisUtil.convertCoordinate(UTMc, "EPSG:32632", "EPSG:4326");
-                WeatherStationDataSource wsds = SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSource("DMI PointWeb");
+                WeatherStationDataSource wsds = pointOfInterestBean.getWeatherStationDataSource("DMI PointWeb");
                 ws = new PointOfInterestWeatherStation();
                 ws.setWeatherStationDataSourceId(wsds);
                 ws.setWeatherStationRemoteId(coordinate.y + "," + coordinate.x);// For some reason, The transformation switches X/Y
@@ -152,7 +162,7 @@ public class ModelFormService {
             else
             {
                 // Weather station id maps to a regular weather station
-                ws = (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(weatherStationId));
+                ws = (PointOfInterestWeatherStation) pointOfInterestBean.getPointOfInterest(Integer.valueOf(weatherStationId));
             }
             fConf.setWeatherStationPointOfInterestId(ws);
             fConf.setLocationPointOfInterestId(ws);
@@ -162,7 +172,7 @@ public class ModelFormService {
             Integer VIPSCoreUserId = organization.getDefaultVipsCoreUserId();
             System.out.println("defaultVIPScoreUserId = " + VIPSCoreUserId);
 
-            List<Result>results = SessionControllerGetter.getForecastBean().runForecast(mConf, VIPSCoreUserId);
+            List<Result>results = forecastBean.runForecast(mConf, VIPSCoreUserId);
 
             return Response.ok().entity(results).build();
         }
@@ -174,7 +184,7 @@ public class ModelFormService {
     
     private ForecastModelConfiguration getForecastModelConfiguration(String modelId, String key, String value)
     {
-        ForecastModelConfiguration retVal = new ForecastModelConfiguration(new ForecastModelConfigurationPK(-1, SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(modelId, key)));
+        ForecastModelConfiguration retVal = new ForecastModelConfiguration(new ForecastModelConfigurationPK(-1, forecastBean.getDeCamelizedFieldName(modelId, key)));
         retVal.setParameterValue(value);
         return retVal;
     }

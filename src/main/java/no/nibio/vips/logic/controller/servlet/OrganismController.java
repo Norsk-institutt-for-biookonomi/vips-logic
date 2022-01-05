@@ -20,17 +20,18 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.OrganismExternalResource;
@@ -38,7 +39,6 @@ import no.nibio.vips.logic.entity.OrganismExternalResourcePK;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
@@ -48,13 +48,16 @@ import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class OrganismController extends HttpServlet {
    
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    OrganismBean organismBean;
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -80,12 +83,12 @@ public class OrganismController extends HttpServlet {
                 )
                 {
                     organism = new Organism();
-                    organism.setChildOrganisms(SessionControllerGetter.getOrganismBean().getTopLevelOrganisms());
+                    organism.setChildOrganisms(organismBean.getTopLevelOrganisms());
                 }
                 else
                 {
                     Integer organismId = Integer.valueOf(request.getParameter("organismId"));
-                    organism = SessionControllerGetter.getOrganismBean().getOrganismAndChildrenTwoLevels(organismId);
+                    organism = organismBean.getOrganismAndChildrenTwoLevels(organismId);
                 }
                 request.setAttribute("organism", organism);
                 // Check if any of the child organisms has trade name
@@ -119,27 +122,27 @@ public class OrganismController extends HttpServlet {
         {
             
             List<Organism> allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
-            Map<String,Organism> allPestsMapped = SessionControllerGetter.getOrganismBean().getAllPestsMapped();
-            Map<String, CropPest> cropPestsMap = SessionControllerGetter.getOrganismBean().getCropPestsMapped();
+            Map<String,Organism> allPestsMapped = organismBean.getAllPestsMapped();
+            Map<String, CropPest> cropPestsMap = organismBean.getCropPestsMapped();
             request.setAttribute("allCrops", 
-                    SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(
+                    organismBean.sortOrganismsByLocalName(
                         allCrops, 
                         SessionLocaleUtil.getCurrentLocale(request).getLanguage())
             );
             request.setAttribute("allPestsMapped", allPestsMapped);
             request.setAttribute("cropPestsMap", cropPestsMap);
-            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
             request.getRequestDispatcher("/cropList.ftl").forward(request, response);
         }
         else if(action.equals("listPests"))
         {
             List<Organism> allPests = em.createNamedQuery("Organism.findAllPests").getResultList();
             request.setAttribute("allPests", 
-                    SessionControllerGetter.getOrganismBean().sortOrganismsByLocalName(
+                    organismBean.sortOrganismsByLocalName(
                             allPests, 
                             SessionLocaleUtil.getCurrentLocale(request).getLanguage())
             );
-            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
             request.getRequestDispatcher("/pestList.ftl").forward(request, response);
         }
         else if(action.equals("viewOrganism"))
@@ -151,7 +154,7 @@ public class OrganismController extends HttpServlet {
                 request.setAttribute("organism", organism);
                 
                 // Hierarchy categories
-                request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                 request.setAttribute("parentOrganism", organism.getParentOrganismId() != null ? em.find(Organism.class, organism.getParentOrganismId()) : null);
                 request.getRequestDispatcher("/organismDetails.ftl").forward(request, response);
             }
@@ -177,15 +180,15 @@ public class OrganismController extends HttpServlet {
                 request.setAttribute("organism", organism);
                 if(organism.getIsCrop())
                 {
-                    request.setAttribute("cropCategories", SessionControllerGetter.getOrganismBean().getCropCategories(user.getOrganizationId().getOrganizationId()));
+                    request.setAttribute("cropCategories", organismBean.getCropCategories(user.getOrganizationId().getOrganizationId()));
                 }
                 // All organisms used for parent organism list
                 List<Organism> allOrganisms = em.createNamedQuery("Organism.findAll").getResultList();
                 request.setAttribute("allOrganisms", allOrganisms);
                 // Hierarchy categories
-                request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                 // Finding all external resources where entry is missing
-                request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getOrganismBean().getUnusedExternalResourcesForOrganism(organism));
+                request.setAttribute("unreferencedExternalResources", organismBean.getUnusedExternalResourcesForOrganism(organism));
                 request.getRequestDispatcher("/organismForm.ftl").forward(request, response);
             }
             catch(NullPointerException | NumberFormatException ex)
@@ -207,10 +210,10 @@ public class OrganismController extends HttpServlet {
                 request.setAttribute("organism", organism);
                 request.setAttribute("allOrganisms", em.createNamedQuery("Organism.findAll").getResultList());
                 // Hierarchy categories
-                request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                 
                 // Finding all external resources where entry is missing
-                request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getOrganismBean().getUnusedExternalResourcesForOrganism(organism));
+                request.setAttribute("unreferencedExternalResources", organismBean.getUnusedExternalResourcesForOrganism(organism));
 
                 request.getRequestDispatcher("/organismForm.ftl").forward(request, response);
             }
@@ -235,7 +238,7 @@ public class OrganismController extends HttpServlet {
                     organism.setHierarchyCategoryId(formValidation.getFormField("hierarchyCategoryId").getValueAsInteger());
                     organism.setParentOrganismId(formValidation.getFormField("parentOrganismId").getValueAsInteger());
                     
-                    organism = SessionControllerGetter.getOrganismBean().storeOrganismWithLocalName(
+                    organism = organismBean.storeOrganismWithLocalName(
                             organism,
                             formValidation.getFormField("localName").getWebValue(),
                             SessionLocaleUtil.getCurrentLocale(request)
@@ -250,7 +253,7 @@ public class OrganismController extends HttpServlet {
                            cropCategoryIds.add(Integer.valueOf(idStr));
                        }
                     }
-                    SessionControllerGetter.getOrganismBean().storeOrganismCropCategories(user.getOrganizationId().getOrganizationId(), organism, cropCategoryIds);
+                    organismBean.storeOrganismCropCategories(user.getOrganizationId().getOrganizationId(), organism, cropCategoryIds);
                     
                     //System.out.println(formValidation.getFormFields().toString());
                     if(formValidation.getMultipleMapFormFields().get("externalResourceIdentifier") != null)
@@ -268,7 +271,7 @@ public class OrganismController extends HttpServlet {
                             OrganismExternalResourcePK pk = new OrganismExternalResourcePK(organism.getOrganismId(), externalResourceId);
                             organismExternalResource.setOrganismExternalResourcePK(pk);
                             organismExternalResource.setResourceIdentifier(identifierField.getWebValue());
-                            SessionControllerGetter.getOrganismBean().storeOrganismExternalResource(organismExternalResource);
+                            organismBean.storeOrganismExternalResource(organismExternalResource);
                         }
                     }
                     // Need to refresh organism after storing the external resources
@@ -276,13 +279,13 @@ public class OrganismController extends HttpServlet {
                     request.setAttribute("organism", refreshedOrganism);
                     if(refreshedOrganism.getIsCrop())
                     {
-                        request.setAttribute("cropCategories", SessionControllerGetter.getOrganismBean().getCropCategories(user.getOrganizationId().getOrganizationId()));
+                        request.setAttribute("cropCategories", organismBean.getCropCategories(user.getOrganizationId().getOrganizationId()));
                     }
                     request.setAttribute("allOrganisms", em.createNamedQuery("Organism.findAll").getResultList());
                     // Hierarchy categories
-                    request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+                    request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                     // Finding all external resources where entry is missing
-                    request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getOrganismBean().getUnusedExternalResourcesForOrganism(refreshedOrganism));
+                    request.setAttribute("unreferencedExternalResources", organismBean.getUnusedExternalResourcesForOrganism(refreshedOrganism));
                     request.setAttribute("messageKey", organismId > 0 ? "organismUpdated" : "organismRegistered");
                     request.getRequestDispatcher("/organismForm.ftl").forward(request, response);
                 }
@@ -291,7 +294,7 @@ public class OrganismController extends HttpServlet {
                     request.setAttribute("formValidation", formValidation);
                     request.setAttribute("organism", organism);
                     // Finding all external resources where entry is missing
-                    request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getOrganismBean().getUnusedExternalResourcesForOrganism(organism));
+                    request.setAttribute("unreferencedExternalResources", organismBean.getUnusedExternalResourcesForOrganism(organism));
                     request.getRequestDispatcher("/organismForm.ftl").forward(request, response);
                 }
             }
@@ -319,7 +322,7 @@ public class OrganismController extends HttpServlet {
                 Integer organismId = Integer.valueOf(request.getParameter("organismId"));
                 Organism organism = em.find(Organism.class, organismId);
                 String parentOrganismId = organism.getParentOrganismId() != null ? String.valueOf(organism.getParentOrganismId()) : "null";
-                if(SessionControllerGetter.getOrganismBean().deleteOrganism(organismId))
+                if(organismBean.deleteOrganism(organismId))
                 {
                     // Route back to where we were with confirmation message
                     response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/organism?action=listChildOrganisms&organismId=").append(parentOrganismId).append("&messageKey=organismDeleted").toString());
@@ -358,10 +361,10 @@ public class OrganismController extends HttpServlet {
             if(cropOrganismId != null && cropOrganismId > 0)
             {
                 request.setAttribute("cropOrganismId", cropOrganismId);
-                CropPest cropPest = SessionControllerGetter.getOrganismBean().getCropPest(cropOrganismId);
+                CropPest cropPest = organismBean.getCropPest(cropOrganismId);
                 request.setAttribute("cropPest", cropPest);
             }
-            request.setAttribute("hierarchyCategories", SessionControllerGetter.getOrganismBean().getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
+            request.setAttribute("hierarchyCategories", organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
             request.setAttribute("messageKey", request.getParameter("messageKey"));
             request.getRequestDispatcher("/cropPestForm.ftl").forward(request, response);
         }
@@ -387,7 +390,7 @@ public class OrganismController extends HttpServlet {
                     cropPest.setIncludeAllChildCrops(includeAllChildCrops);
                     cropPest.setPestOrganismIds(pestOrganismIds);
                     
-                    SessionControllerGetter.getOrganismBean().storeCropPest(cropPest);
+                    organismBean.storeCropPest(cropPest);
                     
                     response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/organism?action=editCropPest&cropOrganismId=").append(cropOrganismId).append("&messageKey=cropPestUpdated").toString());
                 }

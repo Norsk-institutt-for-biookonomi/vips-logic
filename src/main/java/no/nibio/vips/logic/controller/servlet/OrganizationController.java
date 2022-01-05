@@ -23,26 +23,30 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
+import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.gis.LonLatStringFormatException;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
 
 /**
- * @copyright 2019 <a href="http://www.bioforsk.no/">Bioforsk</a>
- * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ * @copyright 2019-2022 <a href="http://www.nibio.no/">NIBIO</a>
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class OrganizationController extends HttpServlet {
+    
+    @EJB
+    UserBean userBean;
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -66,7 +70,7 @@ public class OrganizationController extends HttpServlet {
         // the user is a member
         if(action == null && user.isSuperUser())
         {
-            List<Organization> organizations = SessionControllerGetter.getUserBean().getTopLevelOrganizations();
+            List<Organization> organizations = userBean.getTopLevelOrganizations();
             request.setAttribute("organizations", organizations);
             request.getRequestDispatcher("/organizationList.ftl").forward(request, response);
         }
@@ -76,8 +80,8 @@ public class OrganizationController extends HttpServlet {
             List<VipsLogicUser> organizationUsers;
             try
             {
-                organization = SessionControllerGetter.getUserBean().getOrganization(Integer.valueOf(request.getParameter("organizationId")));
-                organizationUsers = SessionControllerGetter.getUserBean().getUsersByOrganization(organization.getOrganizationId());
+                organization = userBean.getOrganization(Integer.valueOf(request.getParameter("organizationId")));
+                organizationUsers = userBean.getUsersByOrganization(organization.getOrganizationId());
                 Collections.sort(organizationUsers);
             }
             catch(NumberFormatException ex)
@@ -95,7 +99,7 @@ public class OrganizationController extends HttpServlet {
             
             request.setAttribute("messageKey", request.getParameter("messageKey") != null ? request.getParameter("messageKey") : null);
             request.setAttribute("organizationUsers", organizationUsers);
-            request.setAttribute("countries", SessionControllerGetter.getUserBean().getCountries());
+            request.setAttribute("countries", userBean.getCountries());
             request.setAttribute("timeZones", TimeZone.getAvailableIDs());
             request.setAttribute("organization", organization);
             request.getRequestDispatcher("/organizationForm.ftl").forward(request, response);
@@ -106,7 +110,7 @@ public class OrganizationController extends HttpServlet {
             {
                 Integer organizationId = Integer.valueOf(request.getParameter("organizationId"));
                 Organization organization = organizationId > 0 ? 
-                        SessionControllerGetter.getUserBean().getOrganization(organizationId)
+                        userBean.getOrganization(organizationId)
                         : new Organization();
                 
                 FormValidation formValidation = FormValidator.validateForm("organizationForm", request, getServletContext());
@@ -116,13 +120,13 @@ public class OrganizationController extends HttpServlet {
                     organization.setAddress1(formValidation.getFormField("address1").getWebValue());
                     organization.setAddress2(formValidation.getFormField("address2").getWebValue());
                     organization.setPostalCode(formValidation.getFormField("postalCode").getWebValue());
-                    organization.setCountryCode(SessionControllerGetter.getUserBean().getCountry(formValidation.getFormField("countryCode").getWebValue()));
+                    organization.setCountryCode(userBean.getCountry(formValidation.getFormField("countryCode").getWebValue()));
                     organization.setCity(formValidation.getFormField("city").getWebValue());
                     organization.setDefaultLocale(formValidation.getFormField("defaultLocale").getWebValue());
                     organization.setDefaultTimeZone(formValidation.getFormField("defaultTimeZone").getWebValue());
                     organization.setVipswebUrl(formValidation.getFormField("vipswebUrl").getWebValue());
                     Integer archiveUserId = formValidation.getFormField("archiveUserId").getValueAsInteger();
-                    organization.setArchiveUser(archiveUserId > 0 ? SessionControllerGetter.getUserBean().getVipsLogicUser(archiveUserId) : null);
+                    organization.setArchiveUser(archiveUserId > 0 ? userBean.getVipsLogicUser(archiveUserId) : null);
                     organization.setDefaultVipsCoreUserId(
                             formValidation.getFormField("defaultVipsCoreUserId").isEmpty() ? 
                                     null
@@ -139,7 +143,7 @@ public class OrganizationController extends HttpServlet {
                                     : new GISUtil().getJtsPointFromString(formValidation.getFormField("defaultMapCenter").getWebValue())
                     );
                     
-                    organization = SessionControllerGetter.getUserBean().storeOrganization(organization);
+                    organization = userBean.storeOrganization(organization);
                     
                     response.sendRedirect(
                             Globals.PROTOCOL + "://" + ServletUtil.getServerName(request)

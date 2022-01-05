@@ -20,15 +20,19 @@
 package no.nibio.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
+import javax.ejb.EJB;
+import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2015-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class UpdateForecastSummaryTableTask  extends VipsLogicTask{
+    
+    @EJB
+    ForecastBean forecastBean;
 
     @Override
     public String getConfigFormDefinition(String language) {
@@ -38,7 +42,7 @@ public class UpdateForecastSummaryTableTask  extends VipsLogicTask{
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         tec.setCompleteness(0d);
-        SessionControllerGetter.getForecastBean().updateForecastSummaryTable(SystemTime.getSystemTime());
+        forecastBean.updateForecastSummaryTable(SystemTime.getSystemTime());
         tec.setCompleteness(1d);
     }
 

@@ -20,10 +20,12 @@
 package no.nibio.vips.logic.messaging.sms;
 
 import com.webcohesion.enunciate.metadata.Facet;
+import javax.ejb.EJB;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 
@@ -34,6 +36,9 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 @Path("rest/sms")
 @Facet("restricted")
 public class SMSHandlingService {
+    
+    @EJB
+    UserBean userBean;
 
     /**
      * Sample of incoming request: /rest/sms/vianett/customer_request
@@ -64,7 +69,7 @@ public class SMSHandlingService {
         reply.setErrorcode("0");
         if(message !=null && sourceaddr != null && username!=null && username.equals("vianett") && password != null && password.equals("plantevern2016"))
         {
-            VipsLogicUser user = SessionControllerGetter.getUserBean().getUserByPhoneNumber(sourceaddr);
+            VipsLogicUser user = userBean.getUserByPhoneNumber(sourceaddr);
             if(user != null)
             {
                 if(message.trim().toUpperCase().equals("STOP"))
@@ -77,7 +82,7 @@ public class SMSHandlingService {
                     user.setApprovesSmsBilling(true);
                     reply.setResponse_msg("Confirmation: Sending and billing of SMS messages from VIPS is started.");
                 }
-                SessionControllerGetter.getUserBean().storeUser(user);
+                userBean.storeUser(user);
                 reply.setResponse_fromalpha("Vips");
                 reply.setResponse_pricegroup("0");
             }

@@ -19,16 +19,10 @@
 
 package no.nibio.vips.observationdata;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.ResourceBundle;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -39,11 +33,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Facet("restricted")
@@ -51,6 +45,11 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 public class ObservationDataService {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    UserBean userBean;
+    @EJB
+    ObservationBean observationBean;
     
     @Context
     private HttpServletRequest httpServletRequest;
@@ -71,9 +70,9 @@ public class ObservationDataService {
         try
         {
             // Try to find schema for given organism/organization
-            ObservationDataSchema ods = SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, organismId);
-            ULocale locale = new ULocale(SessionControllerGetter.getUserBean().getOrganization(organizationId).getDefaultLocale());
-            ods = SessionControllerGetter.getObservationBean().getLocalizedObservationDataSchema(ods, httpServletRequest, locale);
+            ObservationDataSchema ods = observationBean.getObservationDataSchema(organizationId, organismId);
+            ULocale locale = new ULocale(userBean.getOrganization(organizationId).getDefaultLocale());
+            ods = observationBean.getLocalizedObservationDataSchema(ods, httpServletRequest, locale);
             return Response.ok().entity(ods.getDataSchema()).build();
             
         }

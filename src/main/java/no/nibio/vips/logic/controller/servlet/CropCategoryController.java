@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -24,10 +24,13 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
@@ -41,11 +44,17 @@ import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
 
 /**
- * @copyright 2016 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2016-2022 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class CropCategoryController extends HttpServlet {
    
+    @EJB
+    UserBean userBean;
+    
+    @EJB
+    OrganismBean organismBean;
+    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -63,19 +72,19 @@ public class CropCategoryController extends HttpServlet {
         if(action == null)
         {
             Organization currentOrganization = user.isSuperUser() && request.getParameter("organizationId") != null ? 
-                        SessionControllerGetter.getUserBean().getOrganization(Integer.valueOf(request.getParameter("organizationId")))
+                        userBean.getOrganization(Integer.valueOf(request.getParameter("organizationId")))
                         : user.getOrganizationId();
             if(user.isSuperUser())
             {
-                List<Organization> allOrganizations = SessionControllerGetter.getUserBean().getTopLevelOrganizations();
+                List<Organization> allOrganizations = userBean.getTopLevelOrganizations();
                 request.setAttribute("allOrganizations", allOrganizations);
             }
             
-            List<CropCategory> cropCategories = SessionControllerGetter.getOrganismBean().getCropCategories(currentOrganization.getOrganizationId());
+            List<CropCategory> cropCategories = organismBean.getCropCategories(currentOrganization.getOrganizationId());
             
             request.setAttribute("organization", currentOrganization);
             request.setAttribute("cropCategories", cropCategories);
-            List<Organism> cropList = SessionControllerGetter.getOrganismBean().getAllCrops();
+            List<Organism> cropList = organismBean.getAllCrops();
             Map<String, Organism> allCrops = new HashMap<>();
             for(Organism crop:cropList)
             {
@@ -94,9 +103,9 @@ public class CropCategoryController extends HttpServlet {
                 {
                     Integer cropCategoryId = formValidation.getFormField("cropCategoryId").getValueAsInteger();
                     List<Integer> cropCategoryCropOrganismIds = FormUtil.getIdsFromMultipleSelect(formValidation.getFormField("cropCategoryCropOrganismIds").getWebValues());
-                    CropCategory cropCategory = SessionControllerGetter.getOrganismBean().getCropCategory(cropCategoryId);
+                    CropCategory cropCategory = organismBean.getCropCategory(cropCategoryId);
                     cropCategory.setCropOrganismIds(cropCategoryCropOrganismIds.toArray(new Integer[cropCategoryCropOrganismIds.size()]));
-                    SessionControllerGetter.getOrganismBean().storeCropCategory(cropCategory);
+                    organismBean.storeCropCategory(cropCategory);
                     
                     response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/organism/cropcategory?messageKey=cropCategoryUpdated").toString());
                 }

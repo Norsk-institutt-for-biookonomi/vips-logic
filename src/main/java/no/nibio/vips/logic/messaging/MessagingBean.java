@@ -100,7 +100,7 @@ public class MessagingBean {
         // Store it
         em.persist(uMessage);
         
-        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyClient client = (ResteasyClient) ResteasyClientBuilder.newClient();//new ResteasyClientBuilder().build();
         //client.register(new RESTAuthenticator("user", "userPass"));
         client.register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"));
         //ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");

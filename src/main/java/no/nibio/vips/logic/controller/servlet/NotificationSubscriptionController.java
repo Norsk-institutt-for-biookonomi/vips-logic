@@ -20,14 +20,16 @@ package no.nibio.vips.logic.controller.servlet;
 
 import freemarker.core.ParseException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.VipsLogicRole;
@@ -35,14 +37,14 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.ForecastEventNotificationSubscription;
 import no.nibio.vips.logic.messaging.MessageNotificationSubscription;
+import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.messaging.ObservationNotificationSubscription;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormUtil;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
@@ -51,6 +53,18 @@ public class NotificationSubscriptionController extends HttpServlet {
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    UserBean userBean;
+    
+    @EJB
+    MessagingBean messagingBean;
+    
+    @EJB
+    OrganismBean organismBean;
+    
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -66,7 +80,6 @@ public class NotificationSubscriptionController extends HttpServlet {
         
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        UserBean userBean = SessionControllerGetter.getUserBean();
         
         try
         {
@@ -94,22 +107,22 @@ public class NotificationSubscriptionController extends HttpServlet {
                 {
                     viewUser = em.find(VipsLogicUser.class, user.getUserId());
                 }
-                ObservationNotificationSubscription observationNotificationSubscription = SessionControllerGetter.getMessagingBean().getObservationNotificationSubscription(viewUser.getUserId());
+                ObservationNotificationSubscription observationNotificationSubscription = messagingBean.getObservationNotificationSubscription(viewUser.getUserId());
                 request.setAttribute("observationNotificationSubscription", observationNotificationSubscription);
-                MessageNotificationSubscription messageNotificationSubscription = SessionControllerGetter.getMessagingBean().getMessageNotificationSubscription(viewUser.getUserId());
+                MessageNotificationSubscription messageNotificationSubscription = messagingBean.getMessageNotificationSubscription(viewUser.getUserId());
                 request.setAttribute("messageNotificationSubscription",messageNotificationSubscription);
-                ForecastEventNotificationSubscription forecastEventNotificationSubscription = SessionControllerGetter.getMessagingBean().getForecastEventNotificationSubscription(viewUser.getUserId());
+                ForecastEventNotificationSubscription forecastEventNotificationSubscription = messagingBean.getForecastEventNotificationSubscription(viewUser.getUserId());
                 request.setAttribute("forecastEventNotificationSubscription",forecastEventNotificationSubscription);
                 request.setAttribute("viewUser", viewUser);
-                List<CropCategory> allCropCategories = SessionControllerGetter.getOrganismBean()
+                List<CropCategory> allCropCategories = organismBean
                         .sortCropCategoryByLocalName(
                                 em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId", viewUser.getOrganizationId().getOrganizationId()).getResultList(),
                                 SessionLocaleUtil.getCurrentLocale(request).getLanguage()
                         );
                 request.setAttribute("allCropCategories", allCropCategories);
                 request.setAttribute("messageTagSet", em.createNamedQuery("MessageTag.findAll").getResultList());
-                request.setAttribute("weatherStationIds", SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(viewUser.getOrganizationId(), true));
-                request.setAttribute("universalMessageFormats", SessionControllerGetter.getMessagingBean().getAllUniversalMessageFormats());
+                request.setAttribute("weatherStationIds", pointOfInterestBean.getWeatherstationsForOrganization(viewUser.getOrganizationId(), true));
+                request.setAttribute("universalMessageFormats", messagingBean.getAllUniversalMessageFormats());
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/notificationSubscriptionForm.ftl").forward(request, response);
             }
@@ -130,20 +143,20 @@ public class NotificationSubscriptionController extends HttpServlet {
                 mSubscription.setCropCategoryIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageN_cropCategoryIds")));
                 mSubscription.setMessageTagIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("messageN_messageTagIds")));
                 mSubscription.setUserId(viewUser.getUserId());
-                SessionControllerGetter.getMessagingBean().storeMessageNotificationSubscription(mSubscription);
+                messagingBean.storeMessageNotificationSubscription(mSubscription);
                 
                 ForecastEventNotificationSubscription fSubscription = new ForecastEventNotificationSubscription();
                 fSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("forecastN_universalMessageFormatId")));
                 fSubscription.setCropCategoryIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_cropCategoryIds")));
                 fSubscription.setWeatherStationIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("forecastN_weatherStationIds")));
                 fSubscription.setUserId(viewUser.getUserId());
-                SessionControllerGetter.getMessagingBean().storeForecastEventNotificationSubscription(fSubscription);
+                messagingBean.storeForecastEventNotificationSubscription(fSubscription);
                 
                 ObservationNotificationSubscription oSubscription = new ObservationNotificationSubscription();
                 oSubscription.setUniversalMessageFormatId(Integer.valueOf(request.getParameter("observationN_universalMessageFormatId")));
                 oSubscription.setCropCategoryIds(FormUtil.getIdsFromMultipleSelect(request.getParameterValues("observationN_cropCategoryIds")));
                 oSubscription.setUserId(viewUser.getUserId());
-                SessionControllerGetter.getMessagingBean().storeObservationNotificationSubscription(oSubscription);
+                messagingBean.storeObservationNotificationSubscription(oSubscription);
                 
                 // Redirect to form with confirmation message
                 response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")

@@ -21,7 +21,6 @@ package no.nibio.vips.logic.service;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
@@ -40,13 +40,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.modules.wheatleafblotch.GrowthStageLocationDate;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 
 /**
- * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2020-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/gs")
@@ -55,6 +55,9 @@ public class GrowthStageService {
     private HttpServletRequest httpServletRequest;
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
     
     /**
      * At what dates can we expect the given crop to be at the given growth stages
@@ -213,7 +216,7 @@ public class GrowthStageService {
         .setParameter("cropOrganismId", organismId)
         .getResultList();
         
-        PointOfInterestWeatherStation closestStation = SessionControllerGetter.getPointOfInterestBean().findClosestWeatherStation(this.getLocationCoordinate(location), stationsWithGrowthStageInfoForCrop);
+        PointOfInterestWeatherStation closestStation = pointOfInterestBean.findClosestWeatherStation(this.getLocationCoordinate(location), stationsWithGrowthStageInfoForCrop);
         return em.createNamedQuery("GrowthStageLocationDate.findByCropOrganismIdAndPointOfInterestId")
                 .setParameter("cropOrganismId", em.find(Organism.class, organismId))
                 .setParameter("pointOfInterestId", closestStation)

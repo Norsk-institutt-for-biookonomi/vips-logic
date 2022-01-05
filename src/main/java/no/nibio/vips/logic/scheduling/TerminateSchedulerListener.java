@@ -22,16 +22,19 @@ package no.nibio.vips.logic.scheduling;
 import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.SchedulerListener;
 import it.sauronsoftware.cron4j.TaskExecutor;
+import javax.ejb.EJB;
 import no.nibio.vips.logic.controller.session.SchedulingBean;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 
 /**
  * Add this listener to a scheduler if you want it the scheduler to terminate
  * after a task has completed
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class TerminateSchedulerListener implements SchedulerListener{
+    
+    @EJB
+    SchedulingBean schedulingBean;
 
     @Override
     public void taskLaunching(TaskExecutor te) {
@@ -57,7 +60,6 @@ public class TerminateSchedulerListener implements SchedulerListener{
     private void terminateScheduler(Scheduler scheduler)
     {
         scheduler.stop();
-        SchedulingBean schedulingBean = SessionControllerGetter.getSchedulingBean();
         schedulingBean.getOneOffSchedulers().remove(scheduler);
         scheduler = null;
     }

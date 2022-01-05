@@ -38,29 +38,33 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
 import no.nibio.vips.logic.entity.UserUuid;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 
 /**
  * Logs a user in or out
- * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class LoginController extends HttpServlet {
     //private static final String CLOSE_AND_RELOAD_PARENT = "close_and_reload_parent";
     
     private static final String RETURN_UUID_PARAMETER_NAME = "returnUUID";
+    
+    @EJB
+    UserBean userBean;
     
     /**
      * Processes requests for both HTTP
@@ -116,7 +120,7 @@ public class LoginController extends HttpServlet {
                 Payload payload = idToken.getPayload();
                 
                 // Try to find the user
-                VipsLogicUser user = SessionControllerGetter.getUserBean().getUser(payload.getSubject(), UserAuthenticationType.TYPE_OPENID_GOOGLE);
+                VipsLogicUser user = userBean.getUser(payload.getSubject(), UserAuthenticationType.TYPE_OPENID_GOOGLE);
                 if(user != null)
                 {
                     request.getSession().setAttribute("user", user);
@@ -156,7 +160,7 @@ public class LoginController extends HttpServlet {
             {
                 rememberedUser.setMaxAge(0);
                 response.addCookie(rememberedUser);
-                SessionControllerGetter.getUserBean().deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
+                userBean.deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
             }
             request.setAttribute("messageKey","logoutsuccess");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
@@ -188,7 +192,7 @@ public class LoginController extends HttpServlet {
                     creds.put("username", username);
                     creds.put("password", password);
 
-                    VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
+                    VipsLogicUser user = userBean.authenticateUser(creds);
 
                     if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
                     {
@@ -277,7 +281,7 @@ public class LoginController extends HttpServlet {
             creds.put("username", username);
             creds.put("password", password);
 
-            VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
+            VipsLogicUser user = userBean.authenticateUser(creds);
             PrintWriter out = response.getWriter();
             if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
             {
@@ -371,7 +375,7 @@ public class LoginController extends HttpServlet {
         request.getSession().removeAttribute("rememberUser");
         if(returnUUID || (rememberUser != null && rememberUser.equals("on")))
         {
-            UserUuid uUUID = SessionControllerGetter.getUserBean().createAndPersistUserUuid(user);
+            UserUuid uUUID = userBean.createAndPersistUserUuid(user);
             if(rememberUser != null && rememberUser.equals("on"))
             {
                 Cookie rememberedUser = new Cookie("rememberedUser", uUUID.getUserUuidPK().getUserUuid().toString());
@@ -388,7 +392,7 @@ public class LoginController extends HttpServlet {
             {
                 rememberedUser.setMaxAge(0);
                 response.addCookie(rememberedUser);
-                SessionControllerGetter.getUserBean().deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
+                userBean.deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
             }
             return null;
         }

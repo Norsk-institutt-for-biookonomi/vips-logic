@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -63,7 +64,6 @@ import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.scheduling.model.preprocessor.NaerstadModelPreprocessor;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
@@ -76,6 +76,11 @@ public class SchedulingBean {
     
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    UserBean userBean;
+    @EJB
+    ForecastBean forecastBean;
     
     // There can be only one systemScheduler!
     private static Scheduler systemScheduler;
@@ -175,7 +180,7 @@ public class SchedulingBean {
         VIPSLogicTaskCollector modelRunCollector = new VIPSLogicTaskCollector(-1);
         
         // Separating the forecasts for each organization
-        List<Organization> organizations = SessionControllerGetter.getUserBean().getOrganizationsWithActiveForecastConfigurations(SystemTime.getSystemTime());
+        List<Organization> organizations = userBean.getOrganizationsWithActiveForecastConfigurations(SystemTime.getSystemTime());
         if(organizations != null && !organizations.isEmpty())
         {
             for(Organization org:organizations)
@@ -257,7 +262,7 @@ public class SchedulingBean {
             List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
             
             // We delete all former results before we store the new ones
-            SessionControllerGetter.getForecastBean().storeResults(c,results);
+            forecastBean.storeResults(c,results);
             
             
             

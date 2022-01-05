@@ -45,6 +45,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -84,7 +85,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
- * @copyright 2013-2017 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
@@ -92,6 +93,12 @@ public class ForecastBean {
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    ForecastBean forecastBean;
+    
+    @EJB
+    UserBean userBean;
     
     /**
      * Returns all forecast results.
@@ -143,7 +150,7 @@ public class ForecastBean {
                 return false;
             }
             UUID uUUID = UUID.fromString(userUUID);
-            VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uUUID);
+            VipsLogicUser user = userBean.findVipsLogicUser(uUUID);
             if(user == null || ! user.getUserId().equals( fc.getVipsLogicUserId().getUserId()))
             {
                 return false;
@@ -674,7 +681,7 @@ public class ForecastBean {
                         List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>(){});
                         //System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ", resultsize=" + results.size());
                         // We delete all former results before we store the new ones
-                        SessionControllerGetter.getForecastBean().storeResults(forecastConfiguration,results);
+                        forecastBean.storeResults(forecastConfiguration,results);
                     }
                     else
                     {

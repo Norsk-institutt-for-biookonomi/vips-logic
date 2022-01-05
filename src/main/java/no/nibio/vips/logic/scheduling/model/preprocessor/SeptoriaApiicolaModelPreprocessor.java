@@ -26,31 +26,37 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.model.ConfigValidationException;
 import no.nibio.vips.observation.Observation;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherObservationListException;
 import no.nibio.vips.util.WeatherUtil;
-import no.nibio.vips.util.XDate;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
+    @EJB
+    OrganismBean organismBean;
+    @EJB
+    ObservationBean observationBean;
+    
 
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
@@ -59,9 +65,9 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
         PointOfInterestWeatherStation weatherStation =  (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
         config = new ModelConfiguration();
         
-        Organism organism = SessionControllerGetter.getOrganismBean().getOrganismByLatinName("Septoria apiicola");
+        Organism organism = organismBean.getOrganismByLatinName("Septoria apiicola");
         //System.out.println(organism);
-        List<Observation> pestObservations = SessionControllerGetter.getObservationBean().getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
+        List<Observation> pestObservations = observationBean.getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
         
         //System.out.println("Found " + pestObservations + " observations");
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();

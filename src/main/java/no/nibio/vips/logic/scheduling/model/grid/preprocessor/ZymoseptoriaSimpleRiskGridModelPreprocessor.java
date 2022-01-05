@@ -19,27 +19,26 @@
 
 package no.nibio.vips.logic.scheduling.model.grid.preprocessor;
 
-import org.locationtech.jts.geom.Coordinate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.PointWeatherObservationList;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.gis.CoordinateProxy;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.WeatherObservationListException;
@@ -48,10 +47,13 @@ import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
- * @copyright 2018 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2018-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreprocessor{
+    
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
 
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
@@ -60,7 +62,7 @@ public class ZymoseptoriaSimpleRiskGridModelPreprocessor extends ModelRunPreproc
         // Which weather stations??
         // Ilseng and Apelsvoll to start with ;-)
         List<PointOfInterestWeatherStation> stations = Stream.of(configuration.getGridWeatherStationPointOfInterestIds()).map(
-                stationId -> (PointOfInterestWeatherStation) SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(stationId)
+                stationId -> (PointOfInterestWeatherStation) pointOfInterestBean.getPointOfInterest(stationId)
             ).collect(Collectors.toList());
         
         List<PointWeatherObservationList> allObs = new ArrayList<>();

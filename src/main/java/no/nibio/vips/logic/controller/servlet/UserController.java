@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
@@ -52,7 +53,6 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormUtil;
@@ -62,13 +62,17 @@ import no.nibio.web.forms.FormValidator;
 
 /**
  * Handles user actions
- * @copyright 2013-2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class UserController extends HttpServlet {
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    UserBean userBean;
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -83,7 +87,6 @@ public class UserController extends HttpServlet {
         
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        UserBean userBean = SessionControllerGetter.getUserBean();
         
         // Default: View list of users
         // for SUPERUSERS and ORGANIZATION ADMINS
@@ -332,7 +335,7 @@ public class UserController extends HttpServlet {
                                 }
                             }
                             userBean.storeUser(viewUser);
-                            SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                            userBean.handleUserStatusChange(oldUserStatusId, viewUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                             // Add confirmation message
                             messageKey = "userUpdated";
                         }
@@ -395,7 +398,7 @@ public class UserController extends HttpServlet {
                 {
                     Integer userId = Integer.valueOf(request.getParameter("userId"));
                     VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
-                    UserResources userResources = SessionControllerGetter.getUserBean().getUserResources(viewUser);
+                    UserResources userResources = userBean.getUserResources(viewUser);
  
                     // If some resources connected, render form, otherwise, route to user delete
                     if(userResources.isEmpty())
@@ -439,7 +442,7 @@ public class UserController extends HttpServlet {
                     VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
                     
                     // Are there resources connected to this user?
-                    UserResources userResources = SessionControllerGetter.getUserBean().getUserResources(viewUser);
+                    UserResources userResources = userBean.getUserResources(viewUser);
                     if(! userResources.isEmpty())
                     {
                         boolean resourcesTransferred = false;
@@ -449,7 +452,7 @@ public class UserController extends HttpServlet {
                             VipsLogicUser transferToUser = em.find(VipsLogicUser.class, transferToUserId);
                             if(transferToUser != null)
                             {
-                                SessionControllerGetter.getUserBean().transferUserResources(viewUser,transferToUser);
+                                userBean.transferUserResources(viewUser,transferToUser);
                                 resourcesTransferred = true;
                             }
                         }
@@ -623,12 +626,12 @@ public class UserController extends HttpServlet {
         else if(action.equals("confirmEmail"))
         {
             String verificationCode = request.getParameter("verificationCode");
-            VipsLogicUser confirmUser = SessionControllerGetter.getUserBean().verifyUserEmail(verificationCode);
+            VipsLogicUser confirmUser = userBean.verifyUserEmail(verificationCode);
             if(confirmUser != null)
             {
                 // Success
                 // Send message to organization admin that user has confirmed his/her email
-                SessionControllerGetter.getUserBean().informAdminOfConfirmedEmail(confirmUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                userBean.informAdminOfConfirmedEmail(confirmUser, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                 request.setAttribute("messageKey","confirmEmailReceipt");
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
             }
@@ -655,9 +658,9 @@ public class UserController extends HttpServlet {
                     {
                         Integer oldUserStatusId = userToApprove.getUserStatusId();
                         userToApprove.setUserStatusId(Globals.USER_STATUS_APPROVED);
-                        SessionControllerGetter.getUserBean().storeUser(userToApprove);
+                        userBean.storeUser(userToApprove);
                         // Handle user status change
-                        SessionControllerGetter.getUserBean().handleUserStatusChange(oldUserStatusId, userToApprove, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
+                        userBean.handleUserStatusChange(oldUserStatusId, userToApprove, SessionLocaleUtil.getI18nBundle(request), ServletUtil.getServerName(request));
                         response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user").append("?messageKey=").append("userApproved").toString());
                     }
                 }
@@ -690,7 +693,7 @@ public class UserController extends HttpServlet {
             creds.put("username", username);
             creds.put("password", password);
 
-            VipsLogicUser searchUser = SessionControllerGetter.getUserBean().authenticateUser(creds);
+            VipsLogicUser searchUser = userBean.authenticateUser(creds);
 
             if(searchUser != null)
             {
@@ -700,7 +703,7 @@ public class UserController extends HttpServlet {
                 userAuth.setUsername((String)request.getSession().getAttribute("openId"));
                 UserAuthenticationPK pk = new UserAuthenticationPK(searchUser.getUserId(), userAuthenticationType.getUserAuthenticationTypeId());
                 userAuth.setUserAuthenticationPK(pk);
-                SessionControllerGetter.getUserBean().storeUserAuthentication(userAuth);
+                userBean.storeUserAuthentication(userAuth);
                 //em.persist(userAuth);
                 request.setAttribute("messageKey", "attachIdToExistingUserReceipt");
                 request.getRequestDispatcher("/login.ftl").forward(request, response);

@@ -20,7 +20,6 @@ package no.nibio.vips.logic.modules.applefruitmoth;
 
 import com.ibm.icu.util.Calendar;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,10 +29,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.Globals;
@@ -51,6 +52,12 @@ import no.nibio.web.forms.FormValidator;
  */
 public class AppleFruitMothController extends HttpServlet {
 
+    @EJB
+    UserBean userBean;
+    @EJB
+    AppleFruitMothBean appleFruitMothBean;
+    
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -64,13 +71,13 @@ public class AppleFruitMothController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.APPLE_FRUIT_MOTH_ADMINISTRATOR, VipsLogicRole.APPLE_FRUIT_MOTH_BERRY_CLUSTER_COUNTER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+        if(userBean.authorizeUser(user, VipsLogicRole.APPLE_FRUIT_MOTH_ADMINISTRATOR, VipsLogicRole.APPLE_FRUIT_MOTH_BERRY_CLUSTER_COUNTER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
         {
             String action = request.getParameter("action");
             if(action == null)
             {
                 // Show map and list of existing stations
-                List<ObservationSite> observationSites = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesWithClusterCountLastUpdate();
+                List<ObservationSite> observationSites = appleFruitMothBean.getObservationSitesWithClusterCountLastUpdate();
                 request.setAttribute("observationSites", observationSites);
                 request.getRequestDispatcher("/appleFruitMothStationList.ftl").forward(request, response);
             }
@@ -83,7 +90,7 @@ public class AppleFruitMothController extends HttpServlet {
                     cal.setTime(SystemTime.getSystemTime());
                     Integer lastSeason = cal.get(Calendar.YEAR);
                     Integer currentSeason = request.getParameter("currentSeason") != null ? Integer.valueOf(request.getParameter("currentSeason")) : lastSeason;
-                    ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
+                    ObservationSite observationSite = appleFruitMothBean.getObservationSite(observationSiteId);
                     request.setAttribute("observationSite", observationSite);
                     if(observationSite != null)
                     {
@@ -164,7 +171,7 @@ public class AppleFruitMothController extends HttpServlet {
                 {
                     
                     Integer observationSiteId = Integer.valueOf(request.getParameter("observationSiteId"));
-                    ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
+                    ObservationSite observationSite = appleFruitMothBean.getObservationSite(observationSiteId);
                     if(observationSite != null)
                     {
                         FormValidation formValidation = FormValidator.validateForm("appleFruitMothStationForm", request, getServletContext());
@@ -186,7 +193,7 @@ public class AppleFruitMothController extends HttpServlet {
                             ossc.setThousandBerrySample( !formValidation.getFormField("thousandBerrySample").isEmpty() ? formValidation.getFormField("thousandBerrySample").getValueAsDouble(): null);
                             ossc.setRemarks(formValidation.getFormField("remarks") != null ? formValidation.getFormField("remarks").getWebValue() : "");
                             observationSite.getObservationSiteSeasonCommonDataSet().add(ossc);
-                            SessionControllerGetter.getAppleFruitMothBean().storeObservationSite(observationSite);
+                            appleFruitMothBean.storeObservationSite(observationSite);
                             
                             // Redirect to form
                             response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
@@ -219,7 +226,7 @@ public class AppleFruitMothController extends HttpServlet {
                 cal.setTime(SystemTime.getSystemTime());
                 Integer lastSeason = cal.get(Calendar.YEAR);
                 Integer currentSeason = request.getParameter("currentSeason") != null ? Integer.valueOf(request.getParameter("currentSeason")) : lastSeason;
-                ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
+                ObservationSite observationSite = appleFruitMothBean.getObservationSite(observationSiteId);
                 Map<String, ObservationSitePointSeasonData> treeData = new HashMap<>();
 
                 Integer grossClusterAutumnSum = 0;
@@ -282,13 +289,13 @@ public class AppleFruitMothController extends HttpServlet {
                     }
 
                     Integer observationSiteId = Integer.valueOf(request.getParameter("observationSiteId"));
-                    ObservationSite observationSite = SessionControllerGetter.getAppleFruitMothBean().getObservationSite(observationSiteId);
+                    ObservationSite observationSite = appleFruitMothBean.getObservationSite(observationSiteId);
                     
                     ObservationSiteSeasonCommonData seasonCommonData = observationSite.getCommonDataForSeason(currentSeason);
                     if(seasonCommonData != null)
                     {
                         seasonCommonData.setRemarks(request.getParameter("remarks") != null ? request.getParameter("remarks") : "");
-                        SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePointSeasonCommonData(seasonCommonData);
+                        appleFruitMothBean.storeObservationSitePointSeasonCommonData(seasonCommonData);
                     }
                     //System.out.println("sitePointSetLength=" + observationSite.getObservationSitePointSet().size());
                     treeNames.stream().forEach(treeName->{
@@ -298,7 +305,7 @@ public class AppleFruitMothController extends HttpServlet {
                                     .findFirst()
                                     // Need to use orElseGet instead of orElse, otherwise
                                     // a new sitePoint will be created each time
-                                    .orElseGet(()-> SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePoint(new ObservationSitePoint(observationSite, treeName)));
+                                    .orElseGet(()-> appleFruitMothBean.storeObservationSitePoint(new ObservationSitePoint(observationSite, treeName)));
 
                             // TODO: Fill in the correct values from POST data, then store
                             //Set<ObservationSitePointSeasonData> dataSet = point.getObservationSitePointSeasonDataSet();
@@ -316,10 +323,10 @@ public class AppleFruitMothController extends HttpServlet {
                             newData.setSpringDate(springDate);
                             newData.setLastUpdated(new Date());
                             
-                            SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePointSeasonData(newData);
+                            appleFruitMothBean.storeObservationSitePointSeasonData(newData);
                             //dataSet.add(newData);
                             //point.setObservationSitePointSeasonDataSet(dataSet);
-                            //SessionControllerGetter.getAppleFruitMothBean().storeObservationSitePoint(point);
+                            //appleFruitMothBean.storeObservationSitePoint(point);
                             
 
                         } catch (NullPointerException | ParseException ex) {

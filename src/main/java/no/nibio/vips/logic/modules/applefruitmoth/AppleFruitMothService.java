@@ -22,6 +22,7 @@ package no.nibio.vips.logic.modules.applefruitmoth;
 import com.webcohesion.enunciate.metadata.Facet;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.util.Calendar;
+import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,17 +31,19 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ServletUtil;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/applefruitmoth")
 @Facet("restricted")
 public class AppleFruitMothService {
+    
+    @EJB
+    AppleFruitMothBean appleFruitMothBean;
     
     @Context
     private HttpServletRequest httpServletRequest;
@@ -67,7 +70,7 @@ public class AppleFruitMothService {
             @QueryParam("onlyPubliclyAvailable") Boolean onlyPubliclyAvailable
     )
     {
-        Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitesKml(season, selectedObservationSiteId, ServletUtil.getServerName(httpServletRequest), onlyPubliclyAvailable);
+        Kml retVal = appleFruitMothBean.getObservationSitesKml(season, selectedObservationSiteId, ServletUtil.getServerName(httpServletRequest), onlyPubliclyAvailable);
         return Response.ok().entity(retVal).build();
     }
     
@@ -76,7 +79,7 @@ public class AppleFruitMothService {
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     public Response getObservationSitePointsKML(@PathParam("observationSiteId") Integer observationSiteId)
     {
-        Kml retVal = SessionControllerGetter.getAppleFruitMothBean().getObservationSitePointsKml(observationSiteId, ServletUtil.getServerName(httpServletRequest));
+        Kml retVal = appleFruitMothBean.getObservationSitePointsKml(observationSiteId, ServletUtil.getServerName(httpServletRequest));
         return Response.ok().entity(retVal).build();
     }*/
 }

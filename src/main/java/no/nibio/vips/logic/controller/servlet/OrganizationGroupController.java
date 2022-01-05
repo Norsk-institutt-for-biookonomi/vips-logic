@@ -20,26 +20,31 @@ package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.OrganizationGroup;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
 
 /**
- *
- * @author treinar
+ * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class OrganizationGroupController extends HttpServlet {
 
+    
+    @EJB
+    UserBean userBean;
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -64,13 +69,13 @@ public class OrganizationGroupController extends HttpServlet {
                 Organization organization = user.getOrganizationId();
                 if(user.isSuperUser() && request.getParameter("organizationId") != null)
                 {
-                    organization = SessionControllerGetter.getUserBean().getOrganization(Integer.valueOf(request.getParameter("organizationId")));
+                    organization = userBean.getOrganization(Integer.valueOf(request.getParameter("organizationId")));
                 }
-                groups = SessionControllerGetter.getUserBean().getOrganizationGroups(organization);
+                groups = userBean.getOrganizationGroups(organization);
             }
             else
             {
-                groups = SessionControllerGetter.getUserBean().getOrganizationGroups(user);
+                groups = userBean.getOrganizationGroups(user);
             }
             request.setAttribute("organizationGroups", groups);
             request.setAttribute("messageKey",request.getParameter("messageKey"));
@@ -82,13 +87,13 @@ public class OrganizationGroupController extends HttpServlet {
             {
                 // TODO: Restrict group access based on user privileges
                 Integer organizationGroupId = Integer.valueOf(request.getParameter("organizationGroupId"));
-                OrganizationGroup oGroup = organizationGroupId > 0 ? SessionControllerGetter.getUserBean().getOrganizationGroup(organizationGroupId)
+                OrganizationGroup oGroup = organizationGroupId > 0 ? userBean.getOrganizationGroup(organizationGroupId)
                         : new OrganizationGroup();
 
                 request.setAttribute("messageKey",request.getParameter("messageKey"));
                 request.setAttribute("organizationGroup", oGroup);
-                request.setAttribute("users", SessionControllerGetter.getUserBean().getUsers(user.getOrganizationId()));
-                request.setAttribute("memberIds", SessionControllerGetter.getUserBean().getOrganizationGroupMemberIds(oGroup));
+                request.setAttribute("users", userBean.getUsers(user.getOrganizationId()));
+                request.setAttribute("memberIds", userBean.getOrganizationGroupMemberIds(oGroup));
                 request.getRequestDispatcher("organizationGroupForm.ftl").forward(request, response);
             }
             catch(NullPointerException | NumberFormatException ex)
@@ -102,7 +107,7 @@ public class OrganizationGroupController extends HttpServlet {
             {
                 Integer organizationGroupId = Integer.valueOf(request.getParameter("organizationGroupId"));
                 OrganizationGroup oGroup = organizationGroupId > 0 ? 
-                        SessionControllerGetter.getUserBean().getOrganizationGroup(organizationGroupId)
+                        userBean.getOrganizationGroup(organizationGroupId)
                         :new OrganizationGroup();
                 
                 // Validate form fields (except uploaded file)
@@ -121,7 +126,7 @@ public class OrganizationGroupController extends HttpServlet {
                     }
                     
                     // Store the organizationGroup
-                    oGroup = SessionControllerGetter.getUserBean().storeOrganizationGroup(oGroup, formValidation.getFormField("organizationGroupUserIds").getWebValues());
+                    oGroup = userBean.storeOrganizationGroup(oGroup, formValidation.getFormField("organizationGroupUserIds").getWebValues());
                     
                     response.sendRedirect(
                             Globals.PROTOCOL + "://" + ServletUtil.getServerName(request)
@@ -141,11 +146,11 @@ public class OrganizationGroupController extends HttpServlet {
             if(user.isOrganizationAdmin() || user.isSuperUser())
             {
                 Integer organizationGroupId = Integer.valueOf(request.getParameter("organizationGroupId"));
-                OrganizationGroup oGroup = SessionControllerGetter.getUserBean().getOrganizationGroup(organizationGroupId);
+                OrganizationGroup oGroup = userBean.getOrganizationGroup(organizationGroupId);
                 String messageKey = "";
                 if(oGroup != null)
                 {
-                    SessionControllerGetter.getUserBean().deleteOrganizationGroup(oGroup);
+                    userBean.deleteOrganizationGroup(oGroup);
                     messageKey = "organizationGroupDeleted";
                 }
                 
@@ -168,13 +173,13 @@ public class OrganizationGroupController extends HttpServlet {
                 if(user.isSuperUser() || user.isOrganizationAdmin())
                 {
                     Integer userId = Integer.valueOf(request.getParameter("userId"));
-                    viewUser = SessionControllerGetter.getUserBean().getVipsLogicUser(userId);
+                    viewUser = userBean.getVipsLogicUser(userId);
                 }
                 else
                 {
                     viewUser = user;
                 }
-                List<OrganizationGroup> userGroups = SessionControllerGetter.getUserBean().getOrganizationGroups(viewUser);
+                List<OrganizationGroup> userGroups = userBean.getOrganizationGroups(viewUser);
                 request.setAttribute("viewUser", user);
                 request.setAttribute("userGroups", userGroups);
                 request.getRequestDispatcher("userOrganizationGroupsList.ftl").forward(request, response);

@@ -38,7 +38,7 @@ import no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothBean;
 public class SessionControllerGetter {
     
     private static final String JNDI_PATH = "java:global/VIPSLogic-1.0-SNAPSHOT/";
-
+/*
     public static PointOfInterestBean getPointOfInterestBean()
     {
         try
@@ -176,4 +176,5 @@ public class SessionControllerGetter {
         //System.out.println("JNDI-path=" + retVal);
         return retVal;
     }
+*/
 }

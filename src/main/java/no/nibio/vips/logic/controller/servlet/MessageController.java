@@ -27,6 +27,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -35,12 +36,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import no.nibio.vips.i18n.LanguageUtil;
+import no.nibio.vips.logic.controller.session.MessageBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageLocale;
 import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
@@ -56,13 +59,22 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 /**
- * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class MessageController extends HttpServlet {
    
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    MessageBean messageBean;
+    
+    @EJB
+    UserBean userBean;
+    
+    @EJB
+    MessagingBean messagingBean;
     
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -92,11 +104,11 @@ public class MessageController extends HttpServlet {
             List<Message> messages;
             if(user.isSuperUser())
             {
-                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(null,null,datePubStart, datePubEnd);
+                messages = messageBean.getFilteredMessages(null,null,datePubStart, datePubEnd);
             }
             else
             {
-                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(user.getOrganizationId().getOrganizationId(),null, datePubStart, datePubEnd);
+                messages = messageBean.getFilteredMessages(user.getOrganizationId().getOrganizationId(),null, datePubStart, datePubEnd);
             }
             request.setAttribute("messages", messages);
             request.setAttribute("selectedMessageTags", em.createNamedQuery("MessageTag.findAll", MessageTag.class).getResultList());
@@ -115,8 +127,8 @@ public class MessageController extends HttpServlet {
             // If no tags are selected, ALL tags are selected
             List<Integer> selectedMessageTags = request.getParameterValues("filterMessageTags") != null ? 
                                         FormUtil.getIdsFromMultipleSelect(request.getParameterValues("filterMessageTags"))
-                                        : SessionControllerGetter.getMessageBean().getAllMessageTagIds();
-            Map<String, List<MessageTag>> messageTags = SessionControllerGetter.getMessageBean()
+                                        : messageBean.getAllMessageTagIds();
+            Map<String, List<MessageTag>> messageTags = messageBean
                     .getFilterMessageTags(selectedMessageTags);
             request.setAttribute("selectedMessageTags", messageTags.get("selected"));
             request.setAttribute("notSelectedMessageTags", messageTags.get("notSelected"));
@@ -140,11 +152,11 @@ public class MessageController extends HttpServlet {
             List<Message> messages;
             if(user.isSuperUser())
             {
-                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(null,selectedMessageTags, datePubStart, datePubEnd);
+                messages = messageBean.getFilteredMessages(null,selectedMessageTags, datePubStart, datePubEnd);
             }
             else
             {
-                messages = SessionControllerGetter.getMessageBean().getFilteredMessages(user.getOrganizationId().getOrganizationId(),selectedMessageTags, datePubStart, datePubEnd);
+                messages = messageBean.getFilteredMessages(user.getOrganizationId().getOrganizationId(),selectedMessageTags, datePubStart, datePubEnd);
             }
             request.setAttribute("datePubStart", datePubStart);
             request.setAttribute("datePubEnd", datePubEnd);
@@ -212,7 +224,7 @@ public class MessageController extends HttpServlet {
                 tags.removeAll(message.getMessageTagSet());
                 request.setAttribute("unusedTags", tags);
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
-                request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
+                request.setAttribute("organizations", userBean.getOrganizations());
                 request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
@@ -239,7 +251,7 @@ public class MessageController extends HttpServlet {
                                 : SessionLocaleUtil.getCurrentLocale(request).getLanguage()
                 );
                 request.setAttribute("unusedTags", em.createNamedQuery("MessageTag.findAll").getResultList());
-                request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
+                request.setAttribute("organizations", userBean.getOrganizations());
                 request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
@@ -287,19 +299,19 @@ public class MessageController extends HttpServlet {
                 if(formValidation.isValid())
                 {
                     // Store the message
-                    Message message = SessionControllerGetter.getMessageBean().storeMessage(formValidation.getFormFields(), user);
+                    Message message = messageBean.storeMessage(formValidation.getFormFields(), user);
                     
                     // New messages should be sent to subscribers
                     if(formValidation.getFormField("messageId").getValueAsInteger() < 0)
                     {
-                        SessionControllerGetter.getMessagingBean().sendUniversalMessage(message);
+                        messagingBean.sendUniversalMessage(message);
                     }
 
                     // Delete the current illustration
                     String deleteIllustration = formValidation.getFormField("deleteIllustration").getWebValue();
                     if(deleteIllustration != null && deleteIllustration.equals("true"))
                     {
-                        message = SessionControllerGetter.getMessageBean().deleteMessageIllustration(message);
+                        message = messageBean.deleteMessageIllustration(message);
                     }
                     // Store the new illustration (replaces former illustration if not already deleted)
                     if(items != null)
@@ -308,12 +320,12 @@ public class MessageController extends HttpServlet {
                         {
                             if(!item.isFormField() && item.getSize() > 0)
                             {
-                                message = SessionControllerGetter.getMessageBean().storeMessageIllustration(message, item);
+                                message = messageBean.storeMessageIllustration(message, item);
                             }
                         }
                     }   
                     // If an illustration is attached to the message, update the caption
-                    SessionControllerGetter.getMessageBean().updateMessageIllustrationCaption(message, 
+                    messageBean.updateMessageIllustrationCaption(message, 
                                 formValidation.getFormField("messageIllustrationCaptionLocale").getWebValue(),
                                 formValidation.getFormField("locale").getWebValue()
                                 );
@@ -369,7 +381,7 @@ public class MessageController extends HttpServlet {
             try
             {
                 Integer messageId = Integer.valueOf(request.getParameter("messageId"));
-                SessionControllerGetter.getMessageBean().deleteMessage(messageId);
+                messageBean.deleteMessage(messageId);
                 // Redirect to list
                 response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                         .append(ServletUtil.getServerName(request))

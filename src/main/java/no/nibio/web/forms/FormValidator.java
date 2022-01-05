@@ -37,11 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import javax.ejb.EJB;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import org.apache.commons.validator.EmailValidator;
 
 /**
@@ -52,10 +53,13 @@ import org.apache.commons.validator.EmailValidator;
  * client side validation). They use the same JSON file for form validation. 
  * Changes in logic server side should be reflected client side.
  * 
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class FormValidator {
+    
+    @EJB
+    static UserBean userBean;
     
     public static String RELATION_TYPE_EQUALS = "EQUALS";
     public static String RELATION_TYPE_AFTER = "AFTER";
@@ -229,7 +233,7 @@ public class FormValidator {
             {
                 try
                 {
-                    SessionControllerGetter.getUserBean().isPasswordValid(field.getWebValue(), ULocale.forLocale(resourceBundle.getLocale()));
+                    userBean.isPasswordValid(field.getWebValue(), ULocale.forLocale(resourceBundle.getLocale()));
                 }
                 catch(PasswordValidationException ex)
                 {

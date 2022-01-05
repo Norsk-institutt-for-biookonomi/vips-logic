@@ -38,22 +38,25 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import javax.ejb.EJB;
+import no.nibio.vips.logic.controller.session.UserBean;
 
 import no.nibio.vips.logic.entity.UserUuid;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 
 /**
  * Authentication services
- * @copyright 2021 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2021-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/auth")
 public class AuthenticationService {
+    
+    @EJB
+    UserBean userBean;
 	
-	@Context
+    @Context
     private HttpServletRequest httpServletRequest;
 	
 	/**
@@ -80,14 +83,14 @@ public class AuthenticationService {
         creds.put("username", username);
         creds.put("password", password);
 		// Authenticate 
-        VipsLogicUser user = SessionControllerGetter.getUserBean().authenticateUser(creds);
+        VipsLogicUser user = userBean.authenticateUser(creds);
 		// Return success (true/false) and UUID if success
         ObjectMapper objectMapper = new ObjectMapper();
         
         ObjectNode result = objectMapper.createObjectNode();
         if(user != null)
         {
-        	UserUuid uuid = SessionControllerGetter.getUserBean().createAndPersistUserUuid(user);
+        	UserUuid uuid = userBean.createAndPersistUserUuid(user);
         	result.put("success", true);
         	result.put("UUID", uuid.getUserUuidPK().getUserUuid().toString());
         }
@@ -111,11 +114,11 @@ public class AuthenticationService {
 	{
 		String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
 		UUID uuid = UUID.fromString(uuidStr);
-		VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+		VipsLogicUser user = userBean.findVipsLogicUser(uuid);
 		if(user != null)
 		{
 			// Also, renew the uuid by default length
-			SessionControllerGetter.getUserBean().renewUserUuid(uuid);
+			userBean.renewUserUuid(uuid);
 			return Response.ok().entity(user).build();
 		}
 		else

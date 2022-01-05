@@ -24,7 +24,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.ejb.EJB;
 import no.nibio.vips.i18n.I18nImpl;
+import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organization;
@@ -34,15 +38,22 @@ import no.nibio.vips.logic.scheduling.SchedulingUtil;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.RunModelException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
 
 /**
- * @copyright 2013-2018 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class RunAllForecastConfigurationsTask extends VipsLogicTask{
+    
+    @EJB
+    UserBean userBean;
+    @EJB
+    ForecastBean forecastBean;
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+    
     private I18nImpl i18n;
     //private boolean DEBUG=true;
     @Override
@@ -57,7 +68,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
         // The config could come from a form
         if(this.getConfiguration() != null && this.getConfiguration().get("organizationId") != null)
         {
-            this.setOrganization(SessionControllerGetter.getUserBean().getOrganization(Integer.valueOf(this.getConfiguration().get("organizationId")[0])));
+            this.setOrganization(userBean.getOrganization(Integer.valueOf(this.getConfiguration().get("organizationId")[0])));
         }
         
         List<Organization> organizations = new ArrayList<>();
@@ -67,7 +78,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
         }
         else
         {
-            organizations = SessionControllerGetter.getUserBean().getOrganizations();
+            organizations = userBean.getOrganizations();
         }
         tec.setCompleteness(0d);
         int totalNumberofForecastConfigurations = 0;
@@ -76,11 +87,11 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         boolean noForecastConfigurationsFound = true;
         
-        Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedBatchableModelInformation();
+        Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedBatchableModelInformation();
 
         for(Organization organization : organizations)
         {
-            List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(organization, SystemTime.getSystemTime());
+            List<ForecastConfiguration> currentForecastConfigurations = forecastBean.getForecastConfigurationsValidAtTime(organization, SystemTime.getSystemTime());
             //System.out.println("Current forecasts for " + organization.getOrganizationName() + ":" + currentForecastConfigurations.size());
             if(currentForecastConfigurations != null && !currentForecastConfigurations.isEmpty())
             {
@@ -97,7 +108,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                         {
                             totalNumberofForecastConfigurations++;
                             //System.out.println("Running forecast #" + forecastConfiguration.getForecastConfigurationId());
-                            SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
+                            forecastBean.runForecast(forecastConfiguration);
                             /*
                             if(DEBUG && totalNumberofForecastConfigurations == 2)
                             {
@@ -191,7 +202,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     .append("\",\"selected\":")
                     .append("false")
                     .append("}\n");
-        List<PointOfInterestWeatherStation> stations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations();
+        List<PointOfInterestWeatherStation> stations = pointOfInterestBean.getAllWeatherStations();
         Collections.sort(stations);
         for(PointOfInterest station:stations)
         {
@@ -222,7 +233,7 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     .append("\",\"selected\":")
                     .append("false")
                     .append("}\n");
-        List<Organization> organizations = SessionControllerGetter.getUserBean().getOrganizations();
+        List<Organization> organizations = userBean.getOrganizations();
         //Collections.sort(organizations);
         for(Organization organization:organizations)
         {

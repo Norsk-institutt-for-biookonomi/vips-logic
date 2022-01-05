@@ -30,7 +30,6 @@ import de.micromata.opengis.kml.v_2_2_0.Vec2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,8 +40,6 @@ import java.util.stream.Collectors;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -53,10 +50,8 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
-import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 
 /**
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
@@ -67,6 +62,7 @@ import no.nibio.vips.logic.util.SessionControllerGetter;
 public class BarkbeetleBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+
     
     /**
      * Get the list of trapsites for the given season
@@ -123,25 +119,7 @@ public class BarkbeetleBean {
         return em.find(TrapsiteType.class, trapsiteTypeId);
     }
     
-    /**
-     * Util method for getting this bean through JNDI
-     * @return 
-     */
-    public static BarkbeetleBean getInstance()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            BarkbeetleBean retVal = (BarkbeetleBean) ic.lookup(SessionControllerGetter.getJndiPath(BarkbeetleBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + BarkbeetleBean.class.getSimpleName());
-            return null;
-        }
-    }
-
+    
     public List<TrapsiteRegistration> getRegistrationsForSite(SeasonTrapsite trapsite) {
         return em.createNamedQuery("TrapsiteRegistration.findBySeasonTrapsiteId")
                 .setParameter("seasonTrapsiteId", trapsite.getSeasonTrapsiteId())

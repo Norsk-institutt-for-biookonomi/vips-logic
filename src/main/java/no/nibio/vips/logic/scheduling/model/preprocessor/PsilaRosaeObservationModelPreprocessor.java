@@ -19,29 +19,34 @@
 
 package no.nibio.vips.logic.scheduling.model.preprocessor;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import javax.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.observation.Observation;
 import no.nibio.vips.util.WeatherUtil;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class PsilaRosaeObservationModelPreprocessor extends ModelRunPreprocessor{
 
+    @EJB
+    OrganismBean organismBean;
+    @EJB
+    ObservationBean observationBean;
+    
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
         ModelConfiguration config = null;
@@ -61,8 +66,8 @@ public class PsilaRosaeObservationModelPreprocessor extends ModelRunPreprocessor
             Date endDateCalculation = wUtil.normalizeToExactDate(SystemTime.getSystemTime(),timeZone);
             config.setConfigParameter("endDateCalculation", format.format(endDateCalculation));
 
-            Organism organism = SessionControllerGetter.getOrganismBean().getOrganismByLatinName("Psila rosae");
-            List<Observation> pestObservations = SessionControllerGetter.getObservationBean().getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
+            Organism organism = organismBean.getOrganismByLatinName("Psila rosae");
+            List<Observation> pestObservations = observationBean.getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
 
             config.setConfigParameter("pestObservations", pestObservations);
             config.setModelId(this.getModelId());

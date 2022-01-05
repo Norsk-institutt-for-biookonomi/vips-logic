@@ -19,16 +19,12 @@
 
 package no.nibio.vips.logic.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.util.ULocale;
-import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,6 +51,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 
 import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
@@ -65,9 +65,7 @@ import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import org.jboss.resteasy.annotations.GZIP;
-import org.joda.time.LocalDate;
 import org.wololo.geojson.Feature;
 
 /**
@@ -79,6 +77,13 @@ public class ObservationService {
     
     @Context
     private HttpServletRequest httpServletRequest;
+    
+    @EJB
+    UserBean userBean;
+    @EJB
+    ObservationBean observationBean;
+    @EJB
+    OrganismBean organismBean;
     
     /*
      * NOTE TO SELF
@@ -152,11 +157,11 @@ public class ObservationService {
         
         if(user == null && userUUID != null)
         {
-            user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(userUUID));
+            user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
         ULocale locale = new ULocale(localeStr != null ? localeStr : 
         	user != null ? user.getOrganizationId().getDefaultLocale() : 
-        		SessionControllerGetter.getUserBean().getOrganization(organizationId).getDefaultLocale());
+        		userBean.getOrganization(organizationId).getDefaultLocale());
         
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                         organizationId,
@@ -169,8 +174,8 @@ public class ObservationService {
                 ).stream().map(obs -> { 
                     try {
 						return obs.getListItem(locale.getLanguage(), 
-								SessionControllerGetter.getObservationBean().getLocalizedObservationDataSchema(
-										SessionControllerGetter.getObservationBean().getObservationDataSchema(organizationId, obs.getOrganismId()),
+								observationBean.getLocalizedObservationDataSchema(
+										observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
 										httpServletRequest,
 										locale
 										)
@@ -182,7 +187,7 @@ public class ObservationService {
 					}
                 }).collect(Collectors.toList());
         
-        //o.setObservationDataSchema(SessionControllerGetter.getObservationBean().getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
+        //o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
         return Response.ok().entity(observations).build();
     }
             
@@ -208,7 +213,7 @@ public class ObservationService {
         }
         catch(ParseException ex){ System.out.println("ERROR");}
                 
-        return SessionControllerGetter.getObservationBean().getFilteredObservations(
+        return observationBean.getFilteredObservations(
             organizationId,
             pestId,
             cropId,
@@ -244,7 +249,7 @@ public class ObservationService {
         }
         catch(ParseException ex){ System.out.println("ERROR");}
                 
-        List<Observation> filteredObservations = SessionControllerGetter.getObservationBean().getFilteredObservations(
+        List<Observation> filteredObservations = observationBean.getFilteredObservations(
             organizationId,
             pestId,
             cropId,
@@ -269,7 +274,7 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     public Response getObservedPests(@PathParam("organizationId") Integer organizationId)
     {
-        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservedPests(organizationId)).build();
+        return Response.ok().entity(observationBean.getObservedPests(organizationId)).build();
     }
     
     /**
@@ -284,7 +289,7 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     public Response getObservedCrops(@PathParam("organizationId") Integer organizationId)
     {
-        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservedCrops(organizationId)).build();
+        return Response.ok().entity(observationBean.getObservedCrops(organizationId)).build();
     }
     
     
@@ -298,7 +303,7 @@ public class ObservationService {
     @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getObservations(@PathParam("organizationId") Integer organizationId){
-        return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
+        return Response.ok().entity(observationBean.getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
     }
     
     /**
@@ -313,10 +318,10 @@ public class ObservationService {
     {
     	String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
 		UUID uuid = UUID.fromString(uuidStr);
-		VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+		VipsLogicUser user = userBean.findVipsLogicUser(uuid);
 		if(user != null)
 		{
-			return Response.ok().entity(SessionControllerGetter.getObservationBean().getObservationsForUser(user)).build();
+			return Response.ok().entity(observationBean.getObservationsForUser(user)).build();
 		}
 		else
 		{
@@ -356,7 +361,7 @@ public class ObservationService {
                 {
                     to = format.parse(timeOfObservationTo);
                 }
-                return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId, from, to)).build();
+                return Response.ok().entity(observationBean.getBroadcastObservations(organizationId, from, to)).build();
             }
             catch(ParseException ex)
             {
@@ -365,7 +370,7 @@ public class ObservationService {
         }
         else
         {
-            return Response.ok().entity(SessionControllerGetter.getObservationBean().getBroadcastObservations(organizationId, season)).build();
+            return Response.ok().entity(observationBean.getBroadcastObservations(organizationId, season)).build();
         }
     }
     
@@ -377,19 +382,19 @@ public class ObservationService {
             @QueryParam("userUUID") String userUUID
     ){
         // Observation needs to be masked here as well, or does it create trouble for VIPSLogic observation admin?
-        Observation o = SessionControllerGetter.getObservationBean().getObservation(observationId);
+        Observation o = observationBean.getObservation(observationId);
         if(o == null)
         {
             return Response.status(Status.NOT_FOUND).build();
         }
         // Which organization does this observation belong to?
-        VipsLogicUser observer = SessionControllerGetter.getUserBean().getVipsLogicUser(o.getUserId());
-        o.setObservationDataSchema(SessionControllerGetter.getObservationBean().getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
+        VipsLogicUser observer = userBean.getVipsLogicUser(o.getUserId());
+        o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
       
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
         if(user == null && userUUID != null)
         {
-            user = SessionControllerGetter.getUserBean().findVipsLogicUser(UUID.fromString(userUUID));
+            user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
         // Modification of location information:
         // 1) If location is private, only the owner or super users/org admins may view them
@@ -409,8 +414,8 @@ public class ObservationService {
                 List<Observation> intermediary = new ArrayList<>();
                 intermediary.add(o);
                 intermediary = this.maskObservations(o.getPolygonService(), 
-                        SessionControllerGetter.getObservationBean().getObservationsWithLocations(
-                                SessionControllerGetter.getObservationBean().getObservationsWithGeoInfo(intermediary)
+                        observationBean.getObservationsWithLocations(
+                                observationBean.getObservationsWithGeoInfo(intermediary)
                         )
                     );
                 o = intermediary.get(0);
@@ -433,7 +438,7 @@ public class ObservationService {
         {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        if(!SessionControllerGetter.getUserBean().authorizeUser(user, 
+        if(!userBean.authorizeUser(user, 
                     VipsLogicRole.OBSERVER, 
                     VipsLogicRole.OBSERVATION_AUTHORITY, 
                     VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
@@ -443,7 +448,7 @@ public class ObservationService {
         {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        SessionControllerGetter.getObservationBean().deleteGisObservationByGis(gisId);
+        observationBean.deleteGisObservationByGis(gisId);
         return Response.noContent().build();
     }
     
@@ -461,14 +466,14 @@ public class ObservationService {
         try
         {
             // Create the Observation
-            Observation observation = SessionControllerGetter.getObservationBean().getObservationFromGeoJSON(geoJSON);
+            Observation observation = observationBean.getObservationFromGeoJSON(geoJSON);
             VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
             // If no user, send error message back to client
             if(user == null)
             {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
-            if(!SessionControllerGetter.getUserBean().authorizeUser(user, 
+            if(!userBean.authorizeUser(user, 
                     VipsLogicRole.OBSERVER, 
                     VipsLogicRole.OBSERVATION_AUTHORITY, 
                     VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
@@ -481,7 +486,7 @@ public class ObservationService {
             observation.setUserId(user.getUserId());
             observation.setStatusChangedByUserId(user.getUserId());
             observation.setStatusChangedTime(new Date());
-            observation = SessionControllerGetter.getObservationBean().storeObservation(observation);
+            observation = observationBean.storeObservation(observation);
             GISEntityUtil gisUtil = new GISEntityUtil();
             return Response.created(URI.create("/observation/" + observation.getObservationId())).entity(gisUtil.getGeoJSONFromObservation(observation)).build();
         }catch (IOException ex)
@@ -500,7 +505,7 @@ public class ObservationService {
     @Produces("text/plain;charset=UTF-8")
     public Response getFirstObservation(@PathParam("organismId") Integer organismId)
     {
-        Date firstObsTime = SessionControllerGetter.getObservationBean().getFirstObservationTime(organismId);
+        Date firstObsTime = observationBean.getFirstObservationTime(organismId);
         return firstObsTime != null ? Response.ok().entity(firstObsTime).build()
                 : Response.status(404).entity("No observations of organism with id=" + organismId).build();
     }
@@ -516,7 +521,7 @@ public class ObservationService {
     public Response getDateOfLastOrganismSystemUpdate()
     {
     	HashMap<String, Object> result = new HashMap<>();
-    	Instant lastUpdated = SessionControllerGetter.getOrganismBean().getLatestUpdateOfOrganisms();
+    	Instant lastUpdated = organismBean.getLatestUpdateOfOrganisms();
     	result.put("lastUpdated", lastUpdated != null ? lastUpdated: "1970-01-01T00:00:00Z");
     	return Response.ok().entity(result).build();
     }
@@ -540,7 +545,7 @@ public class ObservationService {
             return retVal;
         }
         // Else: This is a registered user without special privileges. Show public observations + user's own
-        retVal.addAll(SessionControllerGetter.getObservationBean().getObservationsForUser(user));
+        retVal.addAll(observationBean.getObservationsForUser(user));
         return retVal;
     }
 

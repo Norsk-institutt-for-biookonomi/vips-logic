@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -44,6 +45,7 @@ import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.util.RunModelException;
@@ -59,10 +61,9 @@ import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 import no.nibio.vips.util.weather.WeatherForecastProvider;
 import no.nibio.vips.util.weather.WeatherStationProviderFactory;
-import no.nibio.vips.util.weather.YrWeatherForecastProvider;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2015-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/roughage")
@@ -72,6 +73,9 @@ public class RoughageService {
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    ForecastBean forecastBean;
     
     /**
      * Temporary hack to get correct normal data weather stations
@@ -387,7 +391,7 @@ public class RoughageService {
         List<Result> results;
         try
         {
-             results = SessionControllerGetter.getForecastBean().runForecast(config, VIPSCoreUserId);
+             results = forecastBean.runForecast(config, VIPSCoreUserId);
         }
         catch(RunModelException ex)
         {
@@ -458,7 +462,7 @@ public class RoughageService {
             List<Result> normalDataResults;
             try
             {
-                 normalDataResults = SessionControllerGetter.getForecastBean().runForecast(config, VIPSCoreUserId);
+                 normalDataResults = forecastBean.runForecast(config, VIPSCoreUserId);
             }
             catch(RunModelException ex)
             {
@@ -559,7 +563,7 @@ public class RoughageService {
             Organization org = em.find(Organization.class, organizationId);
             Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
             
-            results = SessionControllerGetter.getForecastBean().runForecast(modelConfig, VIPSCoreUserId);
+            results = forecastBean.runForecast(modelConfig, VIPSCoreUserId);
             
         } catch (WeatherDataSourceException | RunModelException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();

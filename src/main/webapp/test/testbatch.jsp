@@ -16,7 +16,7 @@
 <%@page import="no.nibio.vips.logic.util.SessionControllerGetter"%>
 <%
     ForecastBean forecastBean = SessionControllerGetter.getForecastBean();
-    UserBean userBean = SessionControllerGetter.getUserBean();
+    UserBean userBean = userBean;
     Organization organization = userBean.getOrganization(2); // NIBIO plantehelse
     Calendar cal = Calendar.getInstance();
     cal.set(Calendar.MONTH, Calendar.JUNE);
@@ -43,7 +43,7 @@
             %>
             <ul>
             <%
-            for(Organization org : SessionControllerGetter.getUserBean().getOrganizations())
+            for(Organization org : userBean.getOrganizations())
             {
                 List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(org, SystemTime.getSystemTime());
                 for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)

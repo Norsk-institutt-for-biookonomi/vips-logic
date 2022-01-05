@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -58,7 +59,6 @@ import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import no.nibio.vips.observationdata.ObservationDataSchemaPK;
@@ -76,6 +76,11 @@ import org.wololo.geojson.GeoJSONFactory;
 public class ObservationBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+    @EJB
+    UserBean userBean;
     
     public List<Observation> getObservations(Integer organizationId)
     {
@@ -483,7 +488,7 @@ public class ObservationBean {
         {
             return observations;
         }
-         List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPois(locationPointOfInterestIds);
+         List<PointOfInterest> pois = pointOfInterestBean.getPois(locationPointOfInterestIds);
          Map<Integer, PointOfInterest> mappedPois = new HashMap<>();
          pois.stream().forEach((poi) -> {
              mappedPois.put(poi.getPointOfInterestId(), poi);
@@ -504,7 +509,7 @@ public class ObservationBean {
         {
             return observations;
         }
-         List<VipsLogicUser> users = SessionControllerGetter.getUserBean().getUsers(userIds);
+         List<VipsLogicUser> users = userBean.getUsers(userIds);
          Map<Integer, VipsLogicUser> mappedUsers = new HashMap<>();
          users.stream().forEach((user) -> {
              mappedUsers.put(user.getUserId(), user);

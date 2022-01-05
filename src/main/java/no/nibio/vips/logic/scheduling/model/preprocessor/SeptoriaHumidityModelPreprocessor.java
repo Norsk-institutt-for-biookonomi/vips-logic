@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import javax.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ForecastBean;
@@ -33,21 +34,22 @@ import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
- * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2019-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class SeptoriaHumidityModelPreprocessor  extends ModelRunPreprocessor{
     
+    @EJB
+    ForecastBean forecastBean;
+    
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
-        ForecastBean forecastBean = SessionControllerGetter.getForecastBean();
         ModelConfiguration retVal = new ModelConfiguration();
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", configuration.getTimeZone());

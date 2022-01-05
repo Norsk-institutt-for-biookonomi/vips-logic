@@ -28,6 +28,7 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -45,7 +46,6 @@ import no.nibio.vips.logic.scheduling.TerminateSchedulerListener;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
@@ -62,6 +62,11 @@ public class SchedulingController extends HttpServlet {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
     
+    @EJB
+    UserBean userBean;
+    @EJB
+    SchedulingBean schedulingBean;
+    
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -77,8 +82,6 @@ public class SchedulingController extends HttpServlet {
         
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        UserBean userBean = SessionControllerGetter.getUserBean();
-        SchedulingBean schedulingBean = SessionControllerGetter.getSchedulingBean();
         
         // Default: Overview of running tasks
         // for SUPERUSERS and ORGANIZATION ADMINS

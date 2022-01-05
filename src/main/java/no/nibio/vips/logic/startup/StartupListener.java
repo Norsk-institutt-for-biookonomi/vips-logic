@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -20,22 +20,27 @@
 package no.nibio.vips.logic.startup;
 
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.servlet.ServletContextEvent;
 import javax.sql.DataSource;
-import no.nibio.vips.logic.util.SessionControllerGetter;
+import no.nibio.vips.logic.controller.session.SchedulingBean;
 import org.flywaydb.core.Flyway;
 
 /**
  * This class is created and method contextInitialized called when the application
  * is deployed (either at startup of application container or when redeploying the app)
  * 
- * @copyright 2013 {@link http://www.nibio.no NIBIO}
+ * @copyright 2013-2022 {@link http://www.nibio.no NIBIO}
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class StartupListener implements javax.servlet.ServletContextListener{
 
     @Resource(lookup="java:/jboss/datasources/vipslogic")
     DataSource vipslogicDS;
+    
+    @EJB
+    SchedulingBean schedulingBean;
+    
     /**
      * Called when the application
      * is deployed (either at startup of application container or when redeploying the app)
@@ -50,11 +55,11 @@ public class StartupListener implements javax.servlet.ServletContextListener{
         flyway.setDataSource(vipslogicDS);
         flyway.migrate();
         
-        SessionControllerGetter.getSchedulingBean().initSystemScheduler();
+        schedulingBean.initSystemScheduler();
         if(System.getProperty("no.nibio.vips.logic.START_SCHEDULING_ON_BOOT").equals("true"))
         {
             System.out.println("VIPSLogic starting scheduling services");
-            SessionControllerGetter.getSchedulingBean().startSystemScheduler();
+            schedulingBean.startSystemScheduler();
         }
         else
         {
@@ -72,6 +77,6 @@ public class StartupListener implements javax.servlet.ServletContextListener{
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("VIPSLogic system shutting down");
         // Shutting down scheduler
-        SessionControllerGetter.getSchedulingBean().stopSystemScheduler();
+        schedulingBean.stopSystemScheduler();
     }
 }

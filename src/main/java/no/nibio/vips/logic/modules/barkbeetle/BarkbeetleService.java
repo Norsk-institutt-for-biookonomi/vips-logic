@@ -32,6 +32,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import com.webcohesion.enunciate.metadata.Facet;
+import javax.ejb.EJB;
 
 import no.nibio.vips.util.ServletUtil;
 
@@ -47,6 +48,9 @@ public class BarkbeetleService {
     @Context
     private HttpServletRequest httpServletRequest;
     
+    @EJB
+    BarkbeetleBean barkbeetleBean;
+    
     @GET
     @Path("seasontrapsites/{season}/kml")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
@@ -54,7 +58,7 @@ public class BarkbeetleService {
             @PathParam("season") Integer season,
             @QueryParam("excludeSeasonTrapsiteId") Integer excludeSeasonTrapsiteId)
     {
-        return Response.ok().entity(BarkbeetleBean.getInstance().getSeasonTrapsitesKml(season, excludeSeasonTrapsiteId, ServletUtil.getServerName(httpServletRequest))).build();
+        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesKml(season, excludeSeasonTrapsiteId, ServletUtil.getServerName(httpServletRequest))).build();
     }
     
     @GET
@@ -64,7 +68,7 @@ public class BarkbeetleService {
             @PathParam("season") Integer season
             )
     {
-        return Response.ok().entity(BarkbeetleBean.getInstance().getSeasonTrapsitesStatusKml(season, ServletUtil.getServerName(httpServletRequest))).build();
+        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesStatusKml(season, ServletUtil.getServerName(httpServletRequest))).build();
     }
     
     @GET
@@ -72,7 +76,7 @@ public class BarkbeetleService {
     @Produces("text/csv")
     public Response getSeasonTrapsitesReport(@PathParam("season") Integer season)
     {
-    	String csv = BarkbeetleBean.getInstance().getSeasonTrapsitesReportCsv(season);
+    	String csv = barkbeetleBean.getSeasonTrapsitesReportCsv(season);
     	return Response.ok().entity(csv).build();
     }
     
@@ -82,7 +86,7 @@ public class BarkbeetleService {
     //@Produces("text/plain")
     public Response getSeasonCountyAverage(@PathParam("season") Integer season)
     {
-    	String csv = BarkbeetleBean.getInstance().getCountyAverageCsv(season);
+    	String csv = barkbeetleBean.getCountyAverageCsv(season);
     	return Response.ok().entity(csv).build();
     }
     
@@ -91,7 +95,7 @@ public class BarkbeetleService {
     @Produces("text/csv")
     public Response getLatestBivoltCalculations(@PathParam("season") Integer season)
     {
-    	String csv = BarkbeetleBean.getInstance().getLatestBivoltCalculations(season);
+    	String csv = barkbeetleBean.getLatestBivoltCalculations(season);
     	return Response.ok().entity(csv).build();
     }
     
@@ -108,7 +112,7 @@ public class BarkbeetleService {
     		@PathParam("isMaintenanceCompleted") String isMaintenanceCompleted
     		)
     {
-    	BarkbeetleBean.getInstance().setMaintenanceCompleted(seasonTrapsiteId, isMaintenanceCompleted != null && isMaintenanceCompleted.equals("true"));
+    	barkbeetleBean.setMaintenanceCompleted(seasonTrapsiteId, isMaintenanceCompleted != null && isMaintenanceCompleted.equals("true"));
     	return Response.ok().build();
     }
 }

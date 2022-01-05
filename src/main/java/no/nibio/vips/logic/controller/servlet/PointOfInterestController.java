@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.ServletException;
@@ -45,16 +46,16 @@ import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.logic.entity.WeatherForecastProvider;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Observation;
-import no.nibio.vips.logic.entity.PointOfInterestType;
-import no.nibio.vips.logic.entity.PointOfInterestTypeFarm;
-import no.nibio.vips.logic.entity.PointOfInterestTypeField;
 import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
@@ -66,12 +67,23 @@ import org.apache.http.client.utils.URIBuilder;
 
 /**
  * Handles transactions for POIs
- * @copyright 2013-2019 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class PointOfInterestController extends HttpServlet {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+    @EJB
+    UserBean userBean;
+    @EJB
+    ForecastBean forecastBean;
+    @EJB
+    ObservationBean observationBean;
+    
+    
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -116,24 +128,24 @@ public class PointOfInterestController extends HttpServlet {
                                 :user.getOrganizationId().getOrganizationId();
                         if(organizationId.equals(-1))
                         {
-                            activeWeatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations(true);
-                            inactiveWeatherStations = SessionControllerGetter.getPointOfInterestBean().getAllWeatherStations(false);
+                            activeWeatherStations = pointOfInterestBean.getAllWeatherStations(true);
+                            inactiveWeatherStations = pointOfInterestBean.getAllWeatherStations(false);
                         }
                         else
                         {
                             organization = em.find(Organization.class, organizationId);
-                            activeWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, true);
-                            inactiveWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, false);
+                            activeWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, true);
+                            inactiveWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, false);
                         }
-                        request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
+                        request.setAttribute("organizations", userBean.getOrganizations());
                         request.setAttribute("organizationId", organizationId);
                         
                     }
                     else
                     {
                         organization = user.getOrganizationId();
-                        activeWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization,true);
-                        inactiveWeatherStations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, false);
+                        activeWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization,true);
+                        inactiveWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, false);
                         request.setAttribute("organizationId", organization.getOrganizationId());
                     }
                     
@@ -159,7 +171,7 @@ public class PointOfInterestController extends HttpServlet {
                 // Single view
                 else
                 {
-                    PointOfInterest weatherStation = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
+                    PointOfInterest weatherStation = pointOfInterestBean.getPointOfInterest(Integer.valueOf(pointOfInterestId));
                     if(weatherStation instanceof PointOfInterestWeatherStation)
                     {
                         PointOfInterestWeatherStation stationWithDataSource = (PointOfInterestWeatherStation) weatherStation;
@@ -187,7 +199,7 @@ public class PointOfInterestController extends HttpServlet {
             }
             else if(action.equals("newWeatherStationForm"))
             {
-                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     try
                     {
@@ -195,14 +207,14 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("weatherStation", weatherStation);
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                        request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
+                        request.getSession().setAttribute("dataSources", pointOfInterestBean.getWeatherStationDataSources());
                         request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         // Finding all external resources where entry is missing
-                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(weatherStation));
+                        request.setAttribute("unreferencedExternalResources", pointOfInterestBean.getUnusedExternalResourcesForPointOfInterest(weatherStation));
                 
                         if(user.isSuperUser())
                         {
@@ -227,7 +239,7 @@ public class PointOfInterestController extends HttpServlet {
             // Authorization: ORGANIZATION ADMIN or SUPERUSER
             else if(action.equals("editWeatherStationForm"))
             {
-                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     try
                     {
@@ -236,14 +248,14 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("weatherStation", weatherStation);
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-                        request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
+                        request.getSession().setAttribute("dataSources", pointOfInterestBean.getWeatherStationDataSources());
                         request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         // Finding all external resources where entry is missing
-                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(weatherStation));
+                        request.setAttribute("unreferencedExternalResources", pointOfInterestBean.getUnusedExternalResourcesForPointOfInterest(weatherStation));
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         if(user.isSuperUser())
                         {
@@ -267,7 +279,7 @@ public class PointOfInterestController extends HttpServlet {
             // Authorization: ORGANIZATION ADMIN or SUPERUSER
             else if(action.equals("weatherStationFormSubmit"))
             {
-                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     try
                     {
@@ -327,7 +339,7 @@ public class PointOfInterestController extends HttpServlet {
                                 weatherStation.setUserId(user);
                             }
                             // Store
-                            weatherStation = SessionControllerGetter.getPointOfInterestBean().storeWeatherStation(weatherStation);
+                            weatherStation = pointOfInterestBean.storeWeatherStation(weatherStation);
                             
                             Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
                             if(externalResourceIdentifiers != null)
@@ -339,7 +351,7 @@ public class PointOfInterestController extends HttpServlet {
                                     if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
                                     {
                                         // We delete existing if unset
-                                        SessionControllerGetter.getPointOfInterestBean().deletePointOfInterestExternalResource(weatherStation.getPointOfInterestId(), externalResourceId);
+                                        pointOfInterestBean.deletePointOfInterestExternalResource(weatherStation.getPointOfInterestId(), externalResourceId);
                                     }
                                     else
                                     {
@@ -348,7 +360,7 @@ public class PointOfInterestController extends HttpServlet {
                                         PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(weatherStation.getPointOfInterestId(), externalResourceId);
                                         poiExternalResource.setPointOfInterestExternalResourcePK(pk);
                                         poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
-                                        SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                                        pointOfInterestBean.storePointOfInterestExternalResource(poiExternalResource);
                                     }
                                 }
                             }
@@ -367,7 +379,7 @@ public class PointOfInterestController extends HttpServlet {
                             request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                             request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                             request.setAttribute("returnURL","weatherStation?organizationId=" + user.getOrganizationId().getOrganizationId());
-                            request.getSession().setAttribute("dataSources", SessionControllerGetter.getPointOfInterestBean().getWeatherStationDataSources());
+                            request.getSession().setAttribute("dataSources", pointOfInterestBean.getWeatherStationDataSources());
                             request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                             request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                             request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
@@ -387,13 +399,13 @@ public class PointOfInterestController extends HttpServlet {
             }
             else if(action.equals("deleteWeatherStationPreview"))
             {
-                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     try
                     {
                         Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                         PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
-                        List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsByWeatherStation(weatherStation);
+                        List<ForecastConfiguration> forecastConfigurations = forecastBean.getForecastConfigurationsByWeatherStation(weatherStation);
                         // If no strings attached, delete immediately
                         if(forecastConfigurations.isEmpty())
                         {
@@ -405,7 +417,7 @@ public class PointOfInterestController extends HttpServlet {
                         }
                         else
                         {
-                            Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedModelInformation();
+                            Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedModelInformation();
                             request.setAttribute("returnURL","weatherStation?action=editWeatherStationForm&pointOfInterestId=" + pointOfInterestId);
                             request.setAttribute("weatherStation", weatherStation);
                             request.setAttribute("forecastConfigurations", forecastConfigurations);
@@ -425,13 +437,13 @@ public class PointOfInterestController extends HttpServlet {
             }
             else if(action.equals("deleteWeatherStation"))
             {
-                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                 {
                     try
                     {
                         Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                         //PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, pointOfInterestId);
-                        SessionControllerGetter.getPointOfInterestBean().deleteWeatherStation(pointOfInterestId);
+                        pointOfInterestBean.deleteWeatherStation(pointOfInterestId);
                         response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/weatherStation")
@@ -467,26 +479,26 @@ public class PointOfInterestController extends HttpServlet {
                                 :user.getOrganizationId().getOrganizationId();
                         if(organizationId.equals(-1))
                         {
-                            pois = SessionControllerGetter.getPointOfInterestBean().getAllPois();
+                            pois = pointOfInterestBean.getAllPois();
                         }
                         else
                         {
                             organization = em.find(Organization.class, organizationId);
-                            pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organization);
+                            pois = pointOfInterestBean.getPoisForOrganization(organization);
                         }
-                        request.setAttribute("organizations", SessionControllerGetter.getUserBean().getOrganizations());
+                        request.setAttribute("organizations", userBean.getOrganizations());
                         request.setAttribute("organizationId", organizationId);
                         
                     }
                     else if(user.isOrganizationAdmin())
                     {
                         organization = user.getOrganizationId();
-                        pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganization(organization);
+                        pois = pointOfInterestBean.getPoisForOrganization(organization);
                         request.setAttribute("organizationId", organization.getOrganizationId());
                     }
                     else
                     {
-                        pois = SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user);
+                        pois = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
                         request.setAttribute("organizationId", user.getOrganizationId().getOrganizationId());
                     }
                     
@@ -511,7 +523,7 @@ public class PointOfInterestController extends HttpServlet {
                 // Single view
                 else
                 {
-                    PointOfInterest poi = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(Integer.valueOf(pointOfInterestId));
+                    PointOfInterest poi = pointOfInterestBean.getPointOfInterest(Integer.valueOf(pointOfInterestId));
                     request.getSession().setAttribute("poi", poi);
                     request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
@@ -537,11 +549,11 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
-                        request.getSession().setAttribute("groups", user.isSuperUser() || user.isOrganizationAdmin() ? SessionControllerGetter.getUserBean().getOrganizationGroups(user.getOrganizationId())
-                                :SessionControllerGetter.getUserBean().getOrganizationGroups(user));
-                        request.getSession().setAttribute("poiGroupIds", SessionControllerGetter.getPointOfInterestBean().getPoiGroupIds(poi));
+                        request.getSession().setAttribute("groups", user.isSuperUser() || user.isOrganizationAdmin() ? userBean.getOrganizationGroups(user.getOrganizationId())
+                                :userBean.getOrganizationGroups(user));
+                        request.getSession().setAttribute("poiGroupIds", pointOfInterestBean.getPoiGroupIds(poi));
                         // Finding all external resources where entry is missing
-                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
+                        request.setAttribute("unreferencedExternalResources", pointOfInterestBean.getUnusedExternalResourcesForPointOfInterest(poi));
                 
                         if(user.isSuperUser())
                         {
@@ -572,7 +584,7 @@ public class PointOfInterestController extends HttpServlet {
                     Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                     PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
                     // Does the current user have the rights to edit this poi?
-                    if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                    if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                             || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
                     )
                     {
@@ -584,11 +596,11 @@ public class PointOfInterestController extends HttpServlet {
                         request.getSession().setAttribute("weatherForecastProviders", em.createNamedQuery("WeatherForecastProvider.findAll").getResultList());
                         request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
                         request.getSession().setAttribute("defaultCountryCode", user.getOrganizationId().getCountryCode().getCountryCode());
-                        request.getSession().setAttribute("groups", user.isSuperUser() || user.isOrganizationAdmin() ? SessionControllerGetter.getUserBean().getOrganizationGroups(user.getOrganizationId())
-                                :SessionControllerGetter.getUserBean().getOrganizationGroups(user));
-                        request.getSession().setAttribute("poiGroupIds", SessionControllerGetter.getPointOfInterestBean().getPoiGroupIds(poi));
+                        request.getSession().setAttribute("groups", user.isSuperUser() || user.isOrganizationAdmin() ? userBean.getOrganizationGroups(user.getOrganizationId())
+                                :userBean.getOrganizationGroups(user));
+                        request.getSession().setAttribute("poiGroupIds", pointOfInterestBean.getPoiGroupIds(poi));
                         // Finding all external resources where entry is missing
-                        request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
+                        request.setAttribute("unreferencedExternalResources", pointOfInterestBean.getUnusedExternalResourcesForPointOfInterest(poi));
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         if(user.isSuperUser())
                         {
@@ -624,12 +636,12 @@ public class PointOfInterestController extends HttpServlet {
                         PointOfInterest poi = pointOfInterestId > 0 ? 
                                                                         em.find(PointOfInterest.class, pointOfInterestId) 
                                                                         : PointOfInterestFactory.getPointOfInterest(formValidation.getFormField("pointOfInterestTypeId").getValueAsInteger());
-                        if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                             || poi.getPointOfInterestId() == null
                             || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
                             )
                         {
-                            Boolean poiNameAlreadyExists = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(formValidation.getFormField("name").getWebValue()) != null;
+                            Boolean poiNameAlreadyExists = pointOfInterestBean.getPointOfInterest(formValidation.getFormField("name").getWebValue()) != null;
                             // Only store if valid form data and NOT a new poi with an existing poiName
                             if(formValidation.isValid() && !(poi.getPointOfInterestId() == null && poiNameAlreadyExists))
                             {
@@ -637,7 +649,7 @@ public class PointOfInterestController extends HttpServlet {
                                 poi.setName(formValidation.getFormField("name").getWebValue());                                
                                 // A POI is per default not a forecast location. Only superusers and orgadmins 
                                 // may change the status
-                                if(SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                                if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
                                 {
                                     poi.setIsForecastLocation(formValidation.getFormField("isForecastLocation").getWebValue() != null);
                                 }
@@ -683,7 +695,7 @@ public class PointOfInterestController extends HttpServlet {
                                     poi.setUserId(user);
                                 }
                                 // Store
-                                poi = SessionControllerGetter.getPointOfInterestBean().storePoi(poi);
+                                poi = pointOfInterestBean.storePoi(poi);
 
                                 Map<String, FormField> externalResourceIdentifiers = formValidation.getMultipleMapFormFields().get("externalResourceIdentifier");
                                 if(externalResourceIdentifiers != null)
@@ -695,7 +707,7 @@ public class PointOfInterestController extends HttpServlet {
                                         if(identifierField.getWebValue() == null || identifierField.getWebValue().isEmpty())
                                         {
                                             // We delete existing if unset
-                                            SessionControllerGetter.getPointOfInterestBean().deletePointOfInterestExternalResource(poi.getPointOfInterestId(), externalResourceId);
+                                            pointOfInterestBean.deletePointOfInterestExternalResource(poi.getPointOfInterestId(), externalResourceId);
                                         }
                                         else
                                         {
@@ -704,12 +716,12 @@ public class PointOfInterestController extends HttpServlet {
                                             PointOfInterestExternalResourcePK pk = new PointOfInterestExternalResourcePK(poi.getPointOfInterestId(), externalResourceId);
                                             poiExternalResource.setPointOfInterestExternalResourcePK(pk);
                                             poiExternalResource.setResourceIdentifier(identifierField.getWebValue());
-                                            SessionControllerGetter.getPointOfInterestBean().storePointOfInterestExternalResource(poiExternalResource);
+                                            pointOfInterestBean.storePointOfInterestExternalResource(poiExternalResource);
                                         }
                                     }
                                 }
                                 
-                                SessionControllerGetter.getPointOfInterestBean().storePointOfInterestOrganizationGroupIds(poi,formValidation.getFormField("organizationGroupIds").getWebValues());
+                                pointOfInterestBean.storePointOfInterestOrganizationGroupIds(poi,formValidation.getFormField("organizationGroupIds").getWebValues());
                                 
                                 String returnIdCallback = request.getParameter("returnIdCallback");
 
@@ -744,7 +756,7 @@ public class PointOfInterestController extends HttpServlet {
                                 request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                                 request.setAttribute("returnURL","poi?organizationId=" + user.getOrganizationId().getOrganizationId());
                                 // Finding all external resources where entry is missing
-                                request.setAttribute("unreferencedExternalResources", SessionControllerGetter.getPointOfInterestBean().getUnusedExternalResourcesForPointOfInterest(poi));
+                                request.setAttribute("unreferencedExternalResources", pointOfInterestBean.getUnusedExternalResourcesForPointOfInterest(poi));
                                 request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                                 request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                                 request.getSession().setAttribute("availableCountries", em.createNamedQuery("Country.findAll").getResultList());
@@ -770,7 +782,7 @@ public class PointOfInterestController extends HttpServlet {
                 Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                 PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
                 if(
-                        SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                         || user.getUserId().equals(poi.getUserId().getUserId())
                 )
                 {
@@ -778,10 +790,10 @@ public class PointOfInterestController extends HttpServlet {
                     {
 
                         // Are there forecasts attached to this location
-                        List<ForecastConfiguration> forecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsByLocation(poi);
+                        List<ForecastConfiguration> forecastConfigurations = forecastBean.getForecastConfigurationsByLocation(poi);
                         
                         // TODO: Are there observations attached to this location?
-                        List<Observation> observations = SessionControllerGetter.getObservationBean().getObservationsByLocation(poi);
+                        List<Observation> observations = observationBean.getObservationsByLocation(poi);
                         // 
                         // If no strings attached, delete immediately
                         if(forecastConfigurations.isEmpty() && observations.isEmpty())
@@ -794,7 +806,7 @@ public class PointOfInterestController extends HttpServlet {
                         }
                         else
                         {
-                            Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedModelInformation();
+                            Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedModelInformation();
                             request.setAttribute("returnURL","poi?action=editPoiForm&pointOfInterestId=" + pointOfInterestId);
                             request.setAttribute("poi", poi);
                             request.setAttribute("forecastConfigurations", forecastConfigurations);
@@ -819,13 +831,13 @@ public class PointOfInterestController extends HttpServlet {
                 Integer pointOfInterestId = Integer.valueOf(request.getParameter("pointOfInterestId"));
                 PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
                 if(
-                        SessionControllerGetter.getUserBean().authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
+                        userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                         || user.getUserId().equals(poi.getUserId().getUserId())
                 )
                 {
                     try
                     {
-                        SessionControllerGetter.getPointOfInterestBean().deletePoi(pointOfInterestId);
+                        pointOfInterestBean.deletePoi(pointOfInterestId);
                         response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
                                 .append("/poi")
