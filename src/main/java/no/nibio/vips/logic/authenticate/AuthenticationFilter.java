@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.util.ServletUtil;
 
 /**

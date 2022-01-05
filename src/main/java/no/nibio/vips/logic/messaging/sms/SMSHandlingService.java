@@ -27,7 +27,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>

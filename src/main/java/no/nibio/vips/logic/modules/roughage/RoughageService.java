@@ -49,7 +49,6 @@ import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.util.RunModelException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.InvalidAggregationTypeException;
 import no.nibio.vips.util.ParseRESTParamUtil;

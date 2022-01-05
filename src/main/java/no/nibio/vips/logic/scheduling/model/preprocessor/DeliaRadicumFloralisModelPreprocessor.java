@@ -34,13 +34,12 @@ import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.observation.Observation;
 import no.nibio.vips.util.WeatherUtil;
 
 /**
- * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2017-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class DeliaRadicumFloralisModelPreprocessor extends ModelRunPreprocessor{

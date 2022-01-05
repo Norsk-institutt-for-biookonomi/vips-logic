@@ -45,7 +45,6 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;

@@ -63,7 +63,6 @@ import no.nibio.vips.logic.entity.vipsmobile.VIPSMobileForecast;
 import no.nibio.vips.logic.entity.vipsmobile.VIPSMobileMessage;
 import no.nibio.vips.logic.entity.vipsmobile.VIPSMobilePresentation;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.WeatherUtil;
 import org.jboss.resteasy.spi.HttpRequest;

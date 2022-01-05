@@ -30,7 +30,6 @@ import de.micromata.opengis.kml.v_2_2_0.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,13 +52,11 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
-import no.nibio.web.forms.FormField;
 
 
 /**
  * Handles transactions for POIs
- * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @LocalBean

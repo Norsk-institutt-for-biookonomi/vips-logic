@@ -46,7 +46,6 @@ import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SessionControllerGetter;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ArrayUtil;
 import no.nibio.vips.util.ServletUtil;
@@ -57,7 +56,7 @@ import no.nibio.web.forms.FormValidator;
 
 /**
  * Handles form configuration actions
- * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2020-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ForecastConfigurationController extends HttpServlet {
