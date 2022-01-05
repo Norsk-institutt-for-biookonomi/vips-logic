@@ -1,8 +1,9 @@
+![VIPS Logo](vipslogo_512.png)
 # VIPSLogic
 
 Tor-Einar Skog, NIBIO
 
-Last update: 2021-02-03
+Last update: 2022-01-05
 
 ## Overview
 VIPSLogic is the administration and business logic system of VIPS. Its main functionalities are:
@@ -25,7 +26,7 @@ VIPSLogic is the source of data for most clients, including VIPSWeb, the standar
 * Operating system: Ubuntu Linux >= 18.0.4 
 * Database: PostgreSQL >= 10  + PostGIS >= 2.4
 * Java: OpenJDK >= 11
-* Java EE application server: Wildfly >= 16
+* Java EE application server: Wildfly >= 25
 
 ## License
 VIPSLogic is licensed under the [NIBIO Open Source License](https://nibio.no/licenses), which is basically the [GNU Affero GPL v3 license](https://www.gnu.org/licenses/agpl-3.0.en.html).

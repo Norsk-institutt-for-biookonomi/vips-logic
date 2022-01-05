@@ -6,6 +6,8 @@
 
 [Troubleshooting](./troubleshooting.md)
 
+
+## TODO: NEEDS UPDATE AFTER PATCHING JAN 2022
 ## Building VIPSLogic
 
 ### Recommended: Building with Docker
