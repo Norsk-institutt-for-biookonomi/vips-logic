@@ -30,7 +30,6 @@
 	<script type="text/javascript" src="/js/3rdparty/jquery.datetimepicker.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
 	<script src="/js/3rdparty/metawidget/core/metawidget-core.min.js" type="text/javascript"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js?t=20170623"></script>
         <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
@@ -120,7 +119,6 @@
 		var mw = null;
 		var observationData = null;
                 var observationSchema = null;
-        var jsonEditor = null;
 		function initObservationData(organismId, organizationId) {
 			$.getJSON( "/rest/observationdata/model/" + organizationId + "/" + organismId, function( json ) {
 				observationData = json;
@@ -130,29 +128,9 @@
 		
 		function getDataSchema(organismId, organizationId)
 		{
-			$.getJSON( "/rest/observationdata/schema/" + organizationId + "/" + organismId, buildFormNew);
+			$.getJSON( "/rest/observationdata/schema/" + organizationId + "/" + organismId, buildForm);
 		}
 		
-		var buildFormNew = function(schema) {
-			observationSchema = schema;
-			formDiv = document.getElementById( 'metawidget' );
-			if(jsonEditor != null)
-			{
-				jsonEditor.destroy();
-			}
-		
-			jsonEditor = new JSONEditor(formDiv, {
-				schema: observationSchema,
-				theme: "bootstrap4",
-				disable_collapse: true,
-				disable_edit_json: true,
-				disable_properties: true
-			});
-			jsonEditor.setValue(observationData);
-
-		}
-		
-		// Renders the quantification form using MetaWidget
 		var buildForm = function(schemaProperties)
 		{
 				// Check if we're getting the whole schema or just the properties
@@ -492,7 +470,48 @@
                         // JSON string to the generic form field "observationData";
                         if(theForm.isQuantified.checked)
                         {
-                            theForm['observationData'].value = JSON.stringify(jsonEditor.getValue());
+                            // Process the pest specific form fields
+                            // Using MetaWidget to do this
+                            mw.save();
+                            // Make sure that all fields are represented in the
+                            // returned JSON
+                            //console.info(mw.toInspect);
+                            //console.info(observationSchema);
+                            for(prop in observationSchema)
+                            {
+                                var currentProperty = observationSchema[prop];
+                                mw.toInspect[prop]; // The property value in the MetaWidget object
+                                //console.info(prop + ":" + currentProperty);
+                                // Undefined found, must replace with default empty value
+                                if(mw.toInspect[prop] === undefined)
+                                {
+                                    // Check if field is required (defined in schema)
+                                    if(currentProperty.required)
+                                    {
+                                        alert("${i18nBundle.isRequiredField}: " + currentProperty.title);
+                                        return false;
+                                    }
+                                        
+                                    //console.info(prop + " is undefined!");
+                                    // Check for default value
+                                    if(currentProperty.defaultValue !== undefined)
+                                    {
+                                        mw.toInspect[prop] = currentProperty.defaultValue
+                                    }
+                                    else
+                                    {
+                                        if(currentProperty.type == "Number")
+                                        {
+                                            mw.toInspect[prop] = 0;
+                                        }
+                                        else
+                                        {
+                                            mw.toInspect[prop] = "";
+                                        }
+                                    }
+                                }
+                            }        
+                            theForm['observationData'].value=JSON.stringify(mw.toInspect);
                         }
                         validateGIS(theForm);
                         //console.info('validateGIS = ' + (validateGIS(this)));
