@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.ejb.EJB;
 import no.nibio.vips.i18n.I18nImpl;
 import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
@@ -38,11 +39,7 @@ import no.nibio.web.forms.FormField;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class RunForecastConfigurationsByIdTask extends VipsLogicTask{
-    
-    @EJB
-    UserBean userBean;
-    @EJB
-    ForecastBean forecastBean;
+
     
     private I18nImpl i18n;
     //private boolean DEBUG=true;
@@ -65,16 +62,16 @@ public class RunForecastConfigurationsByIdTask extends VipsLogicTask{
         Integer numberOfAttemptedForecastConfigurations = 0;
         Integer numberOfCompletedForecastConfigurations = 0;
         Boolean noForecastConfigurationsFound = forecastConfigurationIds.length == 0;
-        Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedBatchableModelInformation();
+        Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedBatchableModelInformation();
         for(String forecastConfigurationId:forecastConfigurationIds)
         {
             noForecastConfigurationsFound = false;
-            ForecastConfiguration forecastConfiguration = forecastBean.getForecastConfiguration(Long.valueOf(forecastConfigurationId));
+            ForecastConfiguration forecastConfiguration = SessionControllerGetter.getForecastBean().getForecastConfiguration(Long.valueOf(forecastConfigurationId));
             try 
             {
                 numberOfAttemptedForecastConfigurations++;
                 //System.out.println("Running forecast #" + forecastConfiguration.getForecastConfigurationId());
-                forecastBean.runForecast(forecastConfiguration);
+                SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
                 /*
                 if(DEBUG && totalNumberofForecastConfigurations == 2)
                 {

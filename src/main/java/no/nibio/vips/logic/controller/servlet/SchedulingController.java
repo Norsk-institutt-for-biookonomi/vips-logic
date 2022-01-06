@@ -173,6 +173,7 @@ public class SchedulingController extends HttpServlet {
                 }
                 catch(NullPointerException | NumberFormatException ex)
                 {
+                	ex.printStackTrace();
                     response.sendError(500, "ERROR: " + ex.getMessage());
                 }
             }

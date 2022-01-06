@@ -465,11 +465,19 @@ public class ForecastBean {
      */
     public void updateModelInformation()
     {
+    	
+	    	Client client = ClientBuilder.newClient();
+	        WebTarget target = client.target(System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL"));
+	        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
+	        ManagerResource resource = rTarget.proxy(ManagerResource.class);
             // Get all model Ids from Core Manager
-            Response resp = this.getManagerResource().printModelListJSON();
+            Response resp = resource.printModelListJSON();
+            
             for(JsonNode modelIdItem: resp.readEntity(JsonNode.class).findValues("modelId"))
             {
+            	
                 String modelId = modelIdItem.asText();
+                
                 
                 // We get the corresponding modelInformation entry 
                 ModelInformation modelInformation = em.find(ModelInformation.class, modelId);
@@ -481,15 +489,35 @@ public class ForecastBean {
                 }
                 
                 // Retrieve and store information
-                modelInformation.setDefaultName(this.getManagerResource().printModelName(modelId).readEntity(String.class));
-                modelInformation.setDefaultDescription(this.getManagerResource().printModelDescription(modelId).readEntity(String.class));
-                modelInformation.setLicense(this.getManagerResource().printModelLicense(modelId).readEntity(String.class));
-                modelInformation.setCopyrightHolder(this.getManagerResource().printModelCopyright(modelId).readEntity(String.class));
-                modelInformation.setUsage(this.getManagerResource().printModelUsage(modelId).readEntity(String.class));
-                modelInformation.setSampleConfig(this.getManagerResource().printModelSampleConfig(modelId).readEntity(String.class));
+                
+                Response r = resource.printModelName(modelId);
+                modelInformation.setDefaultName(r.readEntity(String.class));
+                //r.close();
+                
+                r = resource.printModelDescription(modelId);
+                modelInformation.setDefaultDescription(r.readEntity(String.class));
+                //r.close();
+                
+                r = resource.printModelLicense(modelId);
+                modelInformation.setLicense(r.readEntity(String.class));
+                //r.close();
+                
+                r = resource.printModelCopyright(modelId);
+                modelInformation.setCopyrightHolder(r.readEntity(String.class));
+                //r.close();
+                
+                r = resource.printModelUsage(modelId);
+                modelInformation.setUsage(r.readEntity(String.class));
+                //r.close();
+                
+                r = resource.printModelSampleConfig(modelId);
+                modelInformation.setSampleConfig(r.readEntity(String.class));
+                //r.close();
+                
                 modelInformation.setDateLastRegistered(new Date());
             }
-            
+            resp.close();
+            client.close();
     }
     
     /**

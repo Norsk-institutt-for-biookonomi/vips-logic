@@ -21,6 +21,8 @@ package no.nibio.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 import javax.ejb.EJB;
+
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 
@@ -30,8 +32,6 @@ import no.nibio.vips.logic.scheduling.VipsLogicTask;
  */
 public class SendForecastEventNotificationsTask extends VipsLogicTask {
     
-    @EJB
-    MessagingBean messagingBean;
 
     @Override
     public String getConfigFormDefinition(String language) {
@@ -41,7 +41,7 @@ public class SendForecastEventNotificationsTask extends VipsLogicTask {
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         tec.setCompleteness(0d);
-        messagingBean.sendForecastEventNotifications();
+        SessionControllerGetter.getMessagingBean().sendForecastEventNotifications();
         tec.setCompleteness(1d);
     }
     

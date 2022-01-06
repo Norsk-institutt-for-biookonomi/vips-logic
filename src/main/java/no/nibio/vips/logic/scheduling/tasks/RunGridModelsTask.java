@@ -22,6 +22,7 @@ package no.nibio.vips.logic.scheduling.tasks;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 import javax.ejb.EJB;
 import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.scheduling.SchedulingUtil;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
@@ -34,9 +35,6 @@ import no.nibio.vips.logic.util.RunModelException;
  */
 public class RunGridModelsTask extends VipsLogicTask{
     
-    @EJB
-    ForecastBean forecastBean;
-
     @Override
     public String getConfigFormDefinition(String language) {
         return "{\"fields\":[]}";
@@ -48,11 +46,11 @@ public class RunGridModelsTask extends VipsLogicTask{
         //ZymoseptoriaSimpleRiskGridModelPreprocessor pp = new ZymoseptoriaSimpleRiskGridModelPreprocessor();
         // TODO: Must find a forecast configuration id! -1000 !
         
-        ForecastConfiguration fConfig = forecastBean.getForecastConfiguration(-1000l);
+        ForecastConfiguration fConfig = SessionControllerGetter.getForecastBean().getForecastConfiguration(-1000l);
 
         try
         {
-            forecastBean.runForecast(fConfig);
+        	SessionControllerGetter.getForecastBean().runForecast(fConfig);
             tec.setCompleteness(1.0);
         }
         catch(PreprocessorException | RunModelException ex)

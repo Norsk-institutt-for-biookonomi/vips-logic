@@ -109,7 +109,7 @@ public class PointMappingRequestTest {
         //PointMappingResponse response = 
         PointMappingResponse response =    target.request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(instance, MediaType.APPLICATION_JSON), PointMappingResponse.class);//.toString();
-        
+        client.close();
         //System.out.println(((Polygon)response.getFeatureCollection().getFeatures()[0].getGeometry()).getCoordinates()[0].length);
         
         assertNotNull(response);

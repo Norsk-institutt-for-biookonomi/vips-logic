@@ -22,6 +22,7 @@ package no.nibio.vips.logic.scheduling.tasks;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 import javax.ejb.EJB;
 import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 
 /**
@@ -29,8 +30,6 @@ import no.nibio.vips.logic.scheduling.VipsLogicTask;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class UpdateForecastResultCacheTableTask  extends VipsLogicTask{
-    @EJB
-    ForecastBean forecastBean;
 
     @Override
     public String getConfigFormDefinition(String language) {
@@ -40,7 +39,7 @@ public class UpdateForecastResultCacheTableTask  extends VipsLogicTask{
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         tec.setCompleteness(0d);
-        forecastBean.updateForecastResultCacheTable();
+        SessionControllerGetter.getForecastBean().updateForecastResultCacheTable();
         tec.setCompleteness(1d);
     }
 

@@ -27,6 +27,7 @@ import javax.ejb.EJB;
 import no.nibio.vips.i18n.I18nImpl;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
@@ -43,13 +44,6 @@ import no.nibio.web.forms.FormField;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForecastConfigurationsTask{
-    
-    @EJB
-    UserBean userBean;
-    @EJB
-    ForecastBean forecastBean;
-    @EJB
-    PointOfInterestBean pointOfInterestBean;
     
     private I18nImpl i18n;
     //private boolean DEBUG=true;
@@ -68,9 +62,9 @@ public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForec
         StringBuilder errorMessage = new StringBuilder();
         // Get all organizations, loop, get all current forecasts, loop, run models, store results
         boolean noForecastConfigurationsFound = true;
-        Map<String, ModelInformation> modelInformationMap = forecastBean.getIndexedBatchableModelInformation();
+        Map<String, ModelInformation> modelInformationMap = SessionControllerGetter.getForecastBean().getIndexedBatchableModelInformation();
         
-        List<ForecastConfiguration> currentForecastConfigurations = forecastBean.getForecastConfigurationsValidAtTime(this.getOrganization(), SystemTime.getSystemTime());
+        List<ForecastConfiguration> currentForecastConfigurations = SessionControllerGetter.getForecastBean().getForecastConfigurationsValidAtTime(this.getOrganization(), SystemTime.getSystemTime());
         //System.out.println("Current forecasts for " + organization.getOrganizationName() + ":" + currentForecastConfigurations.size());
         if(currentForecastConfigurations != null && !currentForecastConfigurations.isEmpty())
         {
@@ -86,7 +80,7 @@ public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForec
                     try 
                     {
                         totalNumberofForecastConfigurations++;
-                        forecastBean.runForecast(forecastConfiguration);
+                        SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
                         /*
                         if(DEBUG && totalNumberofForecastConfigurations == 2)
                         {
@@ -141,7 +135,7 @@ public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForec
                     .append("\",\"selected\":")
                     .append("false")
                     .append("}\n");
-        List<PointOfInterestWeatherStation> stations = pointOfInterestBean.getWeatherstationsForOrganization(this.getOrganization(), Boolean.TRUE);
+        List<PointOfInterestWeatherStation> stations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(this.getOrganization(), Boolean.TRUE);
         Collections.sort(stations);
         for(PointOfInterest station:stations)
         {
