@@ -1,0 +1,58 @@
+{
+    "_licenseNote": [
+        "Copyright (c) 2022 NIBIO <http://www.nibio.no/>. ",
+        "",
+        "This file is part of VIPSLogic. ",
+        "VIPSLogic is free software: you can redistribute it and/or modify ",
+        "it under the terms of the NIBIO Open Source License as published by ",
+        "NIBIO, either version 1 of the License, or (at your option) any ",
+        "later version. ",
+        "",
+        "VIPSLogic is distributed in the hope that it will be useful, ",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of ",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the ",
+        "NIBIO Open Source License for more details. ",
+        "",
+        "You should have received a copy of the NIBIO Open Source License ",
+        "along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>. "
+    ],
+    "_comment" : "Structure of the specific fields for YSTEMBTEMP",
+    "fields": [
+        {
+            "name" : "biofixDate",
+            "dataType" : "DATE",
+            "dateFormat" : "yyyy-MM-dd",
+            "required" : true
+        },
+        {
+            "name" : "heatRequirements",
+            "dataType" : "STRING",
+            "required" : false,
+            "defaultValue":""
+        },
+        {
+            "name" : "dd_lower",
+            "dataType" : "String",
+            "required" : false,
+            "defaultValue": ""
+        },
+        {
+            "name" : "dd_upper",
+            "dataType" : "STRING",
+            "required" : false,
+            "defaultValue": ""
+        },
+        {
+            "name" : "observedPhase",
+            "dataType" : "STRING",
+            "fieldType" : "SELECT_SINGLE",
+            "required" : true,
+			"selectOptions": [
+				{"value":"EGG", "label":{"en":"Egg","nb":"Egg"}, "selected":"true"},
+				{"value":"LARVA", "label":{"en":"Larva","nb":"Larve"}, "selected":"false"},
+				{"value":"PUPA", "label":{"en":"Pupa","nb":"Puppe"}, "selected":"false"},
+				{"value":"ADULT", "label":{"en":"Adult","nb":"Voksen"}, "selected":"false"}
+			]
+        }
+    ]
+}
