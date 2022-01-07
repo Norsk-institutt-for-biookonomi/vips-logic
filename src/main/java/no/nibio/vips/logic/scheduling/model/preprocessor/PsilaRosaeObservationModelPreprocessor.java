@@ -27,6 +27,7 @@ import javax.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PointOfInterest;
@@ -42,11 +43,6 @@ import no.nibio.vips.util.WeatherUtil;
  */
 public class PsilaRosaeObservationModelPreprocessor extends ModelRunPreprocessor{
 
-    @EJB
-    OrganismBean organismBean;
-    @EJB
-    ObservationBean observationBean;
-    
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
         ModelConfiguration config = null;
@@ -66,8 +62,8 @@ public class PsilaRosaeObservationModelPreprocessor extends ModelRunPreprocessor
             Date endDateCalculation = wUtil.normalizeToExactDate(SystemTime.getSystemTime(),timeZone);
             config.setConfigParameter("endDateCalculation", format.format(endDateCalculation));
 
-            Organism organism = organismBean.getOrganismByLatinName("Psila rosae");
-            List<Observation> pestObservations = observationBean.getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
+            Organism organism = SessionControllerGetter.getOrganismBean().getOrganismByLatinName("Psila rosae");
+            List<Observation> pestObservations = SessionControllerGetter.getObservationBean().getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
 
             config.setConfigParameter("pestObservations", pestObservations);
             config.setModelId(this.getModelId());

@@ -32,6 +32,7 @@ import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PointOfInterest;
@@ -52,12 +53,6 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
-    @EJB
-    OrganismBean organismBean;
-    @EJB
-    ObservationBean observationBean;
-    
-
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
         ModelConfiguration config;
@@ -65,9 +60,9 @@ public class SeptoriaApiicolaModelPreprocessor extends ModelRunPreprocessor {
         PointOfInterestWeatherStation weatherStation =  (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
         config = new ModelConfiguration();
         
-        Organism organism = organismBean.getOrganismByLatinName("Septoria apiicola");
+        Organism organism = SessionControllerGetter.getOrganismBean().getOrganismByLatinName("Septoria apiicola");
         //System.out.println(organism);
-        List<Observation> pestObservations = observationBean.getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
+        List<Observation> pestObservations = SessionControllerGetter.getObservationBean().getObservations(organism.getOrganismId(), location.getPointOfInterestId(),configuration.getDateStart(),SystemTime.getSystemTime());
         
         //System.out.println("Found " + pestObservations + " observations");
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();

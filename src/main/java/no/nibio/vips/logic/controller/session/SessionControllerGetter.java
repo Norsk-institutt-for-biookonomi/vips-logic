@@ -19,7 +19,6 @@
 
 package no.nibio.vips.logic.controller.session;
 
-import javax.ejb.LocalBean;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -109,6 +108,36 @@ public class SessionControllerGetter {
         }catch(NamingException ne)
         {
             System.out.println("Could not find " + MessagingBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(MessagingBean.class));
+            return null;
+        }
+    }
+    
+    public static OrganismBean getOrganismBean()
+    {
+        try
+        {
+            InitialContext ic = new InitialContext();
+            OrganismBean retVal = (OrganismBean) ic.lookup(SessionControllerGetter.getJndiPath(OrganismBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + OrganismBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(OrganismBean.class));
+            return null;
+        }
+    }
+    
+    public static ObservationBean getObservationBean()
+    {
+        try
+        {
+            InitialContext ic = new InitialContext();
+            ObservationBean retVal = (ObservationBean) ic.lookup(SessionControllerGetter.getJndiPath(ObservationBean.class));
+
+            return retVal;
+        }catch(NamingException ne)
+        {
+            System.out.println("Could not find " + ObservationBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(ObservationBean.class));
             return null;
         }
     }

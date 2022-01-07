@@ -1,22 +1,22 @@
-/**
- * Project			:	VIPSLogic
- * Organization			:	NIBIO, Ås
- * Department			:	VIPS
- * 
- * Author			:	bhabesh
- *
- * 
- * File Name			:	AltenariaModelPreprocessor.java
- * Package Name			:	no.nibio.vips.logic.scheduling.model.preprocessor
- * Date of creation		:	12 May 2020 10:07:46 am
- * Date of modification :	
- * 
- * Summary			:	
- *
- */
 /*
+ * Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
  * 
-Error reading included file Templates/Classes/Templates/Licenses/license-nibio_open_source_license.ftl.txt */
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
+ * later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * NIBIO Open Source License for more details.
+ * 
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * 
+ */
+
 
 package no.nibio.vips.logic.scheduling.model.preprocessor;
 
@@ -36,6 +36,7 @@ import javax.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
@@ -54,9 +55,6 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class AltenariaModelPreprocessor extends ModelRunPreprocessor {
-   
-    @EJB
-    ForecastBean forecastBean;
     
     public final   Logger      LOGGER              =   Logger.getLogger(this.getClass().getName());
     private final boolean DEBUG = false;
@@ -65,18 +63,14 @@ public class AltenariaModelPreprocessor extends ModelRunPreprocessor {
      * method name : getModelConfiguration
      * @param      :
      * @return     : no.nibio.vips.entity.ModelConfiguration
-     *
-     * purpose     :
-     *
-     * date        : 
      */
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
-        String      ALTERNARIA_SPRAYING_DATES_01    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate01");
-        String      ALTERNARIA_SPRAYING_DATES_02    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate02");
-        String      ALTERNARIA_SPRAYING_DATES_03    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate03");
-        String      ALTERNARIA_SPRAYING_DATES_04    = forecastBean.getDeCamelizedFieldName("ALTERNARIA", "sprayingDate04");
+        String      ALTERNARIA_SPRAYING_DATES_01    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate01");
+        String      ALTERNARIA_SPRAYING_DATES_02    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate02");
+        String      ALTERNARIA_SPRAYING_DATES_03    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate03");
+        String      ALTERNARIA_SPRAYING_DATES_04    = SessionControllerGetter.getForecastBean().getDeCamelizedFieldName("ALTERNARIA", "sprayingDate04");
         
         String      paramConfigValue                = null;
         List<Date>  lstSprayingDates                = new ArrayList(){};

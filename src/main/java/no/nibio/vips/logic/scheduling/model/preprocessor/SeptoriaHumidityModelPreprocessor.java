@@ -30,6 +30,7 @@ import javax.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
@@ -44,9 +45,6 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  */
 public class SeptoriaHumidityModelPreprocessor  extends ModelRunPreprocessor{
     
-    @EJB
-    ForecastBean forecastBean;
-    
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
@@ -59,7 +57,7 @@ public class SeptoriaHumidityModelPreprocessor  extends ModelRunPreprocessor{
         "leafLifeTime"};
         for(String modelConfigurationValueName: modelConfigurationValueNames)
         {
-            retVal.setConfigParameter(modelConfigurationValueName, configuration.getForecastModelConfigurationValue(forecastBean.getDeCamelizedFieldName(this.getModelId(),modelConfigurationValueName)));
+            retVal.setConfigParameter(modelConfigurationValueName, configuration.getForecastModelConfigurationValue(SessionControllerGetter.getForecastBean().getDeCamelizedFieldName(this.getModelId(),modelConfigurationValueName)));
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         format.setTimeZone(TimeZone.getTimeZone(configuration.getTimeZone()));
