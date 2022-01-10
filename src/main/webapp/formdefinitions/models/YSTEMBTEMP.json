@@ -31,13 +31,13 @@
             "defaultValue":""
         },
         {
-            "name" : "dd_lower",
-            "dataType" : "String",
+            "name" : "ddLower",
+            "dataType" : "STRING",
             "required" : false,
             "defaultValue": ""
         },
         {
-            "name" : "dd_upper",
+            "name" : "ddUpper",
             "dataType" : "STRING",
             "required" : false,
             "defaultValue": ""

@@ -68,7 +68,7 @@ public class YellowStemborerTempModelPreprocessor extends ModelRunPreprocessor {
         retVal.setConfigParameter("timeZone", timeZone.getID());
         
         // Getting input parameters from database
-        Double[] dd_lower = null, dd_upper = null, heatRequirements = null;
+        Double[] ddLower = null, ddUpper = null, heatRequirements = null;
         Date biofixDate;
         String observedPhase;
         Set<String> allowedPhases = Set.of("EGG","LARVA","PUPA","ADULT");
@@ -79,12 +79,12 @@ public class YellowStemborerTempModelPreprocessor extends ModelRunPreprocessor {
         	String ddl_interm = configuration.getForecastModelConfigurationValue(YSTEMBTEMP_DD_LOWER);
         	if(ddl_interm.split(",").length == 4)
         	{
-        		dd_lower = Arrays.asList(ddl_interm.split(",")).stream().toArray(Double[]::new);
+        		ddLower = Arrays.asList(ddl_interm.split(",")).stream().map(str->Double.valueOf(str)).toArray(Double[]::new);
         	}
         	String ddu_interm = configuration.getForecastModelConfigurationValue(YSTEMBTEMP_DD_UPPER);
         	if(ddu_interm.split(",").length == 4)
         	{
-        		dd_lower = Arrays.asList(ddu_interm.split(",")).stream().toArray(Double[]::new);
+        		ddUpper = Arrays.asList(ddu_interm.split(",")).stream().map(str->Double.valueOf(str)).toArray(Double[]::new);
         	}
         	String hr_interm = configuration.getForecastModelConfigurationValue(YSTEMBTEMP_HEAT_REQUIREMENTS);
         	if(hr_interm.split(",").length == 4)
@@ -99,8 +99,8 @@ public class YellowStemborerTempModelPreprocessor extends ModelRunPreprocessor {
         	
         	retVal.setConfigParameter("biofixDate", format.format(biofixDate));
             retVal.setConfigParameter("heatRequirements", heatRequirements);
-            retVal.setConfigParameter("dd_lower", dd_lower);
-            retVal.setConfigParameter("dd_upper", dd_upper);
+            retVal.setConfigParameter("ddLower", ddLower);
+            retVal.setConfigParameter("ddUpper", ddUpper);
             retVal.setConfigParameter("observedPhase", observedPhase);
             
             // Getting weather data
