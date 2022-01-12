@@ -180,7 +180,7 @@ public class YellowStemborerTempModelPreprocessor extends ModelRunPreprocessor {
                 }
             }
             Collections.sort(observations);
-            observations.forEach(o->System.out.println(o));
+            //observations.forEach(o->System.out.println(o));
             retVal.setConfigParameter("observations", observations);
         }
         catch(ParseException | NumberFormatException ex)
