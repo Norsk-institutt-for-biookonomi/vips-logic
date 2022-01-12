@@ -22,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -140,16 +141,46 @@ public class YellowStemborerTempModelPreprocessor extends ModelRunPreprocessor {
                             },
                             biofixDate,
                             nineDaysFromNow);
-                    // Aggregate
-                    List<WeatherObservation> dailyMins = wUtil.getAggregatedDailyValues(wUtil.filterWeatherObservationsByParameter(observations, "TN"),timeZone, 15, WeatherUtil.AGGREGATION_TYPE_MINIMUM);
-                    List<WeatherObservation> dailyMaxes = wUtil.getAggregatedDailyValues(wUtil.filterWeatherObservationsByParameter(observations, "TX"),timeZone, 15, WeatherUtil.AGGREGATION_TYPE_MAXIMUM);
+                    
+                    List<WeatherObservation> dailyMins, dailyMaxes;
+                    if(observations.size() > 0)
+                    {
+	                    // Aggregate
+	                    dailyMins = wUtil.getAggregatedDailyValues(wUtil.filterWeatherObservationsByParameter(observations, "TN"),timeZone, 15, WeatherUtil.AGGREGATION_TYPE_MINIMUM);
+	                    dailyMaxes = wUtil.getAggregatedDailyValues(wUtil.filterWeatherObservationsByParameter(observations, "TX"),timeZone, 15, WeatherUtil.AGGREGATION_TYPE_MAXIMUM);
+	                    
+                    }
+                    else
+                    {
+                    	observations = wdsUtil.getWeatherObservations(
+                                weatherStation,
+                                WeatherObservation.LOG_INTERVAL_ID_1H,
+                                new String[]{
+                                		WeatherElements.TEMPERATURE_MEAN
+                                },
+                                biofixDate,
+                                nineDaysFromNow);
+                    	if(observations.size() == 0)
+                    	{
+                    		throw new PreprocessorException("Could not get temperature data (neither TN/TX or TM) to run the model.");
+                    	}
+                    	dailyMins = wUtil.getAggregatedDailyValues(wUtil.filterWeatherObservationsByParameter(observations, "TM"),timeZone, 15, WeatherUtil.AGGREGATION_TYPE_MINIMUM)
+                    			.stream()
+                    			.map(o->{o.setElementMeasurementTypeId("TN");return o;})
+                    			.collect(Collectors.toList());
+	                    dailyMaxes = wUtil.getAggregatedDailyValues(wUtil.filterWeatherObservationsByParameter(observations, "TM"),timeZone, 15, WeatherUtil.AGGREGATION_TYPE_MAXIMUM)
+	                    		.stream()
+                    			.map(o->{o.setElementMeasurementTypeId("TX");return o;})
+                    			.collect(Collectors.toList());;
+                    }
                     observations = dailyMins;
                     observations.addAll(dailyMaxes);
                 } catch (WeatherDataSourceException | WeatherObservationListException | InvalidAggregationTypeException ex) {
                     throw new PreprocessorException(ex.getMessage());
                 }
             }
-            
+            Collections.sort(observations);
+            observations.forEach(o->System.out.println(o));
             retVal.setConfigParameter("observations", observations);
         }
         catch(ParseException | NumberFormatException ex)
