@@ -316,6 +316,7 @@ public class BarkbeetleController extends HttpServlet {
                         // Also, store the observedAttacksDescription on the SeasonTrapsite object
                         trapsite.setObservedAttacksDescription(request.getParameter("observedAttacksDescription"));
                         trapsite.setMaintenanceDescription(request.getParameter("maintenanceDescription"));
+                        trapsite.setMaintenanceAddress(request.getParameter("maintenanceAddress"));
                         barkbeetleBean.storeSeasonTrapsite(trapsite);
                         
                         // Redirect to form

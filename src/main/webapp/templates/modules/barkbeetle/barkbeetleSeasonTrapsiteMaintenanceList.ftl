@@ -48,6 +48,7 @@
 			<th>Eier</th>
 			<th>Registrant</th>
 			<th>Vedlikeholdsbehov</th>
+			<th>Leveringsadresse</th>
 			<th>Sak behandlet</th>
 		</thead>
 		<tbody id="seasonTrapsiteTBody">
@@ -61,6 +62,7 @@
 				<td>${site.ownerName!""}</td>
 				<td>${site.userId.firstName} ${site.userId.lastName}</td>
 				<td>${site.maintenanceDescription!""}</td>
+				<td>${site.maintenanceAddress!""}</td>
 				<td><input type="checkbox" name="maintenanceCompleted" onclick="handleMaintenanceCompletedClick(${site.seasonTrapsiteId},this);" <#if site.maintenanceCompleted>checked</#if>></td>
 			</tr>
 			</#if>

@@ -140,8 +140,11 @@
 		<div class="form-group" style="padding-left: 5px; padding-right: 5px;">
 			<label for="maintenanceDescription">Registrer felledeler som må fornyes før neste sesong. Oppgi hva 
 			slags felledel (oppsamlerkopp, låsepinne, oppsamlerkopp, jordspyd, kryss, trakt, midtrør, sil, hel 
-			felle, annet) og antall</label>
+			felle, annet) og antall. Husk å registrere leveringsadresse.</label>
 			<textarea class="form-control" name="maintenanceDescription">${seasonTrapsite.maintenanceDescription!""}</textarea>
+			<label for="countyName">Leveringsadresse</label>
+			<input type="text" class="form-control" name="maintenanceAddress" placeholder="Leveringsadresse" value="${(seasonTrapsite.maintenanceAddress)!""}" />
+		  </div>
 		</div>
 			<div class="form-group" style="padding-left: 5px;">
 				  <div class="checkbox">
