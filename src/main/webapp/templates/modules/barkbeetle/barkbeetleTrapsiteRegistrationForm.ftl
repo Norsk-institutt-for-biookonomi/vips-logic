@@ -1,5 +1,5 @@
 <#--
-    Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
+    Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
   VIPSLogic is free software: you can redistribute it and/or modify
@@ -94,7 +94,7 @@
 				<#list trapsiteRegistrations as reg>
 				    <#assign tooEarly = reg.trapsiteRegistrationPK.week gt currentWeek && ! (currentWeek == 27 && reg.trapsiteRegistrationPK.week == 28)>
 					<tr>
-						<td rowspan="2">${reg.trapsiteRegistrationPK.week} (${reg?counter})</td>
+						<td rowspan="<#if seasonTrapsite.season gt 2021>3<#else>2</#if>">${reg.trapsiteRegistrationPK.week} (${reg?counter})</td>
 						<td rowspan="2"><input class="form-control" type="date" name="${reg.trapsiteRegistrationPK.week}_dateRegistration" value="${reg.dateRegistration!""}"<#if tooEarly> disabled="disabled"<#else> required="required"</#if>/></td>
 						<td><input class="form-control squeezemenot" type="number" name="${reg.trapsiteRegistrationPK.week}_trap1_ml" onblur="setCalculatedAmount(this);" value=""<#if tooEarly> disabled="disabled"</#if>/></td>
 						<td><input class="form-control squeezemenot" type="text" onblur="validateRegField(this, true);" name="${reg.trapsiteRegistrationPK.week}_trap1" value="${reg.trap1!"M"}"<#if tooEarly> disabled="disabled"</#if>/></td>
@@ -125,15 +125,25 @@
 						<td colspan="2"><input class="form-control" type="text" name="${reg.trapsiteRegistrationPK.week}_trap4Remarks" placeholder="Kommentar felle 4" value="${reg.trap4Remarks!""}"<#if tooEarly || isExtended> disabled="disabled"</#if>/></td>
 	
 					</tr>
+					<#if seasonTrapsite.season gt 2021>
+					<tr>
+						<td>Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen? Beskriv hva som er observert (omfang, sted m.m.)</td>
+						<td colspan="8">
+							<textarea class="form-control" name="${reg.trapsiteRegistrationPK.week}_observedAttacksDescription"<#if tooEarly> disabled="disabled"</#if>>${reg.observedAttacksDescription!""}</textarea>
+						</td>
+					</tr>
+					</#if>
 				</#list>
 				</tbody>
 			</table>
 		</div>
+		<#if seasonTrapsite.season lte 2021>
 		<div class="form-group" style="padding-left: 5px; padding-right: 5px;">
 			<label for="observedAttacksDescription">Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen?
 		Beskriv hva som er observert (omfang, når, m.m.)</label>
 			<textarea class="form-control" name="observedAttacksDescription">${seasonTrapsite.observedAttacksDescription!""}</textarea>
 		</div>
+		</#if>
 		<div class="form-group" style="padding-left: 5px; padding-right: 5px; display: <#if currentWeek gte 33>block<#else>none</#if>;">
 			<label for="maintenanceDescription">Registrer felledeler som må fornyes før neste sesong. Oppgi hva 
 			slags felledel (oppsamlerkopp, låsepinne, oppsamlerkopp, jordspyd, kryss, trakt, midtrør, sil, hel 
@@ -210,9 +220,16 @@
 						return false;
 					}
 				}
+				<#if seasonTrapsite.season gt 2021>
+				if(weeks[wi] <= ${currentWeek} && theForm[weeks[wi] + "_observedAttacksDescription"].value.trim().length == 0)
+				{
+					alert("FEIL: Angrepsregistrering for alle utførte tømmerunder må være utfylt. Skriv eventuelt \"Ingen angrep registrert\".");
+					return false;
+				}
+				</#if>
 			}
 			<#if currentWeek gte 33>
-			// Check if maintenance description has content, issue warning if not
+			// Check if maintenance description has content, issue warning and refuse submit if not
 			if(theForm["maintenanceDescription"].value.trim() == "")
 			{
 				alert("Etter endt sesong skal behov for reservedeler oppgis, også hvis det ikke er behov for det (skriv i så fall f.eks. \"Ikke behov for reservedeler\".)");

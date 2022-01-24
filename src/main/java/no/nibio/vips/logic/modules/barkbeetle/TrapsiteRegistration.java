@@ -85,6 +85,8 @@ public class TrapsiteRegistration implements Serializable, Comparable {
     private String trap4Remarks;
     @Column(name = "registration_status_type_id")
     private Integer registrationStatusTypeId;
+    @Column(name = "observed_attacks_description")
+    private String observedAttacksDescription;
     @JoinColumn(name = "season_trapsite_id", referencedColumnName = "season_trapsite_id", insertable = false, updatable = false)
     @ManyToOne(optional = false)
     private SeasonTrapsite seasonTrapsite;
@@ -265,5 +267,19 @@ public class TrapsiteRegistration implements Serializable, Comparable {
         
         return counter > 0 ? sum/counter : null;
     }
+
+	/**
+	 * @return the observedAttacksDescription
+	 */
+	public String getObservedAttacksDescription() {
+		return observedAttacksDescription;
+	}
+
+	/**
+	 * @param observedAttacksDescription the observedAttacksDescription to set
+	 */
+	public void setObservedAttacksDescription(String observedAttacksDescription) {
+		this.observedAttacksDescription = observedAttacksDescription;
+	}
     
 }
