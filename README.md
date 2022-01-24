@@ -1,4 +1,5 @@
-![VIPS Logo](vipslogo_512.png)
+<img src="vipslogo_512.png" alt="VIPS Logo" height="250"/>
+
 # VIPSLogic
 
 Tor-Einar Skog, NIBIO
