@@ -129,20 +129,17 @@
 				</tbody>
 			</table>
 		</div>
-		<p>
-		
-		</p>
 		<div class="form-group" style="padding-left: 5px; padding-right: 5px;">
 			<label for="observedAttacksDescription">Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen?
 		Beskriv hva som er observert (omfang, når, m.m.)</label>
 			<textarea class="form-control" name="observedAttacksDescription">${seasonTrapsite.observedAttacksDescription!""}</textarea>
 		</div>
-		<div class="form-group" style="padding-left: 5px; padding-right: 5px;">
+		<div class="form-group" style="padding-left: 5px; padding-right: 5px; display: <#if currentWeek gte 33>block<#else>none</#if>;">
 			<label for="maintenanceDescription">Registrer felledeler som må fornyes før neste sesong. Oppgi hva 
 			slags felledel (oppsamlerkopp, låsepinne, oppsamlerkopp, jordspyd, kryss, trakt, midtrør, sil, hel 
 			felle, annet) og antall. Husk å registrere leveringsadresse.</label>
 			<textarea class="form-control" name="maintenanceDescription">${seasonTrapsite.maintenanceDescription!""}</textarea>
-			<label for="countyName">Leveringsadresse</label>
+			<label for="countyName">Leveringsadresse for reservedeler</label>
 			<input type="text" class="form-control" name="maintenanceAddress" placeholder="Leveringsadresse" value="${(seasonTrapsite.maintenanceAddress)!""}" />
 		  </div>
 		</div>
@@ -218,7 +215,8 @@
 			// Check if maintenance description has content, issue warning if not
 			if(theForm["maintenanceDescription"].value.trim() == "")
 			{
-				return confirm("Etter endt sesong skal behov for reservedeler oppgis. Hvis reservedeler ikke trengs eller du vil vente med å oppgi dette, trykk OK. Hvis ikke, trykk Avbryt (Cancel) for å legge inn informasjon.");
+				alert("Etter endt sesong skal behov for reservedeler oppgis, også hvis det ikke er behov for det (skriv i så fall f.eks. \"Ikke behov for reservedeler\".)");
+				return false;
 			}
 			</#if>
 			return true;
