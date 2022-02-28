@@ -1,0 +1,48 @@
+{
+	"info": {
+		"_postman_id": "ba9276dc-f86b-4e2b-afb7-7196c263967a",
+		"name": "VIPSLogic tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ObservationService",
+			"item": [
+				{
+					"name": "Get all observations from an organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/observation/filter/1?cropCategoryId=2&from=2021-01-01&to=2021-12-31",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"observation",
+								"filter",
+								"1"
+							],
+							"query": [
+								{
+									"key": "cropCategoryId",
+									"value": "2"
+								},
+								{
+									"key": "from",
+									"value": "2021-01-01"
+								},
+								{
+									"key": "to",
+									"value": "2021-12-31"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
