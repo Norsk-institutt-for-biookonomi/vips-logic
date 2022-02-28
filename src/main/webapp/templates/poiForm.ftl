@@ -172,7 +172,7 @@
 			    <select class="form-control" name="userId" onblur="validateField(this);">
 			    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.vipsLogicUserId?lower_case}</option>
 				<#list users as user>
-					<option value="${user.userId}"<#if poi.userId?has_content && user.userId == poi.userId.userId
+					<option value="${user.userId}"<#if poi.user?has_content && user.userId == poi.user.userId
 								> selected="selected"</#if>>${user.lastName}, ${user.firstName} (${user.organizationId.organizationName})</option>
 				</#list>
 			     </select>

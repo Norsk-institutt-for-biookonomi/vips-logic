@@ -689,19 +689,20 @@
                               <textarea class="form-control" name="observationText" placeholder=""  <#if editAccess!="W">readonly="readonly"</#if>>${observation.observationText!""}</textarea>
                               <span class="help-block" id="${formId}_observationText_validation"></span>
                             </div>
-                            <#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>
-                                  <#assign illustration = observation.observationIllustrationSet?first>
+                            <#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size gt 0>
+                                  <#list observation.observationIllustrationSet as illustration>
                                   <img src="/static/images/observations/${observation.organismId}/${illustration.observationIllustrationPK.fileName}" alt="TODO: Add describing text" class="img-responsive"/>
                                   <div class="checkbox">
                                     <label>
-                                      <input type="checkbox" name="deleteIllustration" value="true"/>
+                                      <input type="checkbox" name="deleteIllustration" value="${illustration.observationIllustrationPK.fileName}"/>
                                       ${i18nBundle.deleteIllustration}
                                     </label>
                                   </div>
+                                  </#list>
                           </#if>
                             <div class="form-group">
                                   <div class="input-group">
-                                          <label for="illustration"><#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size == 1>${i18nBundle.replaceIllustration}<#else>${i18nBundle.newIllustration}</#if></label><br/>
+                                          <label for="illustration"><#if observation.observationIllustrationSet?has_content && observation.observationIllustrationSet?size gt 0>${i18nBundle.addIllustration}<#else>${i18nBundle.newIllustration}</#if></label><br/>
                                           <span class="btn btn-default btn-file">${i18nBundle.browse}<input type="file" name="illustration"></span>
                                           <input type="text" class="form-control" readonly>
                                   </div>

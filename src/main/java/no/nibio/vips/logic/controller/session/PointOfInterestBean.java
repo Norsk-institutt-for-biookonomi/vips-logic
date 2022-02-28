@@ -421,7 +421,7 @@ public class PointOfInterestBean {
             // double catching of privately owned weather station
             retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE)
                     .stream()
-                    .filter(weatherStation -> ! weatherStation.getUserId().getUserId().equals(user.getUserId()))
+                    .filter(weatherStation -> ! weatherStation.getUser().getUserId().equals(user.getUserId()))
                     .collect(Collectors.toList())
             );
             

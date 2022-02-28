@@ -49,8 +49,11 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.ws.rs.core.HttpHeaders;
+
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -278,7 +281,7 @@ public class UserBean {
     public void transferUserResources(VipsLogicUser fromUser, VipsLogicUser toUser) {
         UserResources userResources = this.getUserResources(fromUser);
         (userResources.getPois() != null ? userResources.getPois() : Collections.<PointOfInterest>emptyList()).forEach((ws) -> {
-            ws.setUserId(toUser);
+            ws.setUser(toUser);
         });
         (userResources.getMessageLocales() != null ? userResources.getMessageLocales() : Collections.<MessageLocale>emptyList()).forEach((ml) -> {
             ml.setCreatedBy(toUser);
@@ -972,5 +975,17 @@ public class UserBean {
                         + ")", VipsLogicUser.class)
                 .setParameter("vipsLogicRoleIds", Arrays.asList(vipsLogicRoleIds))
                 .getResultList();
+    }
+    
+    public VipsLogicUser getUserFromUUID(HttpServletRequest request)
+    {
+    	String uuidStr = request.getHeader(HttpHeaders.AUTHORIZATION);
+    	if(uuidStr == null)
+    	{
+    		return null;
+    	}
+		UUID uuid = UUID.fromString(uuidStr);
+		VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+		return user;
     }
 }

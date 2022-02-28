@@ -71,6 +71,7 @@ import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.observationdata.ObservationDataBean;
 import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
@@ -101,6 +102,8 @@ public class LogicService {
     PointOfInterestBean pointOfInterestBean;
     @EJB
     MessageBean messageBean;
+    @EJB
+    ObservationDataBean observationDataBean;
     
     /**
      * Get all results for one pest prediction
@@ -679,6 +682,7 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
+
     
     /**
      * Get a list of locations (pois) for a given organization
@@ -809,6 +813,7 @@ public class LogicService {
     /**
      * Get a list of all pests, OR if cropOrganismId is specified,
      * get a list of all pests that are connected with this crop
+     * @param organization Id optional if set, observation data schemas are added
      * @return 
      */
     @GET
@@ -816,7 +821,8 @@ public class LogicService {
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     public Response getPestOrganismList(
-    		@QueryParam("cropOrganismId") Integer cropOrganismId
+    		@QueryParam("cropOrganismId") Integer cropOrganismId,
+    		@QueryParam("organizationId") Integer organizationId
     		)
     {
     	List<Organism> organismList;
@@ -827,6 +833,10 @@ public class LogicService {
     	else
     	{
     		organismList = organismBean.getCropPests(cropOrganismId);
+    	}
+    	if(organizationId != null)
+    	{
+    		organismList = observationDataBean.decoratePestsWithOrganismDataSchema(organismList, organizationId);
     	}
         return Response.ok().entity(organismList).build();
     }

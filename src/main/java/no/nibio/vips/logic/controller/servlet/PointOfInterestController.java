@@ -192,7 +192,7 @@ public class PointOfInterestController extends HttpServlet {
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
-                    request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUserId().getOrganizationId().getOrganizationId());
+                    request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUser().getOrganizationId().getOrganizationId());
                     request.getRequestDispatcher("/weatherstationView.ftl").forward(request, response);
 
                 }
@@ -263,7 +263,7 @@ public class PointOfInterestController extends HttpServlet {
                             Collections.sort(users);
                             request.getSession().setAttribute("users", users);
                         }
-                        request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUserId().getOrganizationId().getOrganizationId());
+                        request.setAttribute("returnURL","weatherStation?organizationId=" + weatherStation.getUser().getOrganizationId().getOrganizationId());
                         request.getRequestDispatcher("/weatherstationForm.ftl").forward(request, response);
                     }
                     catch(NullPointerException | NumberFormatException ex)
@@ -331,12 +331,12 @@ public class PointOfInterestController extends HttpServlet {
                             
                             if(user.isSuperUser() && !formValidation.getFormField("userId").isEmpty())
                             {
-                                weatherStation.setUserId(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
+                                weatherStation.setUser(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
                             }
                             // If user is not set, use current user
-                            else if(weatherStation.getUserId() == null)
+                            else if(weatherStation.getUser() == null)
                             {
-                                weatherStation.setUserId(user);
+                                weatherStation.setUser(user);
                             }
                             // Store
                             weatherStation = pointOfInterestBean.storeWeatherStation(weatherStation);
@@ -530,7 +530,7 @@ public class PointOfInterestController extends HttpServlet {
                     request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                     request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
-                    request.setAttribute("returnURL","poi?organizationId=" + poi.getUserId().getOrganizationId().getOrganizationId());
+                    request.setAttribute("returnURL","poi?organizationId=" + poi.getUser().getOrganizationId().getOrganizationId());
                     request.getRequestDispatcher("/poiView.ftl").forward(request, response);
 
                 }
@@ -585,7 +585,7 @@ public class PointOfInterestController extends HttpServlet {
                     PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
                     // Does the current user have the rights to edit this poi?
                     if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
-                            || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
+                            || Objects.equals(user.getUserId(), poi.getUser().getUserId())
                     )
                     {
                         request.getSession().setAttribute("poi", poi);
@@ -613,7 +613,7 @@ public class PointOfInterestController extends HttpServlet {
                                             .setParameter("organizationId", user.getOrganizationId()).getResultList()
                             );
                         }
-                        request.setAttribute("returnURL","poi?organizationId=" + poi.getUserId().getOrganizationId().getOrganizationId());
+                        request.setAttribute("returnURL","poi?organizationId=" + poi.getUser().getOrganizationId().getOrganizationId());
                         request.getRequestDispatcher("/poiForm.ftl").forward(request, response);
                     }
                     else
@@ -638,7 +638,7 @@ public class PointOfInterestController extends HttpServlet {
                                                                         : PointOfInterestFactory.getPointOfInterest(formValidation.getFormField("pointOfInterestTypeId").getValueAsInteger());
                         if(userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
                             || poi.getPointOfInterestId() == null
-                            || Objects.equals(user.getUserId(), poi.getUserId().getUserId())
+                            || Objects.equals(user.getUserId(), poi.getUser().getUserId())
                             )
                         {
                             Boolean poiNameAlreadyExists = pointOfInterestBean.getPointOfInterest(formValidation.getFormField("name").getWebValue()) != null;
@@ -687,12 +687,12 @@ public class PointOfInterestController extends HttpServlet {
 
                                 if((user.isSuperUser() || user.isOrganizationAdmin()) && !formValidation.getFormField("userId").isEmpty())
                                 {
-                                    poi.setUserId(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
+                                    poi.setUser(em.find(VipsLogicUser.class, formValidation.getFormField("userId").getValueAsInteger()));
                                 }
                                 // If user is not set, use current user
-                                else if(poi.getUserId() == null)
+                                else if(poi.getUser() == null)
                                 {
-                                    poi.setUserId(user);
+                                    poi.setUser(user);
                                 }
                                 // Store
                                 poi = pointOfInterestBean.storePoi(poi);
@@ -783,7 +783,7 @@ public class PointOfInterestController extends HttpServlet {
                 PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
                 if(
                         userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
-                        || user.getUserId().equals(poi.getUserId().getUserId())
+                        || user.getUserId().equals(poi.getUser().getUserId())
                 )
                 {
                     try
@@ -832,7 +832,7 @@ public class PointOfInterestController extends HttpServlet {
                 PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
                 if(
                         userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)
-                        || user.getUserId().equals(poi.getUserId().getUserId())
+                        || user.getUserId().equals(poi.getUser().getUserId())
                 )
                 {
                     try

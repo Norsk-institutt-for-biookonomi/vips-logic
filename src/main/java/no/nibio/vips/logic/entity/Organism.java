@@ -98,6 +98,9 @@ public class Organism implements Serializable {
     @Transient
     private Map<String,Object> extraProperties;
     
+    @Transient
+    private String observationDataSchema;
+    
     /*@OneToMany(cascade = CascadeType.ALL, mappedBy = "organism")
     private Set<OrganismLocale> organismLocaleSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "organism")
@@ -346,4 +349,12 @@ public class Organism implements Serializable {
     public void setExtraProperties(Map<String,Object> extraProperties) {
         this.extraProperties = extraProperties;
     }
+
+	public String getObservationDataSchema() {
+		return observationDataSchema;
+	}
+
+	public void setObservationDataSchema(String observationDataSchema) {
+		this.observationDataSchema = observationDataSchema;
+	}
 }

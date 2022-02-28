@@ -101,6 +101,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Integer statusTypeId;
     private Integer statusChangedByUserId;
     private Date statusChangedTime;
+    private Date lastEditedTime;
     private String statusRemarks;
     private String observationData;
     private Boolean isQuantified;
@@ -654,5 +655,15 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 observationDataSchema
         );
     }
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_edited_time")
+	public Date getLastEditedTime() {
+		return lastEditedTime; 
+	}
+
+	public void setLastEditedTime(Date lastEditedTime) {
+		this.lastEditedTime = lastEditedTime;
+	}
     
 }

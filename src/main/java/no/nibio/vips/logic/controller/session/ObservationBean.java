@@ -26,6 +26,9 @@ import com.ibm.icu.util.ULocale;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -60,6 +63,7 @@ import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SystemTime;
+import org.apache.commons.codec.binary.Base64;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import no.nibio.vips.observationdata.ObservationDataSchemaPK;
 import org.apache.commons.fileupload.FileItem;
@@ -305,11 +309,21 @@ public class ObservationBean {
 
     public void deleteObservation(Integer observationId) {
         Observation observation = em.find(Observation.class, observationId);
-        // Delete all current group memberships
-        em.createNativeQuery("DELETE FROM public.organization_group_observation WHERE observation_id=:observationId")
-                .setParameter("observationId", observation.getObservationId())
-                .executeUpdate();
-        em.remove(observation);
+        if(observation != null)
+        {
+        	// Delete all current group memberships
+            em.createNativeQuery("DELETE FROM public.organization_group_observation WHERE observation_id=:observationId")
+                    .setParameter("observationId", observation.getObservationId())
+                    .executeUpdate();
+            
+            // Delete all illustrations (including removing files on disk)
+            String[] filesToDelete = observation.getObservationIllustrationSet().stream()
+            		.map(ill->ill.getObservationIllustrationPK().getFileName())
+            		.collect(Collectors.toList())
+            		.toArray(new String[0]);
+            this.deleteObservationIllustration(observation, filesToDelete);
+            em.remove(observation);
+        }
     }
 
     /**
@@ -379,18 +393,46 @@ public class ObservationBean {
     
     /**
      * 
-     * @param message
-     * @return [OBSERVATION_ILLUSTRATION_PATH]/[ORGANIZATION_ID]/
+     * @param observation
+     * @return [OBSERVATION_ILLUSTRATION_PATH]/[ORGANISM_ID]/
      */
     private String getFilePath(Observation observation)
     {
         return System.getProperty("no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH") + "/" 
                         + observation.getOrganismId();
     }
+    
+    public Observation storeObservationIllustration(Observation observation, String fileName, String base64Data)
+    {
+    	String[] metaAndData = base64Data.split(",");
+		byte[] imageData = Base64.decodeBase64(metaAndData[1]);
+		java.nio.file.Path path = Paths.get(this.getFilePath(observation) + "/" + fileName);
+		try {
+			// Make sure the directory exists
+			File testDirectoryfile = new File(this.getFilePath(observation));
+	        if(!testDirectoryfile.exists())
+	        {
+	            testDirectoryfile.mkdirs();
+	        }
+			Files.write(path,imageData, StandardOpenOption.CREATE);
+			ObservationIllustration newIllustration = new ObservationIllustration(new ObservationIllustrationPK(observation.getObservationId(), fileName));
+	        newIllustration = em.merge(newIllustration);
+	        
+	        // Add the new illustration 
+	        if(observation.getObservationIllustrationSet() == null)
+	        {
+	            observation.setObservationIllustrationSet(new HashSet<ObservationIllustration>());
+	        }
+	        observation.getObservationIllustrationSet().add(newIllustration);
+
+			return observation;
+		}
+		catch(IOException ex) {ex.printStackTrace(); return observation;}
+    }
 
     public Observation storeObservationIllustration(Observation observation, FileItem item) throws Exception {
         // Create a candidate filename
-        // [MESSAGE_ILLUSTRATION_PATH]/[ORGANIZATION_ID]/[MESSAGE_ID]_illustration.[fileExtension]
+        // [OBSERVATION_ILLUSTRATION_PATH]/[ORGANIZATION_ID]/[OBSERVATION_ID]_illustration.[fileExtension]
         String filePath = this.getFilePath(observation);
         String fileName = observation.getObservationId() + "_illustration." + FilenameUtils.getExtension(item.getName());
         // Check availability, and adapt filename until available
@@ -415,18 +457,7 @@ public class ObservationBean {
         // Update MessageIllustrations
         observation = em.merge(observation);
         // Remove the old illustration(s)
-        List <ObservationIllustration> formerIllustrations = em.createNamedQuery("ObservationIllustration.findByObservationId").setParameter("observationId", observation.getObservationId()).getResultList();
-        for(ObservationIllustration formerIllustration:formerIllustrations)
-        {
-            System.out.println("removing " + formerIllustration.toString());
-            em.remove(formerIllustration);
-        }
-        // Also remove their relation to message.
-        if(observation.getObservationIllustrationSet() != null)
-        {
-            observation.getObservationIllustrationSet().clear();
-        }
-        
+               
         ObservationIllustration newIllustration = new ObservationIllustration(new ObservationIllustrationPK(observation.getObservationId(), fileName));
         em.persist(newIllustration);
         
@@ -436,19 +467,41 @@ public class ObservationBean {
             observation.setObservationIllustrationSet(new HashSet<ObservationIllustration>());
         }
         observation.getObservationIllustrationSet().add(newIllustration);
-        //message.getMessageIllustrationSet().add(newIllustration);
         return observation;
     }
 
-    public Observation deleteObservationIllustration(Observation observation) {
+    public Observation deleteObservationIllustration(Observation observation, String[] deleteIllustrations) {
         observation = em.merge(observation);
         
         Set <ObservationIllustration> formerIllustrations = observation.getObservationIllustrationSet();
-        for(ObservationIllustration formerIllustration:formerIllustrations)
+        if(formerIllustrations == null)
         {
-            em.remove(formerIllustration);
+        	return observation;
         }
-        observation.getObservationIllustrationSet().clear();
+        
+        Set  <ObservationIllustration> deleteThese = new HashSet<>();
+        
+    	for(String deleteIllustration:deleteIllustrations)
+    	{
+    		for(ObservationIllustration formerIllustration:formerIllustrations)
+            {
+        		if(formerIllustration.getObservationIllustrationPK().getFileName()
+        				.equals(deleteIllustration))
+        		{
+        			deleteThese.add(formerIllustration);
+        		}
+        	}
+        }
+    	
+    	for(ObservationIllustration ill: deleteThese)
+    	{
+    		observation.getObservationIllustrationSet().remove(ill);
+    		em.remove(ill);
+    		// Physically remove it too
+    		File fileToDelete = new File(this.getFilePath(observation) + "/" + ill.getObservationIllustrationPK().getFileName());
+    		fileToDelete.delete();
+    	}
+
         return observation;
     }
 
@@ -756,6 +809,11 @@ public class ObservationBean {
                 
     }
 
+    public PolygonService getPolygonService(Integer polygonServiceId)
+    {
+    	return em.find(PolygonService.class, polygonServiceId);
+    }
+    
     public List<PolygonService> getPolygonServicesForOrganization(Integer organizationId) {
         return em.createNativeQuery("SELECT * FROM polygon_service p WHERE p.polygon_service_id IN (SELECT polygon_service_id FROM public.organization_polygon_service WHERE organization_id=:organizationId)", PolygonService.class)
                 .setParameter("organizationId", organizationId)

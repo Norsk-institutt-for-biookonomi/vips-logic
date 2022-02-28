@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2021 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ import javax.ws.rs.core.Application;
 
 /**
  * Responsible for adding REST resources
- * @copyright 2016 {@link http://www.nibio.no NIBIO}
+ * @copyright 2016-2021 {@link http://www.nibio.no NIBIO}
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @ApplicationPath("/rest/")
@@ -46,6 +46,7 @@ public class VIPSLogicApplication extends Application
      */
     private void addRestResourceClassesManually(Set<Class<?>> resources) {
         resources.add(no.nibio.vips.logic.service.LogicService.class);
+        resources.add(no.nibio.vips.logic.service.POIService.class);
         resources.add(no.nibio.vips.logic.service.AuthenticationService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.logic.modules.barleynetblotch.BarleyNetBlotchModelService.class);
@@ -83,6 +84,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.service.LogicService.class);
         resources.add(no.nibio.vips.logic.service.ModelFormService.class);
         resources.add(no.nibio.vips.logic.service.ObservationService.class);
+        resources.add(no.nibio.vips.logic.service.POIService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.observationdata.ObservationDataService.class);
     }

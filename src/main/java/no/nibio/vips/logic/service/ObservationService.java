@@ -19,17 +19,27 @@
 
 package no.nibio.vips.logic.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
+
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
@@ -57,6 +67,10 @@ import no.nibio.vips.logic.controller.session.UserBean;
 
 import no.nibio.vips.logic.entity.Gis;
 import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.ObservationIllustrationPK;
+import no.nibio.vips.logic.entity.ObservationStatusType;
+import no.nibio.vips.logic.entity.ObservationSyncInfo;
+import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
@@ -67,6 +81,8 @@ import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import org.jboss.resteasy.annotations.GZIP;
 import org.wololo.geojson.Feature;
+
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * @copyright 2016-2021 <a href="http://www.nibio.no/">NIBIO</a>
@@ -314,21 +330,63 @@ public class ObservationService {
     @GET
     @Path("list/user")
     @Produces("application/json;charset=UTF-8")
-    public Response getObservationsForUser()
+    public Response getObservationsForUser(
+    		@QueryParam("observationIds") String observationIds
+    		)
     {
-    	String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-		UUID uuid = UUID.fromString(uuidStr);
-		VipsLogicUser user = userBean.findVipsLogicUser(uuid);
+    	try
+	    	{
+			VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+			if(user != null)
+			{
+				List<Observation> allObs = observationBean.getObservationsForUser(user);
+				if(observationIds != null)
+				{
+					Set<Integer> observationIdSet = Arrays.asList(observationIds.split(",")).stream()
+							.map(s->Integer.valueOf(s))
+							.collect(Collectors.toSet());
+					return Response.ok().entity(
+							allObs.stream()
+							.filter(obs->observationIdSet.contains(obs.getObservationId()))
+							.collect(Collectors.toList())
+							)
+							.build();
+				}
+				return Response.ok().entity(allObs).build();
+			}
+			else
+			{
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+    	}
+    	catch(Exception e)
+    	{
+    		return Response.serverError().entity(e.getMessage()).build();
+    	}
+    }
+    
+    /**
+     * Get observations for a user
+     * Requires a valid UUID to be provided in the Authorization header
+     * @return
+     */
+    @GET
+    @Path("list/minimized/user")
+    @Produces("application/json;charset=UTF-8")
+    public Response getMinimizedObservationsForUser()
+    {
+		VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
 		if(user != null)
 		{
-			return Response.ok().entity(observationBean.getObservationsForUser(user)).build();
+			return Response.ok().entity(observationBean.getObservationsForUser(user).stream()
+					.map(obs->new ObservationSyncInfo(obs)).collect(Collectors.toList())).build();
 		}
 		else
 		{
-			return Response.status(Status.NOT_FOUND).build();
+			return Response.status(Status.UNAUTHORIZED).build();
 		}
     }
-    
+   
     /**
      * Publicly available observations per organization
      * @param organizationId
@@ -423,6 +481,16 @@ public class ObservationService {
         }
         
         return Response.ok().entity(o).build();
+    }
+    
+    @GET
+    @Path("polygonservices/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    public Response getPolygonServicesForOrganization(
+    		@PathParam("organizationId") Integer organizationId
+    		)
+    {
+    	return Response.ok().entity(observationBean.getPolygonServicesForOrganization(organizationId)).build();
     }
     
     /**
@@ -641,4 +709,116 @@ public class ObservationService {
         return observations;
     }
     
+    @POST
+    @Path("syncobservationfromapp")
+    @Consumes("application/json;charset=UTF-8")
+    @Produces("application/json;charset=UTF-8")
+    public Response syncObservationFromApp(
+    		String observationJson
+    		)
+    {
+    	try
+    	{
+	    	VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+	    	if(user == null)
+	    	{
+	    		return Response.status(Status.UNAUTHORIZED).build();
+	    	}
+	    	ObjectMapper oM = new ObjectMapper();
+	    	SimpleDateFormat df = new SimpleDateFormat(Globals.defaultTimestampFormat);
+	    	try {
+	    		Map<Object,Object> mapFromApp = oM.readValue(observationJson, new TypeReference<HashMap<Object,Object>>(){});
+				// Check if it is marked as deleted or not
+				if(mapFromApp.get("deleted") != null && ((Boolean)mapFromApp.get("deleted").equals(true)))
+				{
+					if(observationBean.getObservation((Integer)mapFromApp.get("observationId")) != null)
+					{
+						observationBean.deleteObservation((Integer)mapFromApp.get("observationId"));
+						return Response.ok().build();
+					}
+					else
+					{
+						return Response.status(Status.NOT_FOUND).build();
+					}
+				}
+				else
+				{
+					Observation mergeObs = ((Integer)mapFromApp.get("observationId")) > 0 ? observationBean.getObservation((Integer)mapFromApp.get("observationId")): new Observation();
+					// Trying to sync a non-existing observation
+					if(mergeObs == null)
+					{
+						return Response.status(Status.NOT_FOUND).build();
+					}
+					// Pest organism
+					mergeObs.setOrganism(organismBean.getOrganism((Integer)mapFromApp.get("organismId")));
+					// Crop organism
+					mergeObs.setCropOrganism(organismBean.getOrganism((Integer)mapFromApp.get("cropOrganismId")));
+					// Other properties
+					mergeObs.setTimeOfObservation(oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>(){}));
+					mergeObs.setUserId(mapFromApp.get("userId") != null ? Integer.valueOf((Integer)mapFromApp.get("userId")): user.getUserId());
+					mergeObs.setGeoinfo((String)mapFromApp.get("geoinfo"));
+					mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);
+					mergeObs.setObservationHeading(mapFromApp.get("observationHeading") != null ? (String) mapFromApp.get("observationHeading") : null);
+					mergeObs.setObservationText(mapFromApp.get("observationText") != null ? (String) mapFromApp.get("observationText") : null);
+					mergeObs.setBroadcastMessage(mapFromApp.get("broadcastMessage") != null ? (Boolean) mapFromApp.get("broadcastMessage") : false);
+					mergeObs.setStatusTypeId(Integer.valueOf((Integer)mapFromApp.get("statusTypeId")));
+					// If the user has the role of observation approver, change to approved if set to pending
+					if(mergeObs.getStatusTypeId().equals(ObservationStatusType.STATUS_PENDING) && user.isObservationAuthority())
+					{
+						mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
+					}
+					mergeObs.setStatusChangedByUserId(mapFromApp.get("statusChangedByUserId") != null ? (Integer) mapFromApp.get("statusChangedByUserId") : null);
+					mergeObs.setStatusChangedTime(mapFromApp.get("timeOfObservation") != null ? oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>(){}) : null);
+					mergeObs.setStatusRemarks(mapFromApp.get("statusRemarks") != null ? (String) mapFromApp.get("statusRemarks") : null);
+					mergeObs.setIsQuantified(mapFromApp.get("isQuantified") != null ? (Boolean) mapFromApp.get("isQuantified") : false);
+					mergeObs.setLocationIsPrivate(mapFromApp.get("locationIsPrivate") != null ? (Boolean) mapFromApp.get("locationIsPrivate") : false);
+					mergeObs.setPolygonService(mapFromApp.get("polygonService") != null && ! ((String)mapFromApp.get("polygonService")).isEmpty() ? oM.convertValue(mapFromApp.get("polygonService"), new TypeReference<PolygonService>(){}) : null);
+					mergeObs.setObservationDataSchema(observationBean.getObservationDataSchema(user.getOrganization_id(), mergeObs.getOrganismId()));
+					mergeObs.setObservationData(mapFromApp.get("observationData") != null ? mapFromApp.get("observationData").toString() : null);
+					mergeObs.setLastEditedBy(user.getUserId());
+					mergeObs.setLastEditedTime(new Date());
+					
+					// Input check before storing
+					// Location must be set
+					if((mergeObs.getGeoinfo() == null || mergeObs.getGeoinfo().trim().isEmpty()) && mergeObs.getLocationPointOfInterestId() == null)
+					{
+						return Response.status(Status.BAD_REQUEST).entity("The observation is missing location data.").build();
+					}
+					
+					// We need to get an observation Id before storing the illustrations!
+					mergeObs = observationBean.storeObservation(mergeObs);
+					
+					// ObservationIllustrationSet
+					// Including data that may need to be stored
+					if(mapFromApp.get("observationIllustrationSet") != null)
+					{
+						List<Map<Object,Object>> illusMaps = (List<Map<Object,Object>>) mapFromApp.get("observationIllustrationSet");
+						for(Map<Object,Object> illusMap:illusMaps)
+						{
+							ObservationIllustrationPK pk = oM.convertValue(illusMap.get("observationIllustrationPK"), new TypeReference<ObservationIllustrationPK>(){});
+							
+							if(illusMap.get("deleted") != null && ((Boolean) illusMap.get("deleted")) == true)
+							{
+								mergeObs = observationBean.deleteObservationIllustration(mergeObs, new String[] {pk.getFileName()});
+							}
+							else if(illusMap.get("uploaded") != null && ((Boolean) illusMap.get("uploaded")) == false && illusMap.get("imageTextData") != null)
+							{
+								mergeObs = observationBean.storeObservationIllustration(mergeObs, pk.getFileName(), (String)illusMap.get("imageTextData"));
+							}
+						}
+					}
+						
+					
+					return Response.ok().entity(mergeObs).build();
+				}
+			} catch (IOException e) {
+				return Response.serverError().entity(e).build();
+			}
+    	}
+    	catch(Exception e)
+    	{
+    		return Response.serverError().entity(e).build();
+    	}
+    	
+    }
 }

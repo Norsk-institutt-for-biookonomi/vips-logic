@@ -50,6 +50,8 @@ public class ObservationDataService {
     UserBean userBean;
     @EJB
     ObservationBean observationBean;
+    @EJB
+    ObservationDataBean observationDataBean;
     
     @Context
     private HttpServletRequest httpServletRequest;
@@ -80,8 +82,8 @@ public class ObservationDataService {
         {
             return Response.serverError().entity(ex).build();
         }
-
     }
+    
     
     @GET
     @Path("model/{organizationId}/{organismId}")
@@ -98,20 +100,8 @@ public class ObservationDataService {
                 .getSingleResult();
         }catch(NoResultException nre){}
         // If not found, return standard nominator/denominator (unit) form 
-        return Response.ok().entity(ods != null ? ods.getDataModel() : this.getStandardModel()).build();
+        return Response.ok().entity(ods != null ? ods.getDataModel() : observationDataBean.getStandardModel()).build();
     }
     
-    private String getStandardSchema(){
-        return "{"
-                + "\"number\":{\"title\":\"Number\"},"
-                + "\"unit\":{\"title\":\"Unit\"}"
-                + "}";
-    }
     
-    private String getStandardModel(){
-        return "{"
-                + "\"number\":0,"
-                + "\"unit\":\"Number\""
-                + "}";
-    }
 }

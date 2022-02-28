@@ -19,6 +19,8 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
 
 import java.time.Instant;
@@ -371,6 +373,7 @@ public class OrganismBean {
                 .getResultList();
     }
     
+    
     /**
      * Searching recursively upwards in organism tree to find a cropPest.
      * @param cropOrganismId id of the crop
@@ -442,6 +445,15 @@ public class OrganismBean {
                 .setParameter("latinName", latinName)
                 .getSingleResult();
         return organism;
+    }
+    
+    /**
+     * 
+     * @param organismId
+     * @return
+     */
+    public Organism getOrganism(Integer organismId) {
+    	return em.find(Organism.class, organismId);
     }
     
     public List<Organism> sortOrganismsByLocalName(List<Organism> organisms, final String locale)

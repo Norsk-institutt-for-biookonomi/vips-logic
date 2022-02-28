@@ -19,6 +19,7 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.Basic;
@@ -62,15 +63,11 @@ import no.nibio.vips.gis.GISUtil;
     @NamedQuery(name = "PointOfInterest.findAll", query = "SELECT p FROM PointOfInterest p ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId = :pointOfInterestId"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestIds", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId IN :pointOfInterestIds"),
-    //@NamedQuery(name = "PointOfInterest.findByPointOfInterestTypeId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestType = :pointOfInterestType"),
-    @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
-    @NamedQuery(name = "PointOfInterest.findForecastLocationsByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.isForecastLocation IS TRUE AND p.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findForecastLocationsByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.isForecastLocation IS TRUE AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     @NamedQuery(name = "PointOfInterest.findByNameCaseInsensitive", query = "SELECT p FROM PointOfInterest p WHERE lower(p.name) = lower(:name)"),
-    //@NamedQuery(name = "PointOfInterest.findByLongitude", query = "SELECT p FROM PointOfInterest p WHERE p.longitude = :longitude"),
-    //@NamedQuery(name = "PointOfInterest.findByLatitude", query = "SELECT p FROM PointOfInterest p WHERE p.latitude = :latitude"),
-    //@NamedQuery(name = "PointOfInterest.findByAltitude", query = "SELECT p FROM PointOfInterest p WHERE p.altitude = :altitude"),
-    @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.userId = :userId ORDER BY p.name ASC")
+    @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.user = :userId ORDER BY p.name ASC")
 })
 public class PointOfInterest implements Serializable, Comparable {
     private Set<PointOfInterestExternalResource> pointOfInterestExternalResourceSet;
@@ -92,6 +89,7 @@ public class PointOfInterest implements Serializable, Comparable {
     private WeatherForecastProvider weatherForecastProviderId;
     private Boolean isForecastLocation;
     private Integer pointOfInterestTypeId;
+    private Date lastEditedTime;
    
     
     // For attaching ad-hoc properties
@@ -106,6 +104,26 @@ public class PointOfInterest implements Serializable, Comparable {
 
     public PointOfInterest(Integer pointOfInterestId) {
         this.pointOfInterestId = pointOfInterestId;
+    }
+    
+    public static PointOfInterest getInstance(Integer typeId)
+    {
+    	PointOfInterest instance;
+    	
+    	switch(typeId)
+    	{
+    		case 1: instance = new PointOfInterestWeatherStation();
+    				break;
+    		case 2: instance = new PointOfInterestTypeFarm();
+    				break;
+    		case 3: instance = new PointOfInterestTypeField();
+    				break;
+    		case 4: instance = new PointOfInterestTypeRegion();
+    				break;
+    		default: instance = null;
+    				break;
+    	}
+    	return instance;
     }
 
     @Id
@@ -263,15 +281,25 @@ public class PointOfInterest implements Serializable, Comparable {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     @ManyToOne
     @JsonIgnore
-    public VipsLogicUser getUserId() {
+    public VipsLogicUser getUser() {
         return userId;
     }
 
     /**
      * @param userId the userId to set
      */
-    public void setUserId(VipsLogicUser userId) {
+    public void setUser(VipsLogicUser userId) {
         this.userId = userId;
+    }
+    
+    /**
+     * For serialization
+     * @return
+     */
+    @Transient
+    public Integer getUserId()
+    {
+    	return this.getUser().getUserId();
     }
 
     /**
@@ -356,4 +384,13 @@ public class PointOfInterest implements Serializable, Comparable {
     public void setIsForecastLocation(Boolean isForecastLocation) {
         this.isForecastLocation = isForecastLocation;
     }
+
+    @Column(name = "last_edited_time")
+	public Date getLastEditedTime() {
+		return lastEditedTime;
+	}
+
+	public void setLastEditedTime(Date lastEditedTime) {
+		this.lastEditedTime = lastEditedTime;
+	}
 }

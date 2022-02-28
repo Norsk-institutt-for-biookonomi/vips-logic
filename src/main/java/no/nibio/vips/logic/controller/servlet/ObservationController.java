@@ -447,10 +447,7 @@ public class ObservationController extends HttpServlet {
                                 observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
                                 observation.setCropOrganism(em.find(Organism.class, formValidation.getFormField("cropOrganismId").getValueAsInteger()));
                             }
-                            //observation.setDenominator(formValidation.getFormField("denominator").getValueAsInteger());
-                            //observation.setObservationMethodId(em.find(ObservationMethod.class, formValidation.getFormField("observationMethodId").getWebValue()));
                             observation.setTimeOfObservation(formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
-                            //observation.setObservedValue(formValidation.getFormField("observedValue").getValueAsDouble());
                             if(observationId <= 0)
                             {
                                 observation.setUserId(user.getUserId());
@@ -459,7 +456,7 @@ public class ObservationController extends HttpServlet {
                             {
                                 observation.setLastEditedBy(user.getUserId());
                             }
-
+                            observation.setLastEditedTime(new Date());
                             observation.setObservationHeading(formValidation.getFormField("observationHeading").getWebValue());
                             observation.setObservationText(formValidation.getFormField("observationText").getWebValue());
                             observation.setObservationData(
@@ -515,10 +512,10 @@ public class ObservationController extends HttpServlet {
 
                             // Image handling
                             // Delete the current illustration
-                            String deleteIllustration = formValidation.getFormField("deleteIllustration").getWebValue();
-                            if(deleteIllustration != null && deleteIllustration.equals("true"))
+                            String[] deleteIllustrations = parameterMap.get("deleteIllustration");
+                            if(deleteIllustrations != null && deleteIllustrations.length > 0)
                             {
-                                observation = observationBean.deleteObservationIllustration(observation);
+                                observation = observationBean.deleteObservationIllustration(observation, deleteIllustrations);
                             }
 
                             // Store the new illustration (replaces former illustration if not already deleted)
