@@ -88,7 +88,7 @@
 						${i18nBundle["pointOfInterestType_" + poi.pointOfInterestTypeId]}
 					</td>
 					<td>
-                                            <#if user.isSuperUser() || user.isOrganizationAdmin() || poi.userId.userId == user.userId>
+                                            <#if user.isSuperUser() || user.isOrganizationAdmin() || poi.user.userId == user.userId>
 						<a href="/poi?action=editPoiForm&pointOfInterestId=${poi.pointOfInterestId}" class="btn btn-default" role="button">${i18nBundle.edit}</a>
                                             </#if>
 					</td>

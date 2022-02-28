@@ -79,7 +79,7 @@ public class AuthenticationService {
 		// Get username and password from Json
 		String username = credentials.get("username").asText();
 		String password = credentials.get("password").asText();
-		Map<String,String> creds = new HashMap();
+		Map<String,String> creds = new HashMap<>();
         creds.put("username", username);
         creds.put("password", password);
 		// Authenticate 
@@ -119,7 +119,7 @@ public class AuthenticationService {
 		{
 			// Also, renew the uuid by default length
 			userBean.renewUserUuid(uuid);
-			return Response.ok().entity(user).build();
+			return Response.ok().entity(user).build();			
 		}
 		else
 		{
