@@ -192,7 +192,7 @@
 		øvrige felt med stjerne må fylles inn. Fyll også inn dato og kommentar 
 		nederst i skjemaet dersom montering av feller skjer senere enn 20. april.
 		Se utdypende informasjon i 
-		<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a> 
+		<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks registranter</a> 
 		og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a>, samt <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a>.
 	   </p>

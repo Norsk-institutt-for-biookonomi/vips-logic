@@ -46,7 +46,7 @@
 		</ul>
 		<p>
 		Se utdypende informasjon i 
-		<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a>
+		<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks registranter</a>
 		og <a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a>
 		</p>
@@ -127,7 +127,7 @@
 					</tr>
 					<#if seasonTrapsite.season gt 2021>
 					<tr>
-						<td>Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen? Beskriv hva som er observert (omfang, sted m.m.; <a href="/images/modules/barkbeetle/Kjenn_igjen_angrep_stor_granbarkbille.pdf" target="new">instruksjon</a>)</td>
+						<td>Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen? Beskriv hva som er observert (omfang, sted m.m.; <a href="/images/modules/barkbeetle/${FILENAME_KJENN_IGJEN_ANGREP}" target="new">instruksjon</a>)</td>
 						<td colspan="8">
 							<textarea class="form-control" name="${reg.trapsiteRegistrationPK.week}_observedAttacksDescription"<#if tooEarly> disabled="disabled"</#if>>${reg.observedAttacksDescription!""}</textarea>
 						</td>

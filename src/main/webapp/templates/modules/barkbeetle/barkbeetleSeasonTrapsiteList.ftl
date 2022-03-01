@@ -47,7 +47,7 @@
 	(=Norlure; tilsendt fra Nibio). Les instruksjoner som er aktuelle for deg nøye, slik som 
 	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
 	Barkbillefylkeskontakter</a>,
-	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks registranter</a>, og 
+	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a>.</p>
 	
@@ -61,7 +61,7 @@
 	innloggingsadgang tilsendt per epost. Se utdypende informasjon i 
 	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
 	Barkbillefylkeskontakter</a> og <a href="https://vimeo.com/511036698" target="new">instruksjonsvideo</a> (se også 
-	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks 
+	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks 
 	Registranter</a> og <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a> for å forstå deres oppgaver).</p>
 	
 	<p><strong>Registranter</strong> må oppdatere informasjon under «Endre lokalitetsinfo» for 
@@ -71,7 +71,7 @@
 	hver tømming skal legges inn under «Registrer» innen torsdag i samme uke som tømming, 
 	og blir dermed del av en fortløpende kartvisning av barkbillenivået gjennom 
 	sesongen. Se utdypende informasjon i 
-	<a href="/images/modules/barkbeetle/Instruks_registranter_i_Barkbilleovervakingen.pdf" target="new">Instruks 
+	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks 
 	Registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
 	Beka-felle</a>, samt <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a></p>
