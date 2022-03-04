@@ -41,15 +41,17 @@
 	<div class="row">
 	<table class="table table-striped">
 		<thead>
-			<th>Fylke</th>
-			<th>Kommune</th>
-			<th>Gårdsnr/bruksnr</th>
-			<th>Høyde o.h.</th>
-			<th>Eier</th>
-			<th>Registrant</th>
-			<th>Vedlikeholdsbehov</th>
-			<th>Leveringsadresse</th>
-			<th>Sak behandlet</th>
+			<tr>
+				<th>Fylke</th>
+				<th>Kommune</th>
+				<th>Gårdsnr/bruksnr</th>
+				<th>Høyde o.h.</th>
+				<th>Eier</th>
+				<th>Registrant</th>
+				<th>Vedlikeholdsbehov</th>
+				<th>Leveringsadresse</th>
+				<th>Sak behandlet</th>
+			</tr>
 		</thead>
 		<tbody id="seasonTrapsiteTBody">
 		<#list seasonTrapsites as site>
@@ -61,8 +63,8 @@
 				<td>${site.altitude!""}</td>
 				<td>${site.ownerName!""}</td>
 				<td>${site.userId.firstName} ${site.userId.lastName}</td>
-				<td>${site.maintenanceDescription!""}</td>
-				<td>${site.maintenanceAddress!""}</td>
+				<td>${site.maintenanceDescription!"Ikke oppgitt"}</td>
+				<td>${site.maintenanceAddress!"Ikke oppgitt"}</td>
 				<td><input type="checkbox" name="maintenanceCompleted" onclick="handleMaintenanceCompletedClick(${site.seasonTrapsiteId},this);" <#if site.maintenanceCompleted>checked</#if>></td>
 			</tr>
 			</#if>
@@ -76,7 +78,8 @@
 				<td>${site.altitude!""}</td>
 				<td>${site.ownerName!""}</td>
 				<td>${site.userId.firstName} ${site.userId.lastName}</td>
-				<td>${site.maintenanceDescription!""}</td>
+				<td>${site.maintenanceDescription!"Ikke oppgitt"}</td>
+				<td>${site.maintenanceAddress!"Ikke oppgitt"}</td>
 				<td><input type="checkbox" name="maintenanceCompleted" onclick="handleMaintenanceCompletedClick(${site.seasonTrapsiteId},this);" <#if site.maintenanceCompleted>checked</#if>></td>
 			</tr>
 			</#if>
