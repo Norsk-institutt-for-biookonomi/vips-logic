@@ -62,6 +62,7 @@ public class BarkbeetleController extends HttpServlet {
     
 	// Due to version controls of PDF files, we keep the file names globally updated here
 	private final String FILENAME_INSTRUKS_REGISTRANTER = "Instruks_registranter_i_Barkbilleovervakingen_2022_03_01.pdf";
+	private final String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2022_03_01.pdf";
 	private final String FILENAME_KJENN_IGJEN_ANGREP = "Kjenn_igjen_angrep_stor_granbarkbille_2022_03_01.pdf";
         
     @EJB
@@ -103,6 +104,7 @@ public class BarkbeetleController extends HttpServlet {
                 request.setAttribute("counties", countiesSorted);
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.setAttribute("FILENAME_INSTRUKS_REGISTRANTER", this.FILENAME_INSTRUKS_REGISTRANTER);
+                request.setAttribute("FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER", this.FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER);
                 request.getRequestDispatcher("/modules/barkbeetle/barkbeetleSeasonTrapsiteList.ftl").forward(request, response);
             }
             else if(action.equals("listSeasonTrapsitesStatus"))

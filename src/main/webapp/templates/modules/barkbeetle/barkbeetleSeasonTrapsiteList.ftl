@@ -45,7 +45,7 @@
 	Alle feller må være av typen BEKA (også kalt Novefella) (se bildet), og feromonet som brukes må 
 	være av typen <a href="http://kjemikonsult.no/Norsk/Produkter.html" target="new">Ipslure</a>
 	(=Norlure; tilsendt fra Nibio). Les instruksjoner som er aktuelle for deg nøye, slik som 
-	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
+	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER}" target="new">Instruks
 	Barkbillefylkeskontakter</a>,
 	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks registranter</a>, og 
 	<a href="/images/modules/barkbeetle/Montering_av_barkbillefelle.pdf">Monteringsanvisning
@@ -59,7 +59,7 @@
 	og epost, sendes tor-einar.skog@nibio.no så	tidlig som mulig før sesong for 
 	å opprette tilgang i systemet for registrantene. Etter dette får registrantene 
 	innloggingsadgang tilsendt per epost. Se utdypende informasjon i 
-	<a href="/images/modules/barkbeetle/Instruks_Barkbillefylkeskontakter.pdf" target="new">Instruks
+	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER}" target="new">Instruks
 	Barkbillefylkeskontakter</a> og <a href="https://vimeo.com/511036698" target="new">instruksjonsvideo</a> (se også 
 	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks 
 	Registranter</a> og <a href="https://vimeo.com/511036816" target="new">instruksjonsvideo</a> for å forstå deres oppgaver).</p>
