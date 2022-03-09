@@ -221,7 +221,7 @@
 		<input type="hidden" name="trapsiteTypeId" value="1"/>
 		<div class="form-group">
 			<label for="season">Sesong *</label>
-			<input type="text" class="form-control" name="season" placeholder="Sesong" value="${season}" onblur="validateField(this);"/>
+			<input type="text" class="form-control" name="season" <#if !userIsAdmin>readonly</#if> placeholder="Sesong" value="${season}" onblur="validateField(this);"/>
 			<span class="help-block" id="${formId}_season_validation"></span>
 		  </div>
 		  <input type="hidden" name="gisGeom" id="gisGeom" value="${(seasonTrapsite.longitude?c)!""},${(seasonTrapsite.latitude?c)!""}" />
