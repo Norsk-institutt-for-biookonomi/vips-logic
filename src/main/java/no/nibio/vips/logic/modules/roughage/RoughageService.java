@@ -139,7 +139,7 @@ public class RoughageService {
         if(endOfSeptember.after(SystemTime.getSystemTime()))
         {
             cal.setTime(SystemTime.getSystemTime());
-            cal.add(Calendar.DATE, 10);
+            cal.add(Calendar.DATE, 7);
             dateOfLastWeatherData = cal.getTime();
         }
         else
@@ -217,14 +217,16 @@ public class RoughageService {
                     List<WeatherObservation> forecasts = forecastProvider.getWeatherForecasts(weatherStation);
                     List<WeatherObservation> TMLongTime = forecasts.stream().filter(obs->{
                     	return	obs.getElementMeasurementTypeId().equals("TM")
-                    		&&	obs.getTimeMeasured().compareTo(firstLongTermForecastTime) >= 0
+                    		&&	obs.getTimeMeasured().after(firstLongTermForecastTime)
+                    		&&  ! obs.getTimeMeasured().after(dateOfLastWeatherData)
                     		;
                     	
                     }).collect(Collectors.toList());
                     
                     List<WeatherObservation> RRLongTime = forecasts.stream().filter(obs->{
                     	return	obs.getElementMeasurementTypeId().equals("RR")
-                    		&&	obs.getTimeMeasured().compareTo(firstLongTermForecastTime) >= 0
+                    			&&	obs.getTimeMeasured().after(firstLongTermForecastTime)
+                        		&&  ! obs.getTimeMeasured().after(dateOfLastWeatherData)
                     		;
                     	
                     }).collect(Collectors.toList());
