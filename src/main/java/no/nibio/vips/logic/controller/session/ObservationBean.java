@@ -501,7 +501,6 @@ public class ObservationBean {
     		File fileToDelete = new File(this.getFilePath(observation) + "/" + ill.getObservationIllustrationPK().getFileName());
     		fileToDelete.delete();
     	}
-
         return observation;
     }
 

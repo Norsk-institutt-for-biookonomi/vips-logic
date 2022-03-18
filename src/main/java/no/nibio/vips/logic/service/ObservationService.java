@@ -799,7 +799,7 @@ public class ObservationService {
 							
 							if(illusMap.get("deleted") != null && ((Boolean) illusMap.get("deleted")) == true)
 							{
-								mergeObs = observationBean.deleteObservationIllustration(mergeObs, new String[] {pk.getFileName()});
+								observationBean.deleteObservationIllustration(mergeObs, new String[] {pk.getFileName()});
 							}
 							else if(illusMap.get("uploaded") != null && ((Boolean) illusMap.get("uploaded")) == false && illusMap.get("imageTextData") != null)
 							{
