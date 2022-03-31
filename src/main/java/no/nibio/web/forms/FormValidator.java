@@ -41,6 +41,7 @@ import javax.ejb.EJB;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import org.apache.commons.validator.EmailValidator;
@@ -59,7 +60,7 @@ import org.apache.commons.validator.EmailValidator;
 public class FormValidator {
     
     @EJB
-    static UserBean userBean;
+    UserBean userBean;
     
     public static String RELATION_TYPE_EQUALS = "EQUALS";
     public static String RELATION_TYPE_AFTER = "AFTER";
@@ -233,7 +234,7 @@ public class FormValidator {
             {
                 try
                 {
-                    userBean.isPasswordValid(field.getWebValue(), ULocale.forLocale(resourceBundle.getLocale()));
+                    SessionControllerGetter.getUserBean().isPasswordValid(field.getWebValue(), ULocale.forLocale(resourceBundle.getLocale()));
                 }
                 catch(PasswordValidationException ex)
                 {
