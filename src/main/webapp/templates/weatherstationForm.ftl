@@ -158,14 +158,14 @@
 			    <select class="form-control" name="userId" onblur="validateField(this);">
 			    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.vipsLogicUserId?lower_case}</option>
 				<#list users as user>
-					<option value="${user.userId}"<#if weatherStation.userId?has_content && user.userId == weatherStation.userId.userId
+					<option value="${user.userId}"<#if weatherStation.userId?has_content && user.userId == weatherStation.userId
 								> selected="selected"</#if>>${user.lastName}, ${user.firstName} (${user.organizationId.organizationName})</option>
 				</#list>
 			     </select>
 			     <span class="help-block" id="${formId}_userId_validation"></span>
 			  </div>
                           <#else>
-                          <input type="hidden" name="userId" value="<#if weatherStation.userId?has_content>${weatherStation.userId.userId}<#else>${user.userId}</#if>"/>
+                          <input type="hidden" name="userId" value="<#if weatherStation.userId?has_content>${weatherStation.userId}<#else>${user.userId}</#if>"/>
 			  </#if>
 			  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			  <#if weatherStation.pointOfInterestId?has_content>
