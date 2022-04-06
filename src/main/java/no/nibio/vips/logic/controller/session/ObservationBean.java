@@ -27,7 +27,8 @@ import com.ibm.icu.util.ULocale;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Paths; 
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,9 +98,9 @@ public class ObservationBean {
         observations = this.getObservationsWithLocations(observations);
         observations = this.getObservationsWithObservers(observations);
         
-        return observations;
+        return observations; 
     }
-    
+     
     public List<Observation> getObservations(Integer organizationId, Date periodStart, Date periodEnd)
     {
         Organization organization = em.find(Organization.class,organizationId);
@@ -406,7 +407,7 @@ public class ObservationBean {
     {
     	String[] metaAndData = base64Data.split(",");
 		byte[] imageData = Base64.decodeBase64(metaAndData[1]);
-		java.nio.file.Path path = Paths.get(this.getFilePath(observation) + "/" + fileName);
+		Path path = Paths.get(this.getFilePath(observation) + "/" + fileName);
 		try {
 			// Make sure the directory exists
 			File testDirectoryfile = new File(this.getFilePath(observation));

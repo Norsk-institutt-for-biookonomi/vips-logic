@@ -836,7 +836,13 @@ public class LogicService {
     	}
     	if(organizationId != null)
     	{
-    		organismList = observationDataBean.decoratePestsWithOrganismDataSchema(organismList, organizationId);
+    		VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+            
+            
+    		ULocale locale = new ULocale(
+            	user != null ? user.getOrganizationId().getDefaultLocale() : 
+            		userBean.getOrganization(organizationId).getDefaultLocale());
+    		organismList = observationDataBean.decoratePestsWithOrganismDataSchema(organismList, organizationId, httpServletRequest, locale);
     	}
         return Response.ok().entity(organismList).build();
     }
