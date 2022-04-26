@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -55,15 +55,15 @@ import no.nibio.web.forms.FormValidator;
 import org.locationtech.jts.geom.Point;
 
 /**
- * @copyright 2020 <a href="http://www.bioforsk.no/">Bioforsk</a>
+ * @copyright 2022 <a href="http://www.bioforsk.no/">Bioforsk</a>
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 public class BarkbeetleController extends HttpServlet {
     
 	// Due to version controls of PDF files, we keep the file names globally updated here
-	private final String FILENAME_INSTRUKS_REGISTRANTER = "Instruks_registranter_i_Barkbilleovervakingen_2022_03_01.pdf";
-	private final String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2022_03_01.pdf";
-	private final String FILENAME_KJENN_IGJEN_ANGREP = "Kjenn_igjen_angrep_stor_granbarkbille_2022_03_01.pdf";
+	private final String FILENAME_INSTRUKS_REGISTRANTER = "Instruks_registranter_i_Barkbilleovervakingen_2022-04-25.pdf";
+	private final String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2022-04-25.pdf";
+	private final String FILENAME_KJENN_IGJEN_ANGREP = "Kjenn_igjen_angrep_stor_granbarkbille_2022-04-25.pdf";
         
     @EJB
     BarkbeetleBean barkbeetleBean;
