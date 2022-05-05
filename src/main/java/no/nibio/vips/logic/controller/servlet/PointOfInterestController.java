@@ -204,6 +204,7 @@ public class PointOfInterestController extends HttpServlet {
                     try
                     {
                         PointOfInterest weatherStation = new PointOfInterestWeatherStation();  
+                        weatherStation.setUser(user);
                         request.getSession().setAttribute("weatherStation", weatherStation);
                         request.setAttribute("defaultMapCenter",user.getOrganizationId().getDefaultMapCenter());
                         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
