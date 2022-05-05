@@ -24,12 +24,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -183,6 +186,12 @@ public class NaerstadModelPreprocessor extends ModelRunPreprocessor{
                     break;
             }
         }
+        
+        // Fixing the hole where the rain gets in...
+        RR = wUtil.fixHourlyValuesForParameters(RR, Set.of(RR.get(0).getElementMeasurementTypeId()), RR.get(0).getTimeMeasured(), RR.get(RR.size()-1).getTimeMeasured());
+        TM = wUtil.fixHourlyValuesForParameters(TM, Set.of(TM.get(0).getElementMeasurementTypeId()), TM.get(0).getTimeMeasured(), TM.get(TM.size()-1).getTimeMeasured());
+        UM = wUtil.fixHourlyValuesForParameters(UM, Set.of(UM.get(0).getElementMeasurementTypeId()), UM.get(0).getTimeMeasured(), UM.get(UM.size()-1).getTimeMeasured());
+        Q0 = wUtil.fixHourlyValuesForParameters(Q0, Set.of(Q0.get(0).getElementMeasurementTypeId()), Q0.get(0).getTimeMeasured(), Q0.get(Q0.size()-1).getTimeMeasured());
         
         // BT (Leaf wetness) may be optionally calculated
         // FM2 (Mean wind speed at 2m above ground)
