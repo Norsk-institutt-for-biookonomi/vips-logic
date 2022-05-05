@@ -49,6 +49,7 @@ public class VipsLogicTaskFactory {
     public static final int RUN_ALL_FORECAST_CONFIGURATIONS_FOR_ORGANIZATION_TASK = 7;
     public static final int RUN_GRID_MODELS_TASK = 8;
     public static final int RUN_FORECAST_CONFIGURATIONS_BY_ID_TASK = 9;
+
     
     private final static int[] ALL_TASK_IDS = {1,2,3,4,5,6,7,8,9};
     

@@ -31,9 +31,17 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import org.jboss.resteasy.annotations.GZIP;
+
+import com.ibm.icu.util.Calendar;
 import com.webcohesion.enunciate.metadata.Facet;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.ejb.EJB;
 
+import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ServletUtil;
 
 /**
@@ -114,5 +122,26 @@ public class BarkbeetleService {
     {
     	barkbeetleBean.setMaintenanceCompleted(seasonTrapsiteId, isMaintenanceCompleted != null && isMaintenanceCompleted.equals("true"));
     	return Response.ok().build();
+    }
+    
+    
+    @GET
+    @Path("batch/checkandsendtrapemptyingreminder")
+    @GZIP
+    @Produces("application/json;charset=UTF-8")
+    public Response checkAndSendTrapEmptyingReminder(
+    		@QueryParam("currentDate") String currentDateStr
+    		)
+    {
+        try
+        {
+        	Date currentDate = currentDateStr == null ? SystemTime.getSystemTime() :  new SimpleDateFormat("yyyy-MM-dd").parse(currentDateStr);
+			barkbeetleBean.checkAndSendTrapEmptyingReminder(currentDate);
+			return Response.ok().build();
+        }
+        catch(Exception ex)
+        {
+        	return Response.serverError().entity(ex).build();
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -28,18 +28,24 @@ import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Units;
 import de.micromata.opengis.kml.v_2_2_0.Vec2;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Calendar;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -50,11 +56,15 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
+import no.nibio.vips.logic.controller.session.SchedulingBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.SimpleMailSender;
 
 /**
- * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @LocalBean
@@ -63,6 +73,23 @@ public class BarkbeetleBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
 
+    public static final List<Integer> TRAP_EMPTYING_WEEKS = Arrays.asList(new Integer[]{21,24,28,33});
+    public static final Locale NORGE_MITT_NORGE = new Locale("nb","NO");
+    
+    public static BarkbeetleBean getEJBInstance()
+    {
+    	try
+	    {
+	        InitialContext ic = new InitialContext();
+	        BarkbeetleBean retVal = (BarkbeetleBean) ic.lookup(SessionControllerGetter.getJndiPath(BarkbeetleBean.class));
+	
+	        return retVal;
+	    }catch(NamingException ne)
+	    {
+	        System.out.println("Could not find " + BarkbeetleBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(BarkbeetleBean.class));
+	        return null;
+	    }
+    }
     
     /**
      * Get the list of trapsites for the given season
@@ -668,6 +695,161 @@ public class BarkbeetleBean {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	/**
+	 * For a given date, returns the trapsites that are behind on registering data
+	 * @param date
+	 * @return
+	 */
+	public List<SeasonTrapsite> getSeasonTrapsitesBehindOnData(Date currentDate)
+	{
+		Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+		cal.setTime(currentDate);
+		Integer season = cal.get(Calendar.YEAR);
+		Integer week = cal.get(Calendar.WEEK_OF_YEAR);
+		List<SeasonTrapsite> retVal = this.getSeasonTrapsites(season).stream()
+				.filter(trapsite -> {
+					for(TrapsiteRegistration tr: trapsite.getTrapsiteRegistrationCollection())
+					{
+						if(tr.getTrapsiteRegistrationPK().getWeek() >= week)
+						{
+							return false;
+						}
+					}
+					return true;
+				})
+				.collect(Collectors.toList());
+		return retVal;
+	}
+	
+	/**
+	 * First reminder is to be sent Thursday before the registration week
+	 * @param currentDate
+	 * @return
+	 */
+	public Boolean isTimeToSendFirstReminder(Date currentDate)
+	{
+		Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+		cal.setTime(currentDate);
+		Integer weekAfter = cal.get(Calendar.WEEK_OF_YEAR) + 1;
+		Boolean isThursday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY;
+		return BarkbeetleBean.TRAP_EMPTYING_WEEKS.contains(weekAfter) && isThursday;
+	}
+	
+	/**
+	 * Second reminder is to be sent Thursday in the registration week
+	 * @param currentDate
+	 * @return
+	 */
+	public Boolean isTimeToSendSecondReminder(Date currentDate)
+	{
+		Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+		cal.setTime(currentDate);
+		Integer week = cal.get(Calendar.WEEK_OF_YEAR);
+		Boolean isThursday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY;
+		return BarkbeetleBean.TRAP_EMPTYING_WEEKS.contains(week) && isThursday;
+	}
+	
+	
+	
+	public void checkAndSendTrapEmptyingReminder(Date currentDate)
+	{
+		// Is it time to send the first reminder?
+		if(this.isTimeToSendFirstReminder(currentDate))
+		{
+			String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
+	        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+	        
+			Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+			cal.setTime(currentDate);
+			
+			// Get all trapsites for this season
+			List<SeasonTrapsite> allSeasonTrapsites = this.getSeasonTrapsites(cal.get(Calendar.YEAR));
+			for(SeasonTrapsite st:allSeasonTrapsites)
+			{
+				String message = this.getIndividualFirstReminderText(st, cal.get(Calendar.YEAR), cal.get(Calendar.WEEK_OF_YEAR) + 1);
+				String recipientMail = "tor-einar.skog@nibio.no";
+				//String recipientMail = st.getUserId().getEmail();
+				String registrantPhone = "+4791303819";
+				System.out.println("Phone number would have been " + st.getUserId().getPhoneCountryCode() + st.getUserId().getPhone());
+				//String registrantPhone = st.getUserId().getPhoneCountryCode() + st.getUserId().getPhone();
+				System.out.println("Email would have been " + st.getUserId().getEmail());
+				// Alternative 1: Send email
+				mailSender.sendMail("noreply-vips@nibio.no", recipientMail, "Barkbilleregistrering: Første påminnelse for uke " + cal.get(Calendar.WEEK_OF_YEAR), message);
+				
+				// Alternative 2: Send SMS
+				
+				break;
+			}
+		}
+		// Is it time to send the second reminder?
+		else if(this.isTimeToSendSecondReminder(currentDate))
+		{
+			// Get all trapsites behind on registering
+		}
+		else
+		{
+			// DEBUG (Remove before deploying)
+			System.out.println(this.getClass().getName() + "/checkAndSendTrapEmptyingReminder(" + currentDate + "): Nothing to do.");
+		}
+	}
+	
+	
+	final String firstReminderTpl = "Barkbilleregistrering: Tømmeuke %s er forestående. For din fellelokalitet "
+			+ "i %s fylke, %s kommune, skal tømming og registrering utføres mandag %s eller tirsdag %s "
+			+ "neste uke. Frist for innlegging av data er onsdag %s. For ytterligere instruksjoner, les mer her: %s.";
+	
+	
+	public String getIndividualFirstReminderText(SeasonTrapsite seasonTrapsite, Integer season, Integer week)
+	{
+		
+		Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+		cal.set(Calendar.YEAR, season);
+		cal.set(Calendar.WEEK_OF_YEAR, week);
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		Date mondayInWeek = cal.getTime();
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.TUESDAY);
+		Date tuesdayInWeek = cal.getTime();
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
+		Date wednesdayInWeek = cal.getTime();
+		
+		SimpleDateFormat format = new SimpleDateFormat("d. MMM", BarkbeetleBean.NORGE_MITT_NORGE);
+
+		
+		return String.format(firstReminderTpl, week, seasonTrapsite.getCountyName(), seasonTrapsite.getMunicipalityName(),
+				format.format(mondayInWeek), format.format(tuesdayInWeek), format.format(wednesdayInWeek),
+				String.format("https://logic.vips.nibio.no/images/modules/barkbeetle/%s", BarkbeetleController.FILENAME_INSTRUKS_REGISTRANTER)
+				);
+	}
+	
+	final String secondReminderTpl = "Barkbilleregistrering: Vi er inne i tømmeuke %s. For din fellelokalitet "
+			+ "i %s fylke, %s kommune, skulle tømming og registrering vært utført mandag %s eller tirsdag %s "
+			+ "denne uke. Frist for innlegging av data var onsdag %s. Vennligst ferdigstill tømming og registrering "
+			+ "så raskt som overhodet mulig. For ytterligere instruksjoner, les mer her: %s.";
+	
+	public String getIndividualSecondReminderText(SeasonTrapsite seasonTrapsite, Integer season, Integer week)
+	{
+		Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+		cal.set(Calendar.WEEK_OF_YEAR, week);
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		Date mondayInWeek = cal.getTime();
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.TUESDAY);
+		Date tuesdayInWeek = cal.getTime();
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
+		Date wednesdayInWeek = cal.getTime();
+		
+		SimpleDateFormat format = new SimpleDateFormat("d. MMM", BarkbeetleBean.NORGE_MITT_NORGE);
+		
+		return String.format(secondReminderTpl, week, seasonTrapsite.getCountyName(), seasonTrapsite.getMunicipalityName(),
+				format.format(mondayInWeek), format.format(tuesdayInWeek), format.format(wednesdayInWeek),
+				String.format("https://logic.vips.nibio.no/images/modules/barkbeetle/%s", BarkbeetleController.FILENAME_INSTRUKS_REGISTRANTER)
+				);
+	}
+	
+	public void sendReminder(VipsLogicUser user, String reminderTxt) {
+		
+		
 	}
 	
 	/*
