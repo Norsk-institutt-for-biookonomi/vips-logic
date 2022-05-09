@@ -574,7 +574,7 @@ public class UserBean {
         }
     }
 
-    private List<VipsLogicUser> findOrganizationUsersByRole(Organization organizationId, Integer role) {
+    public List<VipsLogicUser> findOrganizationUsersByRole(Organization organizationId, Integer role) {
         Query q = em.createNativeQuery("SELECT * "
                 + "FROM vips_logic_user vlu "
                 + "WHERE vlu.user_id IN ("

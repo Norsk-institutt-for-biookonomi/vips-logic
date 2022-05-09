@@ -168,4 +168,16 @@ public class BarkbeetleBeanTest {
         assertNotNull(result);
     }
     
+    @Test
+    public void testCountyContactReminderText() throws Exception
+    {
+        System.out.println("getCountyContactReminderText");
+
+        BarkbeetleBean instance = new BarkbeetleBean();
+        
+        String result = instance.getCountyContactReminderText(2022, 21);
+        System.out.println(result);
+        assertNotNull(result);
+    }
+    
 }

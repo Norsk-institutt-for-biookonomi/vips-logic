@@ -41,6 +41,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -58,6 +59,9 @@ import org.opengis.referencing.operation.TransformException;
 
 import no.nibio.vips.logic.controller.session.SchedulingBean;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
@@ -75,6 +79,9 @@ public class BarkbeetleBean {
 
     public static final List<Integer> TRAP_EMPTYING_WEEKS = Arrays.asList(new Integer[]{21,24,28,33});
     public static final Locale NORGE_MITT_NORGE = new Locale("nb","NO");
+    
+    @EJB
+    UserBean userBean;
     
     public static BarkbeetleBean getEJBInstance()
     {
@@ -759,7 +766,7 @@ public class BarkbeetleBean {
 		if(this.isTimeToSendFirstReminder(currentDate))
 		{
 			String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-	        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+                        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
 	        
 			Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
 			cal.setTime(currentDate);
@@ -776,17 +783,52 @@ public class BarkbeetleBean {
 				//String registrantPhone = st.getUserId().getPhoneCountryCode() + st.getUserId().getPhone();
 				System.out.println("Email would have been " + st.getUserId().getEmail());
 				// Alternative 1: Send email
-				mailSender.sendMail("noreply-vips@nibio.no", recipientMail, "Barkbilleregistrering: Første påminnelse for uke " + cal.get(Calendar.WEEK_OF_YEAR), message);
+				mailSender.sendMail("noreply-vips@nibio.no", recipientMail, "Barkbilleregistrering: Første påminnelse for uke " + (cal.get(Calendar.WEEK_OF_YEAR) + 1), message);
 				
 				// Alternative 2: Send SMS
 				
 				break;
 			}
+                        
+                        // We also send a reminder to the county contacts
+                        Organization NIBIO = this.userBean.getOrganization(1); // !!! This is hard coded!!!
+                        List<VipsLogicUser> countyContacts = this.userBean.findOrganizationUsersByRole(NIBIO, VipsLogicRole.BARKBEETLE_COUNTY_ADMIN);
+                        String recipientList = countyContacts.stream().map(cc->cc.getEmail()).collect((Collectors.joining(",")));
+                        System.out.println("RecipientList would have been: " + recipientList);
+                        // TESTING
+                        recipientList = "tor-einar.skog@nibio.no";
+                        String message = this.getCountyContactReminderText(cal.get(Calendar.YEAR), cal.get(Calendar.WEEK_OF_YEAR) + 1);
+                        
+                        mailSender.sendMail("noreply-vips@nibio.no", recipientList, "Barkbilleregistrering: Første påminnelse for uke " + cal.get(Calendar.WEEK_OF_YEAR), message);
 		}
 		// Is it time to send the second reminder?
 		else if(this.isTimeToSendSecondReminder(currentDate))
 		{
-			// Get all trapsites behind on registering
+                    String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
+                    SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
+                    Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+                    cal.setTime(currentDate);
+                    //System.out.println("We think that " + currentDate + " is in week " + cal.get(Calendar.WEEK_OF_YEAR));
+                    Integer season = cal.get(Calendar.YEAR);
+                    Integer week = cal.get(Calendar.WEEK_OF_YEAR);
+		    // Get all trapsites behind on registering
+                    List<SeasonTrapsite> sitesBehindOnData = this.getSeasonTrapsitesBehindOnData(currentDate);
+                    for(SeasonTrapsite st:sitesBehindOnData)
+			{
+				String message = this.getIndividualSecondReminderText(st, season, week);
+				String recipientMail = "tor-einar.skog@nibio.no";
+				//String recipientMail = st.getUserId().getEmail();
+				String registrantPhone = "+4791303819";
+				System.out.println("Phone number would have been " + st.getUserId().getPhoneCountryCode() + st.getUserId().getPhone());
+				//String registrantPhone = st.getUserId().getPhoneCountryCode() + st.getUserId().getPhone();
+				System.out.println("Email would have been " + st.getUserId().getEmail());
+				// Alternative 1: Send email
+				mailSender.sendMail("noreply-vips@nibio.no", recipientMail, "Barkbilleregistrering: Andre påminnelse for uke " + cal.get(Calendar.WEEK_OF_YEAR), message);
+				
+				// Alternative 2: Send SMS
+				
+				break;
+			}
 		}
 		else
 		{
@@ -796,29 +838,19 @@ public class BarkbeetleBean {
 	}
 	
 	
-	final String firstReminderTpl = "Barkbilleregistrering: Tømmeuke %s er forestående. For din fellelokalitet "
+	final String firstRegistrantReminderTpl = "Barkbilleregistrering: Tømmeuke %s er forestående. For din fellelokalitet "
 			+ "i %s fylke, %s kommune, skal tømming og registrering utføres mandag %s eller tirsdag %s "
 			+ "neste uke. Frist for innlegging av data er onsdag %s. For ytterligere instruksjoner, les mer her: %s.";
+        
+        
 	
 	
 	public String getIndividualFirstReminderText(SeasonTrapsite seasonTrapsite, Integer season, Integer week)
 	{
-		
-		Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
-		cal.set(Calendar.YEAR, season);
-		cal.set(Calendar.WEEK_OF_YEAR, week);
-		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-		Date mondayInWeek = cal.getTime();
-		cal.set(Calendar.DAY_OF_WEEK, Calendar.TUESDAY);
-		Date tuesdayInWeek = cal.getTime();
-		cal.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
-		Date wednesdayInWeek = cal.getTime();
-		
+		Map<Integer, Date> weekdaysInWeek = this.getWeekdaysInWeek(season, week);
 		SimpleDateFormat format = new SimpleDateFormat("d. MMM", BarkbeetleBean.NORGE_MITT_NORGE);
-
-		
-		return String.format(firstReminderTpl, week, seasonTrapsite.getCountyName(), seasonTrapsite.getMunicipalityName(),
-				format.format(mondayInWeek), format.format(tuesdayInWeek), format.format(wednesdayInWeek),
+		return String.format(firstRegistrantReminderTpl, week, seasonTrapsite.getCountyName(), seasonTrapsite.getMunicipalityName(),
+				format.format(weekdaysInWeek.get(Calendar.MONDAY)), format.format(weekdaysInWeek.get(Calendar.TUESDAY)), format.format(weekdaysInWeek.get(Calendar.WEDNESDAY)),
 				String.format("https://logic.vips.nibio.no/images/modules/barkbeetle/%s", BarkbeetleController.FILENAME_INSTRUKS_REGISTRANTER)
 				);
 	}
@@ -830,22 +862,47 @@ public class BarkbeetleBean {
 	
 	public String getIndividualSecondReminderText(SeasonTrapsite seasonTrapsite, Integer season, Integer week)
 	{
-		Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
-		cal.set(Calendar.WEEK_OF_YEAR, week);
-		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-		Date mondayInWeek = cal.getTime();
-		cal.set(Calendar.DAY_OF_WEEK, Calendar.TUESDAY);
-		Date tuesdayInWeek = cal.getTime();
-		cal.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
-		Date wednesdayInWeek = cal.getTime();
-		
+		Map<Integer, Date> weekdaysInWeek = this.getWeekdaysInWeek(season, week);
 		SimpleDateFormat format = new SimpleDateFormat("d. MMM", BarkbeetleBean.NORGE_MITT_NORGE);
-		
 		return String.format(secondReminderTpl, week, seasonTrapsite.getCountyName(), seasonTrapsite.getMunicipalityName(),
-				format.format(mondayInWeek), format.format(tuesdayInWeek), format.format(wednesdayInWeek),
+				format.format(weekdaysInWeek.get(Calendar.MONDAY)), format.format(weekdaysInWeek.get(Calendar.TUESDAY)), format.format(weekdaysInWeek.get(Calendar.WEDNESDAY)),
 				String.format("https://logic.vips.nibio.no/images/modules/barkbeetle/%s", BarkbeetleController.FILENAME_INSTRUKS_REGISTRANTER)
 				);
 	}
+        
+        final String countyContactReminderTpl = "Barkbilleregistrering: Tømmeuke %s er forestående. Tømming og registrering utføres "
+                        + "mandag %s eller tirsdag %s neste uke. Frist for innlegging av data er onsdag %s. "
+                        + "Sjekk her for å se hvem som (ikke) har lagt inn data i portalen: %s";
+        
+        public String getCountyContactReminderText(Integer season, Integer week)
+	{
+                Map<Integer, Date> weekdaysInWeek = this.getWeekdaysInWeek(season, week);		
+		SimpleDateFormat format = new SimpleDateFormat("d. MMM", BarkbeetleBean.NORGE_MITT_NORGE);
+		return String.format(countyContactReminderTpl, week, 
+				format.format(weekdaysInWeek.get(Calendar.MONDAY)), format.format(weekdaysInWeek.get(Calendar.TUESDAY)), format.format(weekdaysInWeek.get(Calendar.WEDNESDAY)),
+				String.format("https://logic.vips.nibio.no/barkbeetle?action=listSeasonTrapsitesStatus&season=%s", season)
+				);
+	}
+        
+        public Map<Integer, Date> getWeekdaysInWeek(Integer season, Integer week)
+        {
+            Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+            cal.set(Calendar.YEAR, season);
+            cal.set(Calendar.WEEK_OF_YEAR, week);
+            cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            Date mondayInWeek = cal.getTime();
+            cal.set(Calendar.DAY_OF_WEEK, Calendar.TUESDAY);
+            Date tuesdayInWeek = cal.getTime();
+            cal.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
+            Date wednesdayInWeek = cal.getTime();
+            
+            Map<Integer, Date> retVal = new HashMap<>();
+            retVal.put(Calendar.MONDAY, mondayInWeek);
+            retVal.put(Calendar.TUESDAY, tuesdayInWeek);
+            retVal.put(Calendar.WEDNESDAY, wednesdayInWeek);
+            
+            return retVal;
+        }
 	
 	public void sendReminder(VipsLogicUser user, String reminderTxt) {
 		
