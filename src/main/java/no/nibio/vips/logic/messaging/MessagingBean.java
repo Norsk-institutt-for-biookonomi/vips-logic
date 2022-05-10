@@ -28,7 +28,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -51,13 +53,26 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
- * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2015-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Stateless
 public class MessagingBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    private Map<Integer, UniversalMessageFormat> universalMessageFormats;
+    
+    public UniversalMessageFormat getUniversalMessageFormat(Integer universalMessageFormatId)
+    {
+        if(this.universalMessageFormats == null)
+        {
+            this.universalMessageFormats = new HashMap<>();
+            this.universalMessageFormats.put(UniversalMessageFormat.FORMAT_SMS, em.find(UniversalMessageFormat.class, UniversalMessageFormat.FORMAT_SMS));
+            this.universalMessageFormats.put(UniversalMessageFormat.FORMAT_EMAIL, em.find(UniversalMessageFormat.class, UniversalMessageFormat.FORMAT_EMAIL));
+        }
+        return this.universalMessageFormats.get(universalMessageFormatId);
+    }
     
     public void sendUniversalMessage(Message message)
     {
@@ -116,13 +131,13 @@ public class MessagingBean {
         {
             try
             {
-                //System.out.println(new ObjectMapper().writeValueAsString(um));
+                System.out.println(new ObjectMapper().writeValueAsString(uMessage));
                 Response r = umClient.sendMessage(new ObjectMapper().writeValueAsString(uMessage));
 
                 // TODO: Handle result
 
                 String result = r.readEntity(String.class);
-                //System.out.println(result);
+                System.out.println(result);
             }
             catch(JsonProcessingException ex)
             {

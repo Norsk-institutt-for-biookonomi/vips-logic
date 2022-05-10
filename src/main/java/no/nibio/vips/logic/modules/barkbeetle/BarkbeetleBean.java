@@ -63,6 +63,10 @@ import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.messaging.MessageRecipient;
+import no.nibio.vips.logic.messaging.MessagingBean;
+import no.nibio.vips.logic.messaging.UniversalMessage;
+import no.nibio.vips.logic.messaging.UniversalMessageFormat;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SimpleMailSender;
@@ -82,6 +86,9 @@ public class BarkbeetleBean {
     
     @EJB
     UserBean userBean;
+    
+    @EJB
+    MessagingBean messagingBean;
     
     public static BarkbeetleBean getEJBInstance()
     {
@@ -775,8 +782,15 @@ public class BarkbeetleBean {
 			List<SeasonTrapsite> allSeasonTrapsites = this.getSeasonTrapsites(cal.get(Calendar.YEAR));
 			for(SeasonTrapsite st:allSeasonTrapsites)
 			{
+                                String heading = "Barkbilleregistrering: Første påminnelse for uke " + (cal.get(Calendar.WEEK_OF_YEAR) + 1);
 				String message = this.getIndividualFirstReminderText(st, cal.get(Calendar.YEAR), cal.get(Calendar.WEEK_OF_YEAR) + 1);
-				String recipientMail = "tor-einar.skog@nibio.no";
+				//VipsLogicUser recipient = st.getUserId();
+                                // TESTING
+                                VipsLogicUser recipient = new VipsLogicUser();
+                                recipient.setEmail("tor-einar.skog@nibio.no");
+                                recipient.setPhone("91303819");
+                                this.sendReminder(List.of(recipient), heading, message);
+                                /*String recipientMail = "tor-einar.skog@nibio.no";
 				//String recipientMail = st.getUserId().getEmail();
 				String registrantPhone = "+4791303819";
 				System.out.println("Phone number would have been " + st.getUserId().getPhoneCountryCode() + st.getUserId().getPhone());
@@ -786,7 +800,7 @@ public class BarkbeetleBean {
 				mailSender.sendMail("noreply-vips@nibio.no", recipientMail, "Barkbilleregistrering: Første påminnelse for uke " + (cal.get(Calendar.WEEK_OF_YEAR) + 1), message);
 				
 				// Alternative 2: Send SMS
-				
+				*/
 				break;
 			}
                         
@@ -904,10 +918,41 @@ public class BarkbeetleBean {
             return retVal;
         }
 	
-	public void sendReminder(VipsLogicUser user, String reminderTxt) {
-		
-		
+        /**
+         * Using the VIPS messaging system
+         * @param recipients
+         * @param heading
+         * @param body 
+         */
+	public void sendReminder(List<VipsLogicUser> users, String heading, String body) {
+            UniversalMessage uMessage = new UniversalMessage();
+            Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
+            cal.setTime(new Date());
+            cal.add(Calendar.DATE, 2);
+            uMessage.setExpiresAt(cal.getTime());
+            uMessage.addMessageLocalVersion("nb", heading, "", body, "");
+            List<MessageRecipient> recipients = users.stream().map(user->{
+                MessageRecipient recipient = new MessageRecipient();
+                UniversalMessageFormat umf = messagingBean.getUniversalMessageFormat(
+                        user.isApprovesSmsBilling() && !user.getPhone().trim().isBlank() ? 
+                                UniversalMessageFormat.FORMAT_SMS
+                                : UniversalMessageFormat.FORMAT_EMAIL
+                );
+                recipient.setType(umf.getFormatName());
+                recipient.setMsgDeliveryAddress(
+                        umf.getUniversalMessageFormatId().equals(UniversalMessageFormat.FORMAT_SMS) ?
+                                user.getPhone()
+                                : user.getEmail()
+                );
+                recipient.setFreeSms(user.isFreeSms());
+                return recipient;
+            })
+            .collect(Collectors.toList());
+            uMessage.setDistributionList(recipients);
+            messagingBean.sendUniversalMessage(uMessage);
 	}
+        
+        
 	
 	/*
 	public List<SeasonTrapsite> getSeasonTrapsitesForCounty2012(Integer season, String county2012)
