@@ -4,6 +4,8 @@
 
 [Authentication](./authentication.md)
 
+[Messaging](./messaging.md)
+
 [Troubleshooting](./troubleshooting.md)
 
 

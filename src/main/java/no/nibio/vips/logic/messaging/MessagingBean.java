@@ -45,6 +45,9 @@ import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageLocale;
 import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.messaging.distribution.IVipsMessageHandler;
+import no.nibio.vips.logic.messaging.distribution.VipsMessageInputHandler;
+import no.nibio.vips.logic.messaging.distribution.entity.VipsMessage;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.RESTAuthenticator;
 import no.nibio.vips.logic.util.SystemTime;
@@ -114,7 +117,7 @@ public class MessagingBean {
         
         // Store it
         em.persist(uMessage);
-        
+        /*
         ResteasyClient client = (ResteasyClient) ResteasyClientBuilder.newClient();//new ResteasyClientBuilder().build();
         //client.register(new RESTAuthenticator("user", "userPass"));
         client.register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"));
@@ -148,7 +151,28 @@ public class MessagingBean {
         {
             System.out.println("Messaging system disabled. This message was not sent: " + uMessage.toString());
         }
+        */
         
+        // TODO Handle errors better!
+        try
+        {
+            if  (
+                System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM") == null 
+                || System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM").equals("false")
+            )
+            {
+                IVipsMessageHandler vipsMessageHandler = new VipsMessageInputHandler();
+                vipsMessageHandler.sendMessage(new VipsMessage(uMessage));
+            }
+            else
+            {
+                System.out.println("Messaging system disabled. This message was not sent: " + uMessage.toString());
+            }
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
         return uMessage;
     }
 
