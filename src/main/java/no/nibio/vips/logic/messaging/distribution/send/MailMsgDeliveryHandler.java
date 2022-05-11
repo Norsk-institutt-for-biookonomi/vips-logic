@@ -34,6 +34,8 @@ import no.nibio.vips.logic.messaging.distribution.entity.DistributionTypeEnum;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgReceiver;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgToSend;
 import no.nibio.vips.logic.messaging.distribution.entity.VipsMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -44,6 +46,8 @@ import no.nibio.vips.logic.messaging.distribution.entity.VipsMessage;
  *
  */
 public class MailMsgDeliveryHandler implements IDeliveryMsgHandler {
+    
+    private final static Logger LOGGER = LoggerFactory.getLogger(MailMsgDeliveryHandler.class);
 
     private final String mailserver;
     private final String sender;
@@ -81,13 +85,11 @@ public class MailMsgDeliveryHandler implements IDeliveryMsgHandler {
 
             // Get a Session object
             Session session = Session.getInstance(props, null);
-            session.setDebug(true);
+            session.setDebug(false);
 
             // construct the message
             MimeMessage msg = new MimeMessage(session);
-            /*if (logger.isDebugEnabled()) {
-                logger.debug("Done create SMPTMessage");
-            }*/
+            LOGGER.debug("Done create SMPTMessage");
 
             msg.addHeader("charset", "UTF-8");
 
@@ -111,20 +113,13 @@ public class MailMsgDeliveryHandler implements IDeliveryMsgHandler {
             msg.setSentDate(new Date());
             boolean ssl = false;
 
-            /*
-            if (logger.isDebugEnabled()) {
-                logger.debug("Message reday to send : " + mailMessageBody);
-            }
-            */
+            LOGGER.debug("Message ready to send : " + mailMessageBody);
             
             t = (SMTPTransport) session.getTransport(ssl ? "smtps" : "smtp");
             t.connect();
             t.sendMessage(msg, msg.getAllRecipients());
             
-            /*
-            if (logger.isDebugEnabled()) {
-                logger.debug("Mail was sent successfully. Response: " + t.getLastServerResponse());
-            }*/
+            LOGGER.debug("Mail was sent successfully. Response: " + t.getLastServerResponse());
 
         } finally {
             try {
