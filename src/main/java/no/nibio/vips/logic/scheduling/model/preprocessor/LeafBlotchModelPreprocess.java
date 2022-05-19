@@ -1,0 +1,113 @@
+/*
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
+ * 
+ * This file is part of VIPSLogic.
+ * VIPSLogic is free software: you can redistribute it and/or modify
+ * it under the terms of the NIBIO Open Source License as published by 
+ * NIBIO, either version 1 of the License, or (at your option) any
+ * later version.
+ * 
+ * VIPSLogic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * NIBIO Open Source License for more details.
+ * 
+ * You should have received a copy of the NIBIO Open Source License
+ * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * 
+ */
+package no.nibio.vips.logic.scheduling.model.preprocessor;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+import java.util.logging.Logger;
+
+import no.nibio.vips.entity.ModelConfiguration;
+import no.nibio.vips.entity.WeatherObservation;
+import no.nibio.vips.logic.entity.ForecastConfiguration;
+import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
+import no.nibio.vips.logic.scheduling.model.PreprocessorException;
+import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.util.WeatherElements;
+import no.nibio.vips.util.WeatherUtil;
+import no.nibio.vips.util.weather.WeatherDataSourceException;
+import no.nibio.vips.util.weather.WeatherDataSourceUtil;
+
+/**
+ *
+ * @author mila
+ */
+public class LeafBlotchModelPreprocess extends ModelRunPreprocessor{
+    public final static String LEAFBLOTCH_sowingDate = "LEAFBLOTCH_SOWING_DATE";
+    @Override
+    public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
+        PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
+        
+        //Henter latitude:
+        Double latitude = weatherStation.getLatitude();
+        
+        // What timezone is the calculation for
+        TimeZone timeZone = TimeZone.getTimeZone(weatherStation.getTimeZone());
+        Calendar cal = Calendar.getInstance(timeZone);
+        cal.setTime(SystemTime.getSystemTime());
+        cal.add(Calendar.DATE, 3);
+        
+
+        WeatherUtil wUtil = new WeatherUtil();
+        Date endDate = wUtil.normalizeToExactDate(cal.getTime(), timeZone); //antar at dette er i dag (dagen data hentes på).
+        
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(timeZone);
+        Date startDate = null; 
+        try {
+            startDate = format.parse(configuration.getForecastModelConfigurationValue(LEAFBLOTCH_sowingDate));
+            System.out.println(startDate);
+        } catch (ParseException ex) {
+        	System.out.println("Not working"); //For now....
+            //Logger.getLogger(LeafBlotchModelPreprocess.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
+        ModelConfiguration retVal = new ModelConfiguration();
+        WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
+        List<WeatherObservation> observations;
+        try {
+            observations = wdsUtil.getWeatherObservations( 
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1H, //Hver time?
+                    new String[]{
+                        WeatherElements.TEMPERATURE_MEAN,
+                        WeatherElements.PRECIPITATION,
+                        WeatherElements.RELATIVE_HUMIDITY_MEAN
+                    },
+                    startDate, 
+                    endDate);
+        } catch (WeatherDataSourceException ex) {
+            throw new PreprocessorException(ex.getMessage());
+        }
+        
+        
+        retVal.setModelId(this.getModelId());
+        retVal.setConfigParameter("timeZone", timeZone.getID());
+        retVal.setConfigParameter("observations", observations); //Værdata
+        retVal.setConfigParameter("latitude", latitude); // latitude
+        retVal.setConfigParameter("sowingDate", format.format(startDate)); //sådato
+        
+        return retVal;
+        
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getModelId() {
+    	return "LEAFBLOTCH";
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+}
