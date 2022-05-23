@@ -594,7 +594,8 @@ public class BarkbeetleBean {
                     r.getTrap2() != null ? r.getTrap2().toString() : "M",
                     r.getTrap3() != null ? r.getTrap3().toString() : "M",
                     r.getTrap4() != null ? r.getTrap4().toString() : "M",
-                    r.getRegistrationAverage() != null ? r.getRegistrationAverage().toString() : ""
+                    r.getRegistrationAverage() != null ? r.getRegistrationAverage().toString() : "",
+                    r.getObservedAttacksDescription() != null && ! r.getObservedAttacksDescription().isBlank() ? r.getObservedAttacksDescription().replaceAll("\\r|\\n", ";") : "NOE"
                 };
                 regsPerWeek.put(r.getTrapsiteRegistrationPK().getWeek(), stDataWeek);
             }
@@ -603,11 +604,9 @@ public class BarkbeetleBean {
             Integer counter = 0;
             for (Integer week : weeks) {
                 List<String> trapSiteLine = new ArrayList(Arrays.asList(week.equals(21) ? stInfo : emptyCells));
-                trapSiteLine.addAll(Arrays.asList(regsPerWeek.get(week) != null ? regsPerWeek.get(week) : new String[7]));
+                trapSiteLine.addAll(Arrays.asList(regsPerWeek.get(week) != null ? regsPerWeek.get(week) : new String[8]));
                 csv += String.join(",", trapSiteLine.toArray(new String[0]));
-                csv += "," + (week.equals(21)
-                        ? st.getObservedAttacksDescription() != null ? st.getObservedAttacksDescription().replaceAll("\\r|\\n", ";") : ""
-                        : "") + "\n";
+                csv += "\n"; // observedAttacksDescription has been moved to week-by-week lines
             }
 
         }
