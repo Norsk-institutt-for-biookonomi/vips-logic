@@ -563,7 +563,7 @@ public class BarkbeetleBean {
             "Angrep"
         };
 
-        String csv = String.join(",", heading) + "\n";
+        String csv = String.join(";", heading) + "\n";
         for (SeasonTrapsite st : seasonTrapsites) {
             org.locationtech.jts.geom.Coordinate UMT32coord = this.getUTMCoordinate(st.getLongitude(), st.getLatitude());
             String[] stInfo = {
@@ -595,7 +595,7 @@ public class BarkbeetleBean {
                     r.getTrap3() != null ? r.getTrap3().toString() : "M",
                     r.getTrap4() != null ? r.getTrap4().toString() : "M",
                     r.getRegistrationAverage() != null ? r.getRegistrationAverage().toString() : "",
-                    r.getObservedAttacksDescription() != null && ! r.getObservedAttacksDescription().isBlank() ? r.getObservedAttacksDescription().replaceAll("\\r|\\n", ";") : "NOE"
+                    r.getObservedAttacksDescription() != null && ! r.getObservedAttacksDescription().isBlank() ? r.getObservedAttacksDescription().replaceAll("\\r|\\n", ";") : ""
                 };
                 regsPerWeek.put(r.getTrapsiteRegistrationPK().getWeek(), stDataWeek);
             }
@@ -605,7 +605,7 @@ public class BarkbeetleBean {
             for (Integer week : weeks) {
                 List<String> trapSiteLine = new ArrayList(Arrays.asList(week.equals(21) ? stInfo : emptyCells));
                 trapSiteLine.addAll(Arrays.asList(regsPerWeek.get(week) != null ? regsPerWeek.get(week) : new String[8]));
-                csv += String.join(",", trapSiteLine.toArray(new String[0]));
+                csv += String.join(";", trapSiteLine.toArray(new String[0]));
                 csv += "\n"; // observedAttacksDescription has been moved to week-by-week lines
             }
 
