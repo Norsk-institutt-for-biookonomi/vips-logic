@@ -20,16 +20,11 @@
 package no.nibio.vips.logic.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -57,7 +52,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -70,19 +64,20 @@ import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.ObservationIllustrationPK;
 import no.nibio.vips.logic.entity.ObservationStatusType;
 import no.nibio.vips.logic.entity.ObservationSyncInfo;
-import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
+import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import org.jboss.resteasy.annotations.GZIP;
 import org.wololo.geojson.Feature;
 
-import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2016-2021 <a href="http://www.nibio.no/">NIBIO</a>
@@ -90,6 +85,8 @@ import org.apache.commons.codec.binary.Base64;
  */
 @Path("rest/observation")
 public class ObservationService {
+    
+    private static Logger LOGGER = LoggerFactory.getLogger(ObservationService.class);
     
     @Context
     private HttpServletRequest httpServletRequest;
@@ -100,6 +97,8 @@ public class ObservationService {
     ObservationBean observationBean;
     @EJB
     OrganismBean organismBean;
+    @EJB
+    MessagingBean messagingBean;
     
     /*
      * NOTE TO SELF
@@ -784,9 +783,30 @@ public class ObservationService {
 					{
 						return Response.status(Status.BAD_REQUEST).entity("The observation is missing location data.").build();
 					}
+                                        
+                                        boolean sendNotification = false;    
+                                        // Storing approval status
+                                        // If superusers or user with correct authorization: Set as approved and send message
+                                        if(userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
+                                        {
+                                            LOGGER.debug("user properly authorized to register observations");
+                                            LOGGER.debug("observation Id=" + mergeObs.getObservationId());
+                                            LOGGER.debug("broadcast this message? " + mergeObs.getBroadcastMessage());
+                                            if(mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0)
+                                            {
+                                                mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_APPROVED);
+                                                sendNotification = mergeObs.getBroadcastMessage(); // Only send the ones intended for sending
+                                            }
+                                        }
+                                        else if(mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0)
+                                        {
+                                            mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_PENDING);
+                                        }
 					
 					// We need to get an observation Id before storing the illustrations!
 					mergeObs = observationBean.storeObservation(mergeObs);
+                                        
+                                        
 					
 					// ObservationIllustrationSet
 					// Including data that may need to be stored
@@ -807,8 +827,18 @@ public class ObservationService {
 							}
 						}
 					}
-						
-					
+                                        LOGGER.debug("sendNotification? " + sendNotification);
+                                        
+                                        // All transactions finished, we can send notifications
+                                        // if conditions are met
+                                        if(sendNotification && !
+                                                (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
+                                                )
+                                        {
+                                            LOGGER.debug("Sending the message!");
+                                            messagingBean.sendUniversalMessage(mergeObs);
+                                        }
+                                        
 					return Response.ok().entity(mergeObs).build();
 				}
 			} catch (IOException e) {
@@ -817,6 +847,7 @@ public class ObservationService {
     	}
     	catch(Exception e)
     	{
+            e.printStackTrace();
     		return Response.serverError().entity(e).build();
     	}
     	
