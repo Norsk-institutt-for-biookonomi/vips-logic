@@ -43,14 +43,16 @@ import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.util.SystemTime;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class WeatherDataSourceUtil {
     
-    private final boolean DEBUG = false;
+    private static Logger LOGGER = LoggerFactory.getLogger(WeatherDataSourceUtil.class);
 
     /**
      * Fetches measured data from the stations weather data source, and optionally
@@ -224,7 +226,7 @@ public class WeatherDataSourceUtil {
             int readTimeout = 120;
         try {
             URL weatherURL = new URL(URL.toString());
-            if(this.DEBUG) { System.out.println("URL=" + weatherURL); }
+            LOGGER.debug("URL=" + weatherURL); 
             URLConn = weatherURL.openConnection();
             
             URLConn.setConnectTimeout(1000 * connectTimeout); // If weather data server does not reply in 30 seconds, abort
