@@ -42,6 +42,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
@@ -177,6 +178,10 @@ public class RoughageService {
             // the future
             // For EPP and Q0 we simply add the last value
             //System.out.println("observations.size=" + observations.size());
+            if(wUtil.getLastObservations(observations, "EPP", 1).isEmpty())
+            {
+                return Response.serverError().entity("Missing evaporation values for this weather station").build();
+            }
             WeatherObservation lastEPP = wUtil.getLastObservations(observations, "EPP", 1).get(0);
             Date lastEPPDate = lastEPP.getTimeMeasured();
             while(lastEPPDate.before(dateOfLastWeatherData))
