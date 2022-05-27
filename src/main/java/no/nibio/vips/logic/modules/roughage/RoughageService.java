@@ -180,7 +180,7 @@ public class RoughageService {
             //System.out.println("observations.size=" + observations.size());
             if(wUtil.getLastObservations(observations, "EPP", 1).isEmpty())
             {
-                return Response.serverError().entity("Missing evaporation values for this weather station").build();
+                return Response.serverError().entity("Missing evaporation data for this weather station").build();
             }
             WeatherObservation lastEPP = wUtil.getLastObservations(observations, "EPP", 1).get(0);
             Date lastEPPDate = lastEPP.getTimeMeasured();
