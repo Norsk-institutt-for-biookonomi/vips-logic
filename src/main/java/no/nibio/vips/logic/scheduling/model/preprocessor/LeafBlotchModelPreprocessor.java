@@ -42,13 +42,13 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  *
  * @author mila
  */
-public class LeafBlotchModelPreprocess extends ModelRunPreprocessor{
+public class LeafBlotchModelPreprocessor extends ModelRunPreprocessor{
     public final static String LEAFBLOTCH_sowingDate = "LEAFBLOTCH_SOWING_DATE";
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException {
         PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
         
-        //Henter latitude:
+        //Latitude for the calculation
         Double latitude = weatherStation.getLatitude();
         
         // What timezone is the calculation for
@@ -56,31 +56,27 @@ public class LeafBlotchModelPreprocess extends ModelRunPreprocessor{
         Calendar cal = Calendar.getInstance(timeZone);
         cal.setTime(SystemTime.getSystemTime());
         cal.add(Calendar.DATE, 3);
-        
 
         WeatherUtil wUtil = new WeatherUtil();
-        Date endDate = wUtil.normalizeToExactDate(cal.getTime(), timeZone); //antar at dette er i dag (dagen data hentes på).
-        
+        Date endDate = wUtil.normalizeToExactDate(cal.getTime(), timeZone); 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         format.setTimeZone(timeZone);
         Date startDate = null; 
         try {
             startDate = format.parse(configuration.getForecastModelConfigurationValue(LEAFBLOTCH_sowingDate));
-            System.out.println(startDate);
         } catch (ParseException ex) {
-        	System.out.println("Not working"); //For now....
             //Logger.getLogger(LeafBlotchModelPreprocess.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        
-        
         ModelConfiguration retVal = new ModelConfiguration();
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
+        
+        //Hourly weather observations:
         List<WeatherObservation> observations;
         try {
             observations = wdsUtil.getWeatherObservations( 
                     weatherStation,
-                    WeatherObservation.LOG_INTERVAL_ID_1H, //Hver time?
+                    WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[]{
                         WeatherElements.TEMPERATURE_MEAN,
                         WeatherElements.PRECIPITATION,
@@ -90,24 +86,37 @@ public class LeafBlotchModelPreprocess extends ModelRunPreprocessor{
                     endDate);
         } catch (WeatherDataSourceException ex) {
             throw new PreprocessorException(ex.getMessage());
-        }
+        }  
         
+        //Daily weather observations:
+        List<WeatherObservation> dailyObs;
+        try {
+            dailyObs = wdsUtil.getWeatherObservations( 
+                    weatherStation,
+                    WeatherObservation.LOG_INTERVAL_ID_1D,
+                    new String[]{
+                        WeatherElements.TEMPERATURE_MEAN
+                    },
+                    startDate, 
+                    endDate);
+        } catch (WeatherDataSourceException ex) {
+            throw new PreprocessorException(ex.getMessage());
+        }
+        //Combining hourly and daily data
+        observations.addAll(dailyObs);
         
         retVal.setModelId(this.getModelId());
         retVal.setConfigParameter("timeZone", timeZone.getID());
-        retVal.setConfigParameter("observations", observations); //Værdata
-        retVal.setConfigParameter("latitude", latitude); // latitude
-        retVal.setConfigParameter("sowingDate", format.format(startDate)); //sådato
+        retVal.setConfigParameter("observations", observations); 
+        retVal.setConfigParameter("latitude", latitude);
+        retVal.setConfigParameter("sowingDate", format.format(startDate));
         
         return retVal;
-        
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String getModelId() {
     	return "LEAFBLOTCH";
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
