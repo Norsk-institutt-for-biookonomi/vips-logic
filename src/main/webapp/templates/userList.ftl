@@ -36,7 +36,7 @@
 		</thead>
 		<tbody>
                 <!-- The ones that need treatment first -->
-                <#assign userStatusOrdering = [2,4,3,1,5]>
+                <#assign userStatusOrdering = [2,1,3,4,5]>
                 <#list userStatusOrdering as currentUserStatusId>
                     <#list users?sort_by("lastName") as user>
                         <#if user.userStatusId == currentUserStatusId>
