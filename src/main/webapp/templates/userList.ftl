@@ -18,6 +18,14 @@
 <#macro page_head>
         <title>${i18nBundle.users}</title>
 </#macro>
+<#macro custom_css>
+    <style type="text/css">
+        ul {
+        padding-inline-start: 1px;
+        }
+    </style>
+    
+</#macro>
 <#macro custom_js>
     <script type="text/javascript">
 
