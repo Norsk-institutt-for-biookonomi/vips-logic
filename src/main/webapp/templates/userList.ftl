@@ -21,7 +21,8 @@
 <#macro custom_js>
     <script type="text/javascript">
 
-	const table = document.getElementById("userList");
+        const orgPlace = 3;
+        const table = document.getElementById("userList");
         const tr = table.getElementsByTagName("tr");
 
         function sortByOrg() {
@@ -29,10 +30,10 @@
           var organID = document.getElementById("selectOrg").value;
           
             for (i = 1; i < tr.length; i++) {
-                var organisasjon = tr[i].getElementsByTagName("td")[3].id;
+                var organization = tr[i].getElementsByTagName("td")[orgPlace].id;
                 var isDiplay = true;
 
-                if (organID != '-1' && organisasjon != organID) {
+                if (organID != '-1' && organization != organID) {
                   isDiplay = false;
                 }
 
@@ -44,32 +45,28 @@
             }
         }
 
-
-        function sortByUserType() {
-            var userTypeId = document.getElementById("selectUserType").value;
+        function sortByUserRole() {
+            var roleTypeId = document.getElementById("selectUserRole").value;
 
             for (i = 1; i < tr.length; i++) {
                 var isDiplay = false;
-                if(userTypeId == -1){
+                var role = tr[i].getElementsByTagName('li');
+
+                if(roleTypeId == -1){
                     isDiplay = true;
                 } else {
-                    if(tr[i].getElementsByTagName("td")[4] == null){
-                        isDiplay = false;
+                    if(role != null){
+                        for(j = 0; j<role.length ; j++){
+                            if(isDiplay != true){
+                                var userType = role[j].id;
 
-                    }else{
-                        var counter = 4;
-                        
-                        while(tr[i].getElementsByTagName("td")[counter] && isDiplay != true){
-                            var userType = tr[i].getElementsByTagName("td")[counter].id;
-
-                            if(userType == userTypeId){
-                                isDiplay = true;
+                                if(userType == roleTypeId){
+                                    isDiplay = true;
+                                }
                             }
-                            counter++;
                         }
                     }
                 }
-
                 if (isDiplay) {
                     tr[i].style.display = "";
                 } else {
@@ -77,40 +74,6 @@
                 }
             }
         }
-
-/*
-          
-            for (i = 1; i < tr.length; i++) {
-                if(tr[i].getElementsByTagName("td")[4] == null){
-                        isDisplay = false;
-                        tr[i].style.display = "none";
-                        console.log(tr[i].getElementsByTagName("td")[1].textContent);
-                }else{
-                    var counter = 4;
-                    while(tr[i].getElementsByTagName("td")[counter]){
-
-                        
-                        var userType = tr[i].getElementsByTagName("td")[counter].id;
-                        console.log(userType);
-                        var isDiplay = true;
-
-                        
-                        if (userTypeId != '-1' && userType != userTypeId) {
-                            isDiplay = false;
-                        }
-
-                        if (isDiplay) {
-                          tr[i].style.display = "";
-                        } else {
-                          tr[i].style.display = "none";
-                        }
-                        
-                        counter++;
-                    }
-                }
-            }
-        }
-*/
 
     </script>
 </#macro>
@@ -125,15 +88,17 @@
 	</#if>
         <tr>
             <td>
-                <select onclick="sortByUserType();" id="selectUserType">
-                    <option value="-1">*Alle typer brukere</option>
-                    <#list vipsLogicRoles as role>
-                        <option value="${role.vipsLogicRoleId}">${i18nBundle["vipsLogicRole_" + role.vipsLogicRoleId]}</option>
-                    </#list>
-	  	</select>
+                <#if user.isSuperUser() || user.isOrganizationAdmin() >
+                    <select onclick="sortByUserRole();" id="selectUserRole" class="form-control">
+                        <option value="-1">*Alle typer brukere</option>
+                        <#list vipsLogicRoles as role>
+                            <option value="${role.vipsLogicRoleId}">${i18nBundle["vipsLogicRole_" + role.vipsLogicRoleId]}</option>
+                        </#list>
+                    </select>
+                </#if>
             <br>
                 <#if user.isSuperUser() >
-                    <select onclick="sortByOrg();" id="selectOrg"  >
+                    <select onclick="sortByOrg();" id="selectOrg" class="form-control">
                         <option value="-1">*Alle organisasjoner</option>
                         <#list organizations as org>
                             <option value=${org.organizationId}>${org.organizationName}</option>
@@ -149,7 +114,7 @@
                         <th>${i18nBundle.firstName}</th>
 			<th>${i18nBundle.status}</th>
                         <th>*Organisasjon</th>
-                        <th>*type</th>
+                        <th>*Roller</th>
 		</thead>
 		<tbody>
                 <!-- The ones that need treatment first -->
@@ -157,16 +122,19 @@
                 <#list userStatusOrdering as currentUserStatusId>
                     <#list users?sort_by("lastName") as user>
                         <#if user.userStatusId == currentUserStatusId>
-                        <tr>
-                            <td><a href="/user?action=viewUser&userId=${user.userId}">${user.lastName}</a></td>
-                            <td><a href="/user?action=viewUser&userId=${user.userId}">${user.firstName}</a></td>
-                            <td>${i18nBundle["userStatus_" + user.userStatusId]}</td>
-                            <td id=${user.organizationId.organizationId}>${user.organizationId.organizationName}</td>
-                            <#list user.vipsLogicRoles as i> 
-                                <td id=${i.vipsLogicRoleId}>${i18nBundle["vipsLogicRole_" + i.vipsLogicRoleId]}</td>
-                            </#list>
-                            
-                        </tr>
+                            <tr>
+                                <td><a href="/user?action=viewUser&userId=${user.userId}">${user.lastName}</a></td>
+                                <td><a href="/user?action=viewUser&userId=${user.userId}">${user.firstName}</a></td>
+                                <td>${i18nBundle["userStatus_" + user.userStatusId]}</td>
+                                <td id=${user.organizationId.organizationId}>${user.organizationId.organizationName}</td>
+                                <td>
+                                    <#list user.vipsLogicRoles as role>
+                                        <ul>
+                                            <li id=${role.vipsLogicRoleId} style="list-style-type:none">${i18nBundle["vipsLogicRole_" + role.vipsLogicRoleId]}</li>
+                                        </ul>
+                                    </#list>
+                                </td>
+                            </tr>
                         </#if>
                     </#list>
                 </#list>
