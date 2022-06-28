@@ -42,6 +42,8 @@ import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.util.DOMUtils;
 import no.nibio.vips.util.WeatherElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -52,6 +54,7 @@ import org.xml.sax.SAXException;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class YrWeatherForecastProvider implements WeatherForecastProvider{
+    private static Logger LOGGER = LoggerFactory.getLogger(YrWeatherForecastProvider.class);
 
     private final static String YR_API_URL = "https://api.met.no/weatherapi/locationforecast/2.0/classic?lat={0}&lon={1}";
     
@@ -85,7 +88,7 @@ public class YrWeatherForecastProvider implements WeatherForecastProvider{
             connection.addRequestProperty("accept", "application/xml");
             connection.connect();
             
-            //System.out.println("yrURL=" + yrURL.toString());
+            LOGGER.debug("yrURL=" + yrURL.toString());
             //System.out.println(getStringFromInputStream(yrURL.openStream()));
             
             
