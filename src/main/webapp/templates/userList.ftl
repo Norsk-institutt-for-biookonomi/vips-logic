@@ -33,22 +33,42 @@
         const table = document.getElementById("userList");
         const tr = table.getElementsByTagName("tr");
 
-        function sortByOrg() {
+        function sortByOrgAndUserRole() {
 
-          var organID = document.getElementById("selectOrg").value;
+            var organID = document.getElementById("selectOrg").value;
+            var roleTypeId = document.getElementById("selectUserRole").value;
           
             for (i = 1; i < tr.length; i++) {
                 var organization = tr[i].getElementsByTagName("td")[orgPlace].id;
-                var isDiplay = true;
+                var role = tr[i].getElementsByTagName('li');
+                var displayOrg = true;
+                var displayRole = false;
 
                 if (organID != '-1' && organization != organID) {
-                  isDiplay = false;
+                    displayOrg = false;
                 }
+            
+                var role = tr[i].getElementsByTagName('li');
 
-                if (isDiplay) {
-                  tr[i].style.display = "";
+                if(roleTypeId == -1){
+                    displayRole = true;
                 } else {
-                  tr[i].style.display = "none";
+                    if(role != null){
+                        for(j = 0; j<role.length ; j++){
+                            if(displayRole != true){
+                                var userType = role[j].id;
+
+                                if(userType == roleTypeId){
+                                    displayRole = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (displayRole && displayOrg) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
                 }
             }
         }
@@ -97,7 +117,7 @@
         <tr>
             <td>
                 <#if user.isSuperUser() || user.isOrganizationAdmin() >
-                    <select onclick="sortByUserRole();" id="selectUserRole" class="form-control">
+                    <select onchange="<#if user.isSuperUser()>sortByOrgAndUserRole();<#else>sortByUserRole();</#if>" id="selectUserRole" class="form-control">
                         <option value="-1">*Alle typer brukere</option>
                         <#list vipsLogicRoles as role>
                             <option value="${role.vipsLogicRoleId}">${i18nBundle["vipsLogicRole_" + role.vipsLogicRoleId]}</option>
@@ -106,7 +126,7 @@
                 </#if>
             <br>
                 <#if user.isSuperUser() >
-                    <select onclick="sortByOrg();" id="selectOrg" class="form-control">
+                    <select onclick="sortByOrgAndUserRole();" id="selectOrg" class="form-control">
                         <option value="-1">*Alle organisasjoner</option>
                         <#list organizations as org>
                             <option value=${org.organizationId}>${org.organizationName}</option>
