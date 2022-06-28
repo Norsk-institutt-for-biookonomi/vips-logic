@@ -113,12 +113,12 @@
 	</p>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
-	</#if>
+	</#if>              
         <tr>
             <td>
                 <#if user.isSuperUser() || user.isOrganizationAdmin() >
                     <select onchange="<#if user.isSuperUser()>sortByOrgAndUserRole();<#else>sortByUserRole();</#if>" id="selectUserRole" class="form-control">
-                        <option value="-1">*Alle typer brukere</option>
+                        <option value="-1">${i18nBundle.allRoles}</option>
                         <#list vipsLogicRoles as role>
                             <option value="${role.vipsLogicRoleId}">${i18nBundle["vipsLogicRole_" + role.vipsLogicRoleId]}</option>
                         </#list>
@@ -127,7 +127,7 @@
             <br>
                 <#if user.isSuperUser() >
                     <select onclick="sortByOrgAndUserRole();" id="selectOrg" class="form-control">
-                        <option value="-1">*Alle organisasjoner</option>
+                        <option value="-1">${i18nBundle.allOrganizations}</option>
                         <#list organizations as org>
                             <option value=${org.organizationId}>${org.organizationName}</option>
                         </#list>  
@@ -141,8 +141,8 @@
 			<th>${i18nBundle.lastName}</th>
                         <th>${i18nBundle.firstName}</th>
 			<th>${i18nBundle.status}</th>
-                        <th>*Organisasjon</th>
-                        <th>*Roller</th>
+                        <th>${i18nBundle.organizationId}</th>
+                        <th>${i18nBundle.vipsLogicRoles}</th>
 		</thead>
 		<tbody>
                 <!-- The ones that need treatment first -->
