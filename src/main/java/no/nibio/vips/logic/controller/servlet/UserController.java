@@ -98,6 +98,9 @@ public class UserController extends HttpServlet {
                 if(user.isSuperUser())
                 {
                     users = userBean.getAllUsers();
+                    List<Organization> organizations = userBean.getOrganizations();
+                    request.setAttribute("organizations", organizations);
+                    request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
                 }
                 else
                 {
