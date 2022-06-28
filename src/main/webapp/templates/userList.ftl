@@ -24,31 +24,37 @@
         padding-inline-start: 1px;
         }
     </style>
-    
+
 </#macro>
 <#macro custom_js>
     <script type="text/javascript">
-
+        
+        const statusPlace = 2;
         const orgPlace = 3;
         const table = document.getElementById("userList");
         const tr = table.getElementsByTagName("tr");
 
-        function sortByOrgAndUserRole() {
+        function sortAll() {
 
             var organID = document.getElementById("selectOrg").value;
             var roleTypeId = document.getElementById("selectUserRole").value;
+            var statusId = document.getElementById("selectStatus").value;
           
             for (i = 1; i < tr.length; i++) {
                 var organization = tr[i].getElementsByTagName("td")[orgPlace].id;
                 var role = tr[i].getElementsByTagName('li');
+                var status = tr[i].getElementsByTagName("td")[statusPlace].id;
+                var displayStatus = true;
                 var displayOrg = true;
                 var displayRole = false;
 
                 if (organID != '-1' && organization != organID) {
                     displayOrg = false;
                 }
-            
-                var role = tr[i].getElementsByTagName('li');
+
+                if (statusId != '-1' && status != statusId) {
+                    displayStatus = false;
+                }
 
                 if(roleTypeId == -1){
                     displayRole = true;
@@ -65,7 +71,7 @@
                         }
                     }
                 }
-                if (displayRole && displayOrg) {
+                if (displayRole && displayOrg && displayStatus) {
                     tr[i].style.display = "";
                 } else {
                     tr[i].style.display = "none";
@@ -77,25 +83,25 @@
             var roleTypeId = document.getElementById("selectUserRole").value;
 
             for (i = 1; i < tr.length; i++) {
-                var isDiplay = false;
+                var isDisplay = false;
                 var role = tr[i].getElementsByTagName('li');
 
                 if(roleTypeId == -1){
-                    isDiplay = true;
+                    isDisplay = true;
                 } else {
                     if(role != null){
                         for(j = 0; j<role.length ; j++){
-                            if(isDiplay != true){
+                            if(isDisplay != true){
                                 var userType = role[j].id;
 
                                 if(userType == roleTypeId){
-                                    isDiplay = true;
+                                    isDisplay = true;
                                 }
                             }
                         }
                     }
                 }
-                if (isDiplay) {
+                if (isDisplay) {
                     tr[i].style.display = "";
                 } else {
                     tr[i].style.display = "none";
@@ -113,28 +119,46 @@
 	</p>
         <#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
-	</#if>              
+	</#if> 
         <tr>
             <td>
+            <div class="row">
+            <div class="col-sm-4">
                 <#if user.isSuperUser() || user.isOrganizationAdmin() >
-                    <select onchange="<#if user.isSuperUser()>sortByOrgAndUserRole();<#else>sortByUserRole();</#if>" id="selectUserRole" class="form-control">
+                    <select onchange="<#if user.isSuperUser()>sortAll();<#else>sortByUserRole();</#if>" id="selectUserRole" class="form-control">
                         <option value="-1">${i18nBundle.allRoles}</option>
                         <#list vipsLogicRoles as role>
                             <option value="${role.vipsLogicRoleId}">${i18nBundle["vipsLogicRole_" + role.vipsLogicRoleId]}</option>
                         </#list>
                     </select>
                 </#if>
-            <br>
+            </div>
+            <div class="col-sm-4">
                 <#if user.isSuperUser() >
-                    <select onclick="sortByOrgAndUserRole();" id="selectOrg" class="form-control">
+                    <select onchange="sortAll();" id="selectOrg" class="form-control">
                         <option value="-1">${i18nBundle.allOrganizations}</option>
                         <#list organizations as org>
                             <option value=${org.organizationId}>${org.organizationName}</option>
                         </#list>  
                     </select>
                 </#if>
+            </div>
+            <div class="col-sm-4">
+                <#if user.isSuperUser() || user.isOrganizationAdmin()>
+                    <select id="selectStatus" onchange="sortAll();" class="form-control">
+                        <option value="-1">${i18nBundle.allStatuses}</option>
+                        <option value="1">${i18nBundle["userStatus_" + 1]}</option>
+                        <option value="2">${i18nBundle["userStatus_" + 2]}</option>
+                        <option value="3">${i18nBundle["userStatus_" + 3]}</option>
+                        <option value="4">${i18nBundle["userStatus_" + 4]}</option>
+                        <option value="5">${i18nBundle["userStatus_" + 5]}</option>
+                    </select>
+                </#if>
+            </div>
+        </div>
             </td>
         </tr>
+    <br>
         <div class="table-responsive">
             <table class="table table-striped" id="userList">
 		<thead>
@@ -153,7 +177,7 @@
                             <tr>
                                 <td><a href="/user?action=viewUser&userId=${user.userId}">${user.lastName}</a></td>
                                 <td><a href="/user?action=viewUser&userId=${user.userId}">${user.firstName}</a></td>
-                                <td>${i18nBundle["userStatus_" + user.userStatusId]}</td>
+                                <td id=${user.userStatusId}>${i18nBundle["userStatus_" + user.userStatusId]}</td>
                                 <td id=${user.organizationId.organizationId}>${user.organizationId.organizationName}</td>
                                 <td>
                                     <#list user.vipsLogicRoles as role>
