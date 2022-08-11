@@ -1,4 +1,7 @@
 # VIPSLogic push notifications ("messaging")
+
+**Last update: 2022-08-11**
+
 VIPSLogic allows for push notifications for a few events:
 * Publication of a news message tagged with a crop category and a message type selected by the user
 * Publication of a field observation tagged with a crop category selected by the user
