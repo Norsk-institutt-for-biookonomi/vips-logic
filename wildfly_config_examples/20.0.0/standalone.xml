@@ -56,13 +56,15 @@
         <property name="no.nibio.vips.logic.AVAILABLE_LANGUAGES" value="en,nb,zh_CN"/>
         <property name="no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM" value="true"/>
         <property name="no.nibio.vips.logic.weather.VIPS_WEATHER_PROXY_BASE_URL" value="http://localhost:8080/VIPSWeatherProxy"/>
-        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_USERNAME" value="nibiovips"/>
-        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_PASSWORD" value="XXXXXXXXXXXX"/>
-        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_ID" value="XXXXXXXXXXXXXXXX"/>
-        <property name="no.nibio.vips.logic.weather.FIELDCLIMATE_API_CLIENT_SECRET" value="XXXXXXXXXXXXXXXXXXXXXX"/>
-        <property name="no.nibio.vips.logic.weather.METNOTHREDDS_TMP_FILE_PATH" value="/home/tdeveloper/vips/projects/2017_SpotIT/Task 3.2/"/>
         <property name="no.nibio.vips.logic.USER_COUNTRY_CODES" value="NO,SE,BA,LV,US,FI,LT,CH"/>
         <property name="no.nibio.vips.logic.AVAILABLE_TIMEZONES" value="Europe/Oslo,Europe/Zurich,Europe/Stockholm,Europe/Vilnius,Europe/Helsinki"/>
+        <property name="no.nibio.vips.logic.messaging.dist.SIMULATE_MAIL_SENDING" value="true"/>
+	<property name="no.nibio.vips.logic.messaging.dist.MAIL_SENDER_ADDRESS" value="noreply@foobar.com"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_SERVER" value="smsgateway.foobar.com"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_USERNAME" value="foobar"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_PASSWORD" value="foobar"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_SENDER_SRC" value="foobar"/>
+	<property name="no.nibio.vips.logic.messaging.dist.TRAFFIC_LOG_DIRECTORY" value="/var/log/trafficLog/"/>
     </system-properties>
     <management>
         <security-realms>

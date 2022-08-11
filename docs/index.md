@@ -71,6 +71,8 @@ in the standalone.xml file. Examples for this is available in the `wildfly_confi
 
 `sudo docker run --publish 18080:8080 --add-host=vipslogicdb:[YOUR_HOSTS_IP_ADDRESS] --detach --name vipslogic vips/logic:TEST01`
 
+`172.17.0.1` is the default IP adress for the Docker host if you are running on Linux. Change accordingly. On Mac and Windows you should be able to swap this for `host.docker.internal`.
+
 #### Troubleshooting by logging in
 `sudo docker exec -it <containername> bash`
 
