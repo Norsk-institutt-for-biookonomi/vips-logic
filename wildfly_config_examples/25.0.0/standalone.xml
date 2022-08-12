@@ -166,7 +166,7 @@
                     <driver>postgresql</driver>
                     <security>
                         <user-name>vipslogic</user-name>
-                        <password>VIPS123</password>
+                        <password>foobar</password>
                     </security>
                 </datasource>
                 <drivers>
