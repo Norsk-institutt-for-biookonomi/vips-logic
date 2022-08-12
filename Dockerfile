@@ -48,7 +48,9 @@ COPY --from=MAVEN_BUILD /root/.m2 /root/.m2
 # Use the sample wildfly_config/standalone.xml, add the correct configs, and copy to the parent folder of the 
 # VIPSLogic source folder
 # For e.g database setup: Remember that the Docker host's hostname is host.docker.internal on Windows and 
-# 172.17.0.1 if you are using default networking on Linux
+# 172.17.0.1 if you are using default networking on Linux. You can set this e.g. by running the container like this:
+# sudo docker run --publish 18080:8080 --add-host=vipslogicdb:[YOUR_HOSTS_IP_ADDRESS] --detach --name vipslogic vips/logic:TEST01
+# The --add-host directive changes the DNS resolving on the Docker container. Set the hostname in standalone.xml to vipslogicdb
 COPY  ./standalone.xml ${JBOSS_HOME}/standalone/configuration/standalone.xml
 
 # PostgreSQL and PostGIS JDBC drivers
