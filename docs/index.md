@@ -13,7 +13,7 @@
 
 ### Recommended: Building with Docker
 #### First: the database
-The docker container needs a database. Important parts of the data model [is described in the Data Model chapter](./data_model.md).
+The docker container needs a database. Important parts of the data model [are described in the Data Model chapter](./data_model.md).
 
 So make sure you have PostgreSQL >= 10 and PostGIS >=2.4 installed. Then create a user called vipslogic. Make sure you enter the vipslogic username and password in the `standalone.xml` file of Wildfly (see chapter below).
 
