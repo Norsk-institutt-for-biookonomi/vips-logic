@@ -66,6 +66,38 @@ Run
 VIPSLogic is using system properties for instance specific settings. In Wildfly (JBoss), these can be provided
 in the standalone.xml file. Examples for this is available in the `wildfly_config_examples/` folder. 
 
+Explanation of the properties:
+
+```properties
+no.nibio.vips.logic.VIPSLOGIC_PROTOCOL=https
+no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS=0
+no.nibio.vips.logic.SYSTEM_TIME_EXACT_DATE=2021-08-01
+no.nibio.vips.logic.START_SCHEDULING_ON_BOOT=false
+no.nibio.vips.logic.MD5_SALT=XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+no.nibio.vips.logic.VIPSCOREMANAGER_URL=http://localhost:8080/VIPSCoreManager
+no.nibio.vips.logic.CORE_BATCH_USERNAME=foobar
+no.nibio.vips.logic.CORE_BATCH_PASSWORD=XXXXXXXX
+no.nibio.vips.logic.SMTP_SERVER=mail4.foobar.com
+no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH=/home/developer/vips/temp/static/images/messages
+no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH=/home/developer/vips/temp/static/images/observations
+no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID=XXXXXXXXXXXXXXXXXXXXXX
+no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_SECRET=XXXXXXXXXXXXXXXXXXXXXX
+no.nibio.vips.logic.ALLOWED_X_DOMAINS=vipsweb,localhost
+        <property name="no.nibio.vips.logic.AVAILABLE_LANGUAGES" value="en,nb,zh_CN"/>
+        <property name="no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM" value="true"/>
+        <property name="no.nibio.vips.logic.weather.VIPS_WEATHER_PROXY_BASE_URL" value="http://localhost:8080/VIPSWeatherProxy"/>
+        <property name="no.nibio.vips.logic.USER_COUNTRY_CODES" value="NO,SE,BA,LV,US,FI,LT,CH"/>
+        <property name="no.nibio.vips.logic.AVAILABLE_TIMEZONES" value="Europe/Oslo,Europe/Zurich,Europe/Stockholm,Europe/Vilnius,Europe/Helsinki"/>
+        <property name="no.nibio.vips.logic.messaging.dist.SIMULATE_MAIL_SENDING" value="true"/>
+	<property name="no.nibio.vips.logic.messaging.dist.MAIL_SENDER_ADDRESS" value="noreply@foobar.com"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_SERVER" value="smsgateway.foobar.com"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_USERNAME" value="foobar"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_PASSWORD" value="foobar"/>
+	<property name="no.nibio.vips.logic.messaging.dist.SMS_SENDER_SRC" value="foobar"/>
+	<property name="no.nibio.vips.logic.messaging.dist.TRAFFIC_LOG_DIRECTORY" value="/var/log/trafficLog/"/>
+
+```
+
 #### Running VIPSLogic
 
 `sudo docker run --publish 18080:8080 --add-host=vipslogicdb:[YOUR_HOSTS_IP_ADDRESS] --detach --name vipslogic vips/logic:TEST01`
