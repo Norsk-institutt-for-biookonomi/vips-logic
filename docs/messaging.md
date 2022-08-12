@@ -28,7 +28,7 @@ The code for the messaging system is found in the `no.nibio.vips.logic.messaging
 ## Configuration
 These system properties must be set in order for the messaging system to function:
 
-```bash
+```properties
 # Set to true if you want to dry run the email system
 no.nibio.vips.logic.messaging.dist.SIMULATE_MAIL_SENDING=true
 # This will be the email sender address displayed to the receiver

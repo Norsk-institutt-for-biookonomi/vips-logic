@@ -4,7 +4,7 @@
 
 [Authentication](./authentication.md)
 
-[Messaging](./messaging.md)
+[Notification system](./messaging.md)
 
 [Troubleshooting](./troubleshooting.md)
 
@@ -69,34 +69,54 @@ in the standalone.xml file. Examples for this is available in the `wildfly_confi
 Explanation of the properties:
 
 ```properties
-no.nibio.vips.logic.VIPSLOGIC_PROTOCOL=https
+# Which protocol is this instance of vipslogic using? http or https. It's used for URL building/redirects
+no.nibio.vips.logic.VIPSLOGIC_PROTOCOL=http
+# Used for testing purposes. Substract e.g. 12 months to see the state of the system one year ago
+# This value is overriden if no.nibio.vips.logic.SYSTEM_TIME_EXACT_DATE is set
 no.nibio.vips.logic.SYSTEM_TIME_OFFSET_MONTHS=0
+# Used for testing purposes. Fixes the system time to one specific date
 no.nibio.vips.logic.SYSTEM_TIME_EXACT_DATE=2021-08-01
+# Set to false if you don't want the scheduling system (which runs models several times per day) to start
 no.nibio.vips.logic.START_SCHEDULING_ON_BOOT=false
+# MD5 hash salt for passwords encryption
 no.nibio.vips.logic.MD5_SALT=XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Where to find the model running server. Could be VIPSCore (simpler for testing purposes) or VIPSCoreManager
 no.nibio.vips.logic.VIPSCOREMANAGER_URL=http://localhost:8080/VIPSCoreManager
+# If you're using VIPSCoreManager as the running server, you need valid credentials
 no.nibio.vips.logic.CORE_BATCH_USERNAME=foobar
 no.nibio.vips.logic.CORE_BATCH_PASSWORD=XXXXXXXX
+# Mail server hostname for sending mails to users (e.g. when registering a new user)
 no.nibio.vips.logic.SMTP_SERVER=mail4.foobar.com
+# Path to news message illustrations (served statically by Apache/Nginx)
 no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH=/home/developer/vips/temp/static/images/messages
+# Path to field observation illustrations (served statically by Apache/Nginx)
 no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH=/home/developer/vips/temp/static/images/observations
+# Credentials for Google OAuth logins
 no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID=XXXXXXXXXXXXXXXXXXXXXX
 no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_SECRET=XXXXXXXXXXXXXXXXXXXXXX
+# Which domains are allowed to access cookies and localStorage (given that we're behind a reverse proxy)
 no.nibio.vips.logic.ALLOWED_X_DOMAINS=vipsweb,localhost
-        <property name="no.nibio.vips.logic.AVAILABLE_LANGUAGES" value="en,nb,zh_CN"/>
-        <property name="no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM" value="true"/>
-        <property name="no.nibio.vips.logic.weather.VIPS_WEATHER_PROXY_BASE_URL" value="http://localhost:8080/VIPSWeatherProxy"/>
-        <property name="no.nibio.vips.logic.USER_COUNTRY_CODES" value="NO,SE,BA,LV,US,FI,LT,CH"/>
-        <property name="no.nibio.vips.logic.AVAILABLE_TIMEZONES" value="Europe/Oslo,Europe/Zurich,Europe/Stockholm,Europe/Vilnius,Europe/Helsinki"/>
-        <property name="no.nibio.vips.logic.messaging.dist.SIMULATE_MAIL_SENDING" value="true"/>
-	<property name="no.nibio.vips.logic.messaging.dist.MAIL_SENDER_ADDRESS" value="noreply@foobar.com"/>
-	<property name="no.nibio.vips.logic.messaging.dist.SMS_SERVER" value="smsgateway.foobar.com"/>
-	<property name="no.nibio.vips.logic.messaging.dist.SMS_USERNAME" value="foobar"/>
-	<property name="no.nibio.vips.logic.messaging.dist.SMS_PASSWORD" value="foobar"/>
-	<property name="no.nibio.vips.logic.messaging.dist.SMS_SENDER_SRC" value="foobar"/>
-	<property name="no.nibio.vips.logic.messaging.dist.TRAFFIC_LOG_DIRECTORY" value="/var/log/trafficLog/"/>
-
+# Languages available for the application's web pages (in select list at top of page)
+no.nibio.vips.logic.AVAILABLE_LANGUAGES=en,nb,zh_CN
+# Set to true if you want to disable notifications 
+no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM=true
+# URL to the VIPS weather proxy (Currently used by the FMI forecasting service)
+no.nibio.vips.logic.weather.VIPS_WEATHER_PROXY_BASE_URL=http://localhost:8080/VIPSWeatherProxy
+# Countries available in relevant select lists
+no.nibio.vips.logic.USER_COUNTRY_CODES=NO,SE,BA,LV,US,FI,LT,CH
+# Timezones available in relevant select lists
+no.nibio.vips.logic.AVAILABLE_TIMEZONES=Europe/Oslo,Europe/Zurich,Europe/Stockholm,Europe/Vilnius,Europe/Helsinki
+# The properties below are explained in messaging.md
+no.nibio.vips.logic.messaging.dist.SIMULATE_MAIL_SENDING=true
+no.nibio.vips.logic.messaging.dist.MAIL_SENDER_ADDRESS=noreply@foobar.com
+no.nibio.vips.logic.messaging.dist.SMS_SERVER=smsgateway.foobar.com
+no.nibio.vips.logic.messaging.dist.SMS_USERNAME=foobar
+no.nibio.vips.logic.messaging.dist.SMS_PASSWORD=foobar
+no.nibio.vips.logic.messaging.dist.SMS_SENDER_SRC=foobar"
+no.nibio.vips.logic.messaging.dist.TRAFFIC_LOG_DIRECTORY=/var/log/trafficLog/
 ```
+
+The `no.nibio.vips.logic.messaging.dist.X` properties are explained in the documentation of the [notification system](./messaging.md).
 
 #### Running VIPSLogic
 
