@@ -45,9 +45,9 @@
         <property name="no.nibio.vips.logic.START_SCHEDULING_ON_BOOT" value="false"/>
         <property name="no.nibio.vips.logic.MD5_SALT" value="XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"/>
         <property name="no.nibio.vips.logic.VIPSCOREMANAGER_URL" value="http://localhost:8080/VIPSCoreManager"/>
-        <property name="no.nibio.vips.logic.CORE_BATCH_USERNAME" value="vipsbatch"/>
+        <property name="no.nibio.vips.logic.CORE_BATCH_USERNAME" value="foobar"/>
         <property name="no.nibio.vips.logic.CORE_BATCH_PASSWORD" value="XXXXXXXX"/>
-        <property name="no.nibio.vips.logic.SMTP_SERVER" value="mail4.nibio.no"/>
+        <property name="no.nibio.vips.logic.SMTP_SERVER" value="mail4.foobar.com"/>
         <property name="no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH" value="/home/developer/vips/temp/static/images/messages"/>
         <property name="no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH" value="/home/developer/vips/temp/static/images/observations"/>
         <property name="no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID" value="XXXXXXXXXXXXXXXXXXXXXX"/>
