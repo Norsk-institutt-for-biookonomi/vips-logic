@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@ package no.nibio.vips.logic.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
 
 import java.io.IOException;
 import java.net.URI;
@@ -80,13 +81,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @copyright 2016-2021 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest/observation")
 public class ObservationService {
     
-    private static Logger LOGGER = LoggerFactory.getLogger(ObservationService.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ObservationService.class);
     
     @Context
     private HttpServletRequest httpServletRequest;
@@ -115,14 +116,15 @@ public class ObservationService {
      * @param pestId
      * @param cropId
      * @param cropCategoryId
-     * @param from
-     * @param to
+     * @param fromStr
+     * @param toStr
      * @return Observation objects with all data (full tree)
      */
     @GET
     @Path("filter/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation[].class)
     public Response getFilteredObservations(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("pestId") Integer pestId,
@@ -157,6 +159,7 @@ public class ObservationService {
     @Path("list/filter/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ObservationListItem.class)
     public Response getFilteredObservationListItems(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("pestId") Integer pestId,
@@ -206,7 +209,16 @@ public class ObservationService {
         return Response.ok().entity(observations).build();
     }
             
-            
+    /**
+     * 
+     * @param organizationId
+     * @param pestId
+     * @param cropId
+     * @param cropCategoryId
+     * @param fromStr
+     * @param toStr
+     * @return 
+     */
     private List<Observation> getFilteredObservationsFromBackend(
             Integer organizationId,
             Integer pestId,
@@ -287,6 +299,7 @@ public class ObservationService {
     @GET
     @Path("pest/{organizationId}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation[].class)
     public Response getObservedPests(@PathParam("organizationId") Integer organizationId)
     {
         return Response.ok().entity(observationBean.getObservedPests(organizationId)).build();
@@ -302,6 +315,7 @@ public class ObservationService {
     @GET
     @Path("crop/{organizationId}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation[].class)
     public Response getObservedCrops(@PathParam("organizationId") Integer organizationId)
     {
         return Response.ok().entity(observationBean.getObservedCrops(organizationId)).build();
@@ -317,6 +331,7 @@ public class ObservationService {
     @Path("list/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation[].class)
     public Response getObservations(@PathParam("organizationId") Integer organizationId){
         return Response.ok().entity(observationBean.getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
     }
@@ -324,11 +339,13 @@ public class ObservationService {
     /**
      * Get observations for a user
      * Requires a valid UUID to be provided in the Authorization header
+     * @param observationIds
      * @return
      */
     @GET
     @Path("list/user")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation[].class)
     public Response getObservationsForUser(
     		@QueryParam("observationIds") String observationIds
     		)
@@ -365,13 +382,14 @@ public class ObservationService {
     }
     
     /**
-     * Get observations for a user
+     * Get minimized (only synchronization info) observations for a user
      * Requires a valid UUID to be provided in the Authorization header
      * @return
      */
     @GET
     @Path("list/minimized/user")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ObservationSyncInfo[].class)
     public Response getMinimizedObservationsForUser()
     {
 		VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
@@ -395,6 +413,7 @@ public class ObservationService {
     @Path("broadcast/list/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation[].class)
     public Response getBroadcastObservations(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("season") Integer season,
@@ -434,6 +453,7 @@ public class ObservationService {
     @GET
     @Path("{observationId}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation.class)
     public Response getObservation(
             @PathParam("observationId") Integer observationId,
             @QueryParam("userUUID") String userUUID
@@ -482,9 +502,15 @@ public class ObservationService {
         return Response.ok().entity(o).build();
     }
     
+    /**
+     * 
+     * @param organizationId
+     * @return 
+     */
     @GET
     @Path("polygonservices/{organizationId}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(PolygonService[].class)
     public Response getPolygonServicesForOrganization(
     		@PathParam("organizationId") Integer organizationId
     		)
@@ -492,8 +518,11 @@ public class ObservationService {
     	return Response.ok().entity(observationBean.getPolygonServicesForOrganization(organizationId)).build();
     }
     
+   
     /**
      * Deletes a gis entity and its corresponding observation
+     * @param gisId
+     * @return 
      */
     @DELETE
     @Path("gisobservation/{gisId}")
@@ -570,6 +599,7 @@ public class ObservationService {
     @GET
     @Path("first/{organismId}")
     @Produces("text/plain;charset=UTF-8")
+    @TypeHint(Date.class)
     public Response getFirstObservation(@PathParam("organismId") Integer organismId)
     {
         Date firstObsTime = observationBean.getFirstObservationTime(organismId);
@@ -579,12 +609,13 @@ public class ObservationService {
     
     /**
      * When was the last time a change was made in cropCategories or organisms?
-     * 
+     * @return last time a change was made in cropCategories or organisms
      * @responseExample application/json {"lastUpdated": "2021-02-08T00:00:00Z"}
      */
     @GET
     @Path("organismsystemupdated")
     @Produces(MediaType.APPLICATION_JSON)
+    @TypeHint(Date.class)
     public Response getDateOfLastOrganismSystemUpdate()
     {
     	HashMap<String, Object> result = new HashMap<>();
@@ -594,6 +625,17 @@ public class ObservationService {
     }
     
 
+    /**
+     * 
+     * @param organizationId
+     * @param pestId
+     * @param cropId
+     * @param cropCategoryId
+     * @param fromStr
+     * @param toStr
+     * @param user
+     * @return 
+     */
     private List<Observation> getFilteredObservationsFromBackend(Integer organizationId, Integer pestId, Integer cropId, List<Integer> cropCategoryId, String fromStr, String toStr, VipsLogicUser user) {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
         //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
@@ -708,6 +750,11 @@ public class ObservationService {
         return observations;
     }
     
+    /**
+     * 
+     * @param observationJson
+     * @return 
+     */
     @POST
     @Path("syncobservationfromapp")
     @Consumes("application/json;charset=UTF-8")
