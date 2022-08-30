@@ -60,6 +60,7 @@ public class GrowthStageService {
     PointOfInterestBean pointOfInterestBean;
     
     /**
+     * TODO Add response example
      * At what dates can we expect the given crop to be at the given growth stages
      * at the given location?
      * @param organismId
@@ -94,6 +95,7 @@ public class GrowthStageService {
     }
     
     /**
+     * TODO Add response example
      * At what GS is the given organism at the given date and location?
      * @param organismId
      * @param dateStr
@@ -122,6 +124,11 @@ public class GrowthStageService {
         return Response.ok().entity(retVal).build();
     }
 
+    /**
+     * 
+     * @param location
+     * @return 
+     */
     private Coordinate getLocationCoordinate(String location)
     {
         String[] lonLat = location.split(",");
@@ -131,6 +138,12 @@ public class GrowthStageService {
         return retVal;
     }
     
+    /**
+     * 
+     * @param datesForGrowthStages
+     * @param date
+     * @return 
+     */
     private Integer getGrowthStageForDate(List<GrowthStageLocationDate> datesForGrowthStages, LocalDate date)
     {
         Integer dateDayNum = date.getDayOfYear();
@@ -168,6 +181,13 @@ public class GrowthStageService {
         return null;
     }
     
+    /**
+     * 
+     * @param datesForGrowthStages
+     * @param growthStage
+     * @param season
+     * @return 
+     */
     private LocalDate getDateForGrowthStage(List<GrowthStageLocationDate> datesForGrowthStages, Integer growthStage, Integer season)
     {
         Collections.sort(datesForGrowthStages);
@@ -203,6 +223,12 @@ public class GrowthStageService {
         return null;
     }
     
+    /**
+     * 
+     * @param location
+     * @param organismId
+     * @return 
+     */
     private List<GrowthStageLocationDate> getGrowthStageDatesForLocationAndCrop(String location, Integer organismId)
     {
         List<PointOfInterestWeatherStation> stationsWithGrowthStageInfoForCrop = em.createNativeQuery(
