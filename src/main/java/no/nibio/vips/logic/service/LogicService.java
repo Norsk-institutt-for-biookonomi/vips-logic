@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
  * VIPSLogic is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@ package no.nibio.vips.logic.service;
 
 import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import java.util.TimeZone;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.text.DateFormat;
@@ -48,6 +49,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
@@ -56,6 +58,7 @@ import no.nibio.vips.logic.controller.session.MessageBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.ForecastResult;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -80,7 +83,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
 /**
- * @copyright 2013-2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest")
@@ -109,33 +112,34 @@ public class LogicService {
      * Get all results for one pest prediction
      * @param forecastConfigurationId Database id of the configured forecast
      * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
-     * @return JSON with result data. A list of ForecastResult objects. Example:
-     * <pre>
+     * @return JSON with result data. A list of ForecastResult objects. 
+     * @responseExample application/json
      * {
         "forecastResultId": 5710137,
         "validTimeStart": "2019-01-22T23:00:00.000+0000",
         "validTimeEnd": null,
         "warningStatus": 0,
         "forecastConfigurationId": -1000,
-        "validGeometry": { // NORMALLY SET ONLY IF the result set contains results for multiple locations
+        "validGeometry": { 
             "type": "Point",
             "coordinates": [
                 10.333252,
                 57.179002
             ]
         },
-        "keys": [ // A list of the existing parameter names in this result object
+        "keys": [ 
             "GRIDZYMOSE.WHS"
         ],
-        "allValues": { // Parameters with values. Everything is a String. Client must convert to numbers if necessary
+        "allValues": { 
             "GRIDZYMOSE.WHS": "0"
         }
-    }</pre>
+    }
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ForecastResult[].class)
     public Response getForecastResults(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
             @QueryParam("userUUID") String userUUID
@@ -161,6 +165,18 @@ public class LogicService {
      * @param forecastConfigurationId
      * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
      * @return 
+     * @responseExample text/csv
+     * Valid time start,Valid time end,Warning status,WEATHER.BT,NAERSTADMO.SPH,FORECAST.THRESHOLD_LOW,NAERSTADMO.VAS,NAERSTADMO.TSHH,NAERSTADMO.VRS,FORECAST.THRESHOLD_HIGH,NAERSTADMO.WD,WEATHER.RR,NAERSTADMO.IR,WEATHER.Q0,NAERSTADMO.RISK,WEATHER.UM,NAERSTADMO.WHS,NAERSTADMO.WH,WEATHER.TM
+     * 2022-05-21 00:00:00.0,null,2,0,0,1.0,0,0,0,2.5,0,0,0,0,0,77.86,0,0,12.61
+     * 2022-05-21 01:00:00.0,null,2,0,0,1.0,0,0,0,2.5,0,0,0,0,0,81.1,0,0,12.29
+     * 2022-05-21 02:00:00.0,null,2,0,0,1.0,0,0,0,2.5,0,0,0,0,0,84.1,0,0,11.85
+     * 2022-05-21 03:00:00.0,null,2,0,0,1.0,0,11.49,0,2.5,0,0,0,0,0,86.6,0,0,11.49
+     * 2022-05-21 04:00:00.0,null,2,0,0,1.0,0,22.42,0,2.5,0,0,0,1.17,0,90.5,0,0,10.93
+     * 2022-05-21 05:00:00.0,null,2,28,0,1.0,0,33.29,0,2.5,1,0,1,11.08,0,92.1,1,1,10.87
+     * 2022-05-21 06:00:00.0,null,2,60,0,1.0,0,44.32,0,2.5,2,0.2,1,19.02,0,92.3,1,1,11.03
+     * 2022-05-21 07:00:00.0,null,2,60,0,1.0,0,55.39,0,2.5,3,1,1,28.13,0,95,1,1,11.07
+     * 2022-05-21 08:00:00.0,null,2,60,0,1.0,0,66.54,0,2.5,4,1.4,1,49.35,0,97.6,1,1,11.15
+     * 2022-05-21 09:00:00.0,null,2,60,0,1.0,0,78.15,0,2.5,5,1.2,1,89.6,0,95.3,1,1,11.61
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}/csv")
@@ -215,11 +231,33 @@ public class LogicService {
      * @param latestDays
      * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
      * @return 
+     * @responseExample application/json
+     * {
+        "forecastResultId": 5710137,
+        "validTimeStart": "2019-01-22T23:00:00.000+0000",
+        "validTimeEnd": null,
+        "warningStatus": 0,
+        "forecastConfigurationId": -1000,
+        "validGeometry": { 
+            "type": "Point",
+            "coordinates": [
+                10.333252,
+                57.179002
+            ]
+        },
+        "keys": [ 
+            "GRIDZYMOSE.WHS"
+        ],
+        "allValues": { 
+            "GRIDZYMOSE.WHS": "0"
+        }
+    }
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}/{latestDays}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ForecastResult[].class)
     public Response getForecastResults(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
             @PathParam("latestDays") Integer latestDays,
@@ -241,10 +279,39 @@ public class LogicService {
         }
     }
     
+    /**
+     * Get the forecast results for a particular forecast configuration in a given period
+     * @param forecastConfigurationId
+     * @param dateStartStr format "yyyy-MM-dd"
+     * @param dateEndStr format "yyyy-MM-dd"
+     * @return The forecast results for a particular forecast configuration in a given period
+     * @responseExample application/json
+     * {
+        "forecastResultId": 5710137,
+        "validTimeStart": "2019-01-22T23:00:00.000+0000",
+        "validTimeEnd": null,
+        "warningStatus": 0,
+        "forecastConfigurationId": -1000,
+        "validGeometry": { 
+            "type": "Point",
+            "coordinates": [
+                10.333252,
+                57.179002
+            ]
+        },
+        "keys": [ 
+            "GRIDZYMOSE.WHS"
+        ],
+        "allValues": { 
+            "GRIDZYMOSE.WHS": "0"
+        }
+    }
+    */
     @GET
     @Path("forecastresults/{forecastConfigurationId}/{dateStart}/{dateEnd}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ForecastResult[].class)
     public Response getForecastResults(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
             @PathParam("dateStart") String dateStartStr,
@@ -265,15 +332,18 @@ public class LogicService {
     }
     
     /**
-     * @param organizationId
-     * @param cropOrganismIds
-     * @return 
+     * @param organizationId Id of the organization
+     * @param cropOrganismIds Integer list of crop ids
+     * @param includeOrganizationIds Optional additional organization ids - include summaries from these organizations as well
+     * @param userUUID unique login token (optional, used to authenticate user logged in via VIPSWeb)
+     * @return A list of forecast configurations (for (a) given organization(s)) with forecast summaries attached
      */
     @GET
     @Path("forecastconfigurationsummaries/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(ForecastConfiguration[].class)
     public Response getForecastSummaries(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("cropOrganismId") List<Integer> cropOrganismIds,
@@ -314,8 +384,9 @@ public class LogicService {
     
     /**
      * 
-     * @param userUUID
-     * @return 
+     * @param userUUID unique login token (optional, used to authenticate user logged in via VIPSWeb)
+     * @return A list of forecast configurations for the user's organization with forecast summaries attached
+     * @ignore
      */
     @GET
     @Path("forecastconfigurationsummaries/private/{userUUID}")
@@ -342,14 +413,18 @@ public class LogicService {
         
     /**
      * Get the configuration of the specified forecast
-     * @param forecastConfigurationId
+     * @param forecastConfigurationId The ID of the requested configuration (crop, pest, model, location, period, owner etc.)
      * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
-     * @return 
+     * @return the configuration (crop, pest, model, location, period, owner etc.) of the specified forecast
      */
     @GET
     @Path("forecastconfigurations/{forecastConfigurationId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getForecastConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId,@QueryParam("userUUID") String userUUID)
+    @TypeHint(ForecastConfiguration.class)
+    public Response getForecastConfiguration(
+            @PathParam("forecastConfigurationId") Long forecastConfigurationId,
+            @QueryParam("userUUID") String userUUID
+    )
     {
         if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
@@ -364,13 +439,14 @@ public class LogicService {
     
     /**
      * Returns public forecast configurations for the given model and season
-     * @param modelId
-     * @param year
+     * @param modelId The ID of the model. 10 character string. E.g. PSILARTEMP
+     * @param year The year for which to find the configured forecasts
      * @return 
      */
     @GET
     @Path("forecastconfigurations/model/{modelId}/{year}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ForecastConfiguration[].class)
     public Response getForecastConfigurationsForModel(@PathParam("modelId") String modelId, @PathParam("year") Integer year)
     {
         return Response.ok().entity(forecastBean.getForecastConfigurationsForModel(modelId, year)).build();
@@ -378,14 +454,15 @@ public class LogicService {
     
     
     /**
-     * 
-     * @param userUUID
+     * Returns private forecast configurations for the given user
+     * @param userUUID unique login token (optional, used to authenticate user logged in via VIPSWeb)
      * @return 
      */
     @GET
     @Path("forecastconfigurations/private/{userUUID}")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(ForecastConfiguration[].class)
     public Response getPrivateForecastConfigurations(@PathParam("userUUID") String userUUID)
     {
         try
@@ -409,10 +486,19 @@ public class LogicService {
         
     }
     
+    /**
+     * 
+     * @param organizationId The primary organization to get forecast configurations from
+     * @param includeOrganizationIds Additional organizations to get forecast configurations from
+     * @param fromStr Dateformat = "yyyy-MM-dd"
+     * @param toStr Dateformat = "yyyy-MM-dd"
+     * @return A list of forecast configurations (for (a) given organization(s))
+     */
     @GET
     @Path("forecastconfigurationsincludeorgs/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ForecastConfiguration[].class)
     public Response getActiveForecastConfigurationsWithIncludeOrganizations(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("includeOrganizationIds") String includeOrganizationIds,
@@ -464,14 +550,15 @@ public class LogicService {
      * Returns a list of forecasts for given organization
      * @param organizationId
      * @param cropOrganismIds
-     * @param from format="yyyy-MM-dd"
-     * @param to format="yyyy-MM-dd"
+     * @param fromStr format="yyyy-MM-dd"
+     * @param toStr format="yyyy-MM-dd"
      * @return 
      */
     @GET
     @Path("organizationforecastconfigurations/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ForecastConfiguration[].class)
     public Response getForecastConfigurationsForOrganization(
             @PathParam("organizationId") Integer organizationId, 
             @QueryParam("cropOrganismId") List<Integer> cropOrganismIds,
@@ -520,7 +607,7 @@ public class LogicService {
     
     
     /**
-     * 
+     * Check if a proposed password meets the requirements configured by Passay
      * @param password
      * @return 
      */
@@ -533,20 +620,27 @@ public class LogicService {
         ULocale currentLocale = SessionLocaleUtil.getCurrentLocale(httpServletRequest);
         try
         {
-            boolean isPasswordValid = userBean.isPasswordValid(password, currentLocale);
-            return Response.ok().entity("true").build();
+            // Invalid passwords always cause a PasswordValidationException to be thrown
+            Boolean isPasswordValid = userBean.isPasswordValid(password, currentLocale);
+            return Response.ok().entity(isPasswordValid).build();
             
         }
         catch(PasswordValidationException ex)
         {
-            return Response.ok().entity(ex.getMessage()).build();
+            return Response.status(Status.BAD_REQUEST).entity(ex.getMessage()).build();
         }
     }
     
+    /**
+     * The model configuration (model specific parameters and their values) for the given forecast configuration
+     * @param forecastConfigurationId
+     * @return 
+     */
     @GET
     @Path("forecastmodelconfiguration/{forecastConfigurationId}")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(ForecastModelConfiguration.class)
     public Response getForecastModelConfiguration(@PathParam("forecastConfigurationId") Long forecastConfigurationId)
     {
         List<ForecastModelConfiguration> forecastModelConfigurations = forecastBean.getForecastModelConfigurations(forecastConfigurationId);
@@ -554,9 +648,11 @@ public class LogicService {
     }
     
     /**
-     * @param organizationId
-     * @param cropCategoryIds
-     * @return 
+     * 
+     * @param organizationId Get POIs for this organization
+     * @param cropCategoryIds Optionally filter by crop category ids (comma separated)
+     * @param userUUID unique login token (optional, used to authenticate user logged in via VIPSWeb)
+     * @return a KML file with the "worst" warning status for each POI
      */
     @GET
     @Path("forecastresults/aggregate/{organizationId}")
@@ -596,9 +692,10 @@ public class LogicService {
     }
     /**
      * 
-     * @param organizationId
+     * @param organizationIds
      * @param cropCategoryIds
-     * @return 
+     * @param userUUID unique login token (optional, used to authenticate user logged in via VIPSWeb)
+     * @return a KML file with the "worst" warning status for each POI
      */
     @GET
     @Path("forecastresults/aggregate/orgspan")
@@ -652,15 +749,19 @@ public class LogicService {
     
     /**
      * Get a list of weather stations for a given organization
-     * @param excludeWeatherStationId
-     * @param highlightWeatherStationId
+     * @param excludeWeatherStationId Exclude this weather station from the KML
+     * @param highlightWeatherStationId Show highlight icon for this weather station
      * @param organizationId
-     * @return 
+     * @return a KML with weather stations for an organization
      */
     @GET
     @Path("weatherstations/kml/{organizationId}")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getWeatherStations(@QueryParam("excludeWeatherStationId") Integer excludeWeatherStationId, @QueryParam("highlightWeatherStationId") Integer highlightWeatherStationId, @PathParam("organizationId") Integer organizationId)
+    public Response getWeatherStations(
+            @QueryParam("excludeWeatherStationId") Integer excludeWeatherStationId, 
+            @QueryParam("highlightWeatherStationId") Integer highlightWeatherStationId, 
+            @PathParam("organizationId") Integer organizationId
+    )
     {
         Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
         return Response.ok().entity(retVal).build();
@@ -668,15 +769,20 @@ public class LogicService {
     
     /**
      * Get a KML list of locations (pois) for a given organization
-     * @param excludePoiId
-     * @param highlightPoiId
+     * @param excludePoiId 
+     * @param highlightPoiId use this if you want to highlight a specific POI. Should be 
+     * used in conjunction with excludePoiId
      * @param organizationId
      * @return KML
      */
     @GET
     @Path("pois/kml/{organizationId}")
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getPois(@QueryParam("excludePoiId") Integer excludePoiId, @QueryParam("highlightPoiId") Integer highlightPoiId, @PathParam("organizationId") Integer organizationId)
+    public Response getPois(
+            @QueryParam("excludePoiId") Integer excludePoiId, 
+            @QueryParam("highlightPoiId") Integer highlightPoiId, 
+            @PathParam("organizationId") Integer organizationId
+    )
     {
         Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludePoiId, highlightPoiId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), null);
         return Response.ok().entity(retVal).build();
@@ -692,6 +798,7 @@ public class LogicService {
     @GET
     @Path("poi/organization/{organizationId}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(PointOfInterestWeatherStation[].class)
     public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId)
     {
         Organization organization = userBean.getOrganization(organizationId);
@@ -707,6 +814,7 @@ public class LogicService {
     @GET
     @Path("poi/{pointOfInterestId}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(PointOfInterest.class)
     public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId)
     {
         PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(pointOfInterestId);
@@ -721,6 +829,7 @@ public class LogicService {
     @GET
     @Path("poi/name/{poiName}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(PointOfInterest.class)
     public Response getPoiByName(@PathParam("poiName") String poiName)
     {
         PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(poiName);
@@ -729,12 +838,13 @@ public class LogicService {
     
     /**
      * If used outside of VIPSLogic: Requires a valid UUID to be provided in the Authorization header
-     * @return 
+     * @return a list of POIs for the user logged in in this session
      */
     @GET
     @Path("poi/user")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(PointOfInterest[].class)
     public Response getPoisForCurrentUser()
     {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
@@ -751,12 +861,13 @@ public class LogicService {
     
     /**
      * 
-     * @return 
+     * @return A list of all organisms (pests and crops)
      */
     @GET
     @Path("organism/list")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(Organism[].class)
     public Response getOrganismList()
     {
         List<Organism> organismList = organismBean.getOrganismSubTree(null);
@@ -764,13 +875,14 @@ public class LogicService {
     }
     
     /**
-     * Look up an organism by its latin name
-     * @param keywords
-     * @return 
+     * Look up (an) organism(s) by its/their latin name(s)
+     * @param keywords comma separated list of latin names
+     * @return List of matching organisms (pests and crops)
      */
     @GET
     @Path("organism/search/latinnames")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Organism[].class)
     public Response findOrganismsByLatinNames(@QueryParam("keywords") String keywords)
     {
         List<String> latinNames = Arrays.asList(keywords.split(","));
@@ -780,12 +892,14 @@ public class LogicService {
     
     /**
      * Look up organisms by local names
-     * @param keywords
-     * @return 
+     * @param locale two-letter language code
+     * @param keywords Comma separated list of local name
+     * @return List of matching organisms (pests and crops)
      */
     @GET
     @Path("organism/search/localnames/{locale}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Organism[].class)
     public Response findOrganismsByLocalNames(
             @PathParam("locale") String locale,
             @QueryParam("keywords") String keywords
@@ -798,12 +912,13 @@ public class LogicService {
     
     /**
      * Get a list of all crops
-     * @return 
+     * @return A list of all crops
      */
     @GET
     @Path("organism/crop/list")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(Organism[].class)
     public Response getCropOrganismList()
     {
         List<Organism> organismList = organismBean.getAllCrops();
@@ -813,13 +928,15 @@ public class LogicService {
     /**
      * Get a list of all pests, OR if cropOrganismId is specified,
      * get a list of all pests that are connected with this crop
-     * @param organization Id optional if set, observation data schemas are added
+     * @param cropOrganismId optional if set, only pests for this crop are returned
+     * @param organizationId optional if set, observation data schemas are added
      * @return 
      */
     @GET
     @Path("organism/pest/list")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(Organism[].class)
     public Response getPestOrganismList(
     		@QueryParam("cropOrganismId") Integer cropOrganismId,
     		@QueryParam("organizationId") Integer organizationId
@@ -864,13 +981,14 @@ public class LogicService {
     
     /**
      * 
-     * @param messageId
-     * @return 
+     * @param messageId the ID of the news message
+     * @return a news message
      */
     @GET
     @Path("message/{messageId}")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(Message.class)
     public Response getMessage(@PathParam("messageId") Integer messageId)
     {
         Message message = messageBean.getMessage(messageId);
@@ -880,17 +998,18 @@ public class LogicService {
     
     /**
      * 
-     * @param publishedFrom
-     * @param publishedTo
-     * @param locale
-     * @param organizationId
-     * @return 
+     * @param publishedFrom Format "yyyy-MM-dd"
+     * @param publishedTo Format "yyyy-MM-dd"
+     * @param locale two letter language code for preferred language version (if it exists)
+     * @param organizationId The organization for which to get messages
+     * @return a list of news messages, filtered by the parameters given
      */
     @GET
     @Path("message/list/{organizationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(Message[].class)
     public Response getMessageList(
             @QueryParam("publishedFrom") String publishedFrom , @QueryParam("publishedTo") String publishedTo,
             @QueryParam("locale") String locale,
@@ -923,16 +1042,21 @@ public class LogicService {
     
     /**
      * 
-     * @param tagIds
-     * @param organizationId
-     * @return 
+     * @param tagIds comma separated list of tagIds to filter the news messages
+     * Use the messagetag/list endpoint to see what tags are available
+     * @param organizationId The organization for which to get messages
+     * @return a list of news messages, filtered by the parameters given
      */
     @GET
     @Path("message/list/{organizationId}/tagfilter")
     @GZIP
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
-    public Response getMessageListWithTags(@QueryParam("tagId") List<Integer> tagIds, @PathParam("organizationId") Integer organizationId)
+    @TypeHint(Message[].class)
+    public Response getMessageListWithTags(
+            @QueryParam("tagId") List<Integer> tagIds, 
+            @PathParam("organizationId") Integer organizationId
+    )
     {
         List<Message> messageListWithTags = messageBean.getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
         return Response.ok().entity(messageListWithTags).build();
@@ -940,32 +1064,18 @@ public class LogicService {
     
     /**
      * 
-     * @return 
+     * @return a list of available message tags (for filtering messages)
      */
     @GET
     @Path("messagetag/list")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(MessageTag[].class)
     public Response getMessageTagList()
     {
         List<MessageTag> messageTags = messageBean.getMessageTagList();
         return Response.ok().entity(messageTags).build();
     }
-    
-    /**
-     * Get a list of observations for a given organization
-     * @param organizationId
-     * @return 
-     */
-    /*@GET
-    @Path("observation")
-    @GZIP
-    @Produces("application/json;charset=UTF-8")
-    public Response getObservationList(@QueryParam("organizationId") Integer organizationId)
-    {
-        List<Observation> observations = SessionControllerGetter.getObservationBean().getObservations(organizationId);
-        return Response.ok().entity(observations).build();
-    }*/
     
     /**
      * Not ready for production use!
@@ -1112,6 +1222,7 @@ public class LogicService {
      * TODO: Should only be available for trusted clients (like VIPSWeb)
      * @param userUUID
      * @return 
+     * @ignore
      */
     @GET
     @Path("user/uuid/{userUUID}")
@@ -1142,6 +1253,7 @@ public class LogicService {
      * TODO: Must be authenticated or not??
      * @param userUUID
      * @return 
+     * @ignore
      */
     @DELETE
     @Path("user/uuid/{userUUID}")
@@ -1170,6 +1282,7 @@ public class LogicService {
     @Path("organism/croppest/{cropOrganismId}")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(CropPest.class)
     public Response getCropPest(@PathParam("cropOrganismId") Integer cropOrganismId)
     {
         CropPest retVal = organismBean.getCropPestRecursive(cropOrganismId,true);
@@ -1192,6 +1305,7 @@ public class LogicService {
     @Path("organism/cropcategory/{organizationId}")
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
+    @TypeHint(CropCategory[].class)
     public Response getCropCategories(@PathParam("organizationId") Integer organizationId)
     {
         if(organizationId != null)
@@ -1207,6 +1321,7 @@ public class LogicService {
     @GET
     @Path("organization")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Organization[].class)
     public Response getOrganizations()
     {
         return Response.ok().entity(userBean.getOrganizations()).build();
@@ -1215,6 +1330,7 @@ public class LogicService {
     @GET
     @Path("model/{modelId}")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(ModelInformation.class)
     public Response getModelInformation(@PathParam("modelId") String modelId)
     {
         ModelInformation retVal = forecastBean.getModelInformation(modelId);

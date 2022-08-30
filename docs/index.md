@@ -53,7 +53,6 @@ ALTER ROLE vipslogic SUPERUSER;
 
 
 #### Building the VIPSLogic image
-You need the
 Make sure you're located in the parent folder of the VIPSLogic project. You need these resource files/folders in your current folder:
 * standalone.xml (see below)
 * VIPSCommon/ (can be cloned [from here](https://gitlab.nibio.no/VIPS/VIPSCommon)) - built with `mvn install`

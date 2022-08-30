@@ -23,7 +23,7 @@ VIPSLogic is the source of data for most clients, including VIPSWeb, the standar
 ![How VIPSLogic fits into the whole VIPS architecture](./docs/illustrations/VIPS_whole_architecture.png "All VIPS system parts")
 
 ## Technical description
-### Environment that VIPSLogic is confirmed to work within
+### Requirements
 * Operating system: Ubuntu Linux >= 18.0.4 
 * Database: PostgreSQL >= 10  + PostGIS >= 2.4
 * Java: OpenJDK >= 11
@@ -31,6 +31,9 @@ VIPSLogic is the source of data for most clients, including VIPSWeb, the standar
 
 ## License
 VIPSLogic is licensed under the [NIBIO Open Source License](https://nibio.no/licenses), which is basically the [GNU Affero GPL v3 license](https://www.gnu.org/licenses/agpl-3.0.en.html).
+
+## Web services
+The web services documentation is auto generated using Enunciate, you can read it from this path relative to your VIPSLogic deployment: `/public/RESTdocs/apidocs/`, for instance [here on NIBIO's deployment](https://logic.vips.nibio.no/public/RESTdocs/apidocs/)
 
 ## Develop and deploy VIPSLogic
 Please read [the developer documentation](./docs/index.md)

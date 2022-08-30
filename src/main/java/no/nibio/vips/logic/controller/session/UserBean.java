@@ -353,6 +353,13 @@ public class UserBean {
         return em.createNamedQuery("Organization.findAll").getResultList();
     }
     
+    /**
+     * Check if a password meets all criteria configured by Passay
+     * @param password
+     * @param errorMessageLocale
+     * @return
+     * @throws PasswordValidationException 
+     */
     public boolean isPasswordValid(String password, ULocale errorMessageLocale) throws PasswordValidationException
     {
         // Check if we need localization of error messages

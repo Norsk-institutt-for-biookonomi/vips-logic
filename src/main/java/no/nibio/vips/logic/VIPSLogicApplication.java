@@ -71,6 +71,9 @@ public class VIPSLogicApplication extends Application
      * given list with all resources defined in the project.
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider.class);
+        resources.add(com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider.class);
+        resources.add(com.webcohesion.enunciate.rt.EnunciateJaxbContextResolver.class);
         resources.add(no.nibio.vips.logic.messaging.sms.SMSHandlingService.class);
         resources.add(no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothService.class);
         resources.add(no.nibio.vips.logic.modules.barkbeetle.BarkbeetleService.class);
@@ -87,5 +90,36 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.service.POIService.class);
         resources.add(no.nibio.vips.logic.service.VIPSMobileService.class);
         resources.add(no.nibio.vips.observationdata.ObservationDataService.class);
+        resources.add(org.jboss.resteasy.core.AcceptHeaderByFileSuffixFilter.class);
+        resources.add(org.jboss.resteasy.core.AsynchronousDispatcher.class);
+        resources.add(org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter.class);
+        resources.add(org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor.class);
+        resources.add(org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor.class);
+        resources.add(org.jboss.resteasy.plugins.interceptors.MessageSanitizerContainerResponseFilter.class);
+        resources.add(org.jboss.resteasy.plugins.providers.AsyncStreamingOutputProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.ByteArrayProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.DataSourceProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.DefaultBooleanWriter.class);
+        resources.add(org.jboss.resteasy.plugins.providers.DefaultNumberWriter.class);
+        resources.add(org.jboss.resteasy.plugins.providers.DefaultTextPlain.class);
+        resources.add(org.jboss.resteasy.plugins.providers.DocumentProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.FileProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.FileRangeWriter.class);
+        resources.add(org.jboss.resteasy.plugins.providers.FormUrlEncodedProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.IIOImageProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.InputStreamProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.JaxrsFormProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.JaxrsServerFormUrlEncodedProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.MultiValuedParamConverterProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.ReaderProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.SourceProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.StreamingOutputProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.StringTextStar.class);
+        resources.add(org.jboss.resteasy.plugins.providers.jackson.Jackson2JsonpInterceptor.class);
+        resources.add(org.jboss.resteasy.plugins.providers.jackson.PatchMethodFilter.class);
+        resources.add(org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.jackson.UnrecognizedPropertyExceptionHandler.class);
+        resources.add(org.jboss.resteasy.plugins.providers.sse.SseEventProvider.class);
+        resources.add(org.jboss.resteasy.plugins.providers.sse.SseEventSinkInterceptor.class);
     }
 }
