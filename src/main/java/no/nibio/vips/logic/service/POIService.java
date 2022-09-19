@@ -71,8 +71,8 @@ public class POIService {
     /**
      * Get a list of locations (pois) for a given organization
      *
-     * @param organizationId
-     * @return
+     * @param organizationId Database id for the organization
+     * @return List of weather stations for the organization
      */
     @GET
     @Path("organization/{organizationId}")
@@ -86,7 +86,7 @@ public class POIService {
 
     /**
      *
-     * @param pointOfInterestId
+     * @param pointOfInterestId Database id of the POI
      * @return a particular POI (Point of interest)
      */
     @GET
@@ -101,8 +101,8 @@ public class POIService {
     /**
      * Find a POI (Point of interest) by name
      *
-     * @param poiName
-     * @return
+     * @param poiName The name of the POI, e.g. "My FooBar Location"
+     * @return a particular POI (Point of interest), or HTTP Status 204 (No content) if not found
      */
     @GET
     @Path("name/{poiName}")
@@ -117,7 +117,7 @@ public class POIService {
      * If used outside of VIPSLogic: Requires a valid UUID to be provided in the
      * Authorization header
      *
-     * @return
+     * @return a list of POIs belonging to the user currently logged in
      */
     @GET
     @Path("user")
@@ -140,14 +140,17 @@ public class POIService {
     }
     
     /**
+     * This service is used by the VIPS Field observation app to sync data stored locally on the smartphone with the
+     * state of the (potentially non-existent) POI in the VIPSLogic database
      * TODO Add request example
-     * @param poiJson
-     * @return 
+     * @param poiJson Json representation of the POI(s)
+     * @return  The POI(s) in their merged state, serialized to Json
      */
     @POST
     @Path("syncpoifromapp")
     @Consumes("application/json;charset=UTF-8")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(PointOfInterest.class)
     public Response syncPOIFromApp(
             String poiJson
     ) {
