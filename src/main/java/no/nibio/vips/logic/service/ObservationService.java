@@ -60,14 +60,7 @@ import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.UserBean;
 
-import no.nibio.vips.logic.entity.Gis;
-import no.nibio.vips.logic.entity.Observation;
-import no.nibio.vips.logic.entity.ObservationIllustrationPK;
-import no.nibio.vips.logic.entity.ObservationStatusType;
-import no.nibio.vips.logic.entity.ObservationSyncInfo;
-import no.nibio.vips.logic.entity.PolygonService;
-import no.nibio.vips.logic.entity.VipsLogicRole;
-import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
@@ -79,6 +72,8 @@ import org.wololo.geojson.Feature;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wololo.geojson.FeatureCollection;
+import org.wololo.geojson.GeoJSON;
 
 /**
  * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -102,7 +97,7 @@ public class ObservationService {
     MessagingBean messagingBean;
     
     /*
-     * NOTE TO SELF
+     * PostGIS tip:
      * How to query for observations within a bounding box
      * Select * from gis where ST_Intersects(
      *   ST_SetSRID(ST_MakeBox2D(ST_MakePoint(2.9004, 57.7511), ST_MakePoint(32.4316, 71.3851)),4326),
@@ -112,12 +107,12 @@ public class ObservationService {
     
     /**
      * 
-     * @param organizationId
-     * @param pestId
-     * @param cropId
-     * @param cropCategoryId
-     * @param fromStr
-     * @param toStr
+     * @param organizationId Database ID of the organization
+     * @param pestId Database ID of the pest
+     * @param cropId Database ID of the crop
+     * @param cropCategoryId Database IDs of the crop category/categories
+     * @param fromStr format "yyyy-MM-dd"
+     * @param toStr format "yyyy-MM-dd"
      * @return Observation objects with all data (full tree)
      */
     @GET
@@ -147,12 +142,12 @@ public class ObservationService {
     
     /**
      * 
-     * @param organizationId
-     * @param pestId
-     * @param cropId
-     * @param cropCategoryId
-     * @param from
-     * @param to
+     * @param organizationId Database ID of the organization
+     * @param pestId Database ID of the pest
+     * @param cropId Database ID of the crop
+     * @param cropCategoryId cropCategoryId Database IDs of the crop category/categories
+     * @param fromStr format "yyyy-MM-dd"
+     * @param toStr format "yyyy-MM-dd"
      * @return Observation objects for which the user is authorized to observe with properties relevant for lists
      */
     @GET
@@ -208,16 +203,16 @@ public class ObservationService {
         //o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
         return Response.ok().entity(observations).build();
     }
-            
+
     /**
-     * 
-     * @param organizationId
-     * @param pestId
-     * @param cropId
-     * @param cropCategoryId
-     * @param fromStr
-     * @param toStr
-     * @return 
+     *
+     * @param organizationId Database ID of the organization
+     * @param pestId Database ID of the pest
+     * @param cropId Database ID of the crop
+     * @param cropCategoryId cropCategoryId Database IDs of the crop category/categories
+     * @param fromStr format "yyyy-MM-dd"
+     * @param toStr format "yyyy-MM-dd"
+     * @return Observation objects for which the user is authorized to observe with properties relevant for lists
      */
     private List<Observation> getFilteredObservationsFromBackend(
             Integer organizationId,
@@ -228,7 +223,6 @@ public class ObservationService {
             String toStr
     )
     {
-        //System.out.println("getFilteredObservationsFromBackend");
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         //TODO Set correct timeZone!!!
         Date from = null;
@@ -250,11 +244,122 @@ public class ObservationService {
         );
         
     }
-    
+
+    /**
+     *
+     * @param organizationId
+     * @param pestId
+     * @param cropId
+     * @param cropCategoryId
+     * @param fromStr
+     * @param toStr
+     * @return
+     *
+     * @responseExample application/json
+     * {
+     *     "type": "FeatureCollection",
+     *     "features": [
+     *         {
+     *             "type": "Feature",
+     *             "id": 18423,
+     *             "geometry": {
+     *                 "type": "Point",
+     *                 "coordinates": [
+     *                     10.782463095356452,
+     *                     59.35794998304658,
+     *                     0.0
+     *                 ]
+     *             },
+     *             "properties": {
+     *                 "observationId": 18446,
+     *                 "observationHeading": "NLR Øst, Huggenes: Det er funnet potettørråte i Råde",
+     *                 "organism": {
+     *                     "organismId": 14,
+     *                     "latinName": "Phytophthora infestans",
+     *                     "tradeName": "",
+     *                     "logicallyDeleted": false,
+     *                     "isPest": true,
+     *                     "isCrop": false,
+     *                     "parentOrganismId": 124,
+     *                     "hierarchyCategoryId": 120,
+     *                     "organismLocaleSet": [
+     *                         {
+     *                             "organismLocalePK": {
+     *                                 "organismId": 14,
+     *                                 "locale": "nb"
+     *                             },
+     *                             "localName": "Potettørråte"
+     *                         },
+     *                         {
+     *                             "organismLocalePK": {
+     *                                 "organismId": 14,
+     *                                 "locale": "en"
+     *                             },
+     *                             "localName": "Late blight"
+     *                         }
+     *                     ],
+     *                     "organismExternalResourceSet": [],
+     *                     "childOrganisms": null,
+     *                     "extraProperties": {},
+     *                     "observationDataSchema": null
+     *                 },
+     *                 "cropOrganism": {
+     *                     "organismId": 5,
+     *                     "latinName": "Solanum tuberosum",
+     *                     "tradeName": "",
+     *                     "logicallyDeleted": false,
+     *                     "isPest": false,
+     *                     "isCrop": true,
+     *                     "parentOrganismId": 4,
+     *                     "hierarchyCategoryId": 120,
+     *                     "organismLocaleSet": [
+     *                         {
+     *                             "organismLocalePK": {
+     *                                 "organismId": 5,
+     *                                 "locale": "bs"
+     *                             },
+     *                             "localName": "Potato"
+     *                         },
+     *                         {
+     *                             "organismLocalePK": {
+     *                                 "organismId": 5,
+     *                                 "locale": "nb"
+     *                             },
+     *                             "localName": "Potet"
+     *                         },
+     *                         {
+     *                             "organismLocalePK": {
+     *                                 "organismId": 5,
+     *                                 "locale": "en"
+     *                             },
+     *                             "localName": "Potato"
+     *                         },
+     *                         {
+     *                             "organismLocalePK": {
+     *                                 "organismId": 5,
+     *                                 "locale": "hr"
+     *                             },
+     *                             "localName": "Krompir"
+     *                         }
+     *                     ],
+     *                     "organismExternalResourceSet": [],
+     *                     "childOrganisms": null,
+     *                     "extraProperties": {},
+     *                     "observationDataSchema": null
+     *                 },
+     *                 "observationText": "Fredag 2.juli ble det gjort første funn av potettørråte i Råde. Det er noen flekker på bladene på øvre del av planten. Smitten ser ut til å ha kommet som sekundærsmitte med vinden.",
+     *                 "timeOfObservation": "2021-07-02T11:00:00+02:00"
+     *             }
+     *         }
+     *     ]
+     * }
+     *
+     */
     @GET
     @Path("filter/{organizationId}/geoJSON")
     @GZIP
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(GeoJSON.class)
     public Response getFilteredObservationsAsGeoJSON(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("pestId") Integer pestId,
@@ -292,14 +397,13 @@ public class ObservationService {
     /**
      * Get a list of all observed pests for one organization
      * Practical for building effective select lists
-     * TODO: Should be cached??
-     * @param organizationId
-     * @return 
+     * @param organizationId Database ID of organization
+     * @return list of all observed pests for one organization
      */
     @GET
     @Path("pest/{organizationId}")
     @Produces("application/json;charset=UTF-8")
-    @TypeHint(Observation[].class)
+    @TypeHint(Organism[].class)
     public Response getObservedPests(@PathParam("organizationId") Integer organizationId)
     {
         return Response.ok().entity(observationBean.getObservedPests(organizationId)).build();
@@ -309,13 +413,13 @@ public class ObservationService {
      * Get a list of all crop cultures where observations have been made for one organization
      * Practical for building effective select lists
      * TODO: Should be cached??
-     * @param organizationId
+     * @param organizationId Database ID of organization
      * @return 
      */
     @GET
     @Path("crop/{organizationId}")
     @Produces("application/json;charset=UTF-8")
-    @TypeHint(Observation[].class)
+    @TypeHint(Organism[].class)
     public Response getObservedCrops(@PathParam("organizationId") Integer organizationId)
     {
         return Response.ok().entity(observationBean.getObservedCrops(organizationId)).build();
@@ -324,7 +428,7 @@ public class ObservationService {
     
     /**
      * Publicly available observations per organization
-     * @param organizationId
+     * @param organizationId Database ID of organization
      * @return APPROVED observations
      */
     @GET
@@ -339,8 +443,8 @@ public class ObservationService {
     /**
      * Get observations for a user
      * Requires a valid UUID to be provided in the Authorization header
-     * @param observationIds
-     * @return
+     * @param observationIds Comma separated list of Observation Ids
+     * @return Filtering by observation ids
      */
     @GET
     @Path("list/user")
@@ -383,6 +487,7 @@ public class ObservationService {
     
     /**
      * Get minimized (only synchronization info) observations for a user
+     * Used by the Observation app
      * Requires a valid UUID to be provided in the Authorization header
      * @return
      */
@@ -406,7 +511,7 @@ public class ObservationService {
    
     /**
      * Publicly available observations per organization
-     * @param organizationId
+     * @param organizationId Database id of the organization
      * @return APPROVED observations
      */
     @GET
@@ -449,7 +554,13 @@ public class ObservationService {
             return Response.ok().entity(observationBean.getBroadcastObservations(organizationId, season)).build();
         }
     }
-    
+
+    /**
+     * Get one observation
+     * @param observationId Database ID of the observation
+     * @param userUUID UUID that identifies the user (e.g. from VIPSWeb)
+     * @return
+     */
     @GET
     @Path("{observationId}")
     @Produces("application/json;charset=UTF-8")
@@ -503,9 +614,10 @@ public class ObservationService {
     }
     
     /**
-     * 
-     * @param organizationId
-     * @return 
+     * Polygon services are used to mask observations (privacy concerns)
+     * They may vary greatly between organizations (different countries)
+     * @param organizationId Database id of the organization
+     * @return A list of available polygon services for the requested organization
      */
     @GET
     @Path("polygonservices/{organizationId}")
@@ -521,7 +633,7 @@ public class ObservationService {
    
     /**
      * Deletes a gis entity and its corresponding observation
-     * @param gisId
+     * @param gisId Database id of the gis entity
      * @return 
      */
     @DELETE
@@ -549,10 +661,12 @@ public class ObservationService {
     }
     
     /**
-     * TODO Authentication
+     *
+     * Stores an observation from geoJson
      * @param geoJSON
-     * @return 
+     * @return the Url of the created entity (observation)
      */
+    // TODO Authentication
     @POST
     @Path("gisobservation")
     @Consumes("application/json;charset=UTF-8")
@@ -593,8 +707,8 @@ public class ObservationService {
 
     /**
      * Returns the time of the first observation in the system of the pest with given Id
-     * @param organismId
-     * @return 
+     * @param organismId Database id of the given organism
+     * @return the time of the first observation in the system of the pest with given Id
      */
     @GET
     @Path("first/{organismId}")
@@ -608,7 +722,8 @@ public class ObservationService {
     }
     
     /**
-     * When was the last time a change was made in cropCategories or organisms?
+     * When was the last time a change was made in cropCategories or organisms? Used for sync with the Field observation
+     * app.
      * @return last time a change was made in cropCategories or organisms
      * @responseExample application/json {"lastUpdated": "2021-02-08T00:00:00Z"}
      */
@@ -627,16 +742,24 @@ public class ObservationService {
 
     /**
      * 
-     * @param organizationId
-     * @param pestId
-     * @param cropId
-     * @param cropCategoryId
-     * @param fromStr
-     * @param toStr
-     * @param user
-     * @return 
+     * @param organizationId Database id of the organization
+     * @param pestId Database id of the pest
+     * @param cropId Database id of the crop
+     * @param cropCategoryId Database ids of the crop categories
+     * @param fromStr format "yyyy-MM-dd"
+     * @param toStr format "yyyy-MM-dd"
+     * @param user The user that requests this (used for authorization)
+     * @return A list of observations that meets the filter criteria
      */
-    private List<Observation> getFilteredObservationsFromBackend(Integer organizationId, Integer pestId, Integer cropId, List<Integer> cropCategoryId, String fromStr, String toStr, VipsLogicUser user) {
+    private List<Observation> getFilteredObservationsFromBackend(
+            Integer organizationId,
+            Integer pestId,
+            Integer cropId,
+            List<Integer> cropCategoryId,
+            String fromStr,
+            String toStr,
+            VipsLogicUser user
+    ) {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
         //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
         // If superuser or orgadmin: Return everything, unchanged, uncensored
@@ -661,8 +784,8 @@ public class ObservationService {
     /**
      * Runs through the observations, check each to see if it should be masked
      * (for privacy reasons) through a polygon service
-     * @param observations
-     * @return 
+     * @param observations The list of observations to check
+     * @return The list of observations, with the locations masked with the selected polygon service
      */
     private List<Observation> maskObservations(List<Observation> observations) {
         //System.out.println("maskObservations(List<Observation> observations)");
@@ -691,10 +814,16 @@ public class ObservationService {
             
             // Adding the rest of the observations (the ones that don't need masking)
             observations.stream().filter(o->maskedObservations.get(o.getObservationId())==null).forEach(o->maskedObservations.put(o.getObservationId(), o));
-            return new ArrayList(maskedObservations.values());
+            return new ArrayList<>(maskedObservations.values());
         }
     }
-    
+
+    /**
+     *
+     * @param polygonService The polygon service that should be used for masking
+     * @param observations The list of observations to mask
+     * @return The list of observations, with the locations masked with the selected polygon service
+     */
     private List<Observation> maskObservations(PolygonService polygonService, List<Observation> observations)
     {
         //observations.forEach(o->System.out.println(o.getObservationId()));
@@ -751,9 +880,10 @@ public class ObservationService {
     }
     
     /**
-     * 
-     * @param observationJson
-     * @return 
+     * This service is used by the VIPS Field observation app to sync data stored locally on the smartphone with the
+     * state(s) of the observation(s) in the VIPSLogic database
+     * @param observationJson Json representation of the observation(s)
+     * @return The observation(s) in their merged state, serialized to Json
      */
     @POST
     @Path("syncobservationfromapp")
