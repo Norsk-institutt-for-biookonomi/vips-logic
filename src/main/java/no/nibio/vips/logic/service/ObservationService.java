@@ -881,7 +881,7 @@ public class ObservationService {
     
     /**
      * This service is used by the VIPS Field observation app to sync data stored locally on the smartphone with the
-     * state(s) of the observation(s) in the VIPSLogic database
+     * state of an (potentially non-existent) observation in the VIPSLogic database
      * @param observationJson Json representation of the observation(s)
      * @return The observation(s) in their merged state, serialized to Json
      */
@@ -889,6 +889,7 @@ public class ObservationService {
     @Path("syncobservationfromapp")
     @Consumes("application/json;charset=UTF-8")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Observation.class)
     public Response syncObservationFromApp(
     		String observationJson
     		)
