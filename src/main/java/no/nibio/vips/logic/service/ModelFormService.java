@@ -19,6 +19,7 @@
 
 package no.nibio.vips.logic.service;
 
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import org.locationtech.jts.geom.Coordinate;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.util.Date;
@@ -55,7 +56,7 @@ import no.nibio.vips.util.XDate;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
- * This is a collection of services for models run from forms (not as part of batch) 
+ * This is a collection of (one) service(s) for models run from forms (not as part of batch)
  * @copyright 2018-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
@@ -70,9 +71,34 @@ public class ModelFormService {
     @EJB
     ForecastBean forecastBean;
 
+    /**
+     * Run the SEPTORIAHU (from SEGES, Denmark) model from a form, data are posted here.
+     *
+     * See <a href="https://www.vips-landbruk.no/blotch/septoriahumidity/">the form</a> for reference
+     *
+     * @param organizationId_countryCode
+     * @param weatherStationId
+     * @param dateSpraying1
+     * @param dateSpraying2
+     * @param dateGs31
+     * @param date3rdUpperLeafEmerging
+     * @param date2ndUpperLeafEmerging
+     * @param dateUpperLeafEmerging
+     * @param dateGs75
+     * @param thresholdRelativeHumidity
+     * @param thresholdLeafWetness
+     * @param thresholdPrecipitation
+     * @param slidingHoursPast
+     * @param slidingHoursAhead
+     * @param thresholdHumidPeriodHours
+     * @param sprayingProtectionDays
+     * @param leafLifeTime
+     * @return
+     */
     @GET
     @Path("SEPTORIAHU/runmodel")
     @Produces("application/json;charset=UTF-8")
+    @TypeHint(Result.class)
     public Response runSeptoriaHumidityModel(
             @QueryParam("organizationId_countryCode") String organizationId_countryCode,
             @QueryParam("weatherStationId") String weatherStationId, // Could be special ID from Danish system,
