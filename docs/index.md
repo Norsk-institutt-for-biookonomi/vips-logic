@@ -8,6 +8,7 @@
 
 [Troubleshooting](./troubleshooting.md)
 
+[Translation](./translation.md)
 
 ## Building VIPSLogic
 
