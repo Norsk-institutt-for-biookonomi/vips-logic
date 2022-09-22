@@ -22,6 +22,8 @@ VIPSLogic is the source of data for most clients, including VIPSWeb, the standar
 
 ![How VIPSLogic fits into the whole VIPS architecture](./docs/illustrations/VIPS_whole_architecture.png "All VIPS system parts")
 
+VIPSLogic is a part of the [VIPS platform for automatic pest prediction](https://gitlab.nibio.no/VIPS/documentation)
+
 ## Technical description
 ### Requirements
 * Operating system: Ubuntu Linux >= 18.0.4 
