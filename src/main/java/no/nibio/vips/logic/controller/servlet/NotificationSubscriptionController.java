@@ -20,6 +20,8 @@ package no.nibio.vips.logic.controller.servlet;
 
 import freemarker.core.ParseException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.persistence.EntityManager;
@@ -80,7 +82,12 @@ public class NotificationSubscriptionController extends HttpServlet {
         
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
-        
+        if(user == null)
+        {
+            this.redirectToLogin(request, response);
+            return;
+        }
+
         try
         {
             // Default: View list of user subscriptions
@@ -171,6 +178,13 @@ public class NotificationSubscriptionController extends HttpServlet {
         {
             e.printStackTrace();
         }
+    }
+
+    private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException, IOException
+    {
+        String nextPage = ServletUtil.getFullRequestURI(request);
+        String nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
+        response.sendRedirect(Globals.PROTOCOL + "://" + ServletUtil.getServerName(request) + "/login" + nextPageDirective);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
