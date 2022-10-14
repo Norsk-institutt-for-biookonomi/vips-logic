@@ -136,7 +136,7 @@ public class SmsMsgDeliveryHandler implements IDeliveryMsgHandler {
                 + msgToSend.getMsgLeadParagraph() + "\n"
                 + msgToSend.getMsgBody()
                 + (msgToSend.getMsgDownloadUrl() != null ? "\n" + msgToSend.getMsgDownloadUrl().toString(): "\n")
-                + (msgToSend.getIncludeNotificationSettingsLink() ? "\n\n" + MessageFormat.format(msgToSend.getNotificationSettingsLinkTpl(), msgReceiver.recipientId): "\n");
+                + (vm.getIncludeNotificationSettingsLink() ? "\n\n" + MessageFormat.format(msgToSend.getNotificationSettingsLinkTpl(), msgReceiver.recipientId): "\n");
         LOGGER.debug(smsText);
         LOGGER.debug("Teksten er på " + smsText.length() + " tegn.");
 

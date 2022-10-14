@@ -20,12 +20,17 @@ package no.nibio.vips.logic.messaging.distribution.entity;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
+import com.ibm.icu.util.ULocale;
 import no.nibio.vips.logic.messaging.UniversalMessage;
 import no.nibio.vips.logic.messaging.distribution.send.IMsgContent;
+import no.nibio.vips.logic.util.Globals;
 
 
 /**
@@ -38,7 +43,10 @@ import no.nibio.vips.logic.messaging.distribution.send.IMsgContent;
 
 // TODO use get and setter
 public class VipsMessage implements IMsgContent {
-    
+
+    // Include by default. If not needed, use constructor that makes it configurable
+    private Boolean includeNotificationSettingsLink = Boolean.TRUE;
+
     /**
      * Create from UniversalMessage
      * TODO: Complete integration of entities!
@@ -47,6 +55,7 @@ public class VipsMessage implements IMsgContent {
     public VipsMessage(UniversalMessage universalMessage)
     {
         this.expiresAt = universalMessage.getExpiresAt();
+        this.setIncludeNotificationSettingsLink(universalMessage.getIncludeNotificationSettingsLink());
         this.distributionList = universalMessage.getDistributionListObjects().stream().map(umRecipient->{
             MsgReceiver msgReceiver = new MsgReceiver();
             msgReceiver.type = umRecipient.getType().toLowerCase().equals("mail") ? DistributionTypeEnum.Mail : DistributionTypeEnum.Sms;
@@ -102,6 +111,20 @@ public class VipsMessage implements IMsgContent {
 	public void setMessageLocalVersions(List<MsgToSend> messageLocalVersions) {
 		this.messageLocalVersions = messageLocalVersions;
 	}
-	
+
+
+    /**
+     * If true, the SMS and mail messages will have this type of link appended at the end:
+     * "To edit your notification subscriptions, please use this link: https://logic.vips.nibio.no/user/notificationsubscription?userId=1"
+     * The server name can be configured with the system properties no.nibio.vips.logic.VIPSLOGIC_PROTOCOL and no.nibio.vips.logic.SERVER_NAME
+     * @return
+     */
+    public Boolean getIncludeNotificationSettingsLink() {
+        return includeNotificationSettingsLink;
+    }
+
+    public void setIncludeNotificationSettingsLink(Boolean includeNotificationSettingsLink) {
+        this.includeNotificationSettingsLink = includeNotificationSettingsLink;
+    }
 
 }

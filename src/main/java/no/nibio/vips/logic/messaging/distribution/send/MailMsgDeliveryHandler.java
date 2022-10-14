@@ -150,7 +150,7 @@ public class MailMsgDeliveryHandler implements IDeliveryMsgHandler {
             } else {
                 sendMessage(msgToSend.getMsgSubject(), msgToSend.getMsgLeadParagraph(), new StringBuffer(msgToSend.getMsgBody()).append("\n\n")
                         .append(msgToSend.getMsgDownloadUrl() != null ? msgToSend.getMsgDownloadUrl():"")
-                                .append(msgToSend.getIncludeNotificationSettingsLink() ? "\n\n" + MessageFormat.format(msgToSend.getNotificationSettingsLinkTpl(),msgReceiver.recipientId): "\n"),
+                                .append(vm.getIncludeNotificationSettingsLink() ? "\n\n" + MessageFormat.format(msgToSend.getNotificationSettingsLinkTpl(),msgReceiver.recipientId): "\n"),
                         msgReceiver.msgDeliveryAddress);
             }
             return SingleMsgSentStateEnum.Ok;
