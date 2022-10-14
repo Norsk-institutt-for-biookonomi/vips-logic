@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.Basic;
@@ -44,6 +45,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.ibm.icu.util.ULocale;
 import no.nibio.vips.logic.util.StringJsonUserType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -84,6 +87,10 @@ public class UniversalMessage implements Serializable {
     
     @Transient
     private ObjectMapper objectMapper;
+
+    // Include by default. If not needed, use constructor that makes it configurable
+    @Transient
+    private Boolean includeNotificationSettingsLink = Boolean.TRUE;
     
 
     public UniversalMessage() {
@@ -98,6 +105,19 @@ public class UniversalMessage implements Serializable {
     )
     {
         this.addMessageLocalVersion(locale, msgSubject, msgLeadParagraph, msgBody, msgDownloadUrl);
+    }
+
+    public UniversalMessage(
+            String locale,
+            String msgSubject,
+            String msgLeadParagraph,
+            String msgBody,
+            String msgDownloadUrl,
+            Boolean includeNotificationSettingsLink
+    )
+    {
+        this(locale, msgSubject, msgLeadParagraph, msgBody, msgDownloadUrl);
+        this.setIncludeNotificationSettingsLink(includeNotificationSettingsLink);
     }
     
     public final void addMessageLocalVersion(
@@ -235,6 +255,18 @@ public class UniversalMessage implements Serializable {
         }
     }
 
+    /**
+     * @param locale two-letter language string
+     * @return The localized string **template** for generating a link to a user's page for
+     * managing notification subscription settings
+     */
+    @Transient
+    public String getNotificationSettingsLinkTpl(String locale)
+    {
+        ULocale theLocale = new ULocale(locale);
+        ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts",theLocale.toLocale());
+        return rb.getString("universalMessageSettingsLink_tpl");
+    }
     
     private ObjectMapper getObjectMapper()
     {
@@ -243,5 +275,20 @@ public class UniversalMessage implements Serializable {
             this.objectMapper = new ObjectMapper();
         }
         return this.objectMapper;
+    }
+
+    /**
+     * If true, the SMS and mail messages will have this type of link appended at the end:
+     * "To edit your notification subscriptions, please use this link: https://logic.vips.nibio.no/user/notificationsubscription?userId=1"
+     *  The server name can be configured with the system properties no.nibio.vips.logic.VIPSLOGIC_PROTOCOL and no.nibio.vips.logic.SERVER_NAME
+     * @return
+     */
+    @Transient
+    public Boolean getIncludeNotificationSettingsLink() {
+        return includeNotificationSettingsLink;
+    }
+
+    public void setIncludeNotificationSettingsLink(Boolean includeNotificationSettingsLink) {
+        this.includeNotificationSettingsLink = includeNotificationSettingsLink;
     }
 }

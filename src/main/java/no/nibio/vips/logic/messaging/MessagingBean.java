@@ -79,6 +79,7 @@ public class MessagingBean {
     
     public void sendUniversalMessage(Message message)
     {
+        // TODO: Make URL relative
         String msgDownloadUrlTpl = "https://www.vips-landbruk.no/messages/" + message.getMessageId() + "/";
         // Create a universal message from the message
         // TODO: When UniversalMessage has changed, pick

@@ -20,7 +20,10 @@
 package no.nibio.vips.logic.messaging;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * Represents a localized message in the VIPS push notification system. Used by
+ * the UniversalMessage class
+ *
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class MessageLocalVersion {

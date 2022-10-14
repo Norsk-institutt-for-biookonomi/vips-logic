@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.text.MessageFormat;
 
 import javax.mail.MessagingException;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgReceiver;
@@ -134,7 +135,8 @@ public class SmsMsgDeliveryHandler implements IDeliveryMsgHandler {
         String smsText = msgToSend.getMsgSubject() + "\n"
                 + msgToSend.getMsgLeadParagraph() + "\n"
                 + msgToSend.getMsgBody()
-                + (msgToSend.getMsgDownloadUrl() != null ? "\n" + msgToSend.getMsgDownloadUrl().toString(): "");
+                + (msgToSend.getMsgDownloadUrl() != null ? "\n" + msgToSend.getMsgDownloadUrl().toString(): "\n")
+                + (msgToSend.getIncludeNotificationSettingsLink() ? "\n\n" + MessageFormat.format(msgToSend.getNotificationSettingsLinkTpl(), msgReceiver.recipientId): "\n");
         LOGGER.debug(smsText);
         LOGGER.debug("Teksten er på " + smsText.length() + " tegn.");
 
