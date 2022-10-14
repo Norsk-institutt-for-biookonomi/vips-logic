@@ -842,11 +842,13 @@ public class BarkbeetleBean {
      * @param users
      * @param heading
      * @param message
-     * @param url
      */
     public void sendReminder(List<VipsLogicUser> users, String heading, String message) {
 
         UniversalMessage uMessage = new UniversalMessage();
+        // The notificationSettingsLink is relevant to regular VIPS notifications, not
+        // these barkbeetle reminders, so omitting this here.
+        uMessage.setIncludeNotificationSettingsLink(false);
         Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
         cal.setTime(new Date());
         cal.add(Calendar.DATE, 2);

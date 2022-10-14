@@ -19,6 +19,7 @@
 package no.nibio.vips.logic.messaging.distribution.send;
 
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Properties;
 
@@ -148,7 +149,8 @@ public class MailMsgDeliveryHandler implements IDeliveryMsgHandler {
                         + " using server " + mailserver);
             } else {
                 sendMessage(msgToSend.getMsgSubject(), msgToSend.getMsgLeadParagraph(), new StringBuffer(msgToSend.getMsgBody()).append("\n\n")
-                        .append(msgToSend.getMsgDownloadUrl() != null ? msgToSend.getMsgDownloadUrl():""),
+                        .append(msgToSend.getMsgDownloadUrl() != null ? msgToSend.getMsgDownloadUrl():"")
+                                .append(msgToSend.getIncludeNotificationSettingsLink() ? "\n\n" + MessageFormat.format(msgToSend.getNotificationSettingsLinkTpl(),msgReceiver.recipientId): "\n"),
                         msgReceiver.msgDeliveryAddress);
             }
             return SingleMsgSentStateEnum.Ok;

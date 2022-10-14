@@ -18,7 +18,12 @@
  */
 package no.nibio.vips.logic.messaging.distribution.entity;
 
+import com.ibm.icu.util.ULocale;
+import no.nibio.vips.logic.util.Globals;
+
 import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ResourceBundle;
 
 
 /**
@@ -45,6 +50,10 @@ public class MsgToSend {
 	
         // The lead paragraph (AKA "Ingress")
 	public String msgLeadParagraph;
+
+	// Include by default. If not needed, use constructor that makes it configurable
+	private Boolean includeNotificationSettingsLink = Boolean.TRUE;
+
 
 	/* (non-Javadoc)
 	 * @see no.nibio.vips_msg_dist.dao.Test#getMsgSubject()
@@ -116,5 +125,29 @@ public class MsgToSend {
 		this.locale = locale;
 	}
 
-	
+	/**
+	 * @return The localized string **template** for generating a link to a user's page for
+	 * managing notification subscription settings
+	 */
+	public String getNotificationSettingsLinkTpl()
+	{
+		ULocale theLocale = new ULocale(this.getLocale());
+		ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts",theLocale.toLocale());
+		return MessageFormat.format(rb.getString("universalMessageSettingsLink_tpl"), Globals.PROTOCOL + "://" + Globals.SERVER_NAME + "/user/notificationsubscription?userId={0}");
+	}
+
+
+	/**
+	 * If true, the SMS and mail messages will have this type of link appended at the end:
+	 * "To edit your notification subscriptions, please use this link: https://logic.vips.nibio.no/user/notificationsubscription?userId=1"
+	 * The server name can be configured with the system properties no.nibio.vips.logic.VIPSLOGIC_PROTOCOL and no.nibio.vips.logic.SERVER_NAME
+	 * @return
+	 */
+	public Boolean getIncludeNotificationSettingsLink() {
+		return includeNotificationSettingsLink;
+	}
+
+	public void setIncludeNotificationSettingsLink(Boolean includeNotificationSettingsLink) {
+		this.includeNotificationSettingsLink = includeNotificationSettingsLink;
+	}
 }
