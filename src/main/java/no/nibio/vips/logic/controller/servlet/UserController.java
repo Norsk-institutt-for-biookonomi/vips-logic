@@ -102,6 +102,11 @@ public class UserController extends HttpServlet {
                     request.setAttribute("organizations", organizations);
                     request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
                 }
+                else if(user.isOrganizationAdmin())
+                {
+                    request.setAttribute("vipsLogicRoles", em.createNamedQuery("VipsLogicRole.findAll").getResultList());
+                    users = userBean.getUsers(user.getOrganizationId());
+                }
                 else
                 {
                     users = userBean.getUsers(user.getOrganizationId());
