@@ -21,15 +21,7 @@ package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -60,6 +52,12 @@ public class ModelInformation implements Serializable {
     @Size(min = 1, max = 10)
     @Column(name = "model_id")
     private String modelId;
+
+
+    @JoinColumn(name = "vipscore_instance_id", referencedColumnName = "vipscore_instance_id")
+    @ManyToOne
+    private VipsCoreInstance vipsCoreInstanceId;
+
     @Column(name = "date_first_registered")
     @Temporal(TemporalType.DATE)
     private Date dateFirstRegistered;
@@ -189,4 +187,11 @@ public class ModelInformation implements Serializable {
         return "no.nibio.vips.logic.entity.ModelInformation[ modelId=" + modelId + " ]";
     }
 
+    public VipsCoreInstance getVipsCoreInstanceId() {
+        return vipsCoreInstanceId;
+    }
+
+    public void setVipsCoreInstanceId(VipsCoreInstance vipsCoreInstanceId) {
+        this.vipsCoreInstanceId = vipsCoreInstanceId;
+    }
 }

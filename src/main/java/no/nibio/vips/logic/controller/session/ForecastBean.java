@@ -51,6 +51,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -70,7 +71,9 @@ import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.entity.VipsCoreInstance;
 import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.scheduling.TaskResult;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessor;
 import no.nibio.vips.logic.scheduling.model.ModelRunPreprocessorFactory;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
@@ -81,6 +84,7 @@ import no.nibio.vips.util.WeatherUtil;
 import no.nibio.web.forms.FormField;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -88,6 +92,8 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
  */
 @Stateless
 public class ForecastBean {
+
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ForecastBean.class);
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
@@ -463,61 +469,84 @@ public class ForecastBean {
      * Requests all info about models currently available in VIPSCoreManager
      * Stores in local db for easy access. 
      */
-    public void updateModelInformation()
+    public TaskResult updateModelInformation()
     {
-    	
-	    	Client client = ClientBuilder.newClient();
-	        WebTarget target = client.target(System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL"));
-	        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-	        ManagerResource resource = rTarget.proxy(ManagerResource.class);
-            // Get all model Ids from Core Manager
-            Response resp = resource.printModelListJSON();
-            
-            for(JsonNode modelIdItem: resp.readEntity(JsonNode.class).findValues("modelId"))
-            {
-            	
-                String modelId = modelIdItem.asText();
-                
-                
-                // We get the corresponding modelInformation entry 
-                ModelInformation modelInformation = em.find(ModelInformation.class, modelId);
-                if(modelInformation == null)
-                {
-                    modelInformation = new ModelInformation(modelId);
-                    em.persist(modelInformation);
-                    modelInformation.setDateFirstRegistered(new Date());
+        TaskResult taskResult = new TaskResult();
+        String jobReport = "";
+    	// Iterate all the VIPSCore instances
+        List<VipsCoreInstance> vipsCoreInstances = em.createNamedQuery("VipsCoreInstance.findAll").getResultList();
+        Integer instancesCompleted = 0;
+        for(VipsCoreInstance vipsCoreInstance:vipsCoreInstances) {
+            LOGGER.debug("Attempting to connect to " + vipsCoreInstance.getUri() );
+            try {
+                Client client = ClientBuilder.newClient();
+                WebTarget target = client.target(vipsCoreInstance.getUri());
+                ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
+                ManagerResource resource = rTarget.proxy(ManagerResource.class);
+
+                // Get all model Ids from Core Manager
+                Response resp = resource.printModelListJSON();
+                LOGGER.debug(vipsCoreInstance.getUri() + " returned status code " + String.valueOf(resp.getStatus()));
+                if(resp.getStatus() != 200) {
+                    jobReport += vipsCoreInstance.getUri() + " returned status code " + String.valueOf(resp.getStatus()) + "\n";
+                    continue;
                 }
-                
-                // Retrieve and store information
-                
-                Response r = resource.printModelName(modelId);
-                modelInformation.setDefaultName(r.readEntity(String.class));
-                //r.close();
-                
-                r = resource.printModelDescription(modelId);
-                modelInformation.setDefaultDescription(r.readEntity(String.class));
-                //r.close();
-                
-                r = resource.printModelLicense(modelId);
-                modelInformation.setLicense(r.readEntity(String.class));
-                //r.close();
-                
-                r = resource.printModelCopyright(modelId);
-                modelInformation.setCopyrightHolder(r.readEntity(String.class));
-                //r.close();
-                
-                r = resource.printModelUsage(modelId);
-                modelInformation.setUsage(r.readEntity(String.class));
-                //r.close();
-                
-                r = resource.printModelSampleConfig(modelId);
-                modelInformation.setSampleConfig(r.readEntity(String.class));
-                //r.close();
-                
-                modelInformation.setDateLastRegistered(new Date());
+
+                for (JsonNode modelIdItem : resp.readEntity(JsonNode.class).findValues("modelId")) {
+
+                    String modelId = modelIdItem.asText();
+
+
+                    // We get the corresponding modelInformation entry
+                    ModelInformation modelInformation = em.find(ModelInformation.class, modelId);
+                    if (modelInformation == null) {
+                        modelInformation = new ModelInformation(modelId);
+                        em.persist(modelInformation);
+                        modelInformation.setDateFirstRegistered(new Date());
+                    }
+
+                    modelInformation.setVipsCoreInstanceId(vipsCoreInstance);
+
+                    // Retrieve and store information
+                    Response r = resource.printModelName(modelId);
+                    modelInformation.setDefaultName(r.readEntity(String.class));
+                    //r.close();
+
+                    r = resource.printModelDescription(modelId);
+                    modelInformation.setDefaultDescription(r.readEntity(String.class));
+                    //r.close();
+
+                    r = resource.printModelLicense(modelId);
+                    modelInformation.setLicense(r.readEntity(String.class));
+                    //r.close();
+
+                    r = resource.printModelCopyright(modelId);
+                    modelInformation.setCopyrightHolder(r.readEntity(String.class));
+                    //r.close();
+
+                    r = resource.printModelUsage(modelId);
+                    modelInformation.setUsage(r.readEntity(String.class));
+                    //r.close();
+
+                    r = resource.printModelSampleConfig(modelId);
+                    modelInformation.setSampleConfig(r.readEntity(String.class));
+                    //r.close();
+
+                    modelInformation.setDateLastRegistered(new Date());
+                }
+                resp.close();
+                client.close();
+                instancesCompleted++;
             }
-            resp.close();
-            client.close();
+            catch(ProcessingException ex)
+            {
+                jobReport += ex.getMessage() + "\n";
+            }
+
+        }
+        taskResult.setCompleteness(instancesCompleted / Double.valueOf(vipsCoreInstances.size()));
+        taskResult.setMessage(jobReport);
+        return taskResult;
     }
     
     /**
@@ -672,10 +701,16 @@ public class ForecastBean {
                 ModelConfiguration config = preprocessor.getModelConfiguration(forecastConfiguration);
                 ModelRunRequest request = new ModelRunRequest(config);
                 Map<String,String> loginInfo = new HashMap<>();
+
                 // VIPSLogic logs in on behalf of client
-                loginInfo.put("username",System.getProperty("no.nibio.vips.logic.CORE_BATCH_USERNAME"));
+                ModelInformation modelInformation = em.find(ModelInformation.class, config.getModelId());
+                if(modelInformation.getVipsCoreInstanceId() == null)
+                {
+                    throw new RunModelException("ERROR: Model " + modelInformation.getDefaultName() + "(" + config.getModelId() + ") is not connected to a VIPSCoreInstance. Please check your server configuration.");
+                }
+                loginInfo.put("username",modelInformation.getVipsCoreInstanceId().getUsername());
                 //loginInfo.put("username","wrongusername");
-                loginInfo.put("password",System.getProperty("no.nibio.vips.logic.CORE_BATCH_PASSWORD"));
+                loginInfo.put("password",modelInformation.getVipsCoreInstanceId().getPassword());
                 request.setLoginInfo(loginInfo);
                 // We tell which client this is (the db Id in VIPSCoreManager)
                 Integer VIPSCoreUserId = forecastConfiguration.getVipsLogicUserId().getVipsCoreUserIdWithFallback();
@@ -700,7 +735,8 @@ public class ForecastBean {
                 {
                     ex.printStackTrace();
                 }*/
-                    Response resp = this.getManagerResource().runModel(config.getModelId(), request);         
+
+                    Response resp = this.getManagerResource(modelInformation).runModel(config.getModelId(), request);
                     if(resp.getStatus() == Response.Status.OK.getStatusCode())
                     {
                         //System.out.println(resp.readEntity(String.class));
@@ -724,17 +760,22 @@ public class ForecastBean {
     
     public List<Result> runForecast(ModelConfiguration config, Integer VIPSCoreUserId) throws RunModelException
     {
+        ModelInformation modelInformation = em.find(ModelInformation.class, config.getModelId());
+        if(modelInformation.getVipsCoreInstanceId() == null)
+        {
+            throw new RunModelException("ERROR: Model " + modelInformation.getDefaultName() + "(" + config.getModelId() + ") is not connected to a VIPSCoreInstance. Please check your server configuration.");
+        }
         ModelRunRequest request = new ModelRunRequest(config);
         Map<String,String> loginInfo = new HashMap<>();
         // VIPSLogic logs in on behalf of client
-        loginInfo.put("username",System.getProperty("no.nibio.vips.logic.CORE_BATCH_USERNAME"));
+        loginInfo.put("username",modelInformation.getVipsCoreInstanceId().getUsername());
         //loginInfo.put("username","wrongusername");
-        loginInfo.put("password",System.getProperty("no.nibio.vips.logic.CORE_BATCH_PASSWORD"));
+        loginInfo.put("password",modelInformation.getVipsCoreInstanceId().getPassword());
         request.setLoginInfo(loginInfo);
         //System.out.println("VIPSCoreUserId = " + VIPSCoreUserId + ", name=" + forecastConfiguration.getVipsLogicUserId().getLastName());
         request.setVipsCoreUserId(VIPSCoreUserId);
         //System.out.println("RunModel for wsId" + forecastConfiguration.getWeatherStationPointOfInterestId());
-        Response resp = this.getManagerResource().runModel(config.getModelId(), request);
+        Response resp = this.getManagerResource(modelInformation).runModel(config.getModelId(), request);
 
         if(resp.getStatus() == Response.Status.OK.getStatusCode())
         {
@@ -751,10 +792,10 @@ public class ForecastBean {
      * Get the interface for REST resources in VIPSCoreManager
      * @return 
      */
-    private ManagerResource getManagerResource()
+    private ManagerResource getManagerResource(ModelInformation modelInformation)
     {
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL"));
+        WebTarget target = client.target(modelInformation.getVipsCoreInstanceId().getUri());
         ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
         ManagerResource resource = rTarget.proxy(ManagerResource.class);
         return resource;

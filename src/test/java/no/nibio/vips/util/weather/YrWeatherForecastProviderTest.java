@@ -93,11 +93,12 @@ public class YrWeatherForecastProviderTest {
             result = instance.getWeatherForecasts(weatherStation);
             assertNotNull(result);
             Collections.sort(result);
+            /*
             for(WeatherObservation obs:result)
             {
                 if(obs.getElementMeasurementTypeId().equals("TM"))
                 System.out.println(obs.toString());
-            }
+            }*/
             
             WeatherUtil wUtil = new WeatherUtil();
             //wUtil.checkForAndFixHourlyTimeSeriesHoles(result);

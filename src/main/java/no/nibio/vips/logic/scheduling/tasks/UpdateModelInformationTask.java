@@ -23,6 +23,7 @@ import it.sauronsoftware.cron4j.TaskExecutionContext;
 import javax.ejb.EJB;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import no.nibio.vips.logic.scheduling.TaskResult;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 
 /**
@@ -45,8 +46,12 @@ public class UpdateModelInformationTask extends VipsLogicTask{
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
         tec.setCompleteness(0d);
-        SessionControllerGetter.getForecastBean().updateModelInformation();
-        tec.setCompleteness(1d);
+        TaskResult taskResult = SessionControllerGetter.getForecastBean().updateModelInformation();
+        tec.setCompleteness(taskResult.getCompleteness());
+        tec.setStatusMessage(taskResult.getMessage());
+        if(taskResult.getCompleteness() < 1.0){
+            throw new RuntimeException();
+        }
     }
     
     @Override
