@@ -35,7 +35,7 @@ public class SessionControllerGetter {
     
 	// This obviously has to be changed when changing the application name in Maven
 	// TODO: Refactor out to System properties (e.g. in standalone.xml in JBoss/WildFly)
-    public static final String JNDI_PATH = "java:global/VIPSLogic-2022.1/";
+    public static final String JNDI_PATH = "java:global/VIPSLogic-2023.1/";
 
     public static SchedulingBean getSchedulingBean()
     {
