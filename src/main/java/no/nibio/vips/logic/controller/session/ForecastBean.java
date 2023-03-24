@@ -804,7 +804,8 @@ public class ForecastBean {
     public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate, String serverName, VipsLogicUser user)
     {
         //String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
-        String iconPath = "//" + serverName + "/public/images/";
+        //String iconPath = "//" + serverName + "/public/images/";
+        String iconPath = "https://logic.vips.nibio.no/public/images/";
         // Initialization
         final Vec2 hotspot = new Vec2()
                 .withX(0.5)
