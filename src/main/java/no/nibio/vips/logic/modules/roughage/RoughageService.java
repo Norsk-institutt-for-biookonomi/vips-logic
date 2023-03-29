@@ -143,7 +143,7 @@ public class RoughageService {
         if(endOfSeptember.after(SystemTime.getSystemTime()))
         {
             cal.setTime(SystemTime.getSystemTime());
-            cal.add(Calendar.DATE, 7);
+            cal.add(Calendar.DATE, 9);
             dateOfLastWeatherData = cal.getTime();
         }
         else
