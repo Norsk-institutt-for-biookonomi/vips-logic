@@ -44,7 +44,7 @@ import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import org.apache.commons.validator.EmailValidator;
+import org.apache.commons.validator.routines.EmailValidator;
 
 /**
  * Uses form configuration set in JSON files in [WARFILE]/formdefinitions/, or 
