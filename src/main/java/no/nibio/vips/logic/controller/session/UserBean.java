@@ -152,12 +152,6 @@ public class UserBean {
      */
     public VipsLogicUser getUser(String username, Integer userAuthenticationTypeId)
     {
-        // If type of authentication is PASSWORD, we return nothing
-        if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_PASSWORD))
-        {
-            return null;
-        }
-        
         // We find the authentication with given name
         Query q = em.createNamedQuery("UserAuthentication.findByUsername");
         q.setParameter("username", username);
@@ -171,6 +165,11 @@ public class UserBean {
             }
         }
         return null;
+    }
+
+    public UserAuthenticationType createUserAuthenticationTypeInstance(Integer userAuthenticationTypeId)
+    {
+        return em.find(UserAuthenticationType.class, userAuthenticationTypeId);
     }
     
     public VipsLogicUser storeUserFirstTime(VipsLogicUser user,UserAuthentication auth) throws FormValidationException
