@@ -68,7 +68,7 @@ public class Globals {
     public static String defaultTimestampFormat = "yyyy-MM-dd HH:mm:ssXXX";
     public static String defaultDateFormat = "yyyy-MM-dd";
     
-    public static int DEFAULT_UUID_VALIDITY_DURATION_DAYS = 30;
+    public static int DEFAULT_UUID_VALIDITY_DURATION_DAYS = 60;
     
     public static String PROTOCOL = System.getProperty("no.nibio.vips.logic.VIPSLOGIC_PROTOCOL","http");
 
