@@ -55,20 +55,7 @@ import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.HttpHeaders;
 
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
-import no.nibio.vips.logic.entity.Country;
-import no.nibio.vips.logic.entity.ForecastConfiguration;
-import no.nibio.vips.logic.entity.MapLayer;
-import no.nibio.vips.logic.entity.MessageLocale;
-import no.nibio.vips.logic.entity.Observation;
-import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.OrganizationGroup;
-import no.nibio.vips.logic.entity.PointOfInterest;
-import no.nibio.vips.logic.entity.UserAuthentication;
-import no.nibio.vips.logic.entity.UserAuthenticationPK;
-import no.nibio.vips.logic.entity.UserAuthenticationType;
-import no.nibio.vips.logic.entity.UserUuid;
-import no.nibio.vips.logic.entity.UserUuidPK;
-import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.MessagingBean;
@@ -142,6 +129,10 @@ public class UserBean {
             // TODO sensible handling
             return null;
         }
+    }
+
+    public VipsLogicRole getVipsLogicRole(Integer vipsLogicRoleId){
+        return em.find(VipsLogicRole.class, vipsLogicRoleId);
     }
     
     /**
