@@ -25,6 +25,7 @@ import com.ibm.icu.util.ULocale;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,11 +45,7 @@ import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import javax.persistence.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -76,6 +73,7 @@ import org.passay.PropertiesMessageResolver;
 import org.passay.Rule;
 import org.passay.RuleResult;
 import org.passay.WhitespaceRule;
+import org.postgresql.util.PSQLException;
 
 /**
  * Handles user stuff, credentials
@@ -249,7 +247,9 @@ public class UserBean {
         UserResources retVal = new UserResources();
         retVal.setPois(pointOfInterestBean.getPoisForUser(user));
         retVal.setMessageLocales(messageBean.getMessageLocaleList(user));
-        retVal.setForecastConfigurations(forecastBean.getForecastConfigurationsForUser(user.getUserId()));
+        List<ForecastConfiguration> forecastConfigurations = forecastBean.getForecastConfigurationsForUser(user.getUserId());
+        forecastConfigurations.addAll(forecastBean.getPrivateForecastConfigurationsForUser(user.getUserId()));
+        retVal.setForecastConfigurations(forecastConfigurations);
         List<Observation> observations = observationBean.getObservationsForUser(user);
         observations.addAll(observationBean.getObservationsLastEditedByUser(user));
         observations.addAll(observationBean.getObservationsStatusChangedByUser(user));
@@ -297,6 +297,100 @@ public class UserBean {
             }
         });
         
+    }
+
+    /**
+     * Brute force removal of all data stored by the user - if possible!
+     * Resources used by other users are transfered to the organization's archive user
+     * @param user
+     */
+    public void deleteUserResources(VipsLogicUser user) throws DeleteUserException{
+        UserResources userResources = this.getUserResources(user);
+        VipsLogicUser archiveUser = user.getOrganizationId().getArchiveUser();
+
+        // Forecast configurations
+        Query deleteForecastResultCache = em.createNativeQuery("DELETE FROM public.forecast_result_cache WHERE forecast_configuration_id=:forecastConfigurationId");
+        Query deleteForecastResult = em.createNativeQuery("DELETE FROM public.forecast_result WHERE forecast_configuration_id=:forecastConfigurationId");
+        Query deleteForecastSummary = em.createNativeQuery("DELETE FROM public.forecast_summary WHERE forecast_configuration_id=:forecastConfigurationId");
+        for(ForecastConfiguration forecastConfiguration:userResources.getForecastConfigurations())
+        {
+            // Delete:
+            // Results, including cached results
+            deleteForecastResult.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId()).executeUpdate();
+            deleteForecastResultCache.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId()).executeUpdate();
+
+            // Summaries
+            deleteForecastSummary.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId()).executeUpdate();
+
+            System.out.println("forecastConfiguration " + forecastConfiguration.getForecastConfigurationId() + " should be removed now");
+
+            // Configurations
+            em.remove(forecastConfiguration);
+
+        }
+
+        // Observations
+        List<Observation> transferObservations = new ArrayList<>();
+        if(userResources.getObservations() != null)
+        {
+            for(Observation obs:userResources.getObservations())
+            {
+                // Delete the observations made by the user
+                if(obs.getUserId().equals(user.getUserId()))
+                {
+                    em.remove(obs);
+                }
+                else
+                {
+                    // Transfer edit history for 3rd party observations to archive user
+                    transferObservations.add(obs);
+                }
+            }
+        }
+
+        // Delete POI only if no 3rd parties have used it for placing observations
+        List<PointOfInterest> undeleteablePOIs = new ArrayList<>();
+        Query countObservationsQ = em.createNativeQuery("SELECT count(*) FROM public.observation WHERE location_point_of_interest_id=:pointOfInterestId");
+        if(userResources.getPois() != null)
+        {
+            for(PointOfInterest poi:userResources.getPois())
+            {
+                countObservationsQ.setParameter("pointOfInterestId", poi.getPointOfInterestId());
+                Integer r = ((BigInteger) countObservationsQ.getSingleResult()).intValue();
+                if(r == 0)
+                {
+                    em.remove(poi);
+                }
+                else
+                {
+                    undeleteablePOIs.add(poi);
+                }
+            }
+        }
+
+        // Transfer the POI and observation leftovers IF we have an archive user. Otherwise: Throw error!
+        if(undeleteablePOIs.size() + transferObservations.size() > 0 && archiveUser == null)
+        {
+            throw new DeleteUserException("The user's organization " + user.getOrganizationId().getOrganizationName() + " has no archive user. Can't transfer resources created by the user that are used by others.");
+        }
+        for(PointOfInterest poi:undeleteablePOIs)
+        {
+            poi.setUser(archiveUser);
+        }
+        for(Observation obs: transferObservations)
+        {
+            obs.setStatusChangedByUserId(archiveUser.getUserId());
+            obs.setLastEditedBy(archiveUser.getUserId());
+        }
+
+
+
+
+        // Messages
+        for(MessageLocale ml:userResources.getMessageLocales())
+        {
+            em.remove(ml);
+        }
     }
     
     /**
