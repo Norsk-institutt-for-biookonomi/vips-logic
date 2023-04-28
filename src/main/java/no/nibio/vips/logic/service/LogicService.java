@@ -1455,6 +1455,53 @@ public class LogicService {
             return Response.status(Status.BAD_REQUEST).entity("INPUT ERROR: " + ex.getMessage()).build();
         }
     }
+
+    /**
+     * Allows a user to delete their account
+     * @param keepData if true, move all data to default user.
+     * @return
+     */
+    @DELETE
+    @Path("user/deleteme")
+    public Response deleteMe(@QueryParam("keepData") Boolean keepData) {
+        // Authentication
+        // Either valid UUID or session
+        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        if(user == null)
+        {
+            user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        }
+        if(user == null)
+        {
+            return Response.status(Status.UNAUTHORIZED).entity("You are not authorized to perform this operation").build();
+        }
+
+        // If it's an archive user, do NOT delete it!
+        if(user.getOrganizationId().getArchiveUser() != null && user.getOrganizationId().getArchiveUser().getUserId().equals(user.getUserId()))
+        {
+            return Response.status(Status.BAD_REQUEST).entity("User is an archive user for organization " + user.getOrganizationId().getOrganizationName() + ". Can't delete it").build();
+        }
+        try {
+            if (keepData != null && keepData) {
+                // Get default user for organization
+                VipsLogicUser archiveUser = user.getOrganizationId().getArchiveUser();
+                if (archiveUser == null) {
+                    return Response.status(Status.BAD_REQUEST).entity("Your organization " + user.getOrganizationId().getOrganizationName() + " has not defined a default user for archiving your data. Please contact your systems administrator to fix this.").build();
+                }
+                userBean.transferUserResources(user, archiveUser);
+            } else {
+                userBean.deleteUserResources(user);
+            }
+            // Delete the user
+            userBean.deleteUser(user);
+            return Response.status(Status.NO_CONTENT).build();
+        }
+        catch(DeleteUserException ex)
+        {
+            return Response.serverError().entity(ex.getMessage()).build();
+        }
+
+    }
     
     /**
      * Get the client to use for calling VIPSCoreManager REST services programmatically

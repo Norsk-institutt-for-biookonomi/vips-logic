@@ -322,8 +322,6 @@ public class UserBean {
             // Summaries
             deleteForecastSummary.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId()).executeUpdate();
 
-            System.out.println("forecastConfiguration " + forecastConfiguration.getForecastConfigurationId() + " should be removed now");
-
             // Configurations
             em.remove(forecastConfiguration);
 
@@ -382,9 +380,6 @@ public class UserBean {
             obs.setStatusChangedByUserId(archiveUser.getUserId());
             obs.setLastEditedBy(archiveUser.getUserId());
         }
-
-
-
 
         // Messages
         for(MessageLocale ml:userResources.getMessageLocales())
