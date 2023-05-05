@@ -100,6 +100,9 @@ public class Organism implements Serializable {
     
     @Transient
     private String observationDataSchema;
+
+    @Transient
+    private String observationData;
     
     /*@OneToMany(cascade = CascadeType.ALL, mappedBy = "organism")
     private Set<OrganismLocale> organismLocaleSet;
@@ -357,4 +360,12 @@ public class Organism implements Serializable {
 	public void setObservationDataSchema(String observationDataSchema) {
 		this.observationDataSchema = observationDataSchema;
 	}
+
+    public String getObservationData() {
+        return observationData;
+    }
+
+    public void setObservationData(String observationData) {
+        this.observationData = observationData;
+    }
 }

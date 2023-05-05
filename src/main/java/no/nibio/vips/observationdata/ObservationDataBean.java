@@ -14,6 +14,7 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -86,6 +87,29 @@ public class ObservationDataBean {
 			return m.createObjectNode();
 		}
     }
+
+	public JsonNode getDataModel(Integer organizationId, Integer organismId)
+	{
+		ObjectMapper m = new ObjectMapper();
+
+		JsonNode rootNode = null;
+		try {
+			try {
+				//System.out.println("organizationId = " + organizationId + ", organismId = " + organismId);
+				ObservationDataSchema ods = em.createNamedQuery("ObservationDataSchema.findByPK", ObservationDataSchema.class)
+						.setParameter("organizationId", organizationId)
+						.setParameter("organismId", organismId)
+						.getSingleResult();
+				rootNode = m.readTree(ods.getDataModel());
+			} catch (NoResultException ex) {
+				rootNode = m.readTree(this.getStandardModel());
+			}
+		}catch (JsonProcessingException ex)
+		{
+			return null;
+		}
+		return rootNode;
+	}
     
 	
 	public String getStandardSchema(){
@@ -119,6 +143,7 @@ public class ObservationDataBean {
 	    	for(Organism pest:pests)
 	    	{
 	    		pest.setObservationDataSchema(om.writeValueAsString(this.getSchema(organizationId, pest.getOrganismId(), bundle)));
+				pest.setObservationData(om.writeValueAsString(this.getDataModel(organizationId, pest.getOrganismId())));
 	    	}
 	    	return pests;
     	}
