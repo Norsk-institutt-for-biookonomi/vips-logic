@@ -19,12 +19,7 @@
 
 package no.nibio.vips.logic.entity.helpers;
 
-import no.nibio.vips.logic.entity.PointOfInterest;
-import no.nibio.vips.logic.entity.PointOfInterestType;
-import no.nibio.vips.logic.entity.PointOfInterestTypeFarm;
-import no.nibio.vips.logic.entity.PointOfInterestTypeField;
-import no.nibio.vips.logic.entity.PointOfInterestTypeRegion;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.entity.*;
 
 /**
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
@@ -42,6 +37,8 @@ public class PointOfInterestFactory {
                 return new PointOfInterestTypeField();
             case PointOfInterestType.POINT_OF_INTEREST_TYPE_REGION:
                 return new PointOfInterestTypeRegion();
+            case PointOfInterestType.POINT_OF_INTEREST_TYPE_TRAP:
+                return new PointOfInterestTypeTrap();
             default:
                 return new PointOfInterest();
         }

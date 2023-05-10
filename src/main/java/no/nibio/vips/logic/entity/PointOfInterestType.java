@@ -64,6 +64,7 @@ public class PointOfInterestType implements Serializable {
     public static final int POINT_OF_INTEREST_TYPE_FARM = 2;
     public static final int POINT_OF_INTEREST_TYPE_FIELD = 3;
     public static final int POINT_OF_INTEREST_TYPE_REGION = 4;
+    public static final int POINT_OF_INTEREST_TYPE_TRAP = 5;
 
     public PointOfInterestType() {
     }
