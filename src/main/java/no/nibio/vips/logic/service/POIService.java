@@ -173,7 +173,7 @@ public class POIService {
                 }
             } else {
                 PointOfInterest mergePoi = ((Integer) mapFromApp.get("pointOfInterestId")) > 0 ? SessionControllerGetter.getPointOfInterestBean().getPointOfInterest((Integer) mapFromApp.get("pointOfInterestId")) : PointOfInterest.getInstance((Integer) mapFromApp.get("pointOfInterestTypeId"));
-                // Trying to sync a non-existing observation
+                // Trying to sync a non-existing POI
                 if (mergePoi == null) {
                     return Response.status(Status.NOT_FOUND).build();
                 }

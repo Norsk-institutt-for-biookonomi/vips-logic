@@ -120,6 +120,8 @@ public class PointOfInterest implements Serializable, Comparable {
     				break;
     		case 4: instance = new PointOfInterestTypeRegion();
     				break;
+            case 5: instance = new PointOfInterestTypeTrap();
+                break;
     		default: instance = null;
     				break;
     	}
