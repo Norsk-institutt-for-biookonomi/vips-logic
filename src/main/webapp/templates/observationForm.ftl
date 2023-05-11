@@ -619,7 +619,15 @@
 			    <input type="text" class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);"  <#if editAccess!="W">readonly="readonly"</#if>/>
 			    <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
 			  </div>
-			  
+                <div class="form-group">
+                    <div class="checkbox">
+                        <#if editAccess!="W" && observation.isPositive?has_content && observation.isPositive ==true><input type="hidden" name="isPositive" value="true"/></#if>
+                        <label>
+                            <input type="checkbox" name="isPositive"<#if observation.isPositive?has_content && observation.isPositive == false><#else> checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
+                        </label>
+                        ${i18nBundle.isPositiveRegistration}
+                    </div>
+                </div>
 			  <div class="form-group">
 			  	<div class="checkbox">
                                         <#if editAccess!="W" && observation.isQuantified?has_content && observation.isQuantified ==true><input type="hidden" name="isQuantified" value="true"/></#if>

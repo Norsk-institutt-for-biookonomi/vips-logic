@@ -464,6 +464,7 @@ public class ObservationController extends HttpServlet {
                                             null
                                             : formValidation.getFormField("observationData").getWebValue()
                             );
+                            observation.setIsPositive(formValidation.getFormField("isPositiveRegistration").getWebValue() != null);
                             observation.setIsQuantified(formValidation.getFormField("isQuantified").getWebValue() != null);
                             this.setObservationLocationVisibility(observation, formValidation.getFormField("locationVisibility").getWebValue());
                             observation.setBroadcastMessage(formValidation.getFormField("broadcastMessage").getWebValue() != null);

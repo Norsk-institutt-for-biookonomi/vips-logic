@@ -105,6 +105,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private String statusRemarks;
     private String observationData;
     private Boolean isQuantified;
+    private Boolean isPositive;
     private Boolean broadcastMessage;
     private Boolean locationIsPrivate;
     private PolygonService polygonService;
@@ -665,5 +666,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 	public void setLastEditedTime(Date lastEditedTime) {
 		this.lastEditedTime = lastEditedTime;
 	}
-    
+
+    @Column(name = "is_positive")
+    public Boolean getIsPositive() {
+        return isPositive;
+    }
+
+    public void setIsPositive(Boolean positive) {
+        isPositive = positive;
+    }
 }
