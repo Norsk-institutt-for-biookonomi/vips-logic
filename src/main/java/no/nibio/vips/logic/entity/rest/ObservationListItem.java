@@ -35,7 +35,9 @@ public class ObservationListItem {
     private String observationHeading;
     private String observationData;
     private ObservationDataSchema observationDataSchema;
-    private Boolean broadcastMessage, locationIsPrivate;
+    private Boolean broadcastMessage;
+    private Boolean locationIsPrivate;
+    private Boolean isPositive;
 
     public ObservationListItem(
             Integer observationId,
@@ -48,6 +50,7 @@ public class ObservationListItem {
             String observationHeading,
             Boolean broadcastMessage,
             Boolean locationIsPrivate,
+            Boolean isPositive,
             String observationData,
             ObservationDataSchema observationDataSchema
     ){
@@ -61,6 +64,7 @@ public class ObservationListItem {
         this.observationHeading = observationHeading;
         this.broadcastMessage = broadcastMessage;
         this.locationIsPrivate = locationIsPrivate;
+        this.isPositive = isPositive;
         this.observationData = observationData;
         this.observationDataSchema = observationDataSchema;
     }
@@ -231,5 +235,13 @@ public class ObservationListItem {
      */
     public void setObservationData(String observationData) {
         this.observationData = observationData;
+    }
+
+    public Boolean getIsPositive() {
+        return isPositive;
+    }
+
+    public void setIsPositive(Boolean positive) {
+        isPositive = positive;
     }
 }

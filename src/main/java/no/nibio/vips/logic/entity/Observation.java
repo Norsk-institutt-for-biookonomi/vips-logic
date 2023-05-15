@@ -207,6 +207,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     {
         Map<String, Object> properties = new HashMap<>();
         properties.put("observationId", this.getObservationId());
+        properties.put("isPositive", this.getIsPositive());
+        properties.put("timestamp", this.getTimeOfObservation() != null ? this.getTimeOfObservation().getTime() : "null");
         return this.GISEntityUtil.getGeoJSONFromGis(this.geoinfo, properties);
     }
     
@@ -652,6 +654,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 this.getObservationHeading(),
                 this.getBroadcastMessage(),
                 this.getLocationIsPrivate(),
+                this.getIsPositive(),
                 this.getObservationData(),
                 observationDataSchema
         );
