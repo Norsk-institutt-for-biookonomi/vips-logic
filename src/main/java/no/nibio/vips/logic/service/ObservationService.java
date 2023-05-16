@@ -932,6 +932,7 @@ public class ObservationService {
 					mergeObs.setCropOrganism(organismBean.getOrganism((Integer)mapFromApp.get("cropOrganismId")));
 					// Other properties
 					mergeObs.setTimeOfObservation(oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>(){}));
+                    mergeObs.setIsPositive(mapFromApp.get("isPositive") != null ? (Boolean) mapFromApp.get("isPositive") : false);
 					mergeObs.setUserId(mapFromApp.get("userId") != null ? Integer.valueOf((Integer)mapFromApp.get("userId")): user.getUserId());
 					mergeObs.setGeoinfo((String)mapFromApp.get("geoinfo"));
 					mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);
