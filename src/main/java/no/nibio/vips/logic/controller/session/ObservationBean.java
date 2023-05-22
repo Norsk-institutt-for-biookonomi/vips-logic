@@ -606,7 +606,8 @@ public class ObservationBean {
             Integer cropId, 
             List<Integer> cropCategoryId,
             Date from, 
-            Date to
+            Date to,
+            Boolean isPositive
     ) 
     {
         // The minimum SQL
@@ -650,6 +651,12 @@ public class ObservationBean {
         {
             sql += "AND time_of_observation <= :to \n";
             parameters.put("to", to);
+        }
+        // Filter for positive/negative registrations
+        if(isPositive != null)
+        {
+            sql += "AND is_positive = :isPositive \n";
+            parameters.put("isPositive", isPositive);
         }
         
         Query q = em.createNativeQuery(sql, Observation.class);

@@ -126,8 +126,8 @@ public class ObservationService {
             @QueryParam("cropId") Integer cropId,
             @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr
-            
+            @QueryParam("to") String toStr,
+            @QueryParam("isPositive") Boolean isPositive
     )
     {
         return Response.ok().entity(getFilteredObservationsFromBackend(
@@ -136,7 +136,8 @@ public class ObservationService {
                 cropId,
                 cropCategoryId,
                 fromStr,
-                toStr
+                toStr,
+                isPositive
         )).build();
     }
     
@@ -163,7 +164,8 @@ public class ObservationService {
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr,
             @QueryParam("userUUID") String userUUID,
-            @QueryParam("locale") String localeStr
+            @QueryParam("locale") String localeStr,
+            @QueryParam("isPositive") Boolean isPositive
     )
     {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
@@ -175,7 +177,7 @@ public class ObservationService {
         ULocale locale = new ULocale(localeStr != null ? localeStr : 
         	user != null ? user.getOrganizationId().getDefaultLocale() : 
         		userBean.getOrganization(organizationId).getDefaultLocale());
-        
+
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                         organizationId,
                         pestId,
@@ -183,6 +185,7 @@ public class ObservationService {
                         cropCategoryId,
                         fromStr,
                         toStr,
+                        isPositive,
                         user
                 ).stream().map(obs -> { 
                     try {
@@ -220,7 +223,8 @@ public class ObservationService {
             Integer cropId,
             List<Integer> cropCategoryId,
             String fromStr,
-            String toStr
+            String toStr,
+            Boolean isPositive
     )
     {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
@@ -240,7 +244,8 @@ public class ObservationService {
             cropId,
             cropCategoryId,
             from,
-            to
+            to,
+            isPositive
         );
         
     }
@@ -366,7 +371,8 @@ public class ObservationService {
             @QueryParam("cropId") Integer cropId,
             @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr
+            @QueryParam("to") String toStr,
+            @QueryParam("to") Boolean isPositive
             
     )
     {
@@ -387,7 +393,8 @@ public class ObservationService {
             cropId,
             cropCategoryId,
             from,
-            to
+            to,
+            isPositive
         );
         
         GISEntityUtil gisUtil = new GISEntityUtil();
@@ -758,9 +765,10 @@ public class ObservationService {
             List<Integer> cropCategoryId,
             String fromStr,
             String toStr,
+            Boolean isPositive,
             VipsLogicUser user
     ) {
-        List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
+        List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, isPositive);
         //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
         // If superuser or orgadmin: Return everything, unchanged, uncensored
         if(user != null && (user.isSuperUser() || user.isOrganizationAdmin()))
