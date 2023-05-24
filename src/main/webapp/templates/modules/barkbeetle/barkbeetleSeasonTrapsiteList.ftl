@@ -68,7 +68,7 @@
 	sin(e) lokalitet(er) så snart som mulig og sørge for at feller blir montert 
 	innen 20. april. Fellene i standardlokaliteter tømmes etter hver av fire 
 	perioder, dvs. på mandag eller tirsdag i ukene 21, 24, 28 og 33. Data fra 
-	hver tømming skal legges inn under «Registrer» innen torsdag i samme uke som tømming, 
+	hver tømming skal legges inn under «Registrer» innen onsdag i samme uke som tømming,
 	og blir dermed del av en fortløpende kartvisning av barkbillenivået gjennom 
 	sesongen. Se utdypende informasjon i 
 	<a href="/images/modules/barkbeetle/${FILENAME_INSTRUKS_REGISTRANTER}" target="new">Instruks 
