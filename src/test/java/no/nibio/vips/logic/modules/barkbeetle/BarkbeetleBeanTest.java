@@ -101,41 +101,41 @@ public class BarkbeetleBeanTest {
      * Test of isTimeToSendSecondReminder method, of class BarkbeetleBean.
      * They are year specific, hard to test in other ways without not really testing
      */
-    //@Test
+    @Test
     public void testIsTimeToSendSecondReminder() throws Exception {
         System.out.println("isTimeToSendSecondReminder");
         
         // Week 21
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, 2022);
+        cal.set(Calendar.YEAR, 2023);
         cal.set(Calendar.MONTH, Calendar.MAY);
-        cal.set(Calendar.DATE, 26);
+        cal.set(Calendar.DATE, 25);
         Date currentDate = cal.getTime();
         System.out.println("currentDate=" + currentDate);
         BarkbeetleBean instance = new BarkbeetleBean();
         Boolean result = instance.isTimeToSendSecondReminder(currentDate);
         assertTrue(result);
         
-        cal.set(Calendar.DATE, 25);
+        cal.set(Calendar.DATE, 24);
         currentDate = cal.getTime();
         result = instance.isTimeToSendSecondReminder(currentDate);
         assertFalse(result);
         
         // Week 24
         cal.set(Calendar.MONTH, Calendar.JUNE);
-        cal.set(Calendar.DATE, 16);
+        cal.set(Calendar.DATE, 15);
         currentDate = cal.getTime();
         assertTrue(instance.isTimeToSendSecondReminder(currentDate));
         
         // Week 28
         cal.set(Calendar.MONTH, Calendar.JULY);
-        cal.set(Calendar.DATE, 14);
+        cal.set(Calendar.DATE, 13);
         currentDate = cal.getTime();
         assertTrue(instance.isTimeToSendSecondReminder(currentDate));
         
         // Week 33
         cal.set(Calendar.MONTH, Calendar.AUGUST);
-        cal.set(Calendar.DATE, 18);
+        cal.set(Calendar.DATE, 17);
         currentDate = cal.getTime();
         assertTrue(instance.isTimeToSendSecondReminder(currentDate));
         
@@ -151,7 +151,7 @@ public class BarkbeetleBeanTest {
         
         BarkbeetleBean instance = new BarkbeetleBean();
         
-        String result = instance.getIndividualFirstReminderText(s, 2022, 21);
+        String result = instance.getIndividualFirstReminderText(s, 2023, 21);
         System.out.println(result);
         assertNotNull(result);
     }
@@ -165,7 +165,7 @@ public class BarkbeetleBeanTest {
         s.setMunicipalityName("Porsgrunn");
         BarkbeetleBean instance = new BarkbeetleBean();
         
-        String result = instance.getIndividualSecondReminderText(s, 2022, 21);
+        String result = instance.getIndividualSecondReminderText(s, 2023, 21);
         System.out.println(result);
         assertNotNull(result);
     }
