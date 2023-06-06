@@ -703,7 +703,7 @@ public class BarkbeetleBean {
     }
 
     /**
-     * Second reminder is to be sent Thursday in the registration week
+     * Second reminder is to be sent Wednesday in the registration week
      *
      * @param currentDate
      * @return
@@ -712,8 +712,8 @@ public class BarkbeetleBean {
         Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
         cal.setTime(currentDate);
         Integer week = cal.get(Calendar.WEEK_OF_YEAR);
-        Boolean isThursday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY;
-        return BarkbeetleBean.TRAP_EMPTYING_WEEKS.contains(week) && isThursday;
+        Boolean isWednesday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.WEDNESDAY;
+        return BarkbeetleBean.TRAP_EMPTYING_WEEKS.contains(week) && isWednesday;
     }
 
     public void checkAndSendTrapEmptyingReminder(Date currentDate) {

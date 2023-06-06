@@ -109,33 +109,33 @@ public class BarkbeetleBeanTest {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, 2023);
         cal.set(Calendar.MONTH, Calendar.MAY);
-        cal.set(Calendar.DATE, 25);
+        cal.set(Calendar.DATE, 24);
         Date currentDate = cal.getTime();
         System.out.println("currentDate=" + currentDate);
         BarkbeetleBean instance = new BarkbeetleBean();
         Boolean result = instance.isTimeToSendSecondReminder(currentDate);
         assertTrue(result);
         
-        cal.set(Calendar.DATE, 24);
+        cal.set(Calendar.DATE, 23);
         currentDate = cal.getTime();
         result = instance.isTimeToSendSecondReminder(currentDate);
         assertFalse(result);
         
         // Week 24
         cal.set(Calendar.MONTH, Calendar.JUNE);
-        cal.set(Calendar.DATE, 15);
+        cal.set(Calendar.DATE, 14);
         currentDate = cal.getTime();
         assertTrue(instance.isTimeToSendSecondReminder(currentDate));
         
         // Week 28
         cal.set(Calendar.MONTH, Calendar.JULY);
-        cal.set(Calendar.DATE, 13);
+        cal.set(Calendar.DATE, 12);
         currentDate = cal.getTime();
         assertTrue(instance.isTimeToSendSecondReminder(currentDate));
         
         // Week 33
         cal.set(Calendar.MONTH, Calendar.AUGUST);
-        cal.set(Calendar.DATE, 17);
+        cal.set(Calendar.DATE, 16);
         currentDate = cal.getTime();
         assertTrue(instance.isTimeToSendSecondReminder(currentDate));
         
