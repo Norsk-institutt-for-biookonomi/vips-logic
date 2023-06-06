@@ -202,7 +202,6 @@ public class ObservationService {
 						return null;
 					}
                 }).collect(Collectors.toList());
-        
         //o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
         return Response.ok().entity(observations).build();
     }
@@ -775,7 +774,7 @@ public class ObservationService {
         {
             return filteredObservations;
         }
-        List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage()).collect(Collectors.toList());
+        List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage() || (isPositive == null || !isPositive)).collect(Collectors.toList());
         //retVal.forEach(o->System.out.println(o.getObservationId()));
         retVal = this.maskObservations(retVal);
         //retVal.forEach(o->System.out.println(o.getObservationId()));
@@ -800,7 +799,7 @@ public class ObservationService {
         
         // Placing all observations with a polygon service in the correct bucket.
         Map<PolygonService, List<Observation>> registeredPolygonServicesInObservationList = new HashMap<>();
-        observations.stream().filter((obs) -> (!obs.getLocationIsPrivate() && obs.getPolygonService() != null)).forEachOrdered((obs) -> {
+        observations.stream().filter((obs) -> { return (!obs.getLocationIsPrivate() && obs.getPolygonService() != null);}).forEachOrdered((obs) -> {
             List<Observation> obsWithPolyServ = registeredPolygonServicesInObservationList.getOrDefault(obs.getPolygonService(), new ArrayList<>());
             obsWithPolyServ.add(obs);
             registeredPolygonServicesInObservationList.put(obs.getPolygonService(), obsWithPolyServ);

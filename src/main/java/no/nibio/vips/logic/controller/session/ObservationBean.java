@@ -69,6 +69,8 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
 import no.nibio.vips.observationdata.ObservationDataSchemaPK;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.FeatureCollection;
 import org.wololo.geojson.GeoJSONFactory;
@@ -86,6 +88,8 @@ public class ObservationBean {
     PointOfInterestBean pointOfInterestBean;
     @EJB
     UserBean userBean;
+
+    private static Logger LOGGER = LoggerFactory.getLogger(ObservationBean.class);
     
     public List<Observation> getObservations(Integer organizationId)
     {
@@ -658,17 +662,18 @@ public class ObservationBean {
             sql += "AND is_positive = :isPositive \n";
             parameters.put("isPositive", isPositive);
         }
-        
+
+        LOGGER.debug(sql);
+
         Query q = em.createNativeQuery(sql, Observation.class);
         // Setting the parameters one by one
         parameters.keySet().stream().forEach(
-                (key)->q.setParameter(key, parameters.get(key))
+                (key)->{LOGGER.debug(key + ": " + parameters.get(key)); q.setParameter(key, parameters.get(key));}
         );
         
         //Date start = new Date();
         
         List<Observation> observations = q.getResultList();
-        
         //System.out.println("Finding obs took " + (new Date().getTime() - start.getTime()) + " milliseconds");
         
         //start = new Date();
@@ -688,6 +693,7 @@ public class ObservationBean {
             retVal = this.getObservationsWithLocations(retVal);
             //System.out.println("Finding locations took " + (new Date().getTime() - start.getTime()) + " milliseconds");
         }
+
         
         return retVal;
         

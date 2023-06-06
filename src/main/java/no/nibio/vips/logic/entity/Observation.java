@@ -588,7 +588,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     @Column(name = "location_is_private")
     public Boolean getLocationIsPrivate() {
-        return locationIsPrivate;
+        return locationIsPrivate != null ? locationIsPrivate : false;
     }
 
     /**
