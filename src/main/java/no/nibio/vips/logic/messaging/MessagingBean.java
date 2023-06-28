@@ -19,8 +19,6 @@
 
 package no.nibio.vips.logic.messaging;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.text.MessageFormat;
 import com.ibm.icu.util.ULocale;
 import java.text.SimpleDateFormat;
@@ -37,7 +35,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.ws.rs.core.Response;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
@@ -49,11 +46,8 @@ import no.nibio.vips.logic.messaging.distribution.IVipsMessageHandler;
 import no.nibio.vips.logic.messaging.distribution.VipsMessageInputHandler;
 import no.nibio.vips.logic.messaging.distribution.entity.VipsMessage;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.RESTAuthenticator;
 import no.nibio.vips.logic.util.SystemTime;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2015-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -63,6 +57,8 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 public class MessagingBean {
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
+    
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MessagingBean.class);
     
     private Map<Integer, UniversalMessageFormat> universalMessageFormats;
     
@@ -118,41 +114,7 @@ public class MessagingBean {
         
         // Store it
         em.persist(uMessage);
-        /*
-        ResteasyClient client = (ResteasyClient) ResteasyClientBuilder.newClient();//new ResteasyClientBuilder().build();
-        //client.register(new RESTAuthenticator("user", "userPass"));
-        client.register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"));
-        //ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");
-        // TODO Make this configurable in app server
-        ResteasyWebTarget target = client.target("http://localhost:8080");
-        //ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
-        UniversalMessagingServiceClient umClient = target.proxy(UniversalMessagingServiceClient.class);
-
-        if  (
-                System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM") == null 
-                || System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM").equals("false")
-            )
-        {
-            try
-            {
-                System.out.println(new ObjectMapper().writeValueAsString(uMessage));
-                Response r = umClient.sendMessage(new ObjectMapper().writeValueAsString(uMessage));
-
-                // TODO: Handle result
-
-                String result = r.readEntity(String.class);
-                System.out.println(result);
-            }
-            catch(JsonProcessingException ex)
-            {
-                // Handle error
-            }
-        }
-        else
-        {
-            System.out.println("Messaging system disabled. This message was not sent: " + uMessage.toString());
-        }
-        */
+        
         
         // TODO Handle errors better!
         try
@@ -167,7 +129,7 @@ public class MessagingBean {
             }
             else
             {
-                System.out.println("Messaging system disabled. This message was not sent: " + uMessage.toString());
+                LOGGER.debug("Messaging system disabled. This message was not sent: " + uMessage.toString());
             }
         }
         catch(Exception ex)
@@ -203,11 +165,12 @@ public class MessagingBean {
                 "AND u.user_id IN ( \n" +
                 "	SELECT mns.user_id FROM messaging.message_notification_subscription mns, public.vips_logic_user u \n" +
                 "	WHERE  mns.user_id = u.user_id \n" +
+                "       and u.organization_id = " + message.getOrganizationId() +
                 (message.getCropCategoryIds() != null && message.getCropCategoryIds().length != 0 ? "       AND mns.crop_category_ids && ARRAY" + Arrays.asList(message.getCropCategoryIds()).toString() + " \n" : "") +
                 (message.getMessageTagIds() != null && !message.getMessageTagIds().isEmpty() ? "       AND mns.message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" : "" )+ // && is the array_overlaps operator
                 "       AND (mns.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (mns.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
                 "); \n";
-        //System.out.println(sql);
+        LOGGER.debug(sql);
         Query q = em.createNativeQuery(sql,
                 MessageRecipient.class);
         
@@ -409,6 +372,7 @@ public class MessagingBean {
                 "	WHERE :weatherStationId = ANY(fens.weather_station_ids) \n" +
                 "       AND fens.crop_category_ids && ARRAY(SELECT crop_category_id FROM public.crop_category WHERE :cropOrganismId = ANY(crop_organism_ids))" + 
                 "       AND fens.user_id = u.user_id \n" +
+                "       AND u.organization_id = " + config.getVipsLogicUserId().getOrganizationId().getOrganizationId() +
                 "       AND (fens.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (fens.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
                 ");\n";
         Query q = em.createNativeQuery(sql, MessageRecipient.class);
@@ -480,8 +444,8 @@ public class MessagingBean {
     }
 
     private List<MessageRecipient> getObservationNotificationSubscribers(Observation observation) {
-        Query q = em.createNativeQuery(
-                "SELECT \n" +
+        VipsLogicUser observer = em.find(VipsLogicUser.class, observation.getUserId());
+        String sql = "SELECT \n" +
                 "	u.preferred_locale,\n" +
                 "       u.free_sms, \n" + 
                 "	umf.format_name AS type,\n" +
@@ -499,11 +463,15 @@ public class MessagingBean {
                 "	SELECT ons.user_id FROM messaging.observation_notification_subscription ons, public.vips_logic_user u \n" +
                 "	WHERE  ons.crop_category_ids && ARRAY(SELECT crop_category_id FROM public.crop_category WHERE :cropOrganismId = ANY(crop_organism_ids)) \n" + 
                 "       AND ons.user_id = u.user_id \n" +
+                "       and u.organization_id = " + observer.getOrganizationId().getOrganizationId() +
                 "       AND (ons.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (ons.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
-                ");\n",
+                ");\n";
+        LOGGER.debug(sql);
+        Query q = em.createNativeQuery(
+                sql,
                 MessageRecipient.class)
                 .setParameter("cropOrganismId", observation.getCropOrganismId());
-        
+        LOGGER.debug(q.toString());
         return q.getResultList();
     }
 
