@@ -642,20 +642,20 @@ public class UserBean {
      */
     public void informAdminOfConfirmedEmail(VipsLogicUser confirmUser, ResourceBundle i18nBundle, String serverName ) {
         List<VipsLogicUser> organizationAdmins = this.findOrganizationUsersByRole(confirmUser.getOrganizationId(), Globals.ROLE_ORGANIZATION_ADMINISTRATOR);
+        String subject = i18nBundle.getString("informAdminOfConfirmedEmailSubject");
+        String body = MessageFormat.format(i18nBundle.getString("informAdminOfConfirmedEmailBody"), 
+                            confirmUser.getLastName(),
+                            confirmUser.getApprovalApplication(),
+                            Globals.PROTOCOL + "://" + serverName + "/user?action=viewUser&userId=" + confirmUser.getUserId(),
+                            Globals.PROTOCOL + "://" + serverName + "/user?action=approveUser&userId=" + confirmUser.getUserId()
+                        );
+
+        //System.out.println(body);
+        // Send email
+        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
+        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         for(VipsLogicUser organizationAdmin: organizationAdmins)
         {
-            String subject = i18nBundle.getString("informAdminOfConfirmedEmailSubject");
-            String body = MessageFormat.format(i18nBundle.getString("informAdminOfConfirmedEmailBody"), 
-                                confirmUser.getLastName(),
-                                confirmUser.getApprovalApplication(),
-                                Globals.PROTOCOL + "://" + serverName + "/user?action=viewUser&userId=" + confirmUser.getUserId(),
-                                Globals.PROTOCOL + "://" + serverName + "/user?action=approveUser&userId=" + confirmUser.getUserId()
-                            );
-            
-            //System.out.println(body);
-            // Send email
-            String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-            SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
             mailSender.sendMail("noreply@" + serverName, organizationAdmin.getEmail(), subject, body);
         }
     }
