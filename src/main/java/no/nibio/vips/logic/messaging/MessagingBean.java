@@ -233,9 +233,11 @@ public class MessagingBean {
         ForecastEvent toRed = em.find(ForecastEvent.class, ForecastEvent.TO_RED);
         ForecastEvent greenToYellow = em.find(ForecastEvent.class, ForecastEvent.GREEN_TO_YELLOW);
         ForecastEvent currentEvent = null;
+        Query findConfQ = em.createNamedQuery("ForecastResult.findByForecastConfigurationId", ForecastResult.class);
         for(ForecastConfiguration conf:forecastConfigurations)
         {
-            List<ForecastResult> results = em.createNamedQuery("ForecastResult.findByForecastConfigurationId", ForecastResult.class)
+            LOGGER.debug("Now working with forecastConfiguration with id=" + conf.getForecastConfigurationId());
+            List<ForecastResult> results = findConfQ
                     .setParameter("forecastConfigurationId", conf.getForecastConfigurationId())
                     .getResultList();
             
@@ -332,7 +334,12 @@ public class MessagingBean {
                 uMessage.addMessageLocalVersion(locale, headingTemplate, "",MessageFormat.format(bodyTemplate, templateParts),detailsUrl);
                 
             }
-            uMessage.setDistributionList(this.getForecastEventNotificationSubscribers(fConf));
+            List<MessageRecipient> distributionList = this.getForecastEventNotificationSubscribers(fConf);
+            if(distributionList == null || distributionList.isEmpty())
+            {
+                em.remove(newNotification);
+            }
+            uMessage.setDistributionList(distributionList);
             cal.setTime(systemTime);
             cal.add(Calendar.DATE, 1);
             uMessage.setExpiresAt(cal.getTime());

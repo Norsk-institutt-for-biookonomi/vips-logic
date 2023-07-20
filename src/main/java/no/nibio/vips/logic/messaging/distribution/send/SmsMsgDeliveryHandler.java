@@ -139,6 +139,7 @@ public class SmsMsgDeliveryHandler implements IDeliveryMsgHandler {
                 + (vm.getIncludeNotificationSettingsLink() ? "\n\n" + MessageFormat.format(msgToSend.getNotificationSettingsLinkTpl(), msgReceiver.recipientId): "\n");
         LOGGER.debug(smsText);
         LOGGER.debug("Teksten er på " + smsText.length() + " tegn.");
+        LOGGER.debug("Mottaker: " + msgReceiver.msgDeliveryAddress);
 
         try {
             // TODO: Make the price part of VipsMessage
