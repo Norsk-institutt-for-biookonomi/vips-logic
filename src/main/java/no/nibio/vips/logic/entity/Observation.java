@@ -635,18 +635,20 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public ObservationListItem getListItem(String locale, ObservationDataSchema observationDataSchema)
     {
-        // If geoInfo is from POI, need to add observationId
+        // If geoInfo is from POI, need to add observationId and other stuff for observation rendering
         if(this.location != null)
         {
             this.location.addProperty("observationId", this.getObservationId());
+            this.location.addProperty("isPositive", this.isPositive);
+            this.location.addProperty("timestamp", this.getTimeOfObservation().getTime());
         }
         return new ObservationListItem(
                 this.getObservationId(),
                 this.getTimeOfObservation(),
                 this.getOrganismId(),
-                this.getOrganism().getLocalName(locale).trim() != "" ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
+                ! this.getOrganism().getLocalName(locale).trim().isBlank() ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
                 this.getCropOrganismId(),
-                this.getCropOrganism().getLocalName(locale).trim() != "" ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
+                ! this.getCropOrganism().getLocalName(locale).trim().isBlank() ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
                 // Specific geoInfo trumps location. This is to be interpreted 
                 // as that the observation has been geographically masked by
                 // choice of the observer
