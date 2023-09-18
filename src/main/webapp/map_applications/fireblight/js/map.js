@@ -71,20 +71,30 @@ var styles = {
       features: features
     }),
     style: function(feature, resolution){
-		// Site that has been cleared is all black
-		var observationData = JSON.parse(feature.get("observationData"));
-		if(observationData["tiltak"] == "Ryddet")
-		{
-			return [new ol.style.Style({
-		        image: new ol.style.Circle({
-		            fill: new ol.style.Fill({ color: [0,0,0,1] }),
-		            stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
-		            radius: iconRadius
-		        })
-		    })];
-		}
-		
-		var retVal = null;
+        // Site that has been cleared is all black
+        var observationData = JSON.parse(feature.get("observationData"));
+        if(observationData["tiltak"] == "Ryddet" && observationData["symptom"] == "Ikke symptom")
+        {
+                return [new ol.style.Style({
+                image: new ol.style.Circle({
+                    fill: new ol.style.Fill({ color: [0,0,0,1] }),
+                    stroke: new ol.style.Stroke({ color: [0,0,0,1] }),
+                    radius: iconRadius
+                })
+            })];
+        }
+        else if(observationData["tiltak"] == "Ryddet" && observationData["symptom"] == "Symptom")
+        {
+                return [new ol.style.Style({
+                image: new ol.style.Circle({
+                    fill: new ol.style.Fill({ color: [255,255,255,1] }),
+                    stroke: new ol.style.Stroke({ width: 8, color: [0,0,0,1] }),
+                    radius: iconRadius
+                })
+            })];
+        }
+
+        var retVal = null;
         if(feature.get("cropOrganism") != null && feature.get("cropOrganism")["latinName"] != null)
         {
             retVal = styles[feature.get("cropOrganism")["latinName"].toLowerCase()];
@@ -93,21 +103,21 @@ var styles = {
         {
             retVal = styles["plantae"];
         }
-		//console.info(retVal[0].getImage().getStroke().getWidth());
-		// If symptom has been registered, mark with inner black dot
-		if(observationData["symptom"] == "Symptom")
-		{
-			retVal = [
-				new ol.style.Style({
-				        image: new ol.style.Circle({
-				            fill: new ol.style.Fill({ color: [0,0,0,1]  }),
-				            stroke: new ol.style.Stroke({ width: 8, color: retVal[0].getImage().getFill().getColor() }),
-				            radius: iconRadius
-				        })
-			    	})
-			];
-		}
-		return retVal;
+        //console.info(retVal[0].getImage().getStroke().getWidth());
+        // If symptom has been registered, mark with inner black dot
+        if(observationData["symptom"] == "Symptom")
+        {
+                retVal = [
+                        new ol.style.Style({
+                                image: new ol.style.Circle({
+                                    fill: new ol.style.Fill({ color: [0,0,0,1]  }),
+                                    stroke: new ol.style.Stroke({ width: 8, color: retVal[0].getImage().getFill().getColor() }),
+                                    radius: iconRadius
+                                })
+                        })
+                ];
+        }
+        return retVal;
     }
             
   });
