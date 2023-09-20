@@ -48,6 +48,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import no.nibio.vips.gis.GISUtil;
+import org.wololo.geojson.Feature;
 
 /**
  * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
@@ -64,6 +65,7 @@ import no.nibio.vips.gis.GISUtil;
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId = :pointOfInterestId"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestIds", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId IN :pointOfInterestIds"),
     @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findByOrganizationIdAndPoiTypes", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestTypeId in :pointOfInterestTypes AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findForecastLocationsByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.isForecastLocation IS TRUE AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     @NamedQuery(name = "PointOfInterest.findByNameCaseInsensitive", query = "SELECT p FROM PointOfInterest p WHERE lower(p.name) = lower(:name)"),
@@ -357,6 +359,7 @@ public class PointOfInterest implements Serializable, Comparable {
     public String getGeoJSON()
     {
         this.addProperty("pointOfInterestId", this.getPointOfInterestId());
+        this.addProperty("pointOfInterestTypeId", this.getPointOfInterestTypeId());
         return this.gisUtil.getGeoJSONFromGeometry(this.getGisGeom(), this.getProperties());
     }
     

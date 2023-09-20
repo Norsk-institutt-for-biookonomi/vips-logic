@@ -395,6 +395,7 @@ public class PointOfInterestBean {
         {
             GISUtil gisUtil = new GISUtil();
             poi.addProperty("pointOfInterestId", poi.getPointOfInterestId());
+            poi.addProperty("pointOfInterestTypeId", poi.getPointOfInterestTypeId());
             if(poi.getGisGeom() != null)
             {
                 

@@ -46,6 +46,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import javax.ws.rs.QueryParam;
 
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.Country;
@@ -96,6 +99,27 @@ public class POIService {
     public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId) {
         PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(pointOfInterestId);
         return Response.ok().entity(retVal).build();
+    }
+    
+    /**
+     * @param organizationId Id of the organization in question
+     * @param poiTypesStr Comma separated list of poiTypes
+     * @return GeoJson with pois filtered by organization and type
+     */
+    @GET
+    @Path("organization/{organizationId}/type/geojson")
+    @Produces("application/json;charset=UTF-8")
+    @TypeHint(PointOfInterest.class)
+    public Response getPoisByPoiTypesAsGeoJson(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("poiTypes") String poiTypesStr
+    )
+    {
+        List<Integer> poiTypes = Arrays.asList(poiTypesStr.split(",")).stream().map(str->Integer.valueOf(str)).collect(Collectors.toList());
+        Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
+        List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganizationAndOfTypes(organization, poiTypes); 
+        
+        return Response.ok().entity(SessionControllerGetter.getPointOfInterestBean().getPoisAsGeoJson(pois)).build();
     }
 
     /**
