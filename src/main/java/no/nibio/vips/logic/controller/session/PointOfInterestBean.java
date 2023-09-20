@@ -29,6 +29,7 @@ import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Point;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -40,6 +41,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.ExternalResource;
 import no.nibio.vips.logic.entity.ExternalResourceType;
 import no.nibio.vips.logic.entity.Organization;
@@ -52,6 +54,11 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
+import org.wololo.geojson.Feature;
+import org.wololo.geojson.FeatureCollection;
+import org.wololo.geojson.GeoJSON;
+import org.wololo.geojson.GeoJSONFactory;
+import org.wololo.jts2geojson.GeoJSONWriter;
 
 
 /**
@@ -347,6 +354,60 @@ public class PointOfInterestBean {
         return em.createNamedQuery("PointOfInterest.findByOrganizationId", PointOfInterest.class)
                 .setParameter("organizationId", organization)
                 .getResultList();
+    }
+    
+    /**
+     * Fetch all pois for one organization, filtered by poi types
+     * @param organization the organization in question
+     * @param pointOfInterestTypes only return pois of these types
+     * @return all pois for one organization, filtered by poi types
+     */
+    public List<PointOfInterest> getPoisForOrganizationAndOfTypes(Organization organization, List<Integer> pointOfInterestTypes)
+    {
+        return em.createNamedQuery("PointOfInterest.findByOrganizationIdAndPoiTypes")
+                .setParameter("organizationId", organization)
+                .setParameter("pointOfInterestTypes", pointOfInterestTypes)
+                .getResultList();
+    }
+    
+    /**
+     * Convert list of POIs into GeoJson
+     * @param pois
+     * @return 
+     */
+    public GeoJSON getPoisAsGeoJson(List<PointOfInterest> pois)
+    {
+        List<Feature> features = pois.stream()
+                .map(poi-> this.getPoiGeoJsonFeature(poi))
+                .collect(Collectors.toList());
+        GeoJSONWriter writer = new GeoJSONWriter();
+        return writer.write(features); 
+    }
+    
+    /**
+     * Best effort attempt to return the GIS info for this POI as a GeoJSON Feature
+     * @param poi
+     * @return 
+     */
+    public Feature getPoiGeoJsonFeature(PointOfInterest poi)
+    {
+        if(poi.getGisGeom() != null || (poi.getLongitude() != null &&  poi.getLatitude() != null))
+        {
+            GISUtil gisUtil = new GISUtil();
+            poi.addProperty("pointOfInterestId", poi.getPointOfInterestId());
+            if(poi.getGisGeom() != null)
+            {
+                
+                return gisUtil.getGeoJSONFeatureFromGeometry(poi.getGisGeom(), poi.getProperties());
+            }
+            // Else: Create Point
+            else if(poi.getLongitude() != null &&  poi.getLatitude() != null)
+            {
+                org.locationtech.jts.geom.Point p = gisUtil.createPointWGS84(poi.getLongitude(), poi.getLatitude());
+                return gisUtil.getGeoJSONFeatureFromGeometry(p, poi.getProperties());
+            }
+        }
+        return null;        
     }
 
     public PointOfInterest storePoi(PointOfInterest poi) {
