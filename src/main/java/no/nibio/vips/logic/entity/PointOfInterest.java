@@ -269,7 +269,15 @@ public class PointOfInterest implements Serializable, Comparable {
         {
             this.properties = new HashMap<>();
         }
-        return properties;
+        if(this.properties.get("pointOfInterestId") == null)
+        {
+            this.properties.put("pointOfInterestId", this.getPointOfInterestId());
+        }
+        if(this.properties.get("pointOfInterestTypeId") == null)
+        {
+            this.properties.put("pointOfInterestTypeId", this.getPointOfInterestTypeId());
+        }
+        return this.properties;
     }
 
     /**
@@ -358,14 +366,16 @@ public class PointOfInterest implements Serializable, Comparable {
     @Transient
     public String getGeoJSON()
     {
-        this.addProperty("pointOfInterestId", this.getPointOfInterestId());
-        this.addProperty("pointOfInterestTypeId", this.getPointOfInterestTypeId());
         return this.gisUtil.getGeoJSONFromGeometry(this.getGisGeom(), this.getProperties());
     }
     
     public void addProperty(String key, Object value)
     {
-        this.getProperties().put(key, value);
+        if(this.properties == null)
+        {
+            this.properties = new HashMap<>();
+        }
+        this.properties.put(key, value);
     }
     
     /**

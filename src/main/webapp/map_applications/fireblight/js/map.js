@@ -307,27 +307,37 @@ function getOpenLayersDefaultStyle()
  */
 function diseaseSpreadingPoiStyle(feature, resolution) 
 {
-    if(feature.getGeometry().getType() == "Point")
-    {
-        const radiusInMeters = feature.getProperties()["pointOfInterestTypeId"] == "6" ? 5000 
-            : feature.getProperties()["pointOfInterestTypeId"] == "7" ? 10000
-            : 500;
-        const fillColor = feature.getProperties()["pointOfInterestTypeId"] == "6" ? [255,0, 0, 0.5] 
-            : feature.getProperties()["pointOfInterestTypeId"] == "7" ? [255, 127,127 , 0.5]
-            : [255, 255, 255, 0.0];
-        const viewProjection = map.getView().getProjection();      
-        const coordsInViewProjection = feature.getGeometry().getCoordinates();
-        const longLat = ol.proj.toLonLat(coordsInViewProjection, viewProjection);
-        const latitude_rad = longLat[1] * Math.PI / 180;
-        const circle = new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({color: fillColor}),
-                stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 5, lineDash: [5, 10], lineCap:"square"}),
-                radius: radiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
-            })
-        });
+    if(feature.getProperties()["pointOfInterestTypeId"] == "7") // Nursery
+    {   
+        if(feature.getGeometry().getType() == "Point")
+        {
+            // impactRadius is set in database for nursery POIs
+            const radiusInMeters = feature.getProperties()["impactRadius"] * 1000;
+            const viewProjection = map.getView().getProjection();      
+            const coordsInViewProjection = feature.getGeometry().getCoordinates();
+            const longLat = ol.proj.toLonLat(coordsInViewProjection, viewProjection);
+            const latitude_rad = longLat[1] * Math.PI / 180;
+            const circle = new ol.style.Style({
+                image: new ol.style.Circle({
+                    fill: new ol.style.Fill({color: [255, 127,127 , 0.5]}),
+                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 5, lineDash: [5, 10], lineCap:"square"}),
+                    radius: radiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
+                })
+            });
 
-        return [circle];
+            return [circle];
+        }
+    }
+    else if(feature.getProperties()["pointOfInterestTypeId"] == "6") // Apiary site
+    {
+        return [new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: 'icons/bees-icon-25.png',
+                    scale: 0.3,
+                    anchor: [0.3,1]
+                })
+            })];
+            
     }
     
     return getOpenLayersDefaultStyle();

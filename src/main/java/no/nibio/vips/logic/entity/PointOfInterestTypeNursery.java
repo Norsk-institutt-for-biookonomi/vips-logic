@@ -20,9 +20,12 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
+import java.util.Map;
+import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * @copyright 2023 <a href="http://www.nibio.no/">NIBIO</a>
@@ -32,5 +35,38 @@ import javax.persistence.Table;
 @DiscriminatorValue("7")
 @Table(name = "point_of_interest_nursery")
 public class PointOfInterestTypeNursery extends PointOfInterest implements Serializable {
+    
+    private Double impactRadius;
 
+    /**
+     * Radius (in km) of the expected impact (implemented for fire blight)
+     * of the nursery. Used for map rendering
+     * @return the impactRadius
+     */
+    @Column(name="impact_radius")
+    public Double getImpactRadius() {
+        return impactRadius;
+    }
+
+    /**
+     * @param impactRadius the impactRadius to set
+     */
+    public void setImpactRadius(Double impactRadius) {
+        this.impactRadius = impactRadius;
+    }
+    
+    @Transient
+    @Override
+    public String getGeoJSON()
+    {
+        this.addProperty("impactRadius", this.getImpactRadius());
+        return super.getGeoJSON();
+    }
+    
+    @Transient
+    @Override
+    public Map<String,Object> getProperties() {
+        this.addProperty("impactRadius", this.getImpactRadius());
+        return super.getProperties();
+    }
 }
