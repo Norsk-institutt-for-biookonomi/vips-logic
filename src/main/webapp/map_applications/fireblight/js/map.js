@@ -324,8 +324,14 @@ function diseaseSpreadingPoiStyle(feature, resolution)
                     radius: radiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
                 })
             });
+            const icon = new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: 'icons/plant-clipart.png',
+                    scale: 0.25
+                })
+            });
 
-            return [circle];
+            return [circle, icon];
         }
     }
     else if(feature.getProperties()["pointOfInterestTypeId"] == "6") // Apiary site
