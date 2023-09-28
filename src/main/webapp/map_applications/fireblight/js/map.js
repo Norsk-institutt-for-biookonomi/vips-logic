@@ -782,7 +782,7 @@ var navigateTo = function (center)
     var centerPosition = ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857');
     view = new ol.View({
         center: centerPosition,
-        zoom: 18
+        zoom: 16
     });
 
     map.setView(view);

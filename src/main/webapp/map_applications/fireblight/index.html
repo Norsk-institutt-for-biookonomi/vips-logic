@@ -307,7 +307,8 @@
             if(phrase.trim().length > 2)
             {
                 //console.log(phrase);
-                $.getJSON( "https://ws.geonorge.no/SKWS3Index/ssr/sok?navn=" + phrase + "*&maxAnt=5&tilSosiKoordSyst=4258&fylkeKommuneListe=&eksakteForst=true", renderResults);
+                //$.getJSON( "https://ws.geonorge.no/SKWS3Index/ssr/sok?navn=" + phrase + "*&maxAnt=5&tilSosiKoordSyst=4258&fylkeKommuneListe=&eksakteForst=true", renderResults);
+                $.getJSON( "https://ws.geonorge.no/stedsnavn/v1/navn?sok=" + phrase + "*&utkoordsys=4326&treffPerSide=6&side=1&filtrer=navn.skrivem%C3%A5te%2Cnavn.navneobjekttype%2Cnavn.kommuner%2Cnavn.representasjonspunkt", renderResults);
             }
             else if(phrase.trim().length === 0)
             {
@@ -320,12 +321,12 @@
         var renderResults = function(data) {
             //console.log(data);
             var html = "<ul class='resultList'>";
-            for(var i=0; i<Math.min(data.stedsnavn.length,6); i++)
+            for(var i=0; i<Math.min(data.navn.length,6); i++)
             {
-                var location = data.stedsnavn[i];
-                var coordinateOrig = [parseFloat(location.aust), parseFloat(location.nord)];
-                var coordinateDec = proj4(stedsnavnProj, "EPSG:4326", coordinateOrig);
-                html += "<li onclick=\"navigateTo([" + coordinateDec + "]);\"><b>" + location.stedsnavn + "</b>, " + location.kommunenavn + " (" + location.navnetype + ")</li>";
+                var location = data.navn[i];
+                var coordinateOrig = [parseFloat(location.representasjonspunkt.øst), parseFloat(location.representasjonspunkt.nord)];
+                //var coordinateDec = proj4(location.representasjonspunkt.koordsys, "EPSG:4326", coordinateOrig);
+                html += "<li onclick=\"navigateTo([" + coordinateOrig + "]);\"><b>" + location.skrivemåte + "</b>, " + location.kommuner[0].kommunenavn + " (" + location.navneobjekttype + ")</li>";
             }
             html += "</ul>"
             var searchResultsEl = document.getElementById("searchResults");
