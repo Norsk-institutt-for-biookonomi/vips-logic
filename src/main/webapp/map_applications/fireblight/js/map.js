@@ -311,27 +311,34 @@ function diseaseSpreadingPoiStyle(feature, resolution)
     {   
         if(feature.getGeometry().getType() == "Point")
         {
-            // impactRadius is set in database for nursery POIs
-            const radiusInMeters = feature.getProperties()["impactRadius"] * 1000;
+            const innerRadiusInMeters = 1000;
+            const outerRadiusInMeters = 2000;
             const viewProjection = map.getView().getProjection();      
             const coordsInViewProjection = feature.getGeometry().getCoordinates();
             const longLat = ol.proj.toLonLat(coordsInViewProjection, viewProjection);
             const latitude_rad = longLat[1] * Math.PI / 180;
-            const circle = new ol.style.Style({
+            const innerCircle = new ol.style.Style({
                 image: new ol.style.Circle({
-                    fill: new ol.style.Fill({color: [255, 127,127 , 0.5]}),
-                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 5, lineDash: [5, 10], lineCap:"square"}),
-                    radius: radiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
+                    fill: new ol.style.Fill({color: [255, 127,127, 1.0]}),
+                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 3, lineDash: [5, 10], lineCap:"square"}),
+                    radius: innerRadiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
+                })
+            });
+            const outerCircle = new ol.style.Style({
+                image: new ol.style.Circle({
+                    fill: new ol.style.Fill({color: [255, 127,127, 0.5]}),
+                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 3, lineDash: [5, 10], lineCap:"square"}),
+                    radius: outerRadiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
                 })
             });
             const icon = new ol.style.Style({
                 image: new ol.style.Icon({
                     src: 'icons/plant-clipart.png',
-                    scale: 0.25
+                    scale: 8/resolution
                 })
             });
 
-            return [circle, icon];
+            return [outerCircle, innerCircle, icon];
         }
     }
     else if(feature.getProperties()["pointOfInterestTypeId"] == "6") // Apiary site
@@ -339,7 +346,7 @@ function diseaseSpreadingPoiStyle(feature, resolution)
         return [new ol.style.Style({
                 image: new ol.style.Icon({
                     src: 'icons/bees-icon-25.png',
-                    scale: 0.3,
+                    scale: 0.2,
                     anchor: [0.3,1]
                 })
             })];
