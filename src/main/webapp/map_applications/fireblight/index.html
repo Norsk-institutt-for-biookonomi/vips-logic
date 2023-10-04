@@ -142,9 +142,9 @@
             
             #legend ul li:before {
                 content: "";
-                line-height: 1em;
-                width: .7em;
-                height: .7em;
+                line-height: 2em;
+                width: 0.81em;
+                height: 0.81em;
                 float: left;
                 margin: .25em .25em 0;
                 border-radius: 50%;
@@ -157,6 +157,10 @@
             #legend ul li.eple:before { background-color: rgb(0,255,0); }
             #legend ul li.paere:before { background-color: rgb(122,175,131); }
             #legend ul li.plante:before { background-color: rgb(0,0,255); }
+            
+            #legend ul li.apiary:before { line-height: 1em; width: .7em; height: .7em; }
+            #legend ul li.apiary:before { background-color: #ffe05e; }
+            #legend ul li.nursery:before { line-height: 1em; width: .5em; height: .5em;border: 3px dotted black; background-color: rgb(255, 127,127);}
             
             /* Screen size adjustments */
             @media (max-width: 500px)
@@ -267,6 +271,7 @@
           
       </div>
       <div id="legend">
+          <h3>Registreringer</h3>
             <ul>
                 <li class="bulk">Bulkemispel</li>
                 <li class="sprik">Sprikemispel</li>
@@ -274,6 +279,11 @@
                 <li class="eple">Eple</li>
                 <li class="paere">Pære</li>
                 <li class="plante">Annet</li>
+            </ul>
+          <h3>Kilder til spredning</h3>
+            <ul>
+                <li class="apiary"><input type="checkbox" checked onclick="apiaryLayer.setVisible(this.checked);"/>Bigårdsplass</li>
+                <li class="nursery"><input type="checkbox" checked onclick="nurseryPoisOverlay.setVisible(this.checked);"/>Planteskole</li>
             </ul>
       </div>
       

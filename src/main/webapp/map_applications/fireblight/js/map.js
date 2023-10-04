@@ -1,5 +1,5 @@
 // The globally available map objects
-var map, featureOverlay, newFeatureOverlay, diseaseSpreadingPoisOverlay;
+var map, featureOverlay, newFeatureOverlay, nurseryPoisOverlay, apiaryLayer;//, apiaryPoisOverlay;
 
 // Override localization settings for this particular web page
 var hardcodedLanguage = "nb";
@@ -171,11 +171,31 @@ async function initMap()
                 });
 
 
-        diseaseSpreadingPoisOverlay = new ol.layer.Vector({
+        nurseryPoisOverlay = new ol.layer.Vector({
             source: new ol.source.Vector({
                 features: new ol.Collection()
             }),
             style: diseaseSpreadingPoiStyle
+        });
+        
+        /*apiaryPoisOverlay = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                features: new ol.Collection()
+            }),
+            style: diseaseSpreadingPoiStyle
+        });*/
+        
+        let apiarySource = new ol.source.ImageWMS({
+            url: 'https://kart.mattilsynet.no/wmscache/service',
+            params: {"LAYERS":"Mattilsynet_Bigaardsplasser"},
+            ratio: 1,
+            projection: ol.proj.get("EPSG:25833")
+        });
+        
+        apiaryLayer = new ol.layer.Image({
+            source: apiarySource,
+            visible: true,
+            opacity: 1.0
         });
 
         map = new ol.Map({
@@ -184,7 +204,9 @@ async function initMap()
                 //topo2graatone, 
                 topo4,
                 //osm,
-                diseaseSpreadingPoisOverlay,
+                nurseryPoisOverlay,
+                //apiaryPoisOverlay,
+                apiaryLayer,
                 featureOverlay,
                 newFeatureOverlay
             ],
@@ -359,7 +381,8 @@ function diseaseSpreadingPoiStyle(feature, resolution)
 
 function getAndRenderDiseaseSpreadingPois()
 {
-    fetch("/rest/poi/organization/1/type/geojson?poiTypes=6,7")
+    // Nurseries
+    fetch("/rest/poi/organization/1/type/geojson?poiTypes=7")
             .then(response => response.json())
             .then(data => {
                 let olFeatures = (new ol.format.GeoJSON()).readFeatures(
@@ -372,12 +395,31 @@ function getAndRenderDiseaseSpreadingPois()
 
             //sconsole.info(olFeatures);
             //console.info(diseaseSpreadingPoisOverlay.getSource());
-            diseaseSpreadingPoisOverlay.getSource().clear();
-            diseaseSpreadingPoisOverlay.getSource().addFeatures(olFeatures);
+            nurseryPoisOverlay.getSource().clear();
+            nurseryPoisOverlay.getSource().addFeatures(olFeatures);
                 
             });
-            
+    /*        
+    // Apiary sites
+    // 2023-10-04: Reading WMS layer directly from Mattilsynet
+    fetch("/rest/poi/organization/1/type/geojson?poiTypes=6")
+            .then(response => response.json())
+            .then(data => {
+                let olFeatures = (new ol.format.GeoJSON()).readFeatures(
+                    data, 
+                    {
+                        dataProjection: "EPSG:4326",
+                        featureProjection: map.getView().getProjection().getCode()
+                    }
+                );
 
+            //sconsole.info(olFeatures);
+            //console.info(diseaseSpreadingPoisOverlay.getSource());
+            apiaryPoisOverlay.getSource().clear();
+            apiaryPoisOverlay.getSource().addFeatures(olFeatures);
+                
+            });
+    */
 }
 
 /**
