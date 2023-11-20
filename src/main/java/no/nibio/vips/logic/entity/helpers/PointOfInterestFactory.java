@@ -38,6 +38,8 @@ public class PointOfInterestFactory {
                 return new PointOfInterestTypeRegion();
             case PointOfInterestType.POINT_OF_INTEREST_TYPE_TRAP:
                 return new PointOfInterestTypeTrap();
+            case PointOfInterestType.POINT_OF_INTEREST_TYPE_NURSERY:
+                return new PointOfInterestTypeNursery();
             default:
                 return new PointOfInterest();
         }
