@@ -1,5 +1,5 @@
 // The globally available map objects
-var map, featureOverlay, newFeatureOverlay, nurseryPoisOverlay, apiaryLayer;//, apiaryPoisOverlay;
+var map, featureOverlay, newFeatureOverlay, nurseryPoisOverlay, apiaryLayer, zoneLayer;//, apiaryPoisOverlay;
 
 // Override localization settings for this particular web page
 var hardcodedLanguage = "nb";
@@ -197,6 +197,19 @@ async function initMap()
             visible: true,
             opacity: 1.0
         });
+        
+        let zoneSource = new ol.source.ImageWMS({
+            url: 'https://wms04test.nibio.no/cgi-bin/parebrann',
+            params: {"LAYERS":"parebrann"},
+            ratio: 1,
+            projection: ol.proj.get("EPSG:25833")
+        });
+        
+        zoneLayer = new ol.layer.Image({
+            source: zoneSource,
+            visible: false,
+            opacity: 0.65
+        });
 
         map = new ol.Map({
             target: 'map',
@@ -204,10 +217,12 @@ async function initMap()
                 //topo2graatone, 
                 topo4,
                 //osm,
+                zoneLayer,
                 nurseryPoisOverlay,
                 //apiaryPoisOverlay,
                 apiaryLayer,
                 featureOverlay,
+                
                 newFeatureOverlay
             ],
             view: new ol.View({
