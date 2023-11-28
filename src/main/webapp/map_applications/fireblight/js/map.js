@@ -199,7 +199,7 @@ async function initMap()
         });
         
         let zoneSource = new ol.source.ImageWMS({
-            url: 'https://wms04test.nibio.no/cgi-bin/parebrann',
+            url: 'https://wms.nibio.no/cgi-bin/parebrann',
             params: {"LAYERS":"parebrann"},
             ratio: 1,
             projection: ol.proj.get("EPSG:25833")
