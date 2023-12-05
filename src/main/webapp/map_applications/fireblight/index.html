@@ -59,16 +59,16 @@
             .geo-location
             {
                 top: auto;
-                right: 0.5em;
-                bottom: 10.0em;
+                right: 4em;
+                bottom: 3.5em;
                 left: auto;
                 z-index: 1000;
             }
             
             #registerButton {
                 top: auto;
-                bottom: 12.0em;
-                right: 0.5em;
+                bottom: 3.5em;
+                right: 6em;
                 left: auto;
                 z-index: 1000;
             }
@@ -143,10 +143,10 @@
             #legend ul li:before {
                 content: "";
                 line-height: 2em;
-                width: 0.81em;
-                height: 0.81em;
+                width: 0.75em;
+                height: 0.75em;
                 float: left;
-                margin: .25em .25em 0;
+                margin: .05em .4em 0;
                 border-radius: 50%;
                 border: 1px solid black;
             }
@@ -178,6 +178,7 @@
                
             }
             
+            /* For finger pointing aka touch screen */
             @media (pointer: coarse) {
                  #registerButton button, .geo-location button {
                 width: 1.8em;
@@ -185,7 +186,7 @@
                 }
                 
                 #registerButton {
-                    bottom: 13.0em;
+                    right: 8.0em;
                 }
                 .geo-location button {
                     bottom: 8.0em;

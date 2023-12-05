@@ -178,12 +178,6 @@ async function initMap()
             style: diseaseSpreadingPoiStyle
         });
         
-        /*apiaryPoisOverlay = new ol.layer.Vector({
-            source: new ol.source.Vector({
-                features: new ol.Collection()
-            }),
-            style: diseaseSpreadingPoiStyle
-        });*/
         
         let apiarySource = new ol.source.ImageWMS({
             url: 'https://kart.mattilsynet.no/wmscache/service',
