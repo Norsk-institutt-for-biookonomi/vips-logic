@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2017-2023 NIBIO <http://www.nibio.no/>. 
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+/*
+ * 
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
+ */
+
 // The globally available map objects
 var map, featureOverlay, newFeatureOverlay, nurseryPoisOverlay, apiaryLayer, zoneLayer;//, apiaryPoisOverlay;
 
@@ -7,13 +30,18 @@ var hardcodedLanguage = "nb";
 // If false, touching map will not create a new item
 var registration = false;
 var geolocation;
+
+/**
+ * Initializes the map with all its layers
+ * @returns {undefined}
+ */
 async function initMap()
 {
 
     var features = new ol.Collection();
 
+    // Icon styling for the observations layer
     var iconRadius = 10;
-
     var styles = {
         // Bulkemispel = rød
         'cotoneaster bullatus': [new ol.style.Style({
@@ -66,6 +94,7 @@ async function initMap()
         ]
     };
 
+    // Initialize the layer for observations. Empty features array at first
     featureOverlay = new ol.layer.Vector({
         source: new ol.source.Vector({
             features: features
@@ -120,6 +149,7 @@ async function initMap()
 
     });
 
+    // When user registers a new observation, this layer is used to place the marker
     newFeatureOverlay = new ol.layer.Vector({
         source: new ol.source.Vector({
             features: new ol.Collection()
@@ -133,28 +163,11 @@ async function initMap()
             })]
 
     });
-    
-    
-    
-    
-    /*
-    
-    new ol.style.Style({
-                   image: new ol.style.Circle({
-                        stroke: new Stroke({color: '#7c8692'}),
-                        radius: 200 / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad)),
-                      }),
-                    });
-     [new ol.style.Style({
-                image: new ol.style.Circle({
-                    fill: new ol.style.Fill({color: [255, 87, 222, 1]}),
-                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 3, lineDash: [2, 2]}),
-                    radius: 10
-                })
-            })]
-    */
 
 
+
+    // Get the background layer for Norway from Statens kartverk
+    // TODO: Use await
     var parser = new ol.format.WMTSCapabilities();
     fetch('https://opencache.statkart.no/gatekeeper/gk/gk.open_wmts?Version=1.0.0&service=wmts&request=getcapabilities').then(function (response) {
         return response.text();
@@ -177,28 +190,29 @@ async function initMap()
             }),
             style: diseaseSpreadingPoiStyle
         });
-        
-        
+
+        // Get Mattilsynet's layer for apiary sites
         let apiarySource = new ol.source.ImageWMS({
             url: 'https://kart.mattilsynet.no/wmscache/service',
-            params: {"LAYERS":"Mattilsynet_Bigaardsplasser"},
+            params: {"LAYERS": "Mattilsynet_Bigaardsplasser"},
             ratio: 1,
             projection: ol.proj.get("EPSG:25833")
         });
-        
+
         apiaryLayer = new ol.layer.Image({
             source: apiarySource,
             visible: true,
             opacity: 1.0
         });
-        
+
+        // Get the zone map, produced by geomatikkseksjonen from information from Mattilsynet
         let zoneSource = new ol.source.ImageWMS({
             url: 'https://wms.nibio.no/cgi-bin/parebrann',
-            params: {"LAYERS":"parebrann"},
+            params: {"LAYERS": "parebrann"},
             ratio: 1,
             projection: ol.proj.get("EPSG:25833")
         });
-        
+
         zoneLayer = new ol.layer.Image({
             source: zoneSource,
             visible: false,
@@ -207,16 +221,13 @@ async function initMap()
 
         map = new ol.Map({
             target: 'map',
+            controls: ol.control.defaults({attribution: false}), // Hide the attribution
             layers: [
-                //topo2graatone, 
                 topo4,
-                //osm,
                 zoneLayer,
                 nurseryPoisOverlay,
-                //apiaryPoisOverlay,
                 apiaryLayer,
                 featureOverlay,
-                
                 newFeatureOverlay
             ],
             view: new ol.View({
@@ -224,10 +235,6 @@ async function initMap()
                 zoom: 6
             })
         });
-        
-        
-        
-        //map.addOverlay(diseaseSpreadingPoisOverlay);
 
         // Configure geolocation tracker
         geolocation = new ol.Geolocation({
@@ -263,7 +270,7 @@ async function initMap()
                 features: [positionFeature]
             })
         });
-        
+
         // TODO feature properties must be synchronized
         var lastYear = new Date().getFullYear() - 1;
         // Population the season select list, setting last year as default selected
@@ -271,7 +278,7 @@ async function initMap()
         getAndRenderDiseaseSpreadingPois();
         getAndRenderObservations(lastYear);
 
-
+        // Handle user click on map
         map.on('click', function (evt) {
             //features = []
             var feature = map.forEachFeatureAtPixel(
@@ -305,89 +312,88 @@ let openLayersDefaultStyle = undefined;
 
 function getOpenLayersDefaultStyle()
 {
-    if(openLayersDefaultStyle == undefined)
+    if (openLayersDefaultStyle == undefined)
     {
         var fill = new ol.style.Fill({
-        color: 'rgba(255,255,255,0.4)'
-      });
-      var stroke = new ol.style.Stroke({
-        color: '#3399CC',
-        width: 1.25
-      });
-      openLayersDefaultStyle = [
-        new ol.style.Style({
-          image: new ol.style.Circle({
-            fill: fill,
-            stroke: stroke,
-            radius: 5
-          }),
-          fill: fill,
-          stroke: stroke
-        })
-      ];
+            color: 'rgba(255,255,255,0.4)'
+        });
+        var stroke = new ol.style.Stroke({
+            color: '#3399CC',
+            width: 1.25
+        });
+        openLayersDefaultStyle = [
+            new ol.style.Style({
+                image: new ol.style.Circle({
+                    fill: fill,
+                    stroke: stroke,
+                    radius: 5
+                }),
+                fill: fill,
+                stroke: stroke
+            })
+        ];
     }
-    
+
     return openLayersDefaultStyle;
 }
 
 /**
- * Styling the different disease spreading pois
+ * Styling the different disease spreading pois, e.g. Nurseries
  * @param {ol.Feature} feature
  * @param {Number} resolution
  * @returns {Array}
  */
-function diseaseSpreadingPoiStyle(feature, resolution) 
+function diseaseSpreadingPoiStyle(feature, resolution)
 {
-    if(feature.getProperties()["pointOfInterestTypeId"] == "7") // Nursery
-    {   
-        if(feature.getGeometry().getType() == "Point")
+    if (feature.getProperties()["pointOfInterestTypeId"] == "7") // Nursery
+    {
+        if (feature.getGeometry().getType() == "Point")
         {
             const innerRadiusInMeters = 1000;
             const outerRadiusInMeters = 2000;
-            const viewProjection = map.getView().getProjection();      
+            const viewProjection = map.getView().getProjection();
             const coordsInViewProjection = feature.getGeometry().getCoordinates();
             const longLat = ol.proj.toLonLat(coordsInViewProjection, viewProjection);
             const latitude_rad = longLat[1] * Math.PI / 180;
             const innerCircle = new ol.style.Style({
                 image: new ol.style.Circle({
-                    fill: new ol.style.Fill({color: [255, 127,127, 1.0]}),
-                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 3, lineDash: [5, 10], lineCap:"square"}),
+                    fill: new ol.style.Fill({color: [255, 127, 127, 1.0]}),
+                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 3, lineDash: [5, 10], lineCap: "square"}),
                     radius: innerRadiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
                 })
             });
             const outerCircle = new ol.style.Style({
                 image: new ol.style.Circle({
-                    fill: new ol.style.Fill({color: [255, 127,127, 0.5]}),
-                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 3, lineDash: [5, 10], lineCap:"square"}),
+                    fill: new ol.style.Fill({color: [255, 127, 127, 0.5]}),
+                    stroke: new ol.style.Stroke({color: [0, 0, 0, 1], width: 3, lineDash: [5, 10], lineCap: "square"}),
                     radius: outerRadiusInMeters / (resolution / viewProjection.getMetersPerUnit() * Math.cos(latitude_rad))
                 })
             });
             const icon = new ol.style.Style({
                 image: new ol.style.Icon({
                     src: 'icons/plant-clipart.png',
-                    scale: 8/resolution
+                    scale: 8 / resolution
                 })
             });
 
             return [outerCircle, innerCircle, icon];
         }
-    }
-    else if(feature.getProperties()["pointOfInterestTypeId"] == "6") // Apiary site
+    } else if (feature.getProperties()["pointOfInterestTypeId"] == "6") // Apiary site - not in use
     {
         return [new ol.style.Style({
                 image: new ol.style.Icon({
                     src: 'icons/bees-icon-25.png',
                     scale: 0.2,
-                    anchor: [0.3,1]
+                    anchor: [0.3, 1]
                 })
             })];
-            
+
     }
-    
+
     return getOpenLayersDefaultStyle();
 }
 
-
+// Collect disease spreading pois (currently only apiary sites) from observation api and render them
 function getAndRenderDiseaseSpreadingPois()
 {
     // Nurseries
@@ -395,40 +401,19 @@ function getAndRenderDiseaseSpreadingPois()
             .then(response => response.json())
             .then(data => {
                 let olFeatures = (new ol.format.GeoJSON()).readFeatures(
-                    data, 
-                    {
-                        dataProjection: "EPSG:4326",
-                        featureProjection: map.getView().getProjection().getCode()
-                    }
+                        data,
+                        {
+                            dataProjection: "EPSG:4326",
+                            featureProjection: map.getView().getProjection().getCode()
+                        }
                 );
 
-            //sconsole.info(olFeatures);
-            //console.info(diseaseSpreadingPoisOverlay.getSource());
-            nurseryPoisOverlay.getSource().clear();
-            nurseryPoisOverlay.getSource().addFeatures(olFeatures);
-                
-            });
-    /*        
-    // Apiary sites
-    // 2023-10-04: Reading WMS layer directly from Mattilsynet
-    fetch("/rest/poi/organization/1/type/geojson?poiTypes=6")
-            .then(response => response.json())
-            .then(data => {
-                let olFeatures = (new ol.format.GeoJSON()).readFeatures(
-                    data, 
-                    {
-                        dataProjection: "EPSG:4326",
-                        featureProjection: map.getView().getProjection().getCode()
-                    }
-                );
+                //sconsole.info(olFeatures);
+                //console.info(diseaseSpreadingPoisOverlay.getSource());
+                nurseryPoisOverlay.getSource().clear();
+                nurseryPoisOverlay.getSource().addFeatures(olFeatures);
 
-            //sconsole.info(olFeatures);
-            //console.info(diseaseSpreadingPoisOverlay.getSource());
-            apiaryPoisOverlay.getSource().clear();
-            apiaryPoisOverlay.getSource().addFeatures(olFeatures);
-                
             });
-    */
 }
 
 /**
