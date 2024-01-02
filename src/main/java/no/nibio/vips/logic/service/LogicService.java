@@ -1,48 +1,44 @@
 /*
  * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
- * 
- * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
- * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
- * 
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
 package no.nibio.vips.logic.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import java.util.TimeZone;
+
+import java.io.IOException;
+import java.util.*;
+
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
+import javax.persistence.NonUniqueResultException;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -53,37 +49,25 @@ import javax.ws.rs.core.Response.Status;
 import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
-import no.nibio.vips.logic.controller.session.ForecastBean;
-import no.nibio.vips.logic.controller.session.MessageBean;
-import no.nibio.vips.logic.controller.session.OrganismBean;
-import no.nibio.vips.logic.controller.session.PointOfInterestBean;
-import no.nibio.vips.logic.controller.session.UserBean;
-import no.nibio.vips.logic.entity.CropCategory;
-import no.nibio.vips.logic.entity.CropPest;
-import no.nibio.vips.logic.entity.ForecastResult;
+import no.nibio.vips.logic.controller.servlet.UserController;
+import no.nibio.vips.logic.controller.session.*;
+import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.entity.ForecastConfiguration;
-import no.nibio.vips.logic.entity.ForecastModelConfiguration;
-import no.nibio.vips.logic.entity.Message;
-import no.nibio.vips.logic.entity.MessageTag;
-import no.nibio.vips.logic.entity.ModelInformation;
-import no.nibio.vips.logic.entity.Organism;
-import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.PointOfInterest;
-import no.nibio.vips.logic.entity.PointOfInterestType;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
-import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.observationdata.ObservationDataBean;
 import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
+import no.nibio.web.forms.FormValidationException;
 import org.jboss.resteasy.annotations.GZIP;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.spi.HttpRequest;
 
+import org.apache.commons.validator.routines.EmailValidator;
+
 /**
- * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2023 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Path("rest")
@@ -1336,6 +1320,186 @@ public class LogicService {
         ModelInformation retVal = forecastBean.getModelInformation(modelId);
         return retVal != null ? Response.ok().entity(retVal).build() 
                 : Response.status(Response.Status.NOT_FOUND).entity("ERROR: Could not find model with id=" + modelId).build();
+    }
+
+
+    /**
+     * Registers a user and grants limited access to certain functionalities in the VIPSLogic system:
+     * <ul>
+     *     <li>Adding observations - default not approved</li>
+     *     <li>Adding POIs (Points Of Interest)</li>
+     * </ul>
+     * The user must be approved
+     * @param userInfoBody
+     * @return
+     */
+    @POST
+    @Path("user/register")
+    @Consumes("application/json;charset=UTF-8")
+    @Produces("application/json;charset=UTF-8")
+    public Response registerNewLimitedUser(String userInfoBody)
+    {
+
+        try {
+            HashMap<String, Object> userInfo = new ObjectMapper().readValue(userInfoBody, new TypeReference<HashMap<String, Object>>() {
+            });
+            // Input control
+            List<String> errorMessages = new ArrayList<>();
+            // Email
+
+            String email = ((String) userInfo.get("email")).toLowerCase();
+            // Set?
+            if(email == null || email.isBlank())
+            {
+                errorMessages.add("Email must be set");
+            }
+            // Must be valid email
+            else if(!EmailValidator.getInstance().isValid(email))
+            {
+                errorMessages.add(email + " is not a valid email address");
+            }
+            else
+            {
+                // Must be unique
+                Boolean emailAlreadyInUse = false;
+                try {
+                    VipsLogicUser foundUser = userBean.getUserByEmail(email);
+                    emailAlreadyInUse = (foundUser != null);
+                } catch (NonUniqueResultException ex) {
+                    emailAlreadyInUse = true;
+                }
+                if (emailAlreadyInUse) {
+                    errorMessages.add("Email " + email + " is already in use");
+                }
+            }
+
+            // Username
+            String username = (String) userInfo.get("username");
+            // Set?
+            if(username == null || username.isBlank())
+            {
+                errorMessages.add("Username must be set");
+            }
+            else
+            {
+                // Existing username?
+                Boolean usernameExists = false;
+                try
+                {
+                    VipsLogicUser foundUser = userBean.getUser(username, UserAuthenticationType.TYPE_PASSWORD);
+                    usernameExists = (foundUser != null);
+                }
+                catch(NonUniqueResultException ex)
+                {
+                    usernameExists = true;
+                }
+                if(usernameExists)
+                {
+                    errorMessages.add("Username " + username  + " already exists");
+                }
+            }
+
+            // First name
+            String firstName = (String) userInfo.get("firstName");
+            if(firstName == null || firstName.isBlank())
+            {
+                errorMessages.add("First name must be set");
+            }
+
+            // Last name
+            String lastName = (String) userInfo.get("lastName");
+            if(lastName == null || lastName.isBlank())
+            {
+                errorMessages.add("Last name must be set");
+            }
+
+
+            // Password
+            String password = (String) userInfo.get("password");
+            if(password == null || password.isBlank())
+            {
+                errorMessages.add("Password must be set");
+            }
+
+            if(errorMessages.size() > 0)
+            {
+                Map<String, List<String>> errorMsg = Map.of("errorMessages",errorMessages);
+                return Response.status(Status.BAD_REQUEST).entity(errorMsg).build();
+            }
+
+            VipsLogicUser user = new VipsLogicUser();
+            user.setFirstName(firstName.trim());
+            user.setLastName(lastName.trim());
+            user.setEmail(email.trim());
+            user.setPhoneCountryCode((String) userInfo.get("phoneCountryCode"));
+            user.setPreferredLocale((String) userInfo.get("preferredLocale"));
+            user.setOrganizationId(userBean.getOrganization((Integer) userInfo.get("organizationId")));
+            user.setApprovalApplication("Registered in app");
+            user.setUserStatusId(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION);
+            // Add observer role
+            user.setVipsLogicRoles(Set.of(userBean.getVipsLogicRole(VipsLogicRole.OBSERVER)));
+            // Set user authentication
+            UserAuthenticationType uat = userBean.createUserAuthenticationTypeInstance(UserAuthenticationType.TYPE_PASSWORD);
+            UserAuthentication ua = new UserAuthentication();
+            ua.setUserAuthenticationType(uat);
+            ua.setUsername(username.trim());
+            ua.setPassword(userBean.getMD5EncryptedString(password.trim()));
+            userBean.storeUserFirstTime(user, ua);
+            userBean.sendUserEmailVerification(user, SessionLocaleUtil.getI18nBundle(httpServletRequest), ServletUtil.getServerName(httpServletRequest));
+
+            return Response.status(Status.OK).entity(user).build();
+        }
+        catch(FormValidationException | IOException ex)
+        {
+            return Response.status(Status.BAD_REQUEST).entity("INPUT ERROR: " + ex.getMessage()).build();
+        }
+    }
+
+    /**
+     * Allows a user to delete their account
+     * @param keepData if true, move all data to default user.
+     * @return
+     */
+    @DELETE
+    @Path("user/deleteme")
+    public Response deleteMe(@QueryParam("keepData") Boolean keepData) {
+        // Authentication
+        // Either valid UUID or session
+        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        if(user == null)
+        {
+            user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        }
+        if(user == null)
+        {
+            return Response.status(Status.UNAUTHORIZED).entity("You are not authorized to perform this operation").build();
+        }
+
+        // If it's an archive user, do NOT delete it!
+        if(user.getOrganizationId().getArchiveUser() != null && user.getOrganizationId().getArchiveUser().getUserId().equals(user.getUserId()))
+        {
+            return Response.status(Status.BAD_REQUEST).entity("User is an archive user for organization " + user.getOrganizationId().getOrganizationName() + ". Can't delete it").build();
+        }
+        try {
+            if (keepData != null && keepData) {
+                // Get default user for organization
+                VipsLogicUser archiveUser = user.getOrganizationId().getArchiveUser();
+                if (archiveUser == null) {
+                    return Response.status(Status.BAD_REQUEST).entity("Your organization " + user.getOrganizationId().getOrganizationName() + " has not defined a default user for archiving your data. Please contact your systems administrator to fix this.").build();
+                }
+                userBean.transferUserResources(user, archiveUser);
+            } else {
+                userBean.deleteUserResources(user);
+            }
+            // Delete the user
+            userBean.deleteUser(user);
+            return Response.status(Status.NO_CONTENT).build();
+        }
+        catch(DeleteUserException ex)
+        {
+            return Response.serverError().entity(ex.getMessage()).build();
+        }
+
     }
     
     /**

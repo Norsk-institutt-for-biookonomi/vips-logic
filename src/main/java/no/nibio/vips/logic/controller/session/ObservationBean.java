@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2018 NIBIO <http://www.nibio.no/>. 
- * 
- * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
- * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
- * 
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
 package no.nibio.vips.logic.controller.session;
@@ -69,6 +68,8 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
 import no.nibio.vips.observationdata.ObservationDataSchemaPK;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.FeatureCollection;
 import org.wololo.geojson.GeoJSONFactory;
@@ -86,6 +87,8 @@ public class ObservationBean {
     PointOfInterestBean pointOfInterestBean;
     @EJB
     UserBean userBean;
+
+    private static Logger LOGGER = LoggerFactory.getLogger(ObservationBean.class);
     
     public List<Observation> getObservations(Integer organizationId)
     {
@@ -606,7 +609,8 @@ public class ObservationBean {
             Integer cropId, 
             List<Integer> cropCategoryId,
             Date from, 
-            Date to
+            Date to,
+            Boolean isPositive
     ) 
     {
         // The minimum SQL
@@ -651,17 +655,24 @@ public class ObservationBean {
             sql += "AND time_of_observation <= :to \n";
             parameters.put("to", to);
         }
-        
+        // Filter for positive/negative registrations
+        if(isPositive != null)
+        {
+            sql += "AND is_positive = :isPositive \n";
+            parameters.put("isPositive", isPositive);
+        }
+
+        LOGGER.debug(sql);
+
         Query q = em.createNativeQuery(sql, Observation.class);
         // Setting the parameters one by one
         parameters.keySet().stream().forEach(
-                (key)->q.setParameter(key, parameters.get(key))
+                (key)->{LOGGER.debug(key + ": " + parameters.get(key)); q.setParameter(key, parameters.get(key));}
         );
         
         //Date start = new Date();
         
         List<Observation> observations = q.getResultList();
-        
         //System.out.println("Finding obs took " + (new Date().getTime() - start.getTime()) + " milliseconds");
         
         //start = new Date();
@@ -681,6 +692,7 @@ public class ObservationBean {
             retVal = this.getObservationsWithLocations(retVal);
             //System.out.println("Finding locations took " + (new Date().getTime() - start.getTime()) + " milliseconds");
         }
+
         
         return retVal;
         

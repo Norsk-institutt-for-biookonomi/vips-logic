@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
- * 
- * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
- * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
- * 
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 package no.nibio.vips.logic.entity;
 
@@ -105,6 +104,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private String statusRemarks;
     private String observationData;
     private Boolean isQuantified;
+    private Boolean isPositive;
     private Boolean broadcastMessage;
     private Boolean locationIsPrivate;
     private PolygonService polygonService;
@@ -206,6 +206,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     {
         Map<String, Object> properties = new HashMap<>();
         properties.put("observationId", this.getObservationId());
+        properties.put("isPositive", this.getIsPositive());
+        properties.put("timestamp", this.getTimeOfObservation() != null ? this.getTimeOfObservation().getTime() : "null");
         return this.GISEntityUtil.getGeoJSONFromGis(this.geoinfo, properties);
     }
     
@@ -585,7 +587,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     @Column(name = "location_is_private")
     public Boolean getLocationIsPrivate() {
-        return locationIsPrivate;
+        return locationIsPrivate != null ? locationIsPrivate : false;
     }
 
     /**
@@ -632,18 +634,20 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public ObservationListItem getListItem(String locale, ObservationDataSchema observationDataSchema)
     {
-        // If geoInfo is from POI, need to add observationId
+        // If geoInfo is from POI, need to add observationId and other stuff for observation rendering
         if(this.location != null)
         {
             this.location.addProperty("observationId", this.getObservationId());
+            this.location.addProperty("isPositive", this.isPositive);
+            this.location.addProperty("timestamp", this.getTimeOfObservation().getTime());
         }
         return new ObservationListItem(
                 this.getObservationId(),
                 this.getTimeOfObservation(),
                 this.getOrganismId(),
-                this.getOrganism().getLocalName(locale).trim() != "" ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
+                ! this.getOrganism().getLocalName(locale).trim().isBlank() ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
                 this.getCropOrganismId(),
-                this.getCropOrganism().getLocalName(locale).trim() != "" ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
+                ! this.getCropOrganism().getLocalName(locale).trim().isBlank() ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
                 // Specific geoInfo trumps location. This is to be interpreted 
                 // as that the observation has been geographically masked by
                 // choice of the observer
@@ -651,6 +655,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 this.getObservationHeading(),
                 this.getBroadcastMessage(),
                 this.getLocationIsPrivate(),
+                this.getIsPositive(),
                 this.getObservationData(),
                 observationDataSchema
         );
@@ -665,5 +670,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 	public void setLastEditedTime(Date lastEditedTime) {
 		this.lastEditedTime = lastEditedTime;
 	}
-    
+
+    @Column(name = "is_positive")
+    public Boolean getIsPositive() {
+        return isPositive;
+    }
+
+    public void setIsPositive(Boolean positive) {
+        isPositive = positive;
+    }
 }

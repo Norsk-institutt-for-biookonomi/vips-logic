@@ -32,7 +32,7 @@ VIPSLogic is a part of the [VIPS platform for automatic pest prediction](https:/
 * Java EE application server: Wildfly >= 25
 
 ## License
-VIPSLogic is licensed under the [NIBIO Open Source License](https://nibio.no/licenses), which is basically the [GNU Affero GPL v3 license](https://www.gnu.org/licenses/agpl-3.0.en.html).
+VIPSLogic is licensed under the [GNU Affero GPL v3 license](https://www.gnu.org/licenses/agpl-3.0.en.html).
 
 ## Web services
 The web services documentation is auto generated using Enunciate, you can read it from this path relative to your VIPSLogic deployment: `/public/RESTdocs/apidocs/`, for instance [here on NIBIO's deployment](https://logic.vips.nibio.no/public/RESTdocs/apidocs/)

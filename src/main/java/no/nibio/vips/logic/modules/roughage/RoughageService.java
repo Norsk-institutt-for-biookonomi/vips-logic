@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
- * 
- * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
- * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
- * 
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
 package no.nibio.vips.logic.modules.roughage;
@@ -104,6 +103,7 @@ public class RoughageService {
             @QueryParam("wateringAffectsNormalData") String wateringAffectsNormalData,
             @QueryParam("firstHarvest") String firstHarvestStr,
             @QueryParam("secondHarvest") String secondHarvestStr,
+            @QueryParam("firstPossibleGrowthStartDate") String firstPossibleGrowthStartDateStr,
             @QueryParam("soilType") Integer soilType,
             @QueryParam("cloverShare") Integer cloverShare,
             @QueryParam("userWeatherScenarios") String useWeatherScenarios,
@@ -119,28 +119,30 @@ public class RoughageService {
         TimeZone timeZone = TimeZone.getTimeZone(timeZoneStr);
         Date firstHarvest = parseUtil.parseISODate(firstHarvestStr, timeZone);
         Date secondHarvest = secondHarvestStr != null ? parseUtil.parseISODate(secondHarvestStr, timeZone) : null;
+
         // Calculating start and end date of weather data retrieval
-        // Start is April 1st
-        Calendar cal = Calendar.getInstance(timeZone);
-        cal.setTime(firstHarvest);
-        cal.set(Calendar.MONTH, Calendar.MARCH);
-        cal.set(Calendar.DATE, 1);
-
+        // Start is March 1st unless specified otherwise
+        Date firstPossibleGrowthStartDate = firstPossibleGrowthStartDateStr != null ? parseUtil.parseISODate(firstPossibleGrowthStartDateStr, timeZone) : null;
         WeatherUtil wUtil = new WeatherUtil();
-        Date marchFirst = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
-
+        Calendar cal = Calendar.getInstance(timeZone);
+        if(firstPossibleGrowthStartDate == null) {
+            cal.setTime(firstHarvest);
+            cal.set(Calendar.MONTH, Calendar.MARCH);
+            cal.set(Calendar.DATE, 1);
+            firstPossibleGrowthStartDate = wUtil.normalizeToExactDate(cal.getTime(), timeZone);
+        }
         // End date for weather data depends on season
         // We try September 30th. If that's in the future,
         // We add 10 days to today
         Date dateOfLastWeatherData;
-        cal.setTime(marchFirst);
+        cal.setTime(firstPossibleGrowthStartDate);
         cal.set(Calendar.MONTH, Calendar.SEPTEMBER);
         cal.set(Calendar.DATE, 30);
         Date endOfSeptember = cal.getTime();
         if(endOfSeptember.after(SystemTime.getSystemTime()))
         {
             cal.setTime(SystemTime.getSystemTime());
-            cal.add(Calendar.DATE, 7);
+            cal.add(Calendar.DATE, 9);
             dateOfLastWeatherData = cal.getTime();
         }
         else
@@ -164,7 +166,7 @@ public class RoughageService {
                         WeatherElements.SOIL_TEMPERATURE_10CM_MEAN,
                         WeatherElements.POTENTIAL_EVAPORATION
                     },
-                    marchFirst, 
+                    firstPossibleGrowthStartDate,
                     dateOfLastWeatherData
             );
         } catch (WeatherDataSourceException ex) {
@@ -367,9 +369,10 @@ public class RoughageService {
         config.setConfigParameter("observations", observations);
         config.setConfigParameter("timeZone", timeZone.getID());
         config.setConfigParameter("firstHarvest", firstHarvest);
+        config.setConfigParameter("firstPossibleGrowthStartDate", firstPossibleGrowthStartDate);
         config.setConfigParameter("soilType", soilType);
         config.setConfigParameter("cloverShare", cloverShare);
-        
+
         // Optional parameters
         if(secondHarvest != null)
         {
@@ -426,7 +429,7 @@ public class RoughageService {
                         WeatherElements.SOIL_TEMPERATURE_10CM_MEAN,
                         WeatherElements.POTENTIAL_EVAPORATION
                     },
-                    marchFirst, 
+                    firstPossibleGrowthStartDate,
                     //dateOfLastWeatherData
                     latestObsDate
                 );

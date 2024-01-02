@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
- * 
- * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
- * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
- * 
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 package no.nibio.vips.logic.modules.barkbeetle;
 
@@ -703,7 +702,7 @@ public class BarkbeetleBean {
     }
 
     /**
-     * Second reminder is to be sent Thursday in the registration week
+     * Second reminder is to be sent Wednesday in the registration week
      *
      * @param currentDate
      * @return
@@ -712,8 +711,8 @@ public class BarkbeetleBean {
         Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
         cal.setTime(currentDate);
         Integer week = cal.get(Calendar.WEEK_OF_YEAR);
-        Boolean isThursday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY;
-        return BarkbeetleBean.TRAP_EMPTYING_WEEKS.contains(week) && isThursday;
+        Boolean isWednesday = cal.get(Calendar.DAY_OF_WEEK) == Calendar.WEDNESDAY;
+        return BarkbeetleBean.TRAP_EMPTYING_WEEKS.contains(week) && isWednesday;
     }
 
     public void checkAndSendTrapEmptyingReminder(Date currentDate) {

@@ -26,13 +26,13 @@
 	<link rel="stylesheet" type="text/css" href="/css/map.css"/>
 </#macro>
 <#macro custom_js>
-        <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
+    <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/jquery.datetimepicker.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
-	<script src="/js/3rdparty/metawidget/core/metawidget-core.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/js/3rdparty/jsoneditor.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js?t=20170623"></script>
-        <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
+    <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
         
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
@@ -42,9 +42,12 @@
 	<script type="text/javascript" src="/js/poiFormMap.js"></script>
 	<script type="text/javascript">
 		var organizationId = ${user.organizationId.organizationId};
-                var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId}<#else>null</#if>;
-		
+        var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId}<#else>null</#if>;
+
+
 		$(document).ready(function() {
+
+
 			// Make sure that there is a datetime picker present for HTML5 
 			// date input fields
 			
@@ -54,6 +57,7 @@
                                     format: "Y-m-d H:iO",
                                     step: 30
                             });
+
 			
 			// Load main form definition (for validation)
 			loadFormDefinition("observationForm");
@@ -115,10 +119,12 @@
 		});
 		
 		
-		// Global for observationData metawidgets
-		var mw = null;
-		var observationData = null;
-                var observationSchema = null;
+		// Global for observationData & observationSchema
+		let observationData = null;
+        let observationSchema = null;
+        // Make the quantification fields available
+        const quantificationFields = document.getElementById("quantificationFields");
+        let editor = null;
 		function initObservationData(organismId, organizationId) {
 			$.getJSON( "/rest/observationdata/model/" + organizationId + "/" + organismId, function( json ) {
 				observationData = json;
@@ -130,30 +136,26 @@
 		{
 			$.getJSON( "/rest/observationdata/schema/" + organizationId + "/" + organismId, buildForm);
 		}
-		
-		var buildForm = function(schemaProperties)
+
+        // Populate the quantification fields using JSONEditor (https://github.com/json-editor/json-editor)
+		const buildForm = function(retrievedSchema)
 		{
-				// Check if we're getting the whole schema or just the properties
-				if(schemaProperties.properties != undefined)
-				{
-					schemaProperties = schemaProperties.properties;
-				}
-                    observationSchema = schemaProperties;
-                    // Erasing whatever was there before
-                    var metawidgetC = document.getElementById( 'metawidget' );
-                    metawidgetC.innerHTML = "";
-                    mw = new metawidget.Metawidget(metawidgetC , {
-                                    inspector: new metawidget.inspector.CompositeInspector( [ new metawidget.inspector.PropertyTypeInspector(),
-                                            function( toInspect, type, names ) {
-                                                            return {
-                                                                    properties: schemaProperties
-                                                            };
-                                                    }
-                                    ] )
-                            }
-                    );
-                    mw.toInspect = observationData;
-                    mw.buildWidgets();
+                //console.info(retrievedSchema);
+                //console.info(observationData);
+                observationSchema = retrievedSchema;
+                // Erasing whatever was there before
+                if(editor != null) {
+                    editor.destroy();
+                }
+                editor = new JSONEditor(quantificationFields, {
+                    schema: observationSchema,
+                    theme: 'bootstrap4',
+                    disable_edit_json: true, // If true, remove all Edit JSON buttons from objects.
+                    disable_properties: true, // If true, remove all Edit Properties buttons from objects.
+                    remove_button_labels: true, // Display only icons in buttons. This works only if iconlib is set.
+                    disable_collapse: true // Make sure no elements can be collapsed
+                });
+                editor.on("ready",()=>{editor.setValue(observationData);})
 		};
 		
 		var updateCropPests = function(){
@@ -466,52 +468,17 @@
                     theForm['geoInfo'].value=getFeatures();
                     try
                     {
-                        // If the form is qantified: Inspect the fields and write 
+                        // If the form is quantified: Inspect the fields and write
                         // JSON string to the generic form field "observationData";
                         if(theForm.isQuantified.checked)
                         {
-                            // Process the pest specific form fields
-                            // Using MetaWidget to do this
-                            mw.save();
-                            // Make sure that all fields are represented in the
-                            // returned JSON
-                            //console.info(mw.toInspect);
-                            //console.info(observationSchema);
-                            for(prop in observationSchema)
+                            const errors = editor.validate();
+                            if(errors.length)
                             {
-                                var currentProperty = observationSchema[prop];
-                                mw.toInspect[prop]; // The property value in the MetaWidget object
-                                //console.info(prop + ":" + currentProperty);
-                                // Undefined found, must replace with default empty value
-                                if(mw.toInspect[prop] === undefined)
-                                {
-                                    // Check if field is required (defined in schema)
-                                    if(currentProperty.required)
-                                    {
-                                        alert("${i18nBundle.isRequiredField}: " + currentProperty.title);
-                                        return false;
-                                    }
-                                        
-                                    //console.info(prop + " is undefined!");
-                                    // Check for default value
-                                    if(currentProperty.defaultValue !== undefined)
-                                    {
-                                        mw.toInspect[prop] = currentProperty.defaultValue
-                                    }
-                                    else
-                                    {
-                                        if(currentProperty.type == "Number")
-                                        {
-                                            mw.toInspect[prop] = 0;
-                                        }
-                                        else
-                                        {
-                                            mw.toInspect[prop] = "";
-                                        }
-                                    }
-                                }
-                            }        
-                            theForm['observationData'].value=JSON.stringify(mw.toInspect);
+                                alert(errors);
+                                return false;
+                            }
+                            theForm['observationData'].value=JSON.stringify(editor.getValue());
                         }
                         validateGIS(theForm);
                         //console.info('validateGIS = ' + (validateGIS(this)));
@@ -652,7 +619,15 @@
 			    <input type="text" class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${(observation.timeOfObservation?string("yyyy-MM-dd HH:mmZ"))!.now?string("yyyy-MM-dd HH:mmZ")}" onblur="validateField(this);"  <#if editAccess!="W">readonly="readonly"</#if>/>
 			    <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
 			  </div>
-			  
+                <div class="form-group">
+                    <div class="checkbox">
+                        <#if editAccess!="W" && observation.isPositive?has_content && observation.isPositive ==true><input type="hidden" name="isPositive" value="true"/></#if>
+                        <label>
+                            <input type="checkbox" name="isPositive"<#if observation.isPositive?has_content && observation.isPositive == false><#else> checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
+                        </label>
+                        ${i18nBundle.isPositiveRegistration}
+                    </div>
+                </div>
 			  <div class="form-group">
 			  	<div class="checkbox">
                                         <#if editAccess!="W" && observation.isQuantified?has_content && observation.isQuantified ==true><input type="hidden" name="isQuantified" value="true"/></#if>
@@ -665,7 +640,7 @@
 			  <div class="form-group">
 			  <fieldset>
 			  	<legend>${i18nBundle.observationData}</legend>
-			  	<div id="metawidget"></div>
+			  	<div id="quantificationFields"></div>
 			  </fieldset>
 			  </div>
 			  <#if !noBroadcast>

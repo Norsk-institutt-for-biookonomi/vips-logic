@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
- * 
- * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
- * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
- * 
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
 package no.nibio.vips.logic.service;
@@ -126,8 +125,8 @@ public class ObservationService {
             @QueryParam("cropId") Integer cropId,
             @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr
-            
+            @QueryParam("to") String toStr,
+            @QueryParam("isPositive") Boolean isPositive
     )
     {
         return Response.ok().entity(getFilteredObservationsFromBackend(
@@ -136,7 +135,8 @@ public class ObservationService {
                 cropId,
                 cropCategoryId,
                 fromStr,
-                toStr
+                toStr,
+                isPositive
         )).build();
     }
     
@@ -163,7 +163,8 @@ public class ObservationService {
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr,
             @QueryParam("userUUID") String userUUID,
-            @QueryParam("locale") String localeStr
+            @QueryParam("locale") String localeStr,
+            @QueryParam("isPositive") Boolean isPositive
     )
     {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
@@ -175,7 +176,7 @@ public class ObservationService {
         ULocale locale = new ULocale(localeStr != null ? localeStr : 
         	user != null ? user.getOrganizationId().getDefaultLocale() : 
         		userBean.getOrganization(organizationId).getDefaultLocale());
-        
+
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                         organizationId,
                         pestId,
@@ -183,6 +184,7 @@ public class ObservationService {
                         cropCategoryId,
                         fromStr,
                         toStr,
+                        isPositive,
                         user
                 ).stream().map(obs -> { 
                     try {
@@ -199,7 +201,6 @@ public class ObservationService {
 						return null;
 					}
                 }).collect(Collectors.toList());
-        
         //o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
         return Response.ok().entity(observations).build();
     }
@@ -220,7 +221,8 @@ public class ObservationService {
             Integer cropId,
             List<Integer> cropCategoryId,
             String fromStr,
-            String toStr
+            String toStr,
+            Boolean isPositive
     )
     {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
@@ -240,7 +242,8 @@ public class ObservationService {
             cropId,
             cropCategoryId,
             from,
-            to
+            to,
+            isPositive
         );
         
     }
@@ -366,7 +369,8 @@ public class ObservationService {
             @QueryParam("cropId") Integer cropId,
             @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr
+            @QueryParam("to") String toStr,
+            @QueryParam("to") Boolean isPositive
             
     )
     {
@@ -387,7 +391,8 @@ public class ObservationService {
             cropId,
             cropCategoryId,
             from,
-            to
+            to,
+            isPositive
         );
         
         GISEntityUtil gisUtil = new GISEntityUtil();
@@ -758,16 +763,17 @@ public class ObservationService {
             List<Integer> cropCategoryId,
             String fromStr,
             String toStr,
+            Boolean isPositive,
             VipsLogicUser user
     ) {
-        List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr);
+        List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, isPositive);
         //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
         // If superuser or orgadmin: Return everything, unchanged, uncensored
         if(user != null && (user.isSuperUser() || user.isOrganizationAdmin()))
         {
             return filteredObservations;
         }
-        List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage()).collect(Collectors.toList());
+        List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage() || (isPositive == null || !isPositive)).collect(Collectors.toList());
         //retVal.forEach(o->System.out.println(o.getObservationId()));
         retVal = this.maskObservations(retVal);
         //retVal.forEach(o->System.out.println(o.getObservationId()));
@@ -792,7 +798,7 @@ public class ObservationService {
         
         // Placing all observations with a polygon service in the correct bucket.
         Map<PolygonService, List<Observation>> registeredPolygonServicesInObservationList = new HashMap<>();
-        observations.stream().filter((obs) -> (!obs.getLocationIsPrivate() && obs.getPolygonService() != null)).forEachOrdered((obs) -> {
+        observations.stream().filter((obs) -> { return (!obs.getLocationIsPrivate() && obs.getPolygonService() != null);}).forEachOrdered((obs) -> {
             List<Observation> obsWithPolyServ = registeredPolygonServicesInObservationList.getOrDefault(obs.getPolygonService(), new ArrayList<>());
             obsWithPolyServ.add(obs);
             registeredPolygonServicesInObservationList.put(obs.getPolygonService(), obsWithPolyServ);
@@ -932,6 +938,7 @@ public class ObservationService {
 					mergeObs.setCropOrganism(organismBean.getOrganism((Integer)mapFromApp.get("cropOrganismId")));
 					// Other properties
 					mergeObs.setTimeOfObservation(oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>(){}));
+                    mergeObs.setIsPositive(mapFromApp.get("isPositive") != null ? (Boolean) mapFromApp.get("isPositive") : false);
 					mergeObs.setUserId(mapFromApp.get("userId") != null ? Integer.valueOf((Integer)mapFromApp.get("userId")): user.getUserId());
 					mergeObs.setGeoinfo((String)mapFromApp.get("geoinfo"));
 					mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);

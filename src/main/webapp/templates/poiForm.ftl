@@ -84,7 +84,7 @@
 			  <div class="form-group">
 			    <label for="pointOfInterestTypeId">${i18nBundle.pointOfInterestType}</label>
 			    <select class="form-control" name="pointOfInterestTypeId" onblur="validateField(this);">
-				<#list 0..3 as pointOfInterestTypeId>
+				<#list [0,1,2,3,5,6,7] as pointOfInterestTypeId>
                                     <#if pointOfInterestTypeId != 1>
 					<option value="${pointOfInterestTypeId}"<#if 
 								poi.pointOfInterestTypeId?has_content && pointOfInterestTypeId == poi.pointOfInterestTypeId

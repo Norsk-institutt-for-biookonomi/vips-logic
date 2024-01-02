@@ -1,20 +1,19 @@
 /*
  * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
- * 
- * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
- * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
- * 
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 package no.nibio.vips.logic.entity;
 
@@ -48,6 +47,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import no.nibio.vips.gis.GISUtil;
+import org.wololo.geojson.Feature;
 
 /**
  * @copyright 2017 <a href="http://www.nibio.no/">NIBIO</a>
@@ -64,6 +64,7 @@ import no.nibio.vips.gis.GISUtil;
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId = :pointOfInterestId"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestIds", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId IN :pointOfInterestIds"),
     @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findByOrganizationIdAndPoiTypes", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestTypeId in :pointOfInterestTypes AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findForecastLocationsByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.isForecastLocation IS TRUE AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     @NamedQuery(name = "PointOfInterest.findByNameCaseInsensitive", query = "SELECT p FROM PointOfInterest p WHERE lower(p.name) = lower(:name)"),
@@ -120,6 +121,8 @@ public class PointOfInterest implements Serializable, Comparable {
     				break;
     		case 4: instance = new PointOfInterestTypeRegion();
     				break;
+            case 5: instance = new PointOfInterestTypeTrap();
+                break;
     		default: instance = null;
     				break;
     	}
@@ -265,7 +268,15 @@ public class PointOfInterest implements Serializable, Comparable {
         {
             this.properties = new HashMap<>();
         }
-        return properties;
+        if(this.properties.get("pointOfInterestId") == null)
+        {
+            this.properties.put("pointOfInterestId", this.getPointOfInterestId());
+        }
+        if(this.properties.get("pointOfInterestTypeId") == null)
+        {
+            this.properties.put("pointOfInterestTypeId", this.getPointOfInterestTypeId());
+        }
+        return this.properties;
     }
 
     /**
@@ -354,13 +365,16 @@ public class PointOfInterest implements Serializable, Comparable {
     @Transient
     public String getGeoJSON()
     {
-        this.addProperty("pointOfInterestId", this.getPointOfInterestId());
         return this.gisUtil.getGeoJSONFromGeometry(this.getGisGeom(), this.getProperties());
     }
     
     public void addProperty(String key, Object value)
     {
-        this.getProperties().put(key, value);
+        if(this.properties == null)
+        {
+            this.properties = new HashMap<>();
+        }
+        this.properties.put(key, value);
     }
     
     /**
