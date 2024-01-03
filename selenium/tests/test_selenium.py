@@ -6,15 +6,25 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # https://github.com/SeleniumHQ/seleniumhq.github.io/blob/trunk/examples/python/README.md
 
+# BROWSER = 'chrome'
+BROWSER = "firefox"
+
 
 @pytest.fixture
 def browser():
-    chrome_options = webdriver.ChromeOptions()
-    # Uncomment line below to prevent Chrome from opening
-    # chrome_options.add_argument("--headless")
-    driver = webdriver.Chrome(options=chrome_options)
+    if BROWSER == "chrome":
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--headless")
+        driver = webdriver.Chrome(options=chrome_options)
+    elif BROWSER == "firefox":
+        firefox_options = webdriver.FirefoxOptions()
+        firefox_options.headless = False
+        driver = webdriver.Firefox(options=firefox_options)
+    else:
+        raise Exception("Browser must be set to either chrome or firefox")
 
     driver.get("http://localhost/index.html")
+
     assert driver.title == "Please log in"
     driver.implicitly_wait(0.5)
     driver.find_element(by=By.NAME, value="username").send_keys("seleniumtest")
@@ -82,6 +92,9 @@ def test_admin_users(browser):
     )
     assert link.get_attribute("href") == "http://localhost/user"
     link.click()
+    WebDriverWait(browser, 20).until(
+        EC.visibility_of_element_located((By.XPATH, "//h1[text()='Users']"))
+    )
     assert browser.title == "Users"
 
 
@@ -92,4 +105,7 @@ def test_admin_forecasts(browser):
     )
     assert link.get_attribute("href") == "http://localhost/forecastConfiguration"
     link.click()
+    WebDriverWait(browser, 20).until(
+        EC.visibility_of_element_located((By.XPATH, "//h1[text()='Forecasts']"))
+    )
     assert browser.title == "Forecasts"
