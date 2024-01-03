@@ -8,3 +8,6 @@ classes/
 *.iml
 /.idea/
 .vscode/settings.json
+selenium/.pytest_cache
+selenium/.venv
+selenium/tests/__pycache__
