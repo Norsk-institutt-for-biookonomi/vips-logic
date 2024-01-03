@@ -6,7 +6,7 @@ venv/touchfile: requirements.txt
 	touch .venv/touchfile
 
 test: venv 
-	@echo 'Running Django application locally'
+	@echo 'Run selenium tests'
 	. .venv/bin/activate \
 	&& pytest
 

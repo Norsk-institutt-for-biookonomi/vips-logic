@@ -10,7 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 @pytest.fixture
 def browser():
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")
+    # Uncomment line below to prevent Chrome from opening
+    # chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
 
     driver.get("http://localhost/index.html")
@@ -72,3 +73,23 @@ def test_admin_apple_fruit_moth(browser):
     assert link.get_attribute("href") == "http://localhost/applefruitmoth"
     link.click()
     assert browser.title == "Rognebærmøllstasjoner"
+
+
+def test_admin_users(browser):
+    browser.find_element(By.XPATH, '//a[text()="Admin"]').click()
+    link = WebDriverWait(browser, 20).until(
+        EC.element_to_be_clickable((By.XPATH, '//a[text()="Users"]'))
+    )
+    assert link.get_attribute("href") == "http://localhost/user"
+    link.click()
+    assert browser.title == "Users"
+
+
+def test_admin_forecasts(browser):
+    browser.find_element(By.XPATH, '//a[text()="Admin"]').click()
+    link = WebDriverWait(browser, 20).until(
+        EC.element_to_be_clickable((By.XPATH, '//a[text()="Forecasts"]'))
+    )
+    assert link.get_attribute("href") == "http://localhost/forecastConfiguration"
+    link.click()
+    assert browser.title == "Forecasts"
