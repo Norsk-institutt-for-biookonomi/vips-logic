@@ -23,7 +23,7 @@ def browser():
     else:
         raise Exception("Browser must be set to either chrome or firefox")
 
-    driver.get("http://localhost/index.html")
+    driver.get("http://vipslogic/index.html")
 
     assert driver.title == "Please log in"
     driver.implicitly_wait(0.5)
@@ -45,7 +45,7 @@ def test_admin_organisms(browser):
     link = WebDriverWait(browser, 15).until(
         EC.element_to_be_clickable((By.XPATH, '//a[text()="Organisms"]'))
     )
-    assert link.get_attribute("href") == "http://localhost/organism"
+    assert link.get_attribute("href") == "http://vipslogic/organism"
     link.click()
     assert browser.title == "Organisms"
     link = WebDriverWait(browser, 15).until(
@@ -60,7 +60,7 @@ def test_admin_scheduling(browser):
     link = WebDriverWait(browser, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//a[text()="Scheduling"]'))
     )
-    assert link.get_attribute("href") == "http://localhost/scheduling"
+    assert link.get_attribute("href") == "http://vipslogic/scheduling"
     link.click()
     assert browser.title == "Scheduling overview"
 
@@ -70,7 +70,7 @@ def test_admin_organization_group(browser):
     link = WebDriverWait(browser, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//a[text()="Organization groups"]'))
     )
-    assert link.get_attribute("href") == "http://localhost/organizationgroup"
+    assert link.get_attribute("href") == "http://vipslogic/organizationgroup"
     link.click()
     assert browser.title == "Organization groups"
 
@@ -80,7 +80,7 @@ def test_admin_apple_fruit_moth(browser):
     link = WebDriverWait(browser, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//a[text()="Apple fruit moth"]'))
     )
-    assert link.get_attribute("href") == "http://localhost/applefruitmoth"
+    assert link.get_attribute("href") == "http://vipslogic/applefruitmoth"
     link.click()
     assert browser.title == "Rognebærmøllstasjoner"
 
@@ -90,7 +90,7 @@ def test_admin_users(browser):
     link = WebDriverWait(browser, 20).until(
         EC.element_to_be_clickable((By.XPATH, '//a[text()="Users"]'))
     )
-    assert link.get_attribute("href") == "http://localhost/user"
+    assert link.get_attribute("href") == "http://vipslogic/user"
     link.click()
     WebDriverWait(browser, 20).until(
         EC.visibility_of_element_located((By.XPATH, "//h1[text()='Users']"))
@@ -103,7 +103,7 @@ def test_admin_forecasts(browser):
     link = WebDriverWait(browser, 20).until(
         EC.element_to_be_clickable((By.XPATH, '//a[text()="Forecasts"]'))
     )
-    assert link.get_attribute("href") == "http://localhost/forecastConfiguration"
+    assert link.get_attribute("href") == "http://vipslogic/forecastConfiguration"
     link.click()
     WebDriverWait(browser, 20).until(
         EC.visibility_of_element_located((By.XPATH, "//h1[text()='Forecasts']"))
