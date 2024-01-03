@@ -49,14 +49,6 @@
 		<a href="/user?action=registerNewUserForm&userAuthenticationTypeId=1">${i18nBundle.registerNewUser}</a><br/>
 		<a href="/user?action=resetPasswordRequestForm">${i18nBundle.forgottenPassword}</a>
 	</form>
-	<form class="form-signin" action="/loginsubmit" method="POST">
-		<input type="hidden" name="userAuthenticationTypeId" value="3"/>
-		<input type="hidden" name="nextPage" value="${nextPage!"/"}"/>
-		<input type="hidden" name="returnUUID" value="<#if returnUUID?has_content>${returnUUID?c!""}</#if>"/>
-		<h2 class="form-signin-heading">${i18nBundle.or}</h2>
-		<input type="image" src="/images/btn_sign_in_with_google.png" alt="${i18nBundle.signInWith} Google"/><br/>
-		<input type="checkbox" name="rememberUser"<#if checkRemember?has_content && checkRemember> checked="checked"</#if>/> ${i18nBundle.rememberLogin}
-	</form>
 </div>
 </#macro>
 <@page_html/>

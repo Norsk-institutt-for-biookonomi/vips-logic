@@ -19,13 +19,6 @@
 package no.nibio.vips.logic.controller.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -88,70 +81,9 @@ public class LoginController extends HttpServlet {
         // We remove the session attribute, so it doesn't stick
         request.getSession().removeAttribute(LoginController.RETURN_UUID_PARAMETER_NAME);
         
-        // This means that an OpenId authentication has returned the user to this URL
-        // See code below
-        if(request.getServletPath().contains("oauth2callback"))
-        {
-            // Is it an authorization response?
-            if(request.getParameter("code") != null)
-            {
-                String authorizationCode = request.getParameter("code");
-                // Verify state
-                String storedState = (String) request.getSession().getAttribute("state");
-                String receivedState = request.getParameter("state");
-                if(receivedState == null || storedState == null || ! storedState.equals(receivedState))
-                {
-                    request.setAttribute("errorMessageKey", "invalidcredentials");
-                    request.getRequestDispatcher("/login.ftl").forward(request, response);
-                    return;
-                }
-                
-                // Use code, make request to Google for getting token with user information
-                GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
-                        new NetHttpTransport(), 
-                        new JacksonFactory(),
-                        System.getProperty("no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID"),
-                        System.getProperty("no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_SECRET"),
-                        authorizationCode,
-                        Globals.PROTOCOL + "://" + ServletUtil.getServerName(request) + "/oauth2callback" 
-                ).execute();
-                GoogleIdToken idToken = GoogleIdToken.parse(new JacksonFactory(), tokenResponse.getIdToken());
-                Payload payload = idToken.getPayload();
-                
-                // Try to find the user
-                VipsLogicUser user = userBean.getUser(payload.getSubject(), UserAuthenticationType.TYPE_OPENID_GOOGLE);
-                if(user != null)
-                {
-                    request.getSession().setAttribute("user", user);
-                    UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
-                    if(returnUUID)
-                    {
-                        nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
-                    }
-                    if(nextPage.indexOf(Globals.PROTOCOL) == 0)
-                    {
-                        System.out.println("nextPage=" + nextPage);
-                        response.sendRedirect(nextPage);
-                    }
-                    else
-                    {
-                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
-                    }
-                }
-                else
-                {
-                    // This might be 
-                    // * a new user
-                    // * an existing user logging in with OpenId/Google for the first time.
-                    // Sending user to form asking this question
-                    request.setAttribute("userAuthenticationTypeId", UserAuthenticationType.TYPE_OPENID_GOOGLE);
-                    request.getSession().setAttribute("openId", payload.getSubject());
-                    request.getRequestDispatcher("/registerOpenIdForm.ftl").forward(request, response);
-                }
-            }
-        }
+
         // A log out request
-        else if(request.getServletPath().contains("logout"))
+        if(request.getServletPath().contains("logout"))
         {
             request.getSession().removeAttribute("user");
             Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
@@ -229,39 +161,6 @@ public class LoginController extends HttpServlet {
 
 
                 }
-            }
-            /*  Login with Google OpenConnect/OAuth2
-                For documentation about how this is done, see:
-                https://developers.google.com/accounts/docs/OAuth2WebServer
-                and https://developers.google.com/accounts/docs/OpenIDConnect 
-                ClientID, ClientSecret, callbacks etc. has been created by logging
-                in to https://console.developers.google.com as tor-einar.skog@nibio.no
-            */
-            else if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_OPENID_GOOGLE))
-            {
-                    // configure the return_to URL where your application will receive
-                    // the authentication responses from the OpenID Connect provider
-                    String serverName = ServletUtil.getServerName(request);
-                    String callbackUrl = Globals.PROTOCOL + "://" + serverName + "/oauth2callback" ;
-                    // We store the information about the next page in a session
-                    // as Google does not accept to forward it
-                    request.getSession().setAttribute("nextPage", URLEncoder.encode(nextPage, "UTF-8"));
-                    request.getSession().setAttribute(LoginController.RETURN_UUID_PARAMETER_NAME, returnUUID);
-                    request.getSession().setAttribute("rememberUser", request.getParameter("rememberUser"));
-                    // Token to check for security (avoid man-in-the-middle)
-                    String state = new BigInteger(130, new SecureRandom()).toString(32);
-                    request.getSession().setAttribute("state", state);
-                    String url =
-                        new GoogleAuthorizationCodeRequestUrl(
-                                System.getProperty("no.nibio.vips.logic.GOOGLE_OPENID_CLIENT_ID"),
-                                callbackUrl,
-                                Arrays.asList(
-                                "https://www.googleapis.com/auth/userinfo.email")
-                        )
-                        .setState(state).build();
-                    
-                    // Redirect to Google for authentication
-                    response.sendRedirect(url);
             }
             // Authentication method not recognized, redirect to standard form
             else
