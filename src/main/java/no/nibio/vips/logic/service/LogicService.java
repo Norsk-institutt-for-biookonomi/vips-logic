@@ -1259,8 +1259,8 @@ public class LogicService {
     
     /**
      * 
-     * @param cropOrganismId
-     * @return 
+     * @param cropOrganismId ID of the crop
+     * @return list of pests associated with the given crop
      */
     @GET
     @Path("organism/croppest/{cropOrganismId}")
@@ -1283,7 +1283,7 @@ public class LogicService {
     /**
      * 
      * @param organizationId
-     * @return 
+     * @return List of crop categories for a given organization
      */
     @GET
     @Path("organism/cropcategory/{organizationId}")
