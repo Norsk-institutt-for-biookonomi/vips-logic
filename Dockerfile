@@ -4,7 +4,7 @@
 
 
 # the first stage of our build will use a maven 3.6 parent image
-FROM maven:3.6-openjdk-11 AS MAVEN_BUILD
+FROM maven:3.8-openjdk-11 AS MAVEN_BUILD
 
 # We need VIPSCommon too, so the source code must be available in the parent folder
 COPY ./VIPSCommon ./VIPSCommon
