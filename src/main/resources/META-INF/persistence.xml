@@ -25,8 +25,8 @@
     <jta-data-source>java:/jboss/datasources/vipslogic</jta-data-source>
     <class>no.nibio.vips.logic.messaging.MessageNotificationSubscription</class>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
-    <properties>
-      <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.postgis.PostgisDialect"/>
-    </properties>
+    <!--properties>
+      <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect"/>
+    </properties-->
   </persistence-unit>
 </persistence>

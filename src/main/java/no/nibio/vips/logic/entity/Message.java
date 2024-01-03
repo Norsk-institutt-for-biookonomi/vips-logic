@@ -27,6 +27,7 @@ import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -44,9 +45,7 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import no.nibio.vips.logic.util.IntegerArrayUserType;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+
 
 /**
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -55,7 +54,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "message")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m"),
     @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId"),
@@ -276,7 +274,7 @@ public class Message implements Serializable {
     /**
      * @return the cropCategoryIds
      */
-    @Type(type = "IntegerArray")
+    @Convert(converter = IntegerArrayUserType.class)
     @Column(name="crop_category_ids")
     public Integer[] getCropCategoryIds() {
         return cropCategoryIds;

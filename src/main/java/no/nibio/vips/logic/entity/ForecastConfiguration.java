@@ -42,13 +42,10 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.util.TimeZone;
+import javax.persistence.Convert;
 import javax.persistence.Transient;
 import no.nibio.vips.logic.util.IntegerArrayUserType;
 import no.nibio.vips.util.WeatherUtil;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
-
 /**
  * @copyright 2014-2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
@@ -56,7 +53,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "forecast_configuration")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "ForecastConfiguration.findAll", query = "SELECT f FROM ForecastConfiguration f WHERE f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationId", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId = :forecastConfigurationId"),
@@ -85,6 +81,8 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "ForecastConfiguration.findByModelIdAndYear", query = "SELECT f FROM ForecastConfiguration f WHERE f.modelId = :modelId AND YEAR(f.dateStart) <= :year AND YEAR(f.dateEnd) >= :year AND f.isPrivate = FALSE")
 })
 public class ForecastConfiguration implements Serializable, Comparable {
+    
+    
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "forecastConfiguration", fetch = FetchType.EAGER)
     private Set<ForecastModelConfiguration> forecastModelConfigurationSet;
     private static final long serialVersionUID = 1L;
@@ -124,7 +122,7 @@ public class ForecastConfiguration implements Serializable, Comparable {
     @Column(name = "is_private")
     private Boolean isPrivate;
     
-    @Type(type = "IntegerArray")
+    @Convert(converter = IntegerArrayUserType.class)
     @Column(name = "grid_weather_station_point_of_interest_ids")
     private Integer[] gridWeatherStationPointOfInterestIds;
     

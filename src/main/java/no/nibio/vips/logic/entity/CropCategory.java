@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -37,9 +38,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import no.nibio.vips.logic.util.IntegerArrayUserType;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -48,7 +46,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "crop_category")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "CropCategory.findAll", query = "SELECT c FROM CropCategory c"),
     @NamedQuery(name = "CropCategory.findByCropCategoryId", query = "SELECT c FROM CropCategory c WHERE c.cropCategoryId = :cropCategoryId"),
@@ -70,7 +67,7 @@ public class CropCategory implements Serializable {
     private String defaultName;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cropCategoryId", fetch = FetchType.EAGER)
     private Set<CropCategoryLocal> cropCategoryLocalSet;
-    @Type(type = "IntegerArray")
+    @Convert(converter = IntegerArrayUserType.class)
     @Column(name = "crop_organism_ids")
     private Integer[] cropOrganismIds;
     @Column(name = "organization_id")

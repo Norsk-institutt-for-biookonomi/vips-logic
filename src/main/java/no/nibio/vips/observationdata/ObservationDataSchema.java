@@ -20,6 +20,7 @@ package no.nibio.vips.observationdata;
 
 import java.io.Serializable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
@@ -28,8 +29,7 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import no.nibio.vips.logic.util.StringJsonUserType;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -38,7 +38,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "observation_data_schema")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "ObservationDataSchema.findAll", query = "SELECT o FROM ObservationDataSchema o"),
     @NamedQuery(name = "ObservationDataSchema.findByPK", query = "SELECT o FROM ObservationDataSchema o WHERE o.observationDataSchemaPK.organizationId = :organizationId AND o.observationDataSchemaPK.organismId = :organismId"),
@@ -49,11 +48,11 @@ public class ObservationDataSchema implements Serializable {
     private static final long serialVersionUID = 1L;
     @EmbeddedId
     protected ObservationDataSchemaPK observationDataSchemaPK;
-    @Type(type = "StringJsonObject")
+    @Convert(converter = StringJsonUserType.class)
     @Column(name = "data_schema")
     private String dataSchema;
-    @Type(type = "StringJsonObject")
-    @Column(name = "data_model")
+    @Convert(converter = StringJsonUserType.class)
+    @Column(name = "data_model", columnDefinition="json")
     private String dataModel;
 
     public ObservationDataSchema() {
