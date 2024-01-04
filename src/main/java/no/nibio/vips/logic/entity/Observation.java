@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.CascadeType;
-import javax.persistence.Convert;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Size;
@@ -51,7 +50,9 @@ import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.util.StringJsonUserType;
 import no.nibio.vips.observationdata.ObservationDataSchema;
-
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -60,6 +61,7 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
 @Entity
 @Table(name = "observation")
 @XmlRootElement
+@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "Observation.findAll", query = "SELECT o FROM Observation o"),
     @NamedQuery(name = "Observation.findByObservationId", query = "SELECT o FROM Observation o WHERE o.observationId = :observationId"),
@@ -438,7 +440,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     /**
      * @return the observationData
      */
-    @Convert(converter = StringJsonUserType.class)
+    @Type(type = "StringJsonObject")
     @Column(name = "observation_data")
     @Override
     public String getObservationData() {

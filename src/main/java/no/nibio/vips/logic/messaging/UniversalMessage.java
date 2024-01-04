@@ -46,9 +46,10 @@ import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.ibm.icu.util.ULocale;
-import javax.persistence.Convert;
 import no.nibio.vips.logic.util.StringJsonUserType;
-
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -57,6 +58,7 @@ import no.nibio.vips.logic.util.StringJsonUserType;
 @Entity
 @Table(name = "universal_message", schema = "messaging")
 @XmlRootElement
+@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "UniversalMessage.findAll", query = "SELECT u FROM UniversalMessage u"),
     @NamedQuery(name = "UniversalMessage.findByUniversalMessageId", query = "SELECT u FROM UniversalMessage u WHERE u.universalMessageId = :universalMessageId"),
@@ -74,11 +76,11 @@ public class UniversalMessage implements Serializable {
     //@Column(name = "distribution_list", columnDefinition = "json")
     //@Convert(converter = PostgresJSONStringConverter.class)
     // Documentation on StackOverflow: http://stackoverflow.com/questions/15974474/mapping-postgresql-json-column-to-hibernate-value-type
-    @Convert(converter = StringJsonUserType.class)
+    @Type(type = "StringJsonObject")
     @Column(name = "distribution_list")
     private String distributionList;
     
-    @Convert(converter = StringJsonUserType.class)
+    @Type(type = "StringJsonObject")
     @Column(name = "message_local_versions")
     private String messageLocalVersions;
     

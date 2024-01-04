@@ -21,11 +21,13 @@ package no.nibio.vips.logic.messaging;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import no.nibio.vips.logic.util.IntegerArrayUserType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -33,6 +35,7 @@ import no.nibio.vips.logic.util.IntegerArrayUserType;
  */
 @Entity
 @Table(name = "forecast_event_notification_subscription", schema = "messaging")
+@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 public class ForecastEventNotificationSubscription {
 
     @Id
@@ -43,11 +46,11 @@ public class ForecastEventNotificationSubscription {
     @Column(name = "universal_message_format_id")
     private Integer universalMessageFormatId;
     
-    @Convert(converter = IntegerArrayUserType.class)
+    @Type(type = "IntegerArray")
     @Column(name = "weather_station_ids")
     private Integer[] weatherStationIds;
     
-    @Convert(converter = IntegerArrayUserType.class)
+    @Type(type = "IntegerArray")
     @Column(name = "crop_category_ids")
     private Integer[] cropCategoryIds;
 
