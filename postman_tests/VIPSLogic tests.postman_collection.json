@@ -57,6 +57,54 @@
 					"response": []
 				},
 				{
+					"name": "Get all observations of Delia radicum for NIBIO",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/observation/list/filter/1?pestId=129&from=2010-01-01&to=2024-01-01",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"observation",
+								"list",
+								"filter",
+								"1"
+							],
+							"query": [
+								{
+									"key": "pestId",
+									"value": "129"
+								},
+								{
+									"key": "from",
+									"value": "2010-01-01"
+								},
+								{
+									"key": "to",
+									"value": "2024-01-01"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get all observations from an organization as GeoJson",
 					"event": [
 						{
@@ -233,6 +281,44 @@
 					"response": []
 				},
 				{
+					"name": "Get model information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/model/PSILARTEMP",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"model",
+								"PSILARTEMP"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "List weather stations for one organization as KML",
 					"event": [
 						{
@@ -381,6 +467,170 @@
 								"rest",
 								"organism",
 								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List pests for crop",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/organism/croppest/15",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"organism",
+								"croppest",
+								"15"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List crop categories for an organization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/organism/cropcategory/1",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"organism",
+								"cropcategory",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List organizations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/organization",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"organization"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List all messages for an organization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/message/list/1?publishedFrom=2022-01-01&publishedTo=2022-12-31",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"message",
+								"list",
+								"1"
+							],
+							"query": [
+								{
+									"key": "publishedFrom",
+									"value": "2022-01-01"
+								},
+								{
+									"key": "publishedTo",
+									"value": "2022-12-31"
+								}
 							]
 						}
 					},
@@ -579,6 +829,137 @@
 					"response": []
 				},
 				{
+					"name": "Get forecast results aggregate as KML",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 204\", function () {",
+									"    console.info(pm.response.code)",
+									"    pm.expect(pm.response.code == 200 || pm.response.code == 204).to.eql(true)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/forecastresults/aggregate/1",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"forecastresults",
+								"aggregate",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get the forecast results from a POI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 204\", function () {",
+									"    console.info(pm.response.code)",
+									"    pm.expect(pm.response.code == 200 || pm.response.code == 204).to.eql(true)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/forecastresults/latest/poi/10",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"forecastresults",
+								"latest",
+								"poi",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get forecast configurations for one org",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/forecastconfigurationsincludeorgs/1?from=2021-01-01&to=2021-12-31",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"forecastconfigurationsincludeorgs",
+								"1"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2021-01-01"
+								},
+								{
+									"key": "to",
+									"value": "2021-12-31"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get forecast configurations for given model and season",
 					"event": [
 						{
@@ -651,6 +1032,45 @@
 								"rest",
 								"forecastmodelconfiguration",
 								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get KML list of POIs for a given organization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "eeb6ee57-3540-40a4-9a07-0d9366d6b1e9"
+							}
+						],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/pois/kml/1",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"pois",
+								"kml",
+								"1"
 							]
 						}
 					},
@@ -732,6 +1152,39 @@
 									"key": "poiTypes",
 									"value": "6,7"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get POI(s) by name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/poi/name/Sandefjord",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"poi",
+								"name",
+								"Sandefjord"
 							]
 						}
 					},
@@ -928,6 +1381,115 @@
 								{
 									"key": "observationRawProtein_3",
 									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ModelFormService",
+			"item": [
+				{
+					"name": "Run SeptoriaHumidityModel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{vipslogic_url}}/rest/modelform/SEPTORIAHU/runmodel/?organizationId_countryCode=1_NO&weatherStationId=91&dateSpraying1=&dateSpraying2=&dateGs31=2023-05-01&date3rdUpperLeafEmerging=2023-05-11&date2ndUpperLeafEmerging=2023-05-21&dateUpperLeafEmerging=2023-05-31&dateGs75=2023-06-30&thresholdRelativeHumidity=85&thresholdLeafWetness=30&thresholdPrecipitation=0.2&slidingHoursPast=36&slidingHoursAhead=36&thresholdHumidPeriodHours=20&sprayingProtectionDays=10&leafLifeTime=75",
+							"host": [
+								"{{vipslogic_url}}"
+							],
+							"path": [
+								"rest",
+								"modelform",
+								"SEPTORIAHU",
+								"runmodel",
+								""
+							],
+							"query": [
+								{
+									"key": "organizationId_countryCode",
+									"value": "1_NO"
+								},
+								{
+									"key": "weatherStationId",
+									"value": "91"
+								},
+								{
+									"key": "dateSpraying1",
+									"value": ""
+								},
+								{
+									"key": "dateSpraying2",
+									"value": ""
+								},
+								{
+									"key": "dateGs31",
+									"value": "2023-05-01"
+								},
+								{
+									"key": "date3rdUpperLeafEmerging",
+									"value": "2023-05-11"
+								},
+								{
+									"key": "date2ndUpperLeafEmerging",
+									"value": "2023-05-21"
+								},
+								{
+									"key": "dateUpperLeafEmerging",
+									"value": "2023-05-31"
+								},
+								{
+									"key": "dateGs75",
+									"value": "2023-06-30"
+								},
+								{
+									"key": "thresholdRelativeHumidity",
+									"value": "85"
+								},
+								{
+									"key": "thresholdLeafWetness",
+									"value": "30"
+								},
+								{
+									"key": "thresholdPrecipitation",
+									"value": "0.2"
+								},
+								{
+									"key": "slidingHoursPast",
+									"value": "36"
+								},
+								{
+									"key": "slidingHoursAhead",
+									"value": "36"
+								},
+								{
+									"key": "thresholdHumidPeriodHours",
+									"value": "20"
+								},
+								{
+									"key": "sprayingProtectionDays",
+									"value": "10"
+								},
+								{
+									"key": "leafLifeTime",
+									"value": "75"
 								}
 							]
 						}

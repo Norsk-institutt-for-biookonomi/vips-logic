@@ -195,7 +195,6 @@ public class ModelFormService {
             ModelConfiguration mConf = new SeptoriaHumidityModelPreprocessor().getModelConfiguration(fConf);
 
             Integer VIPSCoreUserId = organization.getDefaultVipsCoreUserId();
-            System.out.println("defaultVIPScoreUserId = " + VIPSCoreUserId);
 
             List<Result>results = forecastBean.runForecast(mConf, VIPSCoreUserId);
 
