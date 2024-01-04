@@ -34,6 +34,7 @@ public class UserUuidPK implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "user_uuid")
+    @org.hibernate.annotations.Type(type="pg-uuid") // Ugly implementation specific hack
     private UUID userUuid;
     @Basic(optional = false)
     @NotNull

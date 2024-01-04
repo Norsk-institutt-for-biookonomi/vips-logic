@@ -21,7 +21,6 @@ package no.nibio.vips.logic.entity;
 import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
@@ -30,6 +29,9 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import no.nibio.vips.logic.util.IntegerArrayUserType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -37,6 +39,7 @@ import no.nibio.vips.logic.util.IntegerArrayUserType;
  */
 @Entity
 @Table(name = "crop_pest")
+@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "CropPest.findAll", query = "SELECT c FROM CropPest c"),
@@ -52,7 +55,7 @@ public class CropPest implements Serializable {
     @NotNull
     @Column(name = "crop_organism_id")
     private Integer cropOrganismId;
-    @Convert(converter = IntegerArrayUserType.class)
+    @Type(type = "IntegerArray")
     @Column(name = "pest_organism_ids")
     private Integer[] pestOrganismIds;
     @Column(name = "include_all_child_crops")
