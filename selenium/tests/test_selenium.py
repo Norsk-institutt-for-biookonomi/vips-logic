@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # BROWSER = "firefox"
 BROWSER = "edge"
 
-HOST_URL = "http://vipslogic-local.no/"
+HOST_URL = "http://vipslogic-local.no"
 #HOST_URL = "https://logic.testvips.nibio.no"
 #HOST_URL = "https://logic.vips.nibio.no"
 
@@ -30,7 +30,7 @@ def browser():
         edge_options.headless = False
         driver = webdriver.Edge(options=edge_options)
     else:
-        raise Exception("Browser must be set to either chrome or firefox")
+        raise Exception("Browser must be set to chrome, firefox or edge")
 
     #driver.get("http://vipslogic/index.html")
     driver.get(f"{HOST_URL}/index.html")
