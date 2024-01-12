@@ -26,7 +26,7 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
  * @copyright 2018 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class ObservationListItem {
+public class ObservationListItem implements Comparable{
     private Integer observationId, organismId, cropOrganismId;
     private Date timeOfObservation;
     private String organismName, cropOrganismName;
@@ -66,6 +66,17 @@ public class ObservationListItem {
         this.isPositive = isPositive;
         this.observationData = observationData;
         this.observationDataSchema = observationDataSchema;
+    }
+    
+
+    @Override
+    public int compareTo(Object otherOne)
+    {
+        if(! (otherOne instanceof ObservationListItem))
+        {
+            return 0;
+        }
+        return this.getTimeOfObservation().compareTo(((ObservationListItem) otherOne).getTimeOfObservation());
     }
     
     /**

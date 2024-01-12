@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.UserBean;
@@ -67,6 +69,9 @@ import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import org.jboss.resteasy.annotations.GZIP;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 import org.wololo.geojson.Feature;
 
 import org.slf4j.Logger;
@@ -155,7 +160,7 @@ public class ObservationService {
     @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ObservationListItem.class)
-    public Response getFilteredObservationListItems(
+    public Response getFilteredObservationListItemsAsJson(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("pestId") Integer pestId,
             @QueryParam("cropId") Integer cropId,
@@ -165,6 +170,23 @@ public class ObservationService {
             @QueryParam("userUUID") String userUUID,
             @QueryParam("locale") String localeStr,
             @QueryParam("isPositive") Boolean isPositive
+    )
+    {
+        return Response.ok().entity(this.getFilteredObservationListItems(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive)).build();
+    }
+    
+    
+    
+    private List<ObservationListItem> getFilteredObservationListItems(
+            Integer organizationId,
+            Integer pestId,
+            Integer cropId,
+            List<Integer> cropCategoryId,
+            String fromStr,
+            String toStr,
+            String userUUID,
+            String localeStr,
+            Boolean isPositive
     )
     {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
@@ -188,21 +210,72 @@ public class ObservationService {
                         user
                 ).stream().map(obs -> { 
                     try {
-						return obs.getListItem(locale.getLanguage(), 
-								observationBean.getLocalizedObservationDataSchema(
-										observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
-										httpServletRequest,
-										locale
-										)
-								);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						return null;
-					}
+                                return obs.getListItem(locale.getLanguage(), 
+                                                observationBean.getLocalizedObservationDataSchema(
+                                                                observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
+                                                                httpServletRequest,
+                                                                locale
+                                                                )
+                                                );
+                        } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                                return null;
+                        }
                 }).collect(Collectors.toList());
         //o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
-        return Response.ok().entity(observations).build();
+        return observations;
+    }
+    
+    /**
+     * 
+     * @param organizationId Database ID of the organization
+     * @param pestId Database ID of the pest
+     * @param cropId Database ID of the crop
+     * @param cropCategoryId cropCategoryId Database IDs of the crop category/categories
+     * @param fromStr format "yyyy-MM-dd"
+     * @param toStr format "yyyy-MM-dd"
+     * @return Observation objects for which the user is authorized to observe with properties relevant for lists
+     */
+    @GET
+    @Path("list/filter/{organizationId}/csv")
+    @GZIP
+    @Produces("text/csv;charset=UTF-8")
+    @TypeHint(ObservationListItem.class)
+    public Response getFilteredObservationListItemsAsCSV(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("pestId") Integer pestId,
+            @QueryParam("cropId") Integer cropId,
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr,
+            @QueryParam("userUUID") String userUUID,
+            @QueryParam("locale") String localeStr,
+            @QueryParam("isPositive") Boolean isPositive
+    )
+    {
+        List<ObservationListItem> observations = this.getFilteredObservationListItems(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive);
+        Collections.sort(observations);
+        String retVal = "ObservationID;organismName;cropOrganismName;timeOfObservation;lat/lon;observationHeading;observationData";
+        GISUtil gisUtil = new GISUtil();
+        for(ObservationListItem obs:observations)
+        {
+            // Get latlon from geoInfo
+            List<Geometry> geometries = gisUtil.getGeometriesFromGeoJSON(obs.getGeoInfo());
+            Coordinate c = null;
+            if(geometries.size() == 1 && geometries.get(0) instanceof Point)
+            {
+                c = ((Point)geometries.get(0)).getCoordinate();
+            }
+            retVal += "\n" + obs.getObservationId() 
+                    + ";" + obs.getOrganismName() 
+                    + ";" + obs.getCropOrganismName() 
+                    + ";" + obs.getTimeOfObservation()
+                    + ";" + (c != null ? c.getY() + "," + c.getX() : "")
+                    + ";" + obs.getObservationHeading()
+                    + ";" + obs.getObservationData();
+        }
+        return Response.ok().entity(retVal).build();
     }
 
     /**
