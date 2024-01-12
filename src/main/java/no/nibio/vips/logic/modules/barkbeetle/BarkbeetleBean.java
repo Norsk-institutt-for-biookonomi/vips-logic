@@ -50,10 +50,7 @@ import javax.persistence.PersistenceContext;
 
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
+
 
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
@@ -67,6 +64,10 @@ import no.nibio.vips.logic.messaging.UniversalMessageFormat;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SimpleMailSender;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
