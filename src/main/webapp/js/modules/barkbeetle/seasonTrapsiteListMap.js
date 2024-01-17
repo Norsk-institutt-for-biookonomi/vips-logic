@@ -80,7 +80,7 @@
     // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
     // center to correct map projection)
     var view = new ol.View({
-            center: ol.proj.transform([10.0,63.0], 'EPSG:4326', map.getView().getProjection().getCode()),
+            center: ol.proj.transform([7.0,63.0], 'EPSG:4326', map.getView().getProjection().getCode()),
             zoom: 5
     });
     map.setView(view);

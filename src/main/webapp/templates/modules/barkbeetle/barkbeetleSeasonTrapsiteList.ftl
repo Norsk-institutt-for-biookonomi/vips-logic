@@ -85,6 +85,16 @@
 	<div class="col-md-4">
 		<div id="seasonTrapsiteListMap" class="map" style="border: 1px solid black; background-color: white;">
 				<div id="popover"></div>
+                                <div id="warningLegend" class="mapBoxPlacement_4"> 
+                                    <ul>
+                                        <li class="warning_5"><span>Høy fare for angrep</span></li>
+                                        <li class="warning_4"><span>Middels fare for angrep</span></li>
+                                        <li class="warning_3"><span>Liten fare for angrep</span></li>
+                                        <li class="warning_2"><span>Ingen fare for angrep</span></li>
+                                        <li class="warning_1"><span>Data mangler</span></li>
+                                        <li class="warning_0"><span>Varsel beregnes ikke</span></li>
+                                    </ul>
+                                </div>
 		</div>
 	</div>
 </div>
@@ -196,6 +206,40 @@ function filter(searchTxt){
 		div.popover {
 			min-width: 250px !important;
 		}
+
+                #warningLegend {
+                    position: absolute;
+                    left: 10px;
+                    top: 70px;
+                }
+                #warningLegend ul li span {
+                            position: relative;
+                            top: -7px;
+                }
+                #warningLegend ul li.warning_2
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_2.png");
+                }
+                #warningLegend ul li.warning_3
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_3.png");
+                }
+                #warningLegend ul li.warning_4
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_4.png");
+                }
+                #warningLegend ul li.warning_5
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_5.png");
+                }
+                #warningLegend ul li.warning_0
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_0.png");
+                }
+                #warningLegend ul li.warning_1
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_1.png");
+                }
 	</style>
 </#macro>
 <@page_html/>
