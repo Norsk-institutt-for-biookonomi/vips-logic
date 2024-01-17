@@ -87,12 +87,11 @@
 				<div id="popover"></div>
                                 <div id="warningLegend" class="mapBoxPlacement_4"> 
                                     <ul>
-                                        <li class="warning_5"><span>Høy fare for angrep</span></li>
-                                        <li class="warning_4"><span>Middels fare for angrep</span></li>
-                                        <li class="warning_3"><span>Liten fare for angrep</span></li>
-                                        <li class="warning_2"><span>Ingen fare for angrep</span></li>
-                                        <li class="warning_1"><span>Data mangler</span></li>
-                                        <li class="warning_0"><span>Varsel beregnes ikke</span></li>
+                                        <li class="warning_5"><span>&gt; 15 000 biller/felle</span></li>
+                                        <li class="warning_4"><span>10 000 - 15 000 biller/felle</span></li>
+                                        <li class="warning_3"><span>5 000 - 10 000 biller/felle</span></li>
+                                        <li class="warning_2"><span>0 - 5 000 biller/felle</span></li>
+                                        <li class="warning_1"><span>Ikke registrert måling</span></li>
                                     </ul>
                                 </div>
 		</div>
