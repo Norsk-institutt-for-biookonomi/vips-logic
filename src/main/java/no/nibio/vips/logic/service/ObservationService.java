@@ -443,7 +443,7 @@ public class ObservationService {
             @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr,
-            @QueryParam("to") Boolean isPositive
+            @QueryParam("isPositive") Boolean isPositive
             
     )
     {
@@ -458,16 +458,16 @@ public class ObservationService {
         }
         catch(ParseException ex){ System.out.println("ERROR");}
                 
-        List<Observation> filteredObservations = observationBean.getFilteredObservations(
+        List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(
             organizationId,
             pestId,
             cropId,
             cropCategoryId,
-            from,
-            to,
+            fromStr,
+            toStr,
             isPositive
         );
-        
+
         GISEntityUtil gisUtil = new GISEntityUtil();
         return Response.ok().entity(gisUtil.getGeoJSONFromObservations(filteredObservations)).build();
     }
