@@ -60,8 +60,8 @@ import org.locationtech.jts.geom.Point;
 public class BarkbeetleController extends HttpServlet {
     
 	// Due to version controls of PDF files, we keep the file names globally updated here
-	public final static String FILENAME_INSTRUKS_REGISTRANTER = "Instruks_registranter_i_Barkbilleovervakingen_2022-04-25.pdf";
-	public final static String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2022-04-25.pdf";
+	public final static String FILENAME_INSTRUKS_REGISTRANTER = "Instruks_registranter_i_Barkbilleovervakingen_2024-03-04.pdf";
+	public final static String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2024-03-04.pdf";
 	public final static String FILENAME_KJENN_IGJEN_ANGREP = "Kjenn_igjen_angrep_stor_granbarkbille_2022-04-25.pdf";
         
     @EJB
