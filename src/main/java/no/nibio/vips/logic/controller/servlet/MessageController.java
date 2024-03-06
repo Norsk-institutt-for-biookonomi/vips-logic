@@ -226,7 +226,11 @@ public class MessageController extends HttpServlet {
                 request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
-            catch(NullPointerException | NumberFormatException | NoResultException ex)
+            catch(NoResultException ex)
+            {
+                response.sendError(404, "Message not found");
+            }
+            catch(NullPointerException | NumberFormatException ex)
             {
                 response.sendError(500, ExceptionUtil.getStackTrace(ex));
             }

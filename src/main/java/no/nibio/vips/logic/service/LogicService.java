@@ -976,8 +976,11 @@ public class LogicService {
     public Response getMessage(@PathParam("messageId") Integer messageId)
     {
         Message message = messageBean.getMessage(messageId);
-        
-        return Response.ok().entity(message).build();
+        if(message != null)
+        {
+            return Response.ok().entity(message).build();
+        }
+        return Response.status(Status.NOT_FOUND).build();
     }
     
     /**
