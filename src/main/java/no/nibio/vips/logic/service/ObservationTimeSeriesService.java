@@ -6,7 +6,10 @@ import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import no.nibio.vips.logic.controller.session.ObservationTimeSeriesBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.UserBean;
-import no.nibio.vips.logic.entity.*;
+import no.nibio.vips.logic.entity.Gis;
+import no.nibio.vips.logic.entity.ObservationTimeSeries;
+import no.nibio.vips.logic.entity.PolygonService;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
@@ -31,8 +34,9 @@ import java.util.stream.Collectors;
 @Path("rest/observationtimeseries")
 public class ObservationTimeSeriesService {
 
+    public static final String APPLICATION_JSON = "application/json;charset=UTF-8";
+    public static final String GEO_INFO = "geoInfo";
     private final static Logger LOGGER = LoggerFactory.getLogger(ObservationTimeSeriesService.class);
-
     private static final String DELETED = "deleted";
     private static final String OBSERVATION_TIME_SERIES_ID = "observationTimeSeriesId";
     private static final String ORGANISM_ID = "organismId";
@@ -43,9 +47,6 @@ public class ObservationTimeSeriesService {
     private static final String DESCRIPTION = "description";
     private static final String LOCATION_IS_PRIVATE = "locationIsPrivate";
     private static final String POLYGON_SERVICE = "polygonService";
-    public static final String APPLICATION_JSON = "application/json;charset=UTF-8";
-    public static final String GEO_INFO = "geoInfo";
-
     @EJB
     UserBean userBean;
     @EJB
@@ -170,7 +171,7 @@ public class ObservationTimeSeriesService {
      * This service is used by the VIPS Field observation app to sync data stored locally on the smartphone with the
      * state of a (potentially non-existent) observation time series in the VIPSLogic database
      *
-     * @param observationTimeSeriesJson Json representation of the observation time series
+     * @param jsonOts Json representation of the observation time series
      * @return The observation time series in its merged state, serialized to Json
      */
     @POST
@@ -178,7 +179,7 @@ public class ObservationTimeSeriesService {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @TypeHint(ObservationTimeSeries.class)
-    public Response syncObservationTimeSeriesFromApp(String observationTimeSeriesJson) {
+    public Response syncObservationTimeSeriesFromApp(String jsonOts) {
         LOGGER.info("In syncObservationTimeSeriesFromApp");
         VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user == null) {
@@ -186,24 +187,28 @@ public class ObservationTimeSeriesService {
         }
         ObjectMapper oM = new ObjectMapper();
         try {
-            Map<Object, Object> mapFromApp = oM.readValue(observationTimeSeriesJson, new TypeReference<HashMap<Object, Object>>() {
-            });
-            Integer observationTimeSeriesId = (Integer) mapFromApp.get(OBSERVATION_TIME_SERIES_ID);
-            // Check if it is marked as deleted or not
-            if (mapFromApp.get(DELETED) != null && mapFromApp.get(DELETED).equals(true)) {
-                if (observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId) != null) {
-                    observationTimeSeriesBean.deleteObservationTimeSeries(observationTimeSeriesId);
+            Map<Object, Object> mapFromApp = oM.readValue(jsonOts, new TypeReference<HashMap<Object, Object>>() {});
+
+            Integer otsId = (Integer) mapFromApp.get(OBSERVATION_TIME_SERIES_ID);
+
+            // Check if the observation time series is marked as deleted
+            Boolean isDeleted = (Boolean) mapFromApp.getOrDefault(DELETED, false);
+            if (isDeleted) {
+                // If marked as deleted, delete the observation time series if it exists
+                if (observationTimeSeriesBean.getObservationTimeSeries(otsId) != null) {
+                    observationTimeSeriesBean.deleteObservationTimeSeries(otsId);
+                    LOGGER.info("ObservationTimeSeries with id={} deleted", otsId);
                     return Response.ok().build();
                 } else {
+                    LOGGER.warn("ObservationTimeSeries with id={} not found, nothing deleted", otsId);
                     return Response.status(Response.Status.NOT_FOUND).build();
                 }
             }
 
             Date currentDate = new Date();
-
             ObservationTimeSeries otsToSave;
-            if(observationTimeSeriesId != null && observationTimeSeriesId > 0) {
-                otsToSave = observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId);
+            if (otsId != null && otsId > 0) {
+                otsToSave = observationTimeSeriesBean.getObservationTimeSeries(otsId);
                 if (otsToSave == null) {
                     return Response.status(Response.Status.NOT_FOUND).build();
                 }
@@ -221,8 +226,8 @@ public class ObservationTimeSeriesService {
             otsToSave.setLocationIsPrivate(getValueFromMap(mapFromApp, LOCATION_IS_PRIVATE, Boolean.class));
 
             Object polygonServiceValue = mapFromApp.get(POLYGON_SERVICE);
-            if(polygonServiceValue != null && !polygonServiceValue.toString().isBlank()) {
-                PolygonService polygonService = oM.convertValue(mapFromApp.get(POLYGON_SERVICE), PolygonService.class);
+            if (polygonServiceValue != null && !polygonServiceValue.toString().isBlank()) {
+                PolygonService polygonService = oM.convertValue(polygonServiceValue, PolygonService.class);
                 otsToSave.setPolygonService(polygonService);
             }
 

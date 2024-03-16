@@ -1011,14 +1011,15 @@ public class ObservationService {
                             }
                         }
                     }
-                    LOGGER.debug("sendNotification? " + sendNotification);
+                    LOGGER.info("sendNotification? " + sendNotification);
 
                     // All transactions finished, we can send notifications
                     // if conditions are met
                     if (sendNotification && !
                             (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
                     ) {
-                        LOGGER.debug("Sending the message!");
+                        LOGGER.info("Message sending is temporarily disabled");
+                        // LOGGER.debug("Sending the message!");
                         // messagingBean.sendUniversalMessage(mergeObs);
                     }
 
@@ -1028,7 +1029,7 @@ public class ObservationService {
                 return Response.serverError().entity(e).build();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Exception occurred while syncing observations from app", e);
             return Response.serverError().entity(e).build();
         }
 
