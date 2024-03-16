@@ -1,0 +1,407 @@
+/*
+ * Copyright (c) 2014 NIBIO <http://www.nibio.no/>.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+package no.nibio.vips.logic.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.logic.util.StringJsonUserType;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
+import java.util.*;
+
+@Entity
+@Table(name = "observation_time_series")
+@XmlRootElement
+@TypeDefs({@TypeDef(name = "StringJsonObject", typeClass = StringJsonUserType.class)})
+@NamedQueries({
+        @NamedQuery(name = "ObservationTimeSeries.findAll", query = "SELECT ots FROM ObservationTimeSeries ots"),
+        @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId = :id"),
+        @NamedQuery(name = "ObservationTimeSeries.findByOrganizationId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
+        @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId)")
+})
+public class ObservationTimeSeries implements Serializable, no.nibio.vips.observation.ObservationTimeSeries {
+
+    private static final long serialVersionUID = 1L;
+    private Integer observationTimeSeriesId;
+    private Organism cropOrganism;
+    private Organism organism;
+    private String name;
+    private String description;
+    private Date created;
+    private Date lastModified;
+    private Integer userId;
+    private VipsLogicUser user; // Transient
+    private Integer lastModifiedBy;
+    private VipsLogicUser lastModifiedByUser; // Transient
+    private Integer locationPointOfInterestId;
+    private PointOfInterest locationPointOfInterest;
+    private List<Gis> geoInfoList;
+    private Boolean locationIsPrivate;
+    private PolygonService polygonService;
+
+    private GISEntityUtil GISEntityUtil;
+    private GISUtil GISUtil;
+
+    public ObservationTimeSeries() {
+        this.GISEntityUtil = new GISEntityUtil();
+        this.GISUtil = new GISUtil();
+    }
+
+    public ObservationTimeSeries(Integer observationTimeSeriesId) {
+        this.observationTimeSeriesId = observationTimeSeriesId;
+    }
+
+    /**
+     * @return the id of the observation time series
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "observation_time_series_id")
+    public Integer getObservationTimeSeriesId() {
+        return observationTimeSeriesId;
+    }
+
+    /**
+     * @param id the observation time series id to set
+     */
+    public void setObservationTimeSeriesId(Integer id) {
+        this.observationTimeSeriesId = id;
+    }
+
+
+    /**
+     * @return the crop organism
+     */
+    @JoinColumn(name = "crop_organism_id", referencedColumnName = "organism_id")
+    @ManyToOne
+    public Organism getCropOrganism() {
+        return cropOrganism;
+    }
+
+    /**
+     * @param cropOrganism the crop organism to set
+     */
+    public void setCropOrganism(Organism cropOrganism) {
+        this.cropOrganism = cropOrganism;
+    }
+
+    /**
+     * @return the crop organism id
+     */
+    @Transient
+    public Integer getCropOrganismId() {
+        return this.getCropOrganism() != null ? this.getCropOrganism().getOrganismId() : null;
+    }
+
+    /**
+     * @return the organism
+     */
+    @JoinColumn(name = "organism_id", referencedColumnName = "organism_id")
+    @ManyToOne
+    public Organism getOrganism() {
+        return organism;
+    }
+
+    /**
+     * @param organism the organism to set
+     */
+    public void setOrganism(Organism organism) {
+        this.organism = organism;
+    }
+
+    /**
+     * @return the organism id
+     */
+    @Transient
+    public Integer getOrganismId() {
+        return this.getOrganism() != null ? this.getOrganism().getOrganismId() : null;
+    }
+
+    /**
+     * @return the name of the observation time series
+     */
+    @Column(name = "name")
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the observation time series name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the description of the observation time series
+     */
+    @Column(name = "description")
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @param description the observation time series text to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * @return the creation date of the observation time series
+     */
+    @NotNull
+    @Basic(optional = false)
+    @Column(name = "created")
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getCreated() {
+        return created;
+    }
+
+    /**
+     * @param created the creation date to set
+     */
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    @NotNull
+    @Basic(optional = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_modified")
+    public Date getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(Date lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    /**
+     * @return the userId
+     */
+    @Column(name = "user_id")
+    public Integer getUserId() {
+        return userId;
+    }
+
+    /**
+     * @param userId the userId to set
+     */
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    /**
+     * @return the user
+     */
+    @Transient
+    @JsonIgnore
+    public VipsLogicUser getUser() {
+        return user;
+    }
+
+    /**
+     * @param user the user to set
+     */
+    public void setUser(VipsLogicUser user) {
+        this.user = user;
+    }
+
+    /**
+     * @return the id of the user who last modified the observation time series
+     */
+    @Column(name = "last_modified_by")
+    public Integer getLastModifiedBy() {
+        return lastModifiedBy;
+    }
+
+    /**
+     * @param lastModifiedBy the lastModifiedBy to set
+     */
+    public void setLastModifiedBy(Integer lastModifiedBy) {
+        this.lastModifiedBy = lastModifiedBy;
+    }
+
+    /**
+     * @return the user who last modified the observation time series
+     */
+    @Transient
+    @JsonIgnore
+    public VipsLogicUser getLastModifiedByUser() {
+        return lastModifiedByUser;
+    }
+
+    /**
+     * @param lastModifiedByUser the lastModifiedByUser to set
+     */
+    public void setLastModifiedByUser(VipsLogicUser lastModifiedByUser) {
+        this.lastModifiedByUser = lastModifiedByUser;
+    }
+
+    /**
+     * @return the locationPointOfInterestId
+     */
+    @Column(name = "location_point_of_interest_id")
+    public Integer getLocationPointOfInterestId() {
+        return locationPointOfInterestId;
+    }
+
+    /**
+     * @param locationPointOfInterestId the locationPointOfInterestId to set
+     */
+    public void setLocationPointOfInterestId(Integer locationPointOfInterestId) {
+        this.locationPointOfInterestId = locationPointOfInterestId;
+    }
+
+    /**
+     * @return the location
+     */
+    @Transient
+    public PointOfInterest getLocationPointOfInterest() {
+        return locationPointOfInterest;
+    }
+
+    /**
+     * @param locationPointOfInterest the location to set
+     */
+    public void setLocationPointOfInterest(PointOfInterest locationPointOfInterest) {
+        this.locationPointOfInterest = locationPointOfInterest;
+    }
+
+    public void addGeoInfo(Gis geoInfo) {
+        if (this.geoInfoList == null) {
+            this.geoInfoList = new ArrayList<>();
+        }
+        this.geoInfoList.add(geoInfo);
+    }
+
+    @JsonIgnore
+    @Transient
+    public List<Gis> getGeoInfoList() {
+        return this.geoInfoList;
+    }
+
+    public void setGeoInfoList(List<Gis> geoInfoList) {
+        this.geoInfoList = geoInfoList;
+    }
+
+    public void setGeoInfoList(String json) {
+        this.setGeoInfoList(this.GISEntityUtil.getGisFromGeoJSON(json));
+    }
+
+    @Transient
+    @Override
+    public String getGeoInfo() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("observationTimeSeriesId", this.getObservationTimeSeriesId());
+        return this.GISEntityUtil.getGeoJSONFromGis(this.geoInfoList, properties);
+    }
+
+    /**
+     * @return the locationIsPrivate
+     */
+    @Column(name = "location_is_private")
+    public Boolean getLocationIsPrivate() {
+        return locationIsPrivate != null ? locationIsPrivate : false;
+    }
+
+    /**
+     * @param locationIsPrivate the locationIsPrivate to set
+     */
+    public void setLocationIsPrivate(Boolean locationIsPrivate) {
+        this.locationIsPrivate = locationIsPrivate;
+    }
+
+    /**
+     * @return the polygon service
+     */
+    @JoinColumn(name = "polygon_service_id", referencedColumnName = "polygon_service_id")
+    @ManyToOne
+    public PolygonService getPolygonService() {
+        return this.polygonService;
+    }
+
+    /**
+     * @param polygonService the polygon service to set
+     */
+    public void setPolygonService(PolygonService polygonService) {
+        this.polygonService = polygonService;
+    }
+
+    @Override
+    @Transient
+    public Date getTimeOfLastObservation() {
+        // TODO Find date of latest observation within series
+        return new Date();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (observationTimeSeriesId != null ? observationTimeSeriesId.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObservationTimeSeries that = (ObservationTimeSeries) o;
+        return observationTimeSeriesId.equals(that.observationTimeSeriesId);
+    }
+
+    @Override
+    public String toString() {
+        return "ObservationTimeSeries{" +
+                "observationTimeSeriesId=" + observationTimeSeriesId +
+                ", cropOrganism=" + cropOrganism +
+                ", organism=" + organism +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", created=" + created +
+                ", lastModified=" + lastModified +
+                ", userId=" + userId +
+                ", user=" + user +
+                ", lastModifiedBy=" + lastModifiedBy +
+                ", lastModifiedByUser=" + lastModifiedByUser +
+                ", locationPointOfInterestId=" + locationPointOfInterestId +
+                ", locationPointOfInterest=" + locationPointOfInterest +
+                ", geoInfoList=" + geoInfoList +
+                ", locationIsPrivate=" + locationIsPrivate +
+                ", polygonService=" + polygonService +
+                ", GISEntityUtil=" + GISEntityUtil +
+                ", GISUtil=" + GISUtil +
+                '}';
+    }
+
+    @Override
+    public int compareTo(no.nibio.vips.observation.ObservationTimeSeries other) {
+        if (this.getTimeOfLastObservation() != null && other.getTimeOfLastObservation() != null) {
+            return other.getTimeOfLastObservation().compareTo(this.getTimeOfLastObservation());
+        }
+        return this.getName().compareTo(other.getName());
+    }
+}

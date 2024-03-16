@@ -55,8 +55,8 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.messaging.sms.SMSHandlingService.class);
         resources.add(no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothService.class);
         resources.add(no.nibio.vips.logic.service.ObservationService.class);
+        resources.add(no.nibio.vips.logic.service.ObservationTimeSeriesService.class);
         resources.add(no.nibio.vips.logic.service.ModelFormService.class);
-        
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
         //resources.add(no.nibio.vips.logic.service.JSONBConfig.class);
         //resources.add(no.nibio.vips.coremanager.service.ManagerResourceImpl.class);

@@ -68,6 +68,7 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "Observation.findByUserId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByLastEditedBy", query = "SELECT o FROM Observation o WHERE o.lastEditedBy IN(:lastEditedBy)"),
     @NamedQuery(name = "Observation.findByLocationPointOfInterestId", query = "SELECT o FROM Observation o WHERE o.locationPointOfInterestId = :locationPointOfInterestId"),
+    @NamedQuery(name = "Observation.findByObservationTimeSeries", query = "SELECT o FROM Observation o WHERE o.observationTimeSeries = :observationTimeSeries"),
     @NamedQuery(name = "Observation.findByStatusChangedByUserId", query = "SELECT o FROM Observation o WHERE o.statusChangedByUserId IN(:statusChangedByUserId)"),
     @NamedQuery(name = "Observation.findByUserIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByUserIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId) AND o.statusTypeId= :statusTypeId"),
@@ -91,6 +92,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Integer userId;
     private Integer lastEditedBy;
     private List<Gis> geoinfo;
+    private ObservationTimeSeries observationTimeSeries;
     private Integer locationPointOfInterestId;
     //private Double observedValue;
     //private Integer denominator;
@@ -272,7 +274,37 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 
     @Override
     public String toString() {
-        return "no.nibio.vips.logic.entity.Observation[ observationId=" + observationId + " ]";
+        return "Observation{" +
+                "observationId=" + observationId +
+                ", timeOfObservation=" + timeOfObservation +
+                ", organism=" + organism +
+                ", cropOrganism=" + cropOrganism +
+                ", userId=" + userId +
+                ", lastEditedBy=" + lastEditedBy +
+                ", geoinfo=" + geoinfo +
+                ", observationTimeSeries=" + observationTimeSeries +
+                ", locationPointOfInterestId=" + locationPointOfInterestId +
+                ", observationHeading='" + observationHeading + '\'' +
+                ", observationText='" + observationText + '\'' +
+                ", statusTypeId=" + statusTypeId +
+                ", statusChangedByUserId=" + statusChangedByUserId +
+                ", statusChangedTime=" + statusChangedTime +
+                ", lastEditedTime=" + lastEditedTime +
+                ", statusRemarks='" + statusRemarks + '\'' +
+                ", observationData='" + observationData + '\'' +
+                ", isQuantified=" + isQuantified +
+                ", isPositive=" + isPositive +
+                ", broadcastMessage=" + broadcastMessage +
+                ", locationIsPrivate=" + locationIsPrivate +
+                ", polygonService=" + polygonService +
+                ", observationDataSchema=" + observationDataSchema +
+                ", user=" + user +
+                ", lastEditedByUser=" + lastEditedByUser +
+                ", location=" + location +
+                ", observationIllustrationSet=" + observationIllustrationSet +
+                ", GISEntityUtil=" + GISEntityUtil +
+                ", GISUtil=" + GISUtil +
+                '}';
     }
 
     /**
@@ -529,6 +561,22 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setObservationIllustrationSet(Set<ObservationIllustration> observationIllustrationSet) {
         this.observationIllustrationSet = observationIllustrationSet;
+    }
+
+    /**
+      * @return the observation time series
+     */
+    @JoinColumn(name = "observation_time_series_id", referencedColumnName = "observation_time_series_id")
+    @ManyToOne
+    public ObservationTimeSeries getObservationTimeSeries() {
+        return observationTimeSeries;
+    }
+
+    /**
+     * @param observationTimeSeries the observation time series to set
+     */
+    public void setObservationTimeSeries(ObservationTimeSeries observationTimeSeries) {
+        this.observationTimeSeries = observationTimeSeries;
     }
 
     /**
