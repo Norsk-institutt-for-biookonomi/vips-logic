@@ -1019,8 +1019,7 @@ public class ObservationService {
                             (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
                     ) {
                         LOGGER.debug("Sending the message!");
-
-                        messagingBean.sendUniversalMessage(mergeObs);
+                        // messagingBean.sendUniversalMessage(mergeObs);
                     }
 
                     return Response.ok().entity(mergeObs).build();
