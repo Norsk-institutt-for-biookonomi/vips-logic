@@ -13,6 +13,7 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.logic.util.SystemTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
@@ -43,6 +44,7 @@ public class ObservationTimeSeriesService {
     private static final String CROP_ORGANISM_ID = "cropOrganismId";
     private static final String USER_ID = "userId";
     private static final String LOCATION_POINT_OF_INTEREST_ID = "locationPointOfInterestId";
+    private static final String YEAR = "year";
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
     private static final String LOCATION_IS_PRIVATE = "locationIsPrivate";
@@ -221,6 +223,7 @@ public class ObservationTimeSeriesService {
             otsToSave.setOrganism(organismBean.getOrganism(getValueFromMap(mapFromApp, ORGANISM_ID, Integer.class)));
             otsToSave.setGeoInfoList(getValueFromMap(mapFromApp, GEO_INFO, String.class));
             otsToSave.setLocationPointOfInterestId(getValueFromMap(mapFromApp, LOCATION_POINT_OF_INTEREST_ID, Integer.class));
+            otsToSave.setYear(getValueFromMap(mapFromApp, YEAR, Integer.class));
             otsToSave.setName(getValueFromMap(mapFromApp, NAME, String.class));
             otsToSave.setDescription(getValueFromMap(mapFromApp, DESCRIPTION, String.class));
             otsToSave.setLocationIsPrivate(getValueFromMap(mapFromApp, LOCATION_IS_PRIVATE, Boolean.class));

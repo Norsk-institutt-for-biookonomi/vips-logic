@@ -46,6 +46,7 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
     private Integer observationTimeSeriesId;
     private Organism cropOrganism;
     private Organism organism;
+    private Integer year;
     private String name;
     private String description;
     private Date created;
@@ -137,6 +138,21 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
     @Transient
     public Integer getOrganismId() {
         return this.getOrganism() != null ? this.getOrganism().getOrganismId() : null;
+    }
+
+    /**
+     * @return the year of the observation time series
+     */
+    @Column(name = "year")
+    public Integer getYear() {
+        return year;
+    }
+
+    /**
+     * @param year the observation time series year to set
+     */
+    public void setYear(Integer year) {
+        this.year = year;
     }
 
     /**
@@ -352,13 +368,6 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
     }
 
     @Override
-    @Transient
-    public Date getTimeOfLastObservation() {
-        // TODO Find date of latest observation within series
-        return new Date();
-    }
-
-    @Override
     public int hashCode() {
         int hash = 0;
         hash += (observationTimeSeriesId != null ? observationTimeSeriesId.hashCode() : 0);
@@ -379,6 +388,7 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
                 "observationTimeSeriesId=" + observationTimeSeriesId +
                 ", cropOrganism=" + cropOrganism +
                 ", organism=" + organism +
+                ", year=" + year +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", created=" + created +
@@ -399,8 +409,8 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
 
     @Override
     public int compareTo(no.nibio.vips.observation.ObservationTimeSeries other) {
-        if (this.getTimeOfLastObservation() != null && other.getTimeOfLastObservation() != null) {
-            return other.getTimeOfLastObservation().compareTo(this.getTimeOfLastObservation());
+        if (this.getYear() != null && other.getYear() != null) {
+            return other.getYear().compareTo(this.getYear());
         }
         return this.getName().compareTo(other.getName());
     }
