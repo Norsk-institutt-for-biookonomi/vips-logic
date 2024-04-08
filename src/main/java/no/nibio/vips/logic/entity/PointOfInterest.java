@@ -276,6 +276,10 @@ public class PointOfInterest implements Serializable, Comparable {
         {
             this.properties.put("pointOfInterestTypeId", this.getPointOfInterestTypeId());
         }
+        if(this.properties.get("pointOfInterestName") == null)
+        {
+            this.properties.put("pointOfInterestName", this.getName());
+        }
         return this.properties;
     }
 
