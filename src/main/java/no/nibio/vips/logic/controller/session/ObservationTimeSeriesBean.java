@@ -143,6 +143,7 @@ public class ObservationTimeSeriesBean {
     public void deleteObservationTimeSeries(Integer id) {
         ObservationTimeSeries observationTimeSeries = em.find(ObservationTimeSeries.class, id);
         if (observationTimeSeries != null) {
+            // The app prevents deletion of time series with observations
             observationBean.deleteObservationsForObservationTimeSeries(observationTimeSeries);
             em.remove(observationTimeSeries);
         }

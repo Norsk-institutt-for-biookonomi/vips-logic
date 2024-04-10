@@ -924,11 +924,17 @@ public class ObservationService {
                         return Response.status(Status.NOT_FOUND).build();
                     }
                 } else {
-                    Observation mergeObs = ((Integer) mapFromApp.get("observationId")) > 0 ? observationBean.getObservation((Integer) mapFromApp.get("observationId")) : new Observation();
-                    // Trying to sync a non-existing observation
-                    if (mergeObs == null) {
-                        return Response.status(Status.NOT_FOUND).build();
+                    Integer observationId = (Integer) mapFromApp.get("observationId");
+                    Observation mergeObs;
+                    if(observationId > 0) {
+                        mergeObs = observationBean.getObservation(observationId);
+                        if (mergeObs == null) {
+                            return Response.status(Status.NOT_FOUND).build();
+                        }
+                    } else {
+                        mergeObs = new Observation("APP");
                     }
+
                     // Observation time series
                     if(mapFromApp.get("observationTimeSeriesId") != null) {
                         Integer observationTimeSeriesId = (Integer) mapFromApp.get("observationTimeSeriesId");
@@ -942,24 +948,23 @@ public class ObservationService {
                     mergeObs.setTimeOfObservation(oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>() {
                     }));
                     mergeObs.setIsPositive(mapFromApp.get("isPositive") != null ? (Boolean) mapFromApp.get("isPositive") : false);
-                    mergeObs.setUserId(mapFromApp.get("userId") != null ? Integer.valueOf((Integer) mapFromApp.get("userId")) : user.getUserId());
+                    mergeObs.setUserId(mapFromApp.get("userId") != null ? (Integer) mapFromApp.get("userId") : user.getUserId());
                     mergeObs.setGeoinfo((String) mapFromApp.get("geoinfo"));
                     mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);
                     mergeObs.setObservationHeading(mapFromApp.get("observationHeading") != null ? (String) mapFromApp.get("observationHeading") : null);
                     mergeObs.setObservationText(mapFromApp.get("observationText") != null ? (String) mapFromApp.get("observationText") : null);
                     mergeObs.setBroadcastMessage(mapFromApp.get("broadcastMessage") != null ? (Boolean) mapFromApp.get("broadcastMessage") : false);
-                    mergeObs.setStatusTypeId(Integer.valueOf((Integer) mapFromApp.get("statusTypeId")));
+                    mergeObs.setStatusTypeId((Integer) mapFromApp.get("statusTypeId"));
                     // If the user has the role of observation approver, change to approved if set to pending
                     if (mergeObs.getStatusTypeId().equals(ObservationStatusType.STATUS_PENDING) && user.isObservationAuthority()) {
                         mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
                     }
-                    mergeObs.setStatusChangedByUserId(mapFromApp.get("statusChangedByUserId") != null ? (Integer) mapFromApp.get("statusChangedByUserId") : null);
+                    mergeObs.setStatusChangedByUserId(mapFromApp.get("userId") != null ? (Integer) mapFromApp.get("userId") : null);
                     mergeObs.setStatusChangedTime(mapFromApp.get("timeOfObservation") != null ? oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>() {
                     }) : null);
                     mergeObs.setStatusRemarks(mapFromApp.get("statusRemarks") != null ? (String) mapFromApp.get("statusRemarks") : null);
                     mergeObs.setIsQuantified(mapFromApp.get("isQuantified") != null ? (Boolean) mapFromApp.get("isQuantified") : false);
                     mergeObs.setLocationIsPrivate(mapFromApp.get("locationIsPrivate") != null ? (Boolean) mapFromApp.get("locationIsPrivate") : false);
-
                     Object polygonServiceValue = mapFromApp.get("polygonService");
                     if(polygonServiceValue != null && !polygonServiceValue.toString().isBlank()) {
                         PolygonService polygonService = oM.convertValue(mapFromApp.get("polygonService"), PolygonService.class);
@@ -974,7 +979,7 @@ public class ObservationService {
                     // Input check before storing
                     // Location must be set
                     if ((mergeObs.getGeoinfo() == null || mergeObs.getGeoinfo().trim().isEmpty()) && mergeObs.getLocationPointOfInterestId() == null) {
-                        return Response.status(Status.BAD_REQUEST).entity("The observation is missing location data.").build();
+                        return Response.status(Status.BAD_REQUEST).entity("{\"error\": \"The observation is missing location data.\"}").type(MediaType.APPLICATION_JSON).build();
                     }
 
                     boolean sendNotification = false;
@@ -994,7 +999,6 @@ public class ObservationService {
 
                     // We need to get an observation Id before storing the illustrations!
                     mergeObs = observationBean.storeObservation(mergeObs);
-
 
                     // ObservationIllustrationSet
                     // Including data that may need to be stored

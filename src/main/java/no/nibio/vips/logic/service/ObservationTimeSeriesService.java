@@ -197,6 +197,7 @@ public class ObservationTimeSeriesService {
             Boolean isDeleted = (Boolean) mapFromApp.getOrDefault(DELETED, false);
             if (isDeleted) {
                 // If marked as deleted, delete the observation time series if it exists
+                // Observations in time series are also deleted, but the app currently prevents this.
                 if (observationTimeSeriesBean.getObservationTimeSeries(otsId) != null) {
                     observationTimeSeriesBean.deleteObservationTimeSeries(otsId);
                     LOGGER.info("ObservationTimeSeries with id={} deleted", otsId);
