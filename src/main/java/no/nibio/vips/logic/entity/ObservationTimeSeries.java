@@ -57,20 +57,10 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
     private VipsLogicUser lastModifiedByUser; // Transient
     private Integer locationPointOfInterestId;
     private PointOfInterest locationPointOfInterest;
-    private List<Gis> geoInfoList;
     private Boolean locationIsPrivate;
     private PolygonService polygonService;
 
-    private GISEntityUtil GISEntityUtil;
-    private GISUtil GISUtil;
-
     public ObservationTimeSeries() {
-        this.GISEntityUtil = new GISEntityUtil();
-        this.GISUtil = new GISUtil();
-    }
-
-    public ObservationTimeSeries(Integer observationTimeSeriesId) {
-        this.observationTimeSeriesId = observationTimeSeriesId;
     }
 
     /**
@@ -307,35 +297,6 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
         this.locationPointOfInterest = locationPointOfInterest;
     }
 
-    public void addGeoInfo(Gis geoInfo) {
-        if (this.geoInfoList == null) {
-            this.geoInfoList = new ArrayList<>();
-        }
-        this.geoInfoList.add(geoInfo);
-    }
-
-    @JsonIgnore
-    @Transient
-    public List<Gis> getGeoInfoList() {
-        return this.geoInfoList;
-    }
-
-    public void setGeoInfoList(List<Gis> geoInfoList) {
-        this.geoInfoList = geoInfoList;
-    }
-
-    public void setGeoInfoList(String json) {
-        this.setGeoInfoList(this.GISEntityUtil.getGisFromGeoJSON(json));
-    }
-
-    @Transient
-    @Override
-    public String getGeoInfo() {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("observationTimeSeriesId", this.getObservationTimeSeriesId());
-        return this.GISEntityUtil.getGeoJSONFromGis(this.geoInfoList, properties);
-    }
-
     /**
      * @return the locationIsPrivate
      */
@@ -399,11 +360,8 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
                 ", lastModifiedByUser=" + lastModifiedByUser +
                 ", locationPointOfInterestId=" + locationPointOfInterestId +
                 ", locationPointOfInterest=" + locationPointOfInterest +
-                ", geoInfoList=" + geoInfoList +
                 ", locationIsPrivate=" + locationIsPrivate +
                 ", polygonService=" + polygonService +
-                ", GISEntityUtil=" + GISEntityUtil +
-                ", GISUtil=" + GISUtil +
                 '}';
     }
 

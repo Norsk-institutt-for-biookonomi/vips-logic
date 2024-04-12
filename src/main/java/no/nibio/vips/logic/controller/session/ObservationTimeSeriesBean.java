@@ -45,49 +45,14 @@ public class ObservationTimeSeriesBean {
         List<ObservationTimeSeries> resultList = em.createNamedQuery("ObservationTimeSeries.findByUserId", ObservationTimeSeries.class)
                 .setParameter("userId", user.getUserId())
                 .getResultList();
-        this.enrichObservationTimeSeriesListWithGeoInfo(resultList);
         this.enrichObservationTimeSeriesListWithPointOfInterest(resultList);
         this.enrichObservationTimeSeriesListWithObservers(resultList);
         return resultList;
     }
 
-    private void enrichObservationTimeSeriesListWithGeoInfo(List<ObservationTimeSeries> otsList) {
-        if (otsList.isEmpty()) {
-            return;
-        }
-
-        // Indexing observations
-        Map<Integer, ObservationTimeSeries> obsBucket = new HashMap<>();
-        otsList.forEach((obs) -> {
-            obsBucket.put(obs.getObservationTimeSeriesId(), obs);
-        });
-
-        // Getting many-to-many relations
-        Query q = em.createNativeQuery("SELECT gis_id, observation_time_series_id FROM public.gis_observation_time_series WHERE observation_time_series_id IN :observationTimeSeriesIds");
-        q.setParameter("observationTimeSeriesIds", obsBucket.keySet());
-        List<Object[]> gisObservationTimeSeriesIds = q.getResultList();
-
-        // Collecting and indexing geoInfo
-        Query q2 = em.createNativeQuery("SELECT * FROM public.gis WHERE gis_id IN (SELECT gis_id FROM public.gis_observation_time_series WHERE observation_time_series_id IN :observationTimeSeriesIds)", Gis.class);
-        List<Gis> geoInfos = q2.setParameter("observationTimeSeriesIds", obsBucket.keySet()).getResultList();
-        Map<Integer, Gis> gisBucket = new HashMap<>();
-        geoInfos.forEach((geoInfo) -> {
-            gisBucket.put(geoInfo.getGisId(), geoInfo);
-        });
-
-        // Iterating the many-to-many relations,
-        // adding geoinfo to the correct observations
-        gisObservationTimeSeriesIds.forEach((gisOtsIds) -> {
-            Integer gisId = (Integer) gisOtsIds[0];
-            Integer observationId = (Integer) gisOtsIds[1];
-            obsBucket.get(observationId).addGeoInfo(gisBucket.get(gisId));
-        });
-    }
-
     public ObservationTimeSeries getObservationTimeSeries(Integer id) {
         ObservationTimeSeries ots = em.find(ObservationTimeSeries.class, id);
         if (ots != null) {
-            ots.setGeoInfoList(this.getGeoInfoForObservationTimeSeries(ots));
             ots.setUser(em.find(VipsLogicUser.class, ots.getUserId()));
             if (ots.getLastModifiedBy() != null) {
                 ots.setLastModifiedByUser(em.find(VipsLogicUser.class, ots.getLastModifiedBy()));
@@ -96,48 +61,12 @@ public class ObservationTimeSeriesBean {
         return ots;
     }
 
-    public List<Gis> getGeoInfoForObservationTimeSeries(ObservationTimeSeries ots) {
-        List<Integer> gisIds = em.createNativeQuery("SELECT gis_id FROM public.gis_observation_time_series WHERE observation_time_series_id = :observationTimeSeriesId")
-                .setParameter("observationTimeSeriesId", ots.getObservationTimeSeriesId())
-                .getResultList();
-
-        if (gisIds != null && !gisIds.isEmpty()) {
-            return em.createNamedQuery("Gis.findByGisIds", Gis.class)
-                    .setParameter("gisIds", gisIds)
-                    .getResultList();
-        } else {
-            return new ArrayList<>();
-        }
-    }
-
     /**
      * @param ots the observation time series
      * @return The merged object
      */
     public ObservationTimeSeries storeObservationTimeSeries(ObservationTimeSeries ots) {
-        ObservationTimeSeries mergedOts = em.merge(ots);
-        em.createNativeQuery("DELETE FROM public.gis_observation_time_series WHERE observation_time_series_id=:observationTimeSeriesId")
-                .setParameter("observationTimeSeriesId", mergedOts.getObservationTimeSeriesId())
-                .executeUpdate();
-        em.createNativeQuery("DELETE FROM public.gis where gis_id IN (SELECT gis_id FROM public.gis_observation_time_series WHERE observation_time_series_id=:observationTimeSeriesId)")
-                .setParameter("observationTimeSeriesId", mergedOts.getObservationTimeSeriesId())
-                .executeUpdate();
-        // Then persist the new ones
-        if (ots.getGeoInfoList() != null && !ots.getGeoInfoList().isEmpty()) {
-            ots.getGeoInfoList().forEach((gis) -> {
-                em.persist(gis);
-            });
-            // Prepare query for inserting gis_observation_time_series
-            Query q = em.createNativeQuery("INSERT INTO public.gis_observation_time_series(gis_id,observation_time_series_id) VALUES(:gisId,:observationTimeSeriesId)")
-                    .setParameter("observationTimeSeriesId", mergedOts.getObservationTimeSeriesId());
-            // Add gis_id and execute query
-            ots.getGeoInfoList().forEach((gis) -> {
-                q.setParameter("gisId", gis.getGisId()).executeUpdate();
-            });
-        }
-        // The GisObservations are not included in the merged object, so we should add them
-        mergedOts.setGeoInfoList(this.getGeoInfoForObservationTimeSeries(mergedOts));
-        return mergedOts;
+        return em.merge(ots);
     }
 
     public void deleteObservationTimeSeries(Integer id) {

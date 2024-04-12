@@ -13,7 +13,6 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
-import no.nibio.vips.logic.util.SystemTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
@@ -36,7 +35,6 @@ import java.util.stream.Collectors;
 public class ObservationTimeSeriesService {
 
     public static final String APPLICATION_JSON = "application/json;charset=UTF-8";
-    public static final String GEO_INFO = "geoInfo";
     private final static Logger LOGGER = LoggerFactory.getLogger(ObservationTimeSeriesService.class);
     private static final String DELETED = "deleted";
     private static final String OBSERVATION_TIME_SERIES_ID = "observationTimeSeriesId";
@@ -101,13 +99,10 @@ public class ObservationTimeSeriesService {
     @Produces(APPLICATION_JSON)
     @TypeHint(ObservationTimeSeries.class)
     public Response getObservationTimeSeries(@PathParam("observationTimeSeriesId") Integer observationTimeSeriesId, @QueryParam("userUUID") String userUUID) {
-        // Observation needs to be masked here as well, or does it create trouble for VIPSLogic observation admin?
         ObservationTimeSeries ots = observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId);
         if (ots == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        VipsLogicUser creator = userBean.getVipsLogicUser(ots.getUserId());
-
         VipsLogicUser requester = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
         if (requester == null && userUUID != null) {
             requester = userBean.findVipsLogicUser(UUID.fromString(userUUID));
@@ -118,12 +113,8 @@ public class ObservationTimeSeriesService {
         boolean requesterNotCreator = requester != null && !ots.getUserId().equals(requester.getUserId());
 
         if (requesterNotValidUser || requesterRegularUser) {
-            // Hide completely for all users except creator, super and orgadmin
-            if (ots.getLocationIsPrivate() && (requesterNotValidUser || requesterNotCreator)) {
-                ots.setGeoInfoList(new ArrayList<>());
-            }
             // Mask for all users except creator, super and orgadmin
-            else if (ots.getPolygonService() != null) {
+            if (!(ots.getLocationIsPrivate() && (requesterNotValidUser || requesterNotCreator)) && ots.getPolygonService() != null) {
                 observationTimeSeriesBean.enrichObservationTimeSeriesWithPointOfInterest(ots);
                 this.maskLocation(ots.getPolygonService(), ots);
             }
@@ -132,8 +123,7 @@ public class ObservationTimeSeriesService {
     }
 
     /**
-     * The location (point of interest) of the given observation time series is masked using
-     * the provided polygon service.
+     * The location (point of interest) of the given observation time series is masked using the provided polygon service.
      *
      * @param polygonService        The polygon service that should be used for masking
      * @param observationTimeSeries The observation time series to mask location for
@@ -162,7 +152,6 @@ public class ObservationTimeSeriesService {
                 Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
                 List<Gis> gis = new ArrayList<>();
                 gis.add(polygon);
-                observationTimeSeries.setGeoInfoList(gis);
                 observationTimeSeries.setLocationPointOfInterest(null);
                 observationTimeSeries.setLocationPointOfInterestId(null);
             }
@@ -183,13 +172,15 @@ public class ObservationTimeSeriesService {
     @TypeHint(ObservationTimeSeries.class)
     public Response syncObservationTimeSeriesFromApp(String jsonOts) {
         LOGGER.info("In syncObservationTimeSeriesFromApp");
+        LOGGER.info(jsonOts);
         VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         ObjectMapper oM = new ObjectMapper();
         try {
-            Map<Object, Object> mapFromApp = oM.readValue(jsonOts, new TypeReference<HashMap<Object, Object>>() {});
+            Map<Object, Object> mapFromApp = oM.readValue(jsonOts, new TypeReference<HashMap<Object, Object>>() {
+            });
 
             Integer otsId = (Integer) mapFromApp.get(OBSERVATION_TIME_SERIES_ID);
 
@@ -222,7 +213,6 @@ public class ObservationTimeSeriesService {
             }
             otsToSave.setCropOrganism(organismBean.getOrganism(getValueFromMap(mapFromApp, CROP_ORGANISM_ID, Integer.class)));
             otsToSave.setOrganism(organismBean.getOrganism(getValueFromMap(mapFromApp, ORGANISM_ID, Integer.class)));
-            otsToSave.setGeoInfoList(getValueFromMap(mapFromApp, GEO_INFO, String.class));
             otsToSave.setLocationPointOfInterestId(getValueFromMap(mapFromApp, LOCATION_POINT_OF_INTEREST_ID, Integer.class));
             otsToSave.setYear(getValueFromMap(mapFromApp, YEAR, Integer.class));
             otsToSave.setName(getValueFromMap(mapFromApp, NAME, String.class));
@@ -239,10 +229,11 @@ public class ObservationTimeSeriesService {
             otsToSave.setLastModifiedBy(user.getUserId());
 
             // Input check before storing, location must be set
-            if ((otsToSave.getGeoInfo() == null || otsToSave.getGeoInfo().trim().isEmpty()) && otsToSave.getLocationPointOfInterestId() == null) {
+            if (otsToSave.getLocationPointOfInterestId() == null) {
                 LOGGER.error("The observation time series is missing location data");
                 return Response.status(Response.Status.BAD_REQUEST).entity("The observation time series is missing location data").build();
             }
+            LOGGER.info("otsToSave before storing: " + otsToSave);
             otsToSave = observationTimeSeriesBean.storeObservationTimeSeries(otsToSave);
             return Response.ok().entity(otsToSave).build();
         } catch (IOException e) {
