@@ -50,9 +50,10 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
     private String name;
     private String description;
     private Date created;
-    private Date lastModified;
     private Integer userId;
     private VipsLogicUser user; // Transient
+    private String source;
+    private Date lastModified;
     private Integer lastModifiedBy;
     private VipsLogicUser lastModifiedByUser; // Transient
     private Integer locationPointOfInterestId;
@@ -61,6 +62,10 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
     private PolygonService polygonService;
 
     public ObservationTimeSeries() {
+    }
+
+    public ObservationTimeSeries(String source) {
+        this.source = source;
     }
 
     /**
@@ -237,8 +242,20 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
     }
 
     /**
-     * @return the id of the user who last modified the observation time series
+     * @return from where the observation time series originally was created, either WEB or APP
      */
+    @Column(name = "source")
+    public String getSource() {
+        return source;
+    }
+
+    /**
+     * @param source From where the observation time series originally was created
+     */
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     @Column(name = "last_modified_by")
     public Integer getLastModifiedBy() {
         return lastModifiedBy;
@@ -353,9 +370,10 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", created=" + created +
-                ", lastModified=" + lastModified +
                 ", userId=" + userId +
                 ", user=" + user +
+                ", source=" + source +
+                ", lastModified=" + lastModified +
                 ", lastModifiedBy=" + lastModifiedBy +
                 ", lastModifiedByUser=" + lastModifiedByUser +
                 ", locationPointOfInterestId=" + locationPointOfInterestId +

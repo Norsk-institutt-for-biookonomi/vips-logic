@@ -207,7 +207,7 @@ public class ObservationTimeSeriesService {
                     return Response.status(Response.Status.NOT_FOUND).build();
                 }
             } else {
-                otsToSave = new ObservationTimeSeries();
+                otsToSave = new ObservationTimeSeries("APP");
                 otsToSave.setUserId(user.getUserId());
                 otsToSave.setCreated(currentDate);
             }
@@ -246,6 +246,12 @@ public class ObservationTimeSeriesService {
         Object value = map.get(key);
         if (clazz.isInstance(value)) {
             return clazz.cast(value);
+        } else if (clazz == Integer.class && value instanceof String) {
+            try {
+                return clazz.cast(Integer.parseInt((String) value));
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
         return clazz == Boolean.class ? clazz.cast(false) : null;
     }
