@@ -18,8 +18,6 @@
 package no.nibio.vips.logic.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import no.nibio.vips.gis.GISUtil;
-import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.StringJsonUserType;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -28,7 +26,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "observation_time_series")
@@ -40,7 +38,7 @@ import java.util.*;
         @NamedQuery(name = "ObservationTimeSeries.findByOrganizationId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
         @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId)")
 })
-public class ObservationTimeSeries implements Serializable, no.nibio.vips.observation.ObservationTimeSeries {
+public class ObservationTimeSeries implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private Integer observationTimeSeriesId;
@@ -383,8 +381,7 @@ public class ObservationTimeSeries implements Serializable, no.nibio.vips.observ
                 '}';
     }
 
-    @Override
-    public int compareTo(no.nibio.vips.observation.ObservationTimeSeries other) {
+    public int compareTo(ObservationTimeSeries other) {
         if (this.getYear() != null && other.getYear() != null) {
             return other.getYear().compareTo(this.getYear());
         }
