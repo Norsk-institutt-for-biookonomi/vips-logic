@@ -447,8 +447,9 @@
                 </#if>
                 var cropList = [
                     <#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
+                        {organismId: -10, displayName: "${i18nBundle.missingInDatabase}", hierarchyCategoryId: -1},
                         <#list allCrops as cropOrganism>
-                        {organismId: ${cropOrganism.organismId}, displayName: "${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}", hierarchyCategoryId: ${cropOrganism.hierarchyCategoryId}}<#sep>,
+                        {organismId: ${cropOrganism.organismId?c}, displayName: "${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}", hierarchyCategoryId: ${cropOrganism.hierarchyCategoryId!"-1"}}<#sep>,
                         </#list>
                     <#else>
                         <#list allCrops as cropOrganism>

@@ -287,7 +287,9 @@ public class BarkbeetleBean {
         em.createNativeQuery("DELETE FROM barkbeetle.season_trapsite_bivolt WHERE season_trapsite_id = :seasonTrapsiteId")
                 .setParameter("seasonTrapsiteId", seasonTrapsiteId)
                 .executeUpdate();
-        em.remove(stToDelete);
+        em.createNativeQuery("DELETE FROM barkbeetle.season_trapsite WHERE season_trapsite_id = :seasonTrapsiteId")
+                .setParameter("seasonTrapsiteId", seasonTrapsiteId)
+                .executeUpdate();
         return true;
     }
 

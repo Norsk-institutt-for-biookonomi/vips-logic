@@ -471,7 +471,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     @Column(name = "observation_data")
     @Override
     public String getObservationData() {
-        return observationData;
+        return this.observationData != null && this.observationData.replaceAll("\"", "").trim().length() > 0 ? this.observationData : null;
     }
 
     /**
