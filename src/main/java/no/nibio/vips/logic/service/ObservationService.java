@@ -1022,9 +1022,8 @@ public class ObservationService {
                     if (sendNotification && !
                             (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
                     ) {
-                        LOGGER.info("Message sending is temporarily disabled");
-                        // LOGGER.debug("Sending the message!");
-                        // messagingBean.sendUniversalMessage(mergeObs);
+                        LOGGER.debug("Sending the message!");
+                        messagingBean.sendUniversalMessage(mergeObs);
                     }
 
                     return Response.ok().entity(mergeObs).build();
