@@ -271,7 +271,7 @@
 		  </div>
 		  <div class="form-group">
 			<label for="ownerName">Tlf til eier av lokalitet</label>
-			<input type="text" class="form-control" name="ownerPhone" placeholder="Tlf til eier av lokalitet" value="${(seasonTrapsite.ownerPhone)!""}" onblur="validateField(this);"/>
+			<input type="text" class="form-control" maxlength="31" name="ownerPhone" placeholder="Tlf til eier av lokalitet" value="${(seasonTrapsite.ownerPhone)!""}" onblur="validateField(this);"/>
 			<span class="help-block" id="${formId}_ownerPhone_validation"></span>
 		  </div>
 		  <#if userIsAdmin || userIsCountyAdmin>
