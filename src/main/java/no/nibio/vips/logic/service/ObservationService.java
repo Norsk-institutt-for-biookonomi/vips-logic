@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,45 +22,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-
-import java.io.IOException;
-import java.net.URI;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import javax.ejb.EJB;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.ObservationTimeSeriesBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.UserBean;
-
 import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
@@ -72,34 +38,52 @@ import org.jboss.resteasy.annotations.GZIP;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
-import org.wololo.geojson.Feature;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wololo.geojson.FeatureCollection;
+import org.wololo.geojson.Feature;
 import org.wololo.geojson.GeoJSON;
 
+import javax.ejb.EJB;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
- * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
+ * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  */
 @Path("rest/observation")
 public class ObservationService {
-    
+
     private final static Logger LOGGER = LoggerFactory.getLogger(ObservationService.class);
-    
-    @Context
-    private HttpServletRequest httpServletRequest;
-    
     @EJB
     UserBean userBean;
     @EJB
     ObservationBean observationBean;
     @EJB
     OrganismBean organismBean;
+
+    @EJB
+    ObservationTimeSeriesBean observationTimeSeriesBean;
     @EJB
     MessagingBean messagingBean;
-    
+    @Context
+    private HttpServletRequest httpServletRequest;
+
     /*
      * PostGIS tip:
      * How to query for observations within a bounding box
@@ -107,16 +91,15 @@ public class ObservationService {
      *   ST_SetSRID(ST_MakeBox2D(ST_MakePoint(2.9004, 57.7511), ST_MakePoint(32.4316, 71.3851)),4326),
      *   gis_geom);
      * First point is SW, last is NE (but could be anything?)
-    */
-    
+     */
+
     /**
-     * 
      * @param organizationId Database ID of the organization
-     * @param pestId Database ID of the pest
-     * @param cropId Database ID of the crop
+     * @param pestId         Database ID of the pest
+     * @param cropId         Database ID of the crop
      * @param cropCategoryId Database IDs of the crop category/categories
-     * @param fromStr format "yyyy-MM-dd"
-     * @param toStr format "yyyy-MM-dd"
+     * @param fromStr        format "yyyy-MM-dd"
+     * @param toStr          format "yyyy-MM-dd"
      * @return Observation objects with all data (full tree)
      */
     @GET
@@ -132,8 +115,7 @@ public class ObservationService {
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr,
             @QueryParam("isPositive") Boolean isPositive
-    )
-    {
+    ) {
         return Response.ok().entity(getFilteredObservationsFromBackend(
                 organizationId,
                 pestId,
@@ -144,15 +126,14 @@ public class ObservationService {
                 isPositive
         )).build();
     }
-    
+
     /**
-     * 
      * @param organizationId Database ID of the organization
-     * @param pestId Database ID of the pest
-     * @param cropId Database ID of the crop
+     * @param pestId         Database ID of the pest
+     * @param cropId         Database ID of the crop
      * @param cropCategoryId cropCategoryId Database IDs of the crop category/categories
-     * @param fromStr format "yyyy-MM-dd"
-     * @param toStr format "yyyy-MM-dd"
+     * @param fromStr        format "yyyy-MM-dd"
+     * @param toStr          format "yyyy-MM-dd"
      * @return Observation objects for which the user is authorized to observe with properties relevant for lists
      */
     @GET
@@ -170,13 +151,11 @@ public class ObservationService {
             @QueryParam("userUUID") String userUUID,
             @QueryParam("locale") String localeStr,
             @QueryParam("isPositive") Boolean isPositive
-    )
-    {
+    ) {
         return Response.ok().entity(this.getFilteredObservationListItems(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive)).build();
     }
-    
-    
-    
+
+
     private List<ObservationListItem> getFilteredObservationListItems(
             Integer organizationId,
             Integer pestId,
@@ -187,54 +166,51 @@ public class ObservationService {
             String userUUID,
             String localeStr,
             Boolean isPositive
-    )
-    {
+    ) {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        
-        if(user == null && userUUID != null)
-        {
+
+        if (user == null && userUUID != null) {
             user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
-        ULocale locale = new ULocale(localeStr != null ? localeStr : 
-        	user != null ? user.getOrganizationId().getDefaultLocale() : 
-        		userBean.getOrganization(organizationId).getDefaultLocale());
+        ULocale locale = new ULocale(localeStr != null ? localeStr :
+                user != null ? user.getOrganizationId().getDefaultLocale() :
+                        userBean.getOrganization(organizationId).getDefaultLocale());
 
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
-                        organizationId,
-                        pestId,
-                        cropId,
-                        cropCategoryId,
-                        fromStr,
-                        toStr,
-                        isPositive,
-                        user
-                ).stream().map(obs -> { 
-                    try {
-                                return obs.getListItem(locale.getLanguage(), 
-                                                observationBean.getLocalizedObservationDataSchema(
-                                                                observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
-                                                                httpServletRequest,
-                                                                locale
-                                                                )
-                                                );
-                        } catch (IOException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                                return null;
-                        }
-                }).collect(Collectors.toList());
+                organizationId,
+                pestId,
+                cropId,
+                cropCategoryId,
+                fromStr,
+                toStr,
+                isPositive,
+                user
+        ).stream().map(obs -> {
+            try {
+                return obs.getListItem(locale.getLanguage(),
+                        observationBean.getLocalizedObservationDataSchema(
+                                observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
+                                httpServletRequest,
+                                locale
+                        )
+                );
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                return null;
+            }
+        }).collect(Collectors.toList());
         //o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
         return observations;
     }
-    
+
     /**
-     * 
      * @param organizationId Database ID of the organization
-     * @param pestId Database ID of the pest
-     * @param cropId Database ID of the crop
+     * @param pestId         Database ID of the pest
+     * @param cropId         Database ID of the crop
      * @param cropCategoryId cropCategoryId Database IDs of the crop category/categories
-     * @param fromStr format "yyyy-MM-dd"
-     * @param toStr format "yyyy-MM-dd"
+     * @param fromStr        format "yyyy-MM-dd"
+     * @param toStr          format "yyyy-MM-dd"
      * @return Observation objects for which the user is authorized to observe with properties relevant for lists
      */
     @GET
@@ -252,24 +228,21 @@ public class ObservationService {
             @QueryParam("userUUID") String userUUID,
             @QueryParam("locale") String localeStr,
             @QueryParam("isPositive") Boolean isPositive
-    )
-    {
+    ) {
         List<ObservationListItem> observations = this.getFilteredObservationListItems(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive);
         Collections.sort(observations);
         String retVal = "ObservationID;organismName;cropOrganismName;timeOfObservation;lat/lon;observationHeading;observationData";
         GISUtil gisUtil = new GISUtil();
-        for(ObservationListItem obs:observations)
-        {
+        for (ObservationListItem obs : observations) {
             // Get latlon from geoInfo
             List<Geometry> geometries = gisUtil.getGeometriesFromGeoJSON(obs.getGeoInfo());
             Coordinate c = null;
-            if(geometries.size() == 1 && geometries.get(0) instanceof Point)
-            {
-                c = ((Point)geometries.get(0)).getCoordinate();
+            if (geometries.size() == 1 && geometries.get(0) instanceof Point) {
+                c = ((Point) geometries.get(0)).getCoordinate();
             }
-            retVal += "\n" + obs.getObservationId() 
-                    + ";" + obs.getOrganismName() 
-                    + ";" + obs.getCropOrganismName() 
+            retVal += "\n" + obs.getObservationId()
+                    + ";" + obs.getOrganismName()
+                    + ";" + obs.getCropOrganismName()
                     + ";" + obs.getTimeOfObservation()
                     + ";" + (c != null ? c.getY() + "," + c.getX() : "")
                     + ";" + obs.getObservationHeading()
@@ -279,13 +252,12 @@ public class ObservationService {
     }
 
     /**
-     *
      * @param organizationId Database ID of the organization
-     * @param pestId Database ID of the pest
-     * @param cropId Database ID of the crop
+     * @param pestId         Database ID of the pest
+     * @param cropId         Database ID of the crop
      * @param cropCategoryId cropCategoryId Database IDs of the crop category/categories
-     * @param fromStr format "yyyy-MM-dd"
-     * @param toStr format "yyyy-MM-dd"
+     * @param fromStr        format "yyyy-MM-dd"
+     * @param toStr          format "yyyy-MM-dd"
      * @return Observation objects for which the user is authorized to observe with properties relevant for lists
      */
     private List<Observation> getFilteredObservationsFromBackend(
@@ -296,33 +268,31 @@ public class ObservationService {
             String fromStr,
             String toStr,
             Boolean isPositive
-    )
-    {
+    ) {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         //TODO Set correct timeZone!!!
         Date from = null;
         Date to = null;
-        try
-        {
+        try {
             from = fromStr != null ? format.parse(fromStr) : null;
             to = toStr != null ? format.parse(toStr) : null;
+        } catch (ParseException ex) {
+            System.out.println("ERROR");
         }
-        catch(ParseException ex){ System.out.println("ERROR");}
-                
+
         return observationBean.getFilteredObservations(
-            organizationId,
-            pestId,
-            cropId,
-            cropCategoryId,
-            from,
-            to,
-            isPositive
+                organizationId,
+                pestId,
+                cropId,
+                cropCategoryId,
+                from,
+                to,
+                isPositive
         );
-        
+
     }
 
     /**
-     *
      * @param organizationId
      * @param pestId
      * @param cropId
@@ -330,106 +300,104 @@ public class ObservationService {
      * @param fromStr
      * @param toStr
      * @return
-     *
      * @responseExample application/json
      * {
-     *     "type": "FeatureCollection",
-     *     "features": [
-     *         {
-     *             "type": "Feature",
-     *             "id": 18423,
-     *             "geometry": {
-     *                 "type": "Point",
-     *                 "coordinates": [
-     *                     10.782463095356452,
-     *                     59.35794998304658,
-     *                     0.0
-     *                 ]
-     *             },
-     *             "properties": {
-     *                 "observationId": 18446,
-     *                 "observationHeading": "NLR Øst, Huggenes: Det er funnet potettørråte i Råde",
-     *                 "organism": {
-     *                     "organismId": 14,
-     *                     "latinName": "Phytophthora infestans",
-     *                     "tradeName": "",
-     *                     "logicallyDeleted": false,
-     *                     "isPest": true,
-     *                     "isCrop": false,
-     *                     "parentOrganismId": 124,
-     *                     "hierarchyCategoryId": 120,
-     *                     "organismLocaleSet": [
-     *                         {
-     *                             "organismLocalePK": {
-     *                                 "organismId": 14,
-     *                                 "locale": "nb"
-     *                             },
-     *                             "localName": "Potettørråte"
-     *                         },
-     *                         {
-     *                             "organismLocalePK": {
-     *                                 "organismId": 14,
-     *                                 "locale": "en"
-     *                             },
-     *                             "localName": "Late blight"
-     *                         }
-     *                     ],
-     *                     "organismExternalResourceSet": [],
-     *                     "childOrganisms": null,
-     *                     "extraProperties": {},
-     *                     "observationDataSchema": null
-     *                 },
-     *                 "cropOrganism": {
-     *                     "organismId": 5,
-     *                     "latinName": "Solanum tuberosum",
-     *                     "tradeName": "",
-     *                     "logicallyDeleted": false,
-     *                     "isPest": false,
-     *                     "isCrop": true,
-     *                     "parentOrganismId": 4,
-     *                     "hierarchyCategoryId": 120,
-     *                     "organismLocaleSet": [
-     *                         {
-     *                             "organismLocalePK": {
-     *                                 "organismId": 5,
-     *                                 "locale": "bs"
-     *                             },
-     *                             "localName": "Potato"
-     *                         },
-     *                         {
-     *                             "organismLocalePK": {
-     *                                 "organismId": 5,
-     *                                 "locale": "nb"
-     *                             },
-     *                             "localName": "Potet"
-     *                         },
-     *                         {
-     *                             "organismLocalePK": {
-     *                                 "organismId": 5,
-     *                                 "locale": "en"
-     *                             },
-     *                             "localName": "Potato"
-     *                         },
-     *                         {
-     *                             "organismLocalePK": {
-     *                                 "organismId": 5,
-     *                                 "locale": "hr"
-     *                             },
-     *                             "localName": "Krompir"
-     *                         }
-     *                     ],
-     *                     "organismExternalResourceSet": [],
-     *                     "childOrganisms": null,
-     *                     "extraProperties": {},
-     *                     "observationDataSchema": null
-     *                 },
-     *                 "observationText": "Fredag 2.juli ble det gjort første funn av potettørråte i Råde. Det er noen flekker på bladene på øvre del av planten. Smitten ser ut til å ha kommet som sekundærsmitte med vinden.",
-     *                 "timeOfObservation": "2021-07-02T11:00:00+02:00"
-     *             }
-     *         }
-     *     ]
+     * "type": "FeatureCollection",
+     * "features": [
+     * {
+     * "type": "Feature",
+     * "id": 18423,
+     * "geometry": {
+     * "type": "Point",
+     * "coordinates": [
+     * 10.782463095356452,
+     * 59.35794998304658,
+     * 0.0
+     * ]
+     * },
+     * "properties": {
+     * "observationId": 18446,
+     * "observationHeading": "NLR Øst, Huggenes: Det er funnet potettørråte i Råde",
+     * "organism": {
+     * "organismId": 14,
+     * "latinName": "Phytophthora infestans",
+     * "tradeName": "",
+     * "logicallyDeleted": false,
+     * "isPest": true,
+     * "isCrop": false,
+     * "parentOrganismId": 124,
+     * "hierarchyCategoryId": 120,
+     * "organismLocaleSet": [
+     * {
+     * "organismLocalePK": {
+     * "organismId": 14,
+     * "locale": "nb"
+     * },
+     * "localName": "Potettørråte"
+     * },
+     * {
+     * "organismLocalePK": {
+     * "organismId": 14,
+     * "locale": "en"
+     * },
+     * "localName": "Late blight"
      * }
-     *
+     * ],
+     * "organismExternalResourceSet": [],
+     * "childOrganisms": null,
+     * "extraProperties": {},
+     * "observationDataSchema": null
+     * },
+     * "cropOrganism": {
+     * "organismId": 5,
+     * "latinName": "Solanum tuberosum",
+     * "tradeName": "",
+     * "logicallyDeleted": false,
+     * "isPest": false,
+     * "isCrop": true,
+     * "parentOrganismId": 4,
+     * "hierarchyCategoryId": 120,
+     * "organismLocaleSet": [
+     * {
+     * "organismLocalePK": {
+     * "organismId": 5,
+     * "locale": "bs"
+     * },
+     * "localName": "Potato"
+     * },
+     * {
+     * "organismLocalePK": {
+     * "organismId": 5,
+     * "locale": "nb"
+     * },
+     * "localName": "Potet"
+     * },
+     * {
+     * "organismLocalePK": {
+     * "organismId": 5,
+     * "locale": "en"
+     * },
+     * "localName": "Potato"
+     * },
+     * {
+     * "organismLocalePK": {
+     * "organismId": 5,
+     * "locale": "hr"
+     * },
+     * "localName": "Krompir"
+     * }
+     * ],
+     * "organismExternalResourceSet": [],
+     * "childOrganisms": null,
+     * "extraProperties": {},
+     * "observationDataSchema": null
+     * },
+     * "observationText": "Fredag 2.juli ble det gjort første funn av potettørråte i Råde. Det er noen flekker på bladene på øvre del av planten. Smitten ser ut til å ha kommet som sekundærsmitte med vinden.",
+     * "timeOfObservation": "2021-07-02T11:00:00+02:00"
+     * }
+     * }
+     * ]
+     * }
      */
     @GET
     @Path("filter/{organizationId}/geoJSON")
@@ -444,37 +412,37 @@ public class ObservationService {
             @QueryParam("from") String fromStr,
             @QueryParam("to") String toStr,
             @QueryParam("isPositive") Boolean isPositive
-            
-    )
-    {
+
+    ) {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         //TODO Set correct timeZone!!!
         Date from = null;
         Date to = null;
-        try
-        {
+        try {
             from = fromStr != null ? format.parse(fromStr) : null;
             to = toStr != null ? format.parse(toStr) : null;
+        } catch (ParseException ex) {
+            System.out.println("ERROR");
         }
-        catch(ParseException ex){ System.out.println("ERROR");}
-                
+
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(
-            organizationId,
-            pestId,
-            cropId,
-            cropCategoryId,
-            fromStr,
-            toStr,
-            isPositive
+                organizationId,
+                pestId,
+                cropId,
+                cropCategoryId,
+                fromStr,
+                toStr,
+                isPositive
         );
 
         GISEntityUtil gisUtil = new GISEntityUtil();
         return Response.ok().entity(gisUtil.getGeoJSONFromObservations(filteredObservations)).build();
     }
-    
+
     /**
      * Get a list of all observed pests for one organization
      * Practical for building effective select lists
+     *
      * @param organizationId Database ID of organization
      * @return list of all observed pests for one organization
      */
@@ -482,30 +450,30 @@ public class ObservationService {
     @Path("pest/{organizationId}")
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Organism[].class)
-    public Response getObservedPests(@PathParam("organizationId") Integer organizationId)
-    {
+    public Response getObservedPests(@PathParam("organizationId") Integer organizationId) {
         return Response.ok().entity(observationBean.getObservedPests(organizationId)).build();
     }
-    
+
     /**
      * Get a list of all crop cultures where observations have been made for one organization
      * Practical for building effective select lists
      * TODO: Should be cached??
+     *
      * @param organizationId Database ID of organization
-     * @return 
+     * @return
      */
     @GET
     @Path("crop/{organizationId}")
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Organism[].class)
-    public Response getObservedCrops(@PathParam("organizationId") Integer organizationId)
-    {
+    public Response getObservedCrops(@PathParam("organizationId") Integer organizationId) {
         return Response.ok().entity(observationBean.getObservedCrops(organizationId)).build();
     }
-    
-    
+
+
     /**
      * Publicly available observations per organization
+     *
      * @param organizationId Database ID of organization
      * @return APPROVED observations
      */
@@ -514,13 +482,14 @@ public class ObservationService {
     @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
-    public Response getObservations(@PathParam("organizationId") Integer organizationId){
+    public Response getObservations(@PathParam("organizationId") Integer organizationId) {
         return Response.ok().entity(observationBean.getObservations(organizationId, Observation.STATUS_TYPE_ID_APPROVED)).build();
     }
-    
+
     /**
      * Get observations for a user
      * Requires a valid UUID to be provided in the Authorization header
+     *
      * @param observationIds Comma separated list of Observation Ids
      * @return Filtering by observation ids
      */
@@ -529,66 +498,56 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getObservationsForUser(
-    		@QueryParam("observationIds") String observationIds
-    		)
-    {
-    	try
-	    	{
-			VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
-			if(user != null)
-			{
-				List<Observation> allObs = observationBean.getObservationsForUser(user);
-				if(observationIds != null)
-				{
-					Set<Integer> observationIdSet = Arrays.asList(observationIds.split(",")).stream()
-							.map(s->Integer.valueOf(s))
-							.collect(Collectors.toSet());
-					return Response.ok().entity(
-							allObs.stream()
-							.filter(obs->observationIdSet.contains(obs.getObservationId()))
-							.collect(Collectors.toList())
-							)
-							.build();
-				}
-				return Response.ok().entity(allObs).build();
-			}
-			else
-			{
-				return Response.status(Status.UNAUTHORIZED).build();
-			}
-    	}
-    	catch(Exception e)
-    	{
-    		return Response.serverError().entity(e.getMessage()).build();
-    	}
+            @QueryParam("observationIds") String observationIds
+    ) {
+        try {
+            VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+            if (user != null) {
+                List<Observation> allObs = observationBean.getObservationsForUser(user);
+                if (observationIds != null) {
+                    Set<Integer> observationIdSet = Arrays.asList(observationIds.split(",")).stream()
+                            .map(s -> Integer.valueOf(s))
+                            .collect(Collectors.toSet());
+                    return Response.ok().entity(
+                                    allObs.stream()
+                                            .filter(obs -> observationIdSet.contains(obs.getObservationId()))
+                                            .collect(Collectors.toList())
+                            )
+                            .build();
+                }
+                return Response.ok().entity(allObs).build();
+            } else {
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+        } catch (Exception e) {
+            return Response.serverError().entity(e.getMessage()).build();
+        }
     }
-    
+
     /**
      * Get minimized (only synchronization info) observations for a user
      * Used by the Observation app
      * Requires a valid UUID to be provided in the Authorization header
+     *
      * @return
      */
     @GET
     @Path("list/minimized/user")
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ObservationSyncInfo[].class)
-    public Response getMinimizedObservationsForUser()
-    {
-		VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
-		if(user != null)
-		{
-			return Response.ok().entity(observationBean.getObservationsForUser(user).stream()
-					.map(obs->new ObservationSyncInfo(obs)).collect(Collectors.toList())).build();
-		}
-		else
-		{
-			return Response.status(Status.UNAUTHORIZED).build();
-		}
+    public Response getMinimizedObservationsForUser() {
+        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        if (user != null) {
+            return Response.ok().entity(observationBean.getObservationsForUser(user).stream()
+                    .map(obs -> new ObservationSyncInfo(obs)).collect(Collectors.toList())).build();
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
     }
-   
+
     /**
      * Publicly available observations per organization
+     *
      * @param organizationId Database id of the organization
      * @return APPROVED observations
      */
@@ -602,41 +561,33 @@ public class ObservationService {
             @QueryParam("season") Integer season,
             @QueryParam("timeOfObservationFrom") String timeOfObservationFrom,
             @QueryParam("timeOfObservationTo") String timeOfObservationTo
-    )
-    {
-        if((timeOfObservationFrom != null && ! timeOfObservationFrom.isEmpty()) 
-                || (timeOfObservationTo != null && ! timeOfObservationTo.isEmpty()))
-        {
+    ) {
+        if ((timeOfObservationFrom != null && !timeOfObservationFrom.isEmpty())
+                || (timeOfObservationTo != null && !timeOfObservationTo.isEmpty())) {
             Date from = null;
             Date to = null;
-            try
-            {
+            try {
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                if(timeOfObservationFrom != null && ! timeOfObservationFrom.isEmpty())
-                {
+                if (timeOfObservationFrom != null && !timeOfObservationFrom.isEmpty()) {
                     from = format.parse(timeOfObservationFrom);
                 }
-                if(timeOfObservationTo != null && ! timeOfObservationTo.isEmpty())
-                {
+                if (timeOfObservationTo != null && !timeOfObservationTo.isEmpty()) {
                     to = format.parse(timeOfObservationTo);
                 }
                 return Response.ok().entity(observationBean.getBroadcastObservations(organizationId, from, to)).build();
-            }
-            catch(ParseException ex)
-            {
+            } catch (ParseException ex) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Invalid date format").build();
             }
-        }
-        else
-        {
+        } else {
             return Response.ok().entity(observationBean.getBroadcastObservations(organizationId, season)).build();
         }
     }
 
     /**
      * Get one observation
+     *
      * @param observationId Database ID of the observation
-     * @param userUUID UUID that identifies the user (e.g. from VIPSWeb)
+     * @param userUUID      UUID that identifies the user (e.g. from VIPSWeb)
      * @return
      */
     @GET
@@ -646,54 +597,50 @@ public class ObservationService {
     public Response getObservation(
             @PathParam("observationId") Integer observationId,
             @QueryParam("userUUID") String userUUID
-    ){
+    ) {
         // Observation needs to be masked here as well, or does it create trouble for VIPSLogic observation admin?
         Observation o = observationBean.getObservation(observationId);
-        if(o == null)
-        {
+        if (o == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
         // Which organization does this observation belong to?
         VipsLogicUser observer = userBean.getVipsLogicUser(o.getUserId());
         o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
-      
+
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        if(user == null && userUUID != null)
-        {
+        if (user == null && userUUID != null) {
             user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
         // Modification of location information:
         // 1) If location is private, only the owner or super users/org admins may view them
         // slett all geoInfo
-        if(user == null || (! user.isSuperUser() && ! user.isOrganizationAdmin()))
-        {
+        if (user == null || (!user.isSuperUser() && !user.isOrganizationAdmin())) {
             // Hide completely for all users except super and orgadmin
-            if(o.getLocationIsPrivate() && (user == null || ! o.getUserId().equals(user.getUserId()))) 
-            {
+            if (o.getLocationIsPrivate() && (user == null || !o.getUserId().equals(user.getUserId()))) {
                 o.setGeoinfos(null);
             }
             // This means the user wants to hide the exact location,
             // so mask for all users except super and orgadmin
-            else if(o.getPolygonService() != null) 
-            {
+            else if (o.getPolygonService() != null) {
                 //System.out.println("Masking observation");
                 List<Observation> intermediary = new ArrayList<>();
                 intermediary.add(o);
-                intermediary = this.maskObservations(o.getPolygonService(), 
+                intermediary = this.maskObservations(o.getPolygonService(),
                         observationBean.getObservationsWithLocations(
                                 observationBean.getObservationsWithGeoInfo(intermediary)
                         )
-                    );
+                );
                 o = intermediary.get(0);
             }
         }
-        
+
         return Response.ok().entity(o).build();
     }
-    
+
     /**
      * Polygon services are used to mask observations (privacy concerns)
      * They may vary greatly between organizations (different countries)
+     *
      * @param organizationId Database id of the organization
      * @return A list of available polygon services for the requested organization
      */
@@ -702,45 +649,42 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PolygonService[].class)
     public Response getPolygonServicesForOrganization(
-    		@PathParam("organizationId") Integer organizationId
-    		)
-    {
-    	return Response.ok().entity(observationBean.getPolygonServicesForOrganization(organizationId)).build();
+            @PathParam("organizationId") Integer organizationId
+    ) {
+        return Response.ok().entity(observationBean.getPolygonServicesForOrganization(organizationId)).build();
     }
-    
-   
+
+
     /**
      * Deletes a gis entity and its corresponding observation
+     *
      * @param gisId Database id of the gis entity
-     * @return 
+     * @return
      */
     @DELETE
     @Path("gisobservation/{gisId}")
-    public Response deleteGisObservation(@PathParam("gisId") Integer gisId)
-    {
+    public Response deleteGisObservation(@PathParam("gisId") Integer gisId) {
         VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
         // If no user, send error message back to client
-        if(user == null)
-        {
+        if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        if(!userBean.authorizeUser(user, 
-                    VipsLogicRole.OBSERVER, 
-                    VipsLogicRole.OBSERVATION_AUTHORITY, 
-                    VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
-                    VipsLogicRole.SUPERUSER
-                )
-            )
-        {
+        if (!userBean.authorizeUser(user,
+                VipsLogicRole.OBSERVER,
+                VipsLogicRole.OBSERVATION_AUTHORITY,
+                VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
+                VipsLogicRole.SUPERUSER
+        )
+        ) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         observationBean.deleteGisObservationByGis(gisId);
         return Response.noContent().build();
     }
-    
+
     /**
-     *
      * Stores an observation from geoJson
+     *
      * @param geoJSON
      * @return the Url of the created entity (observation)
      */
@@ -749,26 +693,22 @@ public class ObservationService {
     @Path("gisobservation")
     @Consumes("application/json;charset=UTF-8")
     @Produces("application/json;charset=UTF-8")
-    public Response storeGisObservation(String geoJSON)
-    {
-        try
-        {
+    public Response storeGisObservation(String geoJSON) {
+        try {
             // Create the Observation
             Observation observation = observationBean.getObservationFromGeoJSON(geoJSON);
             VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
             // If no user, send error message back to client
-            if(user == null)
-            {
+            if (user == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
-            if(!userBean.authorizeUser(user, 
-                    VipsLogicRole.OBSERVER, 
-                    VipsLogicRole.OBSERVATION_AUTHORITY, 
+            if (!userBean.authorizeUser(user,
+                    VipsLogicRole.OBSERVER,
+                    VipsLogicRole.OBSERVATION_AUTHORITY,
                     VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
                     VipsLogicRole.SUPERUSER
-                )
             )
-            {
+            ) {
                 return Response.status(Response.Status.FORBIDDEN).build();
             }
             observation.setUserId(user.getUserId());
@@ -777,14 +717,14 @@ public class ObservationService {
             observation = observationBean.storeObservation(observation);
             GISEntityUtil gisUtil = new GISEntityUtil();
             return Response.created(URI.create("/observation/" + observation.getObservationId())).entity(gisUtil.getGeoJSONFromObservation(observation)).build();
-        }catch (IOException ex)
-        {
+        } catch (IOException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex).build();
         }
     }
 
     /**
      * Returns the time of the first observation in the system of the pest with given Id
+     *
      * @param organismId Database id of the given organism
      * @return the time of the first observation in the system of the pest with given Id
      */
@@ -792,16 +732,16 @@ public class ObservationService {
     @Path("first/{organismId}")
     @Produces("text/plain;charset=UTF-8")
     @TypeHint(Date.class)
-    public Response getFirstObservation(@PathParam("organismId") Integer organismId)
-    {
+    public Response getFirstObservation(@PathParam("organismId") Integer organismId) {
         Date firstObsTime = observationBean.getFirstObservationTime(organismId);
         return firstObsTime != null ? Response.ok().entity(firstObsTime).build()
                 : Response.status(404).entity("No observations of organism with id=" + organismId).build();
     }
-    
+
     /**
      * When was the last time a change was made in cropCategories or organisms? Used for sync with the Field observation
      * app.
+     *
      * @return last time a change was made in cropCategories or organisms
      * @responseExample application/json {"lastUpdated": "2021-02-08T00:00:00Z"}
      */
@@ -809,24 +749,22 @@ public class ObservationService {
     @Path("organismsystemupdated")
     @Produces(MediaType.APPLICATION_JSON)
     @TypeHint(Date.class)
-    public Response getDateOfLastOrganismSystemUpdate()
-    {
-    	HashMap<String, Object> result = new HashMap<>();
-    	Instant lastUpdated = organismBean.getLatestUpdateOfOrganisms();
-    	result.put("lastUpdated", lastUpdated != null ? lastUpdated: "1970-01-01T00:00:00Z");
-    	return Response.ok().entity(result).build();
+    public Response getDateOfLastOrganismSystemUpdate() {
+        HashMap<String, Object> result = new HashMap<>();
+        Instant lastUpdated = organismBean.getLatestUpdateOfOrganisms();
+        result.put("lastUpdated", lastUpdated != null ? lastUpdated : "1970-01-01T00:00:00Z");
+        return Response.ok().entity(result).build();
     }
-    
+
 
     /**
-     * 
      * @param organizationId Database id of the organization
-     * @param pestId Database id of the pest
-     * @param cropId Database id of the crop
+     * @param pestId         Database id of the pest
+     * @param cropId         Database id of the crop
      * @param cropCategoryId Database ids of the crop categories
-     * @param fromStr format "yyyy-MM-dd"
-     * @param toStr format "yyyy-MM-dd"
-     * @param user The user that requests this (used for authorization)
+     * @param fromStr        format "yyyy-MM-dd"
+     * @param toStr          format "yyyy-MM-dd"
+     * @param user           The user that requests this (used for authorization)
      * @return A list of observations that meets the filter criteria
      */
     private List<Observation> getFilteredObservationsFromBackend(
@@ -842,17 +780,15 @@ public class ObservationService {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, isPositive);
         //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
         // If superuser or orgadmin: Return everything, unchanged, uncensored
-        if(user != null && (user.isSuperUser() || user.isOrganizationAdmin()))
-        {
+        if (user != null && (user.isSuperUser() || user.isOrganizationAdmin())) {
             return filteredObservations;
         }
-        List<Observation> retVal = filteredObservations.stream().filter(obs->obs.getBroadcastMessage() || (isPositive == null || !isPositive)).collect(Collectors.toList());
+        List<Observation> retVal = filteredObservations.stream().filter(obs -> obs.getBroadcastMessage() || (isPositive == null || !isPositive)).collect(Collectors.toList());
         //retVal.forEach(o->System.out.println(o.getObservationId()));
         retVal = this.maskObservations(retVal);
         //retVal.forEach(o->System.out.println(o.getObservationId()));
         // If user is not logged in, return only the publicly available observations
-        if(user == null)
-        {
+        if (user == null) {
             return retVal;
         }
         // Else: This is a registered user without special privileges. Show public observations + user's own
@@ -863,68 +799,63 @@ public class ObservationService {
     /**
      * Runs through the observations, check each to see if it should be masked
      * (for privacy reasons) through a polygon service
+     *
      * @param observations The list of observations to check
      * @return The list of observations, with the locations masked with the selected polygon service
      */
     private List<Observation> maskObservations(List<Observation> observations) {
         //System.out.println("maskObservations(List<Observation> observations)");
-        
+
         // Placing all observations with a polygon service in the correct bucket.
         Map<PolygonService, List<Observation>> registeredPolygonServicesInObservationList = new HashMap<>();
-        observations.stream().filter((obs) -> { return (!obs.getLocationIsPrivate() && obs.getPolygonService() != null);}).forEachOrdered((obs) -> {
+        observations.stream().filter((obs) -> {
+            return (!obs.getLocationIsPrivate() && obs.getPolygonService() != null);
+        }).forEachOrdered((obs) -> {
             List<Observation> obsWithPolyServ = registeredPolygonServicesInObservationList.getOrDefault(obs.getPolygonService(), new ArrayList<>());
             obsWithPolyServ.add(obs);
             registeredPolygonServicesInObservationList.put(obs.getPolygonService(), obsWithPolyServ);
         });
-        
+
         // No buckets filled = No masking needed, return list unmodified
-        if(registeredPolygonServicesInObservationList.isEmpty())
-        {
-            return observations; 
-        }
-        else
-        {
+        if (registeredPolygonServicesInObservationList.isEmpty()) {
+            return observations;
+        } else {
             // Loop through, mask
-            Map<Integer,Observation> maskedObservations = new HashMap<>();
+            Map<Integer, Observation> maskedObservations = new HashMap<>();
             registeredPolygonServicesInObservationList.keySet().forEach((pService) -> {
                 this.maskObservations(pService, registeredPolygonServicesInObservationList.get(pService))
-                        .forEach(o->maskedObservations.put(o.getObservationId(), o));
+                        .forEach(o -> maskedObservations.put(o.getObservationId(), o));
             });
-            
+
             // Adding the rest of the observations (the ones that don't need masking)
-            observations.stream().filter(o->maskedObservations.get(o.getObservationId())==null).forEach(o->maskedObservations.put(o.getObservationId(), o));
+            observations.stream().filter(o -> maskedObservations.get(o.getObservationId()) == null).forEach(o -> maskedObservations.put(o.getObservationId(), o));
             return new ArrayList<>(maskedObservations.values());
         }
     }
 
     /**
-     *
      * @param polygonService The polygon service that should be used for masking
-     * @param observations The list of observations to mask
+     * @param observations   The list of observations to mask
      * @return The list of observations, with the locations masked with the selected polygon service
      */
-    private List<Observation> maskObservations(PolygonService polygonService, List<Observation> observations)
-    {
+    private List<Observation> maskObservations(PolygonService polygonService, List<Observation> observations) {
         //observations.forEach(o->System.out.println(o.getObservationId()));
         Client client = ClientBuilder.newClient();
         WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
         List<ReferencedPoint> points = observations.stream()
-                .filter(obs -> (obs.getGeoinfos()!=null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
-                .map(obs->{
+                .filter(obs -> (obs.getGeoinfos() != null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
+                .map(obs -> {
                     ReferencedPoint rp = new ReferencedPoint();
                     rp.setId(String.valueOf(obs.getObservationId()));
-                    if(obs.getGeoinfos() != null)
-                    {
+                    if (obs.getGeoinfos() != null) {
                         rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
                         rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
-                    }
-                    else
-                    {
+                    } else {
                         rp.setLon(obs.getLocation().getLongitude());
                         rp.setLat(obs.getLocation().getLatitude());
                     }
                     return rp;
-        }).collect(Collectors.toList());
+                }).collect(Collectors.toList());
         /*System.out.println("maskobservations - target.request() about to be called");
         ObjectMapper oMapper = new ObjectMapper();
         try {
@@ -936,13 +867,11 @@ public class ObservationService {
                 .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
         // We need to loop through the observations and find corresponding featurecollections and replace those
         Map<Integer, Feature> indexedPolygons = new HashMap<>();
-        for(Feature feature:response.getFeatureCollection().getFeatures())
-        {
-            indexedPolygons.put((Integer)feature.getProperties().get("id"), feature);
+        for (Feature feature : response.getFeatureCollection().getFeatures()) {
+            indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
         }
         GISEntityUtil gisEntityUtil = new GISEntityUtil();
-        for(Map mapping:response.getMapping())
-        {
+        for (Map mapping : response.getMapping()) {
             Integer observationId = Integer.valueOf((String) mapping.get("id"));
             Integer borderId = (Integer) mapping.get("borderid");
             observations.stream().filter((o) -> (o.getObservationId().equals(observationId))).forEachOrdered((o) -> {
@@ -954,13 +883,14 @@ public class ObservationService {
                 o.setLocationPointOfInterestId(null);
             });
         }
-        
+
         return observations;
     }
-    
+
     /**
      * This service is used by the VIPS Field observation app to sync data stored locally on the smartphone with the
      * state of an (potentially non-existent) observation in the VIPSLogic database
+     *
      * @param observationJson Json representation of the observation(s)
      * @return The observation(s) in their merged state, serialized to Json
      */
@@ -970,144 +900,141 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation.class)
     public Response syncObservationFromApp(
-    		String observationJson
-    		)
-    {
-    	try
-    	{
-	    	VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
-	    	if(user == null)
-	    	{
-	    		return Response.status(Status.UNAUTHORIZED).build();
-	    	}
-	    	ObjectMapper oM = new ObjectMapper();
-	    	SimpleDateFormat df = new SimpleDateFormat(Globals.defaultTimestampFormat);
-	    	try {
-	    		Map<Object,Object> mapFromApp = oM.readValue(observationJson, new TypeReference<HashMap<Object,Object>>(){});
-				// Check if it is marked as deleted or not
-				if(mapFromApp.get("deleted") != null && ((Boolean)mapFromApp.get("deleted").equals(true)))
-				{
-					if(observationBean.getObservation((Integer)mapFromApp.get("observationId")) != null)
-					{
-						observationBean.deleteObservation((Integer)mapFromApp.get("observationId"));
-						return Response.ok().build();
-					}
-					else
-					{
-						return Response.status(Status.NOT_FOUND).build();
-					}
-				}
-				else
-				{
-					Observation mergeObs = ((Integer)mapFromApp.get("observationId")) > 0 ? observationBean.getObservation((Integer)mapFromApp.get("observationId")): new Observation();
-					// Trying to sync a non-existing observation
-					if(mergeObs == null)
-					{
-						return Response.status(Status.NOT_FOUND).build();
-					}
-					// Pest organism
-					mergeObs.setOrganism(organismBean.getOrganism((Integer)mapFromApp.get("organismId")));
-					// Crop organism
-					mergeObs.setCropOrganism(organismBean.getOrganism((Integer)mapFromApp.get("cropOrganismId")));
-					// Other properties
-					mergeObs.setTimeOfObservation(oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>(){}));
+            String observationJson
+    ) {
+        LOGGER.info("In syncObservationFromApp");
+        LOGGER.info(observationJson);
+
+        try {
+            VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+            if (user == null) {
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+            ObjectMapper oM = new ObjectMapper();
+            SimpleDateFormat df = new SimpleDateFormat(Globals.defaultTimestampFormat);
+            try {
+                Map<Object, Object> mapFromApp = oM.readValue(observationJson, new TypeReference<HashMap<Object, Object>>() {
+                });
+                // Check if it is marked as deleted or not
+                if (mapFromApp.get("deleted") != null && ((Boolean) mapFromApp.get("deleted").equals(true))) {
+                    if (observationBean.getObservation((Integer) mapFromApp.get("observationId")) != null) {
+                        observationBean.deleteObservation((Integer) mapFromApp.get("observationId"));
+                        return Response.ok().build();
+                    } else {
+                        return Response.status(Status.NOT_FOUND).build();
+                    }
+                } else {
+                    Integer observationId = (Integer) mapFromApp.get("observationId");
+                    Observation mergeObs;
+                    if(observationId > 0) {
+                        mergeObs = observationBean.getObservation(observationId);
+                        if (mergeObs == null) {
+                            return Response.status(Status.NOT_FOUND).build();
+                        }
+                    } else {
+                        mergeObs = new Observation("APP");
+                    }
+
+                    // Observation time series
+                    if(mapFromApp.get("observationTimeSeriesId") != null) {
+                        Integer observationTimeSeriesId = (Integer) mapFromApp.get("observationTimeSeriesId");
+                        mergeObs.setObservationTimeSeries(observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId));
+                    }
+                    // Pest organism
+                    mergeObs.setOrganism(organismBean.getOrganism((Integer) mapFromApp.get("organismId")));
+                    // Crop organism
+                    mergeObs.setCropOrganism(organismBean.getOrganism((Integer) mapFromApp.get("cropOrganismId")));
+                    // Other properties
+                    mergeObs.setTimeOfObservation(oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>() {
+                    }));
                     mergeObs.setIsPositive(mapFromApp.get("isPositive") != null ? (Boolean) mapFromApp.get("isPositive") : false);
-					mergeObs.setUserId(mapFromApp.get("userId") != null ? Integer.valueOf((Integer)mapFromApp.get("userId")): user.getUserId());
-					mergeObs.setGeoinfo((String)mapFromApp.get("geoinfo"));
-					mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);
-					mergeObs.setObservationHeading(mapFromApp.get("observationHeading") != null ? (String) mapFromApp.get("observationHeading") : null);
-					mergeObs.setObservationText(mapFromApp.get("observationText") != null ? (String) mapFromApp.get("observationText") : null);
-					mergeObs.setBroadcastMessage(mapFromApp.get("broadcastMessage") != null ? (Boolean) mapFromApp.get("broadcastMessage") : false);
-					mergeObs.setStatusTypeId(Integer.valueOf((Integer)mapFromApp.get("statusTypeId")));
-					// If the user has the role of observation approver, change to approved if set to pending
-					if(mergeObs.getStatusTypeId().equals(ObservationStatusType.STATUS_PENDING) && user.isObservationAuthority())
-					{
-						mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
-					}
-					mergeObs.setStatusChangedByUserId(mapFromApp.get("statusChangedByUserId") != null ? (Integer) mapFromApp.get("statusChangedByUserId") : null);
-					mergeObs.setStatusChangedTime(mapFromApp.get("timeOfObservation") != null ? oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>(){}) : null);
-					mergeObs.setStatusRemarks(mapFromApp.get("statusRemarks") != null ? (String) mapFromApp.get("statusRemarks") : null);
-					mergeObs.setIsQuantified(mapFromApp.get("isQuantified") != null ? (Boolean) mapFromApp.get("isQuantified") : false);
-					mergeObs.setLocationIsPrivate(mapFromApp.get("locationIsPrivate") != null ? (Boolean) mapFromApp.get("locationIsPrivate") : false);
-					mergeObs.setPolygonService(mapFromApp.get("polygonService") != null && ! ((String)mapFromApp.get("polygonService")).isEmpty() ? oM.convertValue(mapFromApp.get("polygonService"), new TypeReference<PolygonService>(){}) : null);
-					mergeObs.setObservationDataSchema(observationBean.getObservationDataSchema(user.getOrganization_id(), mergeObs.getOrganismId()));
-					mergeObs.setObservationData(mapFromApp.get("observationData") != null ? mapFromApp.get("observationData").toString() : null);
-					mergeObs.setLastEditedBy(user.getUserId());
-					mergeObs.setLastEditedTime(new Date());
-					
-					// Input check before storing
-					// Location must be set
-					if((mergeObs.getGeoinfo() == null || mergeObs.getGeoinfo().trim().isEmpty()) && mergeObs.getLocationPointOfInterestId() == null)
-					{
-						return Response.status(Status.BAD_REQUEST).entity("The observation is missing location data.").build();
-					}
-                                        
-                                        boolean sendNotification = false;    
-                                        // Storing approval status
-                                        // If superusers or user with correct authorization: Set as approved and send message
-                                        if(userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER))
-                                        {
-                                            LOGGER.debug("user properly authorized to register observations");
-                                            LOGGER.debug("observation Id=" + mergeObs.getObservationId());
-                                            LOGGER.debug("broadcast this message? " + mergeObs.getBroadcastMessage());
-                                            if(mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0)
-                                            {
-                                                mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_APPROVED);
-                                                sendNotification = mergeObs.getBroadcastMessage(); // Only send the ones intended for sending
-                                            }
-                                        }
-                                        else if(mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0)
-                                        {
-                                            mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_PENDING);
-                                        }
-					
-					// We need to get an observation Id before storing the illustrations!
-					mergeObs = observationBean.storeObservation(mergeObs);
-                                        
-                                        
-					
-					// ObservationIllustrationSet
-					// Including data that may need to be stored
-					if(mapFromApp.get("observationIllustrationSet") != null)
-					{
-						List<Map<Object,Object>> illusMaps = (List<Map<Object,Object>>) mapFromApp.get("observationIllustrationSet");
-						for(Map<Object,Object> illusMap:illusMaps)
-						{
-							ObservationIllustrationPK pk = oM.convertValue(illusMap.get("observationIllustrationPK"), new TypeReference<ObservationIllustrationPK>(){});
-							
-							if(illusMap.get("deleted") != null && ((Boolean) illusMap.get("deleted")) == true)
-							{
-								observationBean.deleteObservationIllustration(mergeObs, new String[] {pk.getFileName()});
-							}
-							else if(illusMap.get("uploaded") != null && ((Boolean) illusMap.get("uploaded")) == false && illusMap.get("imageTextData") != null)
-							{
-								mergeObs = observationBean.storeObservationIllustration(mergeObs, pk.getFileName(), (String)illusMap.get("imageTextData"));
-							}
-						}
-					}
-                                        LOGGER.debug("sendNotification? " + sendNotification);
-                                        
-                                        // All transactions finished, we can send notifications
-                                        // if conditions are met
-                                        if(sendNotification && !
-                                                (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
-                                                )
-                                        {
-                                            LOGGER.debug("Sending the message!");
-                                            messagingBean.sendUniversalMessage(mergeObs);
-                                        }
-                                        
-					return Response.ok().entity(mergeObs).build();
-				}
-			} catch (IOException e) {
-				return Response.serverError().entity(e).build();
-			}
-    	}
-    	catch(Exception e)
-    	{
-            e.printStackTrace();
-    		return Response.serverError().entity(e).build();
-    	}
-    	
+                    mergeObs.setUserId(mapFromApp.get("userId") != null ? (Integer) mapFromApp.get("userId") : user.getUserId());
+                    mergeObs.setGeoinfo((String) mapFromApp.get("geoinfo"));
+                    mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);
+                    mergeObs.setObservationHeading(mapFromApp.get("observationHeading") != null ? (String) mapFromApp.get("observationHeading") : null);
+                    mergeObs.setObservationText(mapFromApp.get("observationText") != null ? (String) mapFromApp.get("observationText") : null);
+                    mergeObs.setBroadcastMessage(mapFromApp.get("broadcastMessage") != null ? (Boolean) mapFromApp.get("broadcastMessage") : false);
+                    mergeObs.setStatusTypeId((Integer) mapFromApp.get("statusTypeId"));
+                    // If the user has the role of observation approver, change to approved if set to pending
+                    if (mergeObs.getStatusTypeId().equals(ObservationStatusType.STATUS_PENDING) && user.isObservationAuthority()) {
+                        mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
+                    }
+                    mergeObs.setStatusChangedByUserId(mapFromApp.get("userId") != null ? (Integer) mapFromApp.get("userId") : null);
+                    mergeObs.setStatusChangedTime(mapFromApp.get("timeOfObservation") != null ? oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>() {
+                    }) : null);
+                    mergeObs.setStatusRemarks(mapFromApp.get("statusRemarks") != null ? (String) mapFromApp.get("statusRemarks") : null);
+                    mergeObs.setIsQuantified(mapFromApp.get("isQuantified") != null ? (Boolean) mapFromApp.get("isQuantified") : false);
+                    mergeObs.setLocationIsPrivate(mapFromApp.get("locationIsPrivate") != null ? (Boolean) mapFromApp.get("locationIsPrivate") : false);
+                    Object polygonServiceValue = mapFromApp.get("polygonService");
+                    if(polygonServiceValue != null && !polygonServiceValue.toString().isBlank()) {
+                        PolygonService polygonService = oM.convertValue(mapFromApp.get("polygonService"), PolygonService.class);
+                        mergeObs.setPolygonService(polygonService);
+                    }
+
+                    mergeObs.setObservationDataSchema(observationBean.getObservationDataSchema(user.getOrganization_id(), mergeObs.getOrganismId()));
+                    mergeObs.setObservationData(mapFromApp.get("observationData") != null ? mapFromApp.get("observationData").toString() : null);
+                    mergeObs.setLastEditedBy(user.getUserId());
+                    mergeObs.setLastEditedTime(new Date());
+
+                    // Input check before storing
+                    // Location must be set
+                    if ((mergeObs.getGeoinfo() == null || mergeObs.getGeoinfo().trim().isEmpty()) && mergeObs.getLocationPointOfInterestId() == null) {
+                        return Response.status(Status.BAD_REQUEST).entity("{\"error\": \"The observation is missing location data.\"}").type(MediaType.APPLICATION_JSON).build();
+                    }
+
+                    boolean sendNotification = false;
+                    // Storing approval status
+                    // If superusers or user with correct authorization: Set as approved and send message
+                    if (userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)) {
+                        LOGGER.debug("user properly authorized to register observations");
+                        LOGGER.debug("observation Id=" + mergeObs.getObservationId());
+                        LOGGER.debug("broadcast this message? " + mergeObs.getBroadcastMessage());
+                        if (mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0) {
+                            mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_APPROVED);
+                            sendNotification = mergeObs.getBroadcastMessage(); // Only send the ones intended for sending
+                        }
+                    } else if (mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0) {
+                        mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_PENDING);
+                    }
+
+                    // We need to get an observation Id before storing the illustrations!
+                    mergeObs = observationBean.storeObservation(mergeObs);
+
+                    // ObservationIllustrationSet
+                    // Including data that may need to be stored
+                    if (mapFromApp.get("observationIllustrationSet") != null) {
+                        List<Map<Object, Object>> illusMaps = (List<Map<Object, Object>>) mapFromApp.get("observationIllustrationSet");
+                        for (Map<Object, Object> illusMap : illusMaps) {
+                            ObservationIllustrationPK pk = oM.convertValue(illusMap.get("observationIllustrationPK"), new TypeReference<ObservationIllustrationPK>() {
+                            });
+
+                            if (illusMap.get("deleted") != null && ((Boolean) illusMap.get("deleted")) == true) {
+                                observationBean.deleteObservationIllustration(mergeObs, new String[]{pk.getFileName()});
+                            } else if (illusMap.get("uploaded") != null && ((Boolean) illusMap.get("uploaded")) == false && illusMap.get("imageTextData") != null) {
+                                mergeObs = observationBean.storeObservationIllustration(mergeObs, pk.getFileName(), (String) illusMap.get("imageTextData"));
+                            }
+                        }
+                    }
+                    LOGGER.info("sendNotification? " + sendNotification);
+
+                    // All transactions finished, we can send notifications
+                    // if conditions are met
+                    if (sendNotification && !
+                            (System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true"))
+                    ) {
+                        LOGGER.debug("Sending the message!");
+                        messagingBean.sendUniversalMessage(mergeObs);
+                    }
+
+                    return Response.ok().entity(mergeObs).build();
+                }
+            } catch (IOException e) {
+                return Response.serverError().entity(e).build();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception occurred while syncing observations from app", e);
+            return Response.serverError().entity(e).build();
+        }
+
     }
 }

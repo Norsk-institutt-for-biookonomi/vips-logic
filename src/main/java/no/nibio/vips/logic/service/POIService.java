@@ -37,6 +37,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
@@ -55,8 +56,9 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -64,6 +66,7 @@ import no.nibio.vips.logic.controller.session.SessionControllerGetter;
  */
 @Path("rest/poi")
 public class POIService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(POIService.class);
 
     @Context
     private HttpRequest httpRequest;
@@ -182,22 +185,26 @@ public class POIService {
             return Response.status(Status.UNAUTHORIZED).build();
         }
         ObjectMapper oM = new ObjectMapper();
-        SimpleDateFormat df = new SimpleDateFormat(Globals.defaultTimestampFormat);
         try {
             Map<Object, Object> mapFromApp = oM.readValue(poiJson, new TypeReference<HashMap<Object, Object>>() {
             });
+            Integer pointOfInterestId = (Integer) mapFromApp.get("pointOfInterestId");
+            PointOfInterestBean pointOfInterestBean = SessionControllerGetter.getPointOfInterestBean();
             // Check if it is marked as deleted or not
-            if (mapFromApp.get("deleted") != null && ((Boolean) mapFromApp.get("deleted").equals(true))) {
-                if (SessionControllerGetter.getPointOfInterestBean().getPointOfInterest((Integer) mapFromApp.get("pointOfInterestId")) != null) {
-                    SessionControllerGetter.getPointOfInterestBean().deletePoi((Integer) mapFromApp.get("pointOfInterestId"));
+            if (mapFromApp.get("deleted") != null && (mapFromApp.get("deleted").equals(true))) {
+                if (pointOfInterestBean.getPointOfInterest(pointOfInterestId) != null) {
+                    pointOfInterestBean.deletePoi(pointOfInterestId);
+                    LOGGER.info("POI with id={} deleted", pointOfInterestId);
                     return Response.ok().build();
                 } else {
+                    LOGGER.error("POI with id={} not found, nothing deleted", pointOfInterestId);
                     return Response.status(Status.NOT_FOUND).build();
                 }
             } else {
-                PointOfInterest mergePoi = ((Integer) mapFromApp.get("pointOfInterestId")) > 0 ? SessionControllerGetter.getPointOfInterestBean().getPointOfInterest((Integer) mapFromApp.get("pointOfInterestId")) : PointOfInterest.getInstance((Integer) mapFromApp.get("pointOfInterestTypeId"));
+                PointOfInterest mergePoi = pointOfInterestId > 0 ? pointOfInterestBean.getPointOfInterest(pointOfInterestId) : PointOfInterest.getInstance((Integer) mapFromApp.get("pointOfInterestTypeId"));
                 // Trying to sync a non-existing POI
                 if (mergePoi == null) {
+                    LOGGER.error("POI with id={} not found, nothing updated", pointOfInterestId);
                     return Response.status(Status.NOT_FOUND).build();
                 }
 
@@ -228,11 +235,11 @@ public class POIService {
                 Point p3d = gisUtil.createPointWGS84(coordinate);
                 mergePoi.setGisGeom(p3d);
 
-                mergePoi = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(SessionControllerGetter.getPointOfInterestBean().storePoi(mergePoi).getPointOfInterestId());
-
+                mergePoi = pointOfInterestBean.getPointOfInterest(pointOfInterestBean.storePoi(mergePoi).getPointOfInterestId());
                 return Response.ok().entity(mergePoi).build();
             }
         } catch (IOException e) {
+            LOGGER.error("Exception when syncing POI", e);
             return Response.serverError().entity(e).build();
         }
 
