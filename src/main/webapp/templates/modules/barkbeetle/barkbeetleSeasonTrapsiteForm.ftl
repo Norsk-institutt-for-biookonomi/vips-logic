@@ -31,6 +31,7 @@
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript">
 		var theForm = document.getElementById("${formId}"); 
+		const municipalityPolygonServiceUrl = "https://proxy03.nibio.no/municipality_cache_ws/kommuneListe/N5/4326";
 		$(document).ready(function() {
 			// Make sure that there is a date picker present for HTML5 
 			// date input fields
@@ -73,7 +74,7 @@
 					
 			});
 			// Get County and municipality
-			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/?lon=" + lon + "&lat=" + lat)
+			fetch("/corsproxy/" + municipalityPolygonServiceUrl + "?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())
 			.then(municInfo =>{
 					if(municInfo.length == 0)
@@ -97,7 +98,7 @@
 			.catch( error => console.info(error));
 			
 			// Get County and municipality from before 2018
-			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/2017?lon=" + lon + "&lat=" + lat)
+			fetch("/corsproxy//" + municipalityPolygonServiceUrl + "/2017?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())
 			.then(municInfo =>{
 					if(municInfo.length == 0)
