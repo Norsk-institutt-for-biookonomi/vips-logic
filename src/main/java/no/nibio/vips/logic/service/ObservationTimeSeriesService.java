@@ -175,8 +175,10 @@ public class ObservationTimeSeriesService {
         LOGGER.info(jsonOts);
         VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user == null) {
+            LOGGER.warn("Unable to get user from UUID");
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
+        LOGGER.info("Syncing for user {} with roles {}", user.getUserId(), user.getVipsLogicRoles());
         ObjectMapper oM = new ObjectMapper();
         try {
             Map<Object, Object> mapFromApp = oM.readValue(jsonOts, new TypeReference<HashMap<Object, Object>>() {
@@ -188,7 +190,8 @@ public class ObservationTimeSeriesService {
             Boolean isDeleted = (Boolean) mapFromApp.getOrDefault(DELETED, false);
             if (isDeleted) {
                 // If marked as deleted, delete the observation time series if it exists
-                // Observations in time series are also deleted, but the app currently prevents this.
+                // Observations in time series are also deleted, but the app currently prevents
+                // deletion of time series with content
                 if (observationTimeSeriesBean.getObservationTimeSeries(otsId) != null) {
                     observationTimeSeriesBean.deleteObservationTimeSeries(otsId);
                     LOGGER.info("ObservationTimeSeries with id={} deleted", otsId);

@@ -127,7 +127,9 @@ public class VipsLogicRole implements Serializable {
 
     @Override
     public String toString() {
-        return "no.nibio.vips.logic.entity.VipslogicRole[ vipslogicRoleId=" + vipsLogicRoleId + " ]";
+        return "VipsLogicRole{" +
+                "vipsLogicRoleId=" + vipsLogicRoleId +
+                ", defaultTitle='" + defaultTitle + '\'' +
+                '}';
     }
-
 }
