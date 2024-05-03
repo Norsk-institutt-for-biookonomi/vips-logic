@@ -604,7 +604,7 @@ public class ObservationBean {
             parameters.put("isPositive", isPositive);
         }
 
-        sql += "ORDER BY time_of_observation DESC";
+        sql += "ORDER BY time_of_observation DESC, observation_id DESC";
 
         LOGGER.debug(sql);
 
