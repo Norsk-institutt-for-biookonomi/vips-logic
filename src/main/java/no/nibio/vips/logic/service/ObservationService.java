@@ -177,7 +177,6 @@ public class ObservationService {
                         userBean.getOrganization(organizationId).getDefaultLocale());
 
         LOGGER.debug("Get filtered observations for user {}", user != null ? user.getUserId() : "<no user>");
-
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                 organizationId,
                 pestId,
@@ -782,10 +781,11 @@ public class ObservationService {
             VipsLogicUser user
     ) {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, isPositive);
-        //filteredObservations.forEach(o->System.out.println(o.getObservationId()));
+
         // If superuser or orgadmin: Return everything, unchanged, uncensored
         if (user != null && (user.isSuperUser() || user.isOrganizationAdmin())) {
-            return filteredObservations;
+            LOGGER.debug("Return uncensored list of {} observations to {}", filteredObservations.size(), (user.isSuperUser() ? "super" : "admin") + " user");
+            return sortObservationsByDateAndId(filteredObservations);
         }
         List<Observation> retVal = filteredObservations.stream().filter(obs -> obs.getBroadcastMessage() || (isPositive == null || !isPositive)).collect(Collectors.toList());
         //retVal.forEach(o->System.out.println(o.getObservationId()));
@@ -793,11 +793,13 @@ public class ObservationService {
         //retVal.forEach(o->System.out.println(o.getObservationId()));
         // If user is not logged in, return only the publicly available observations
         if (user == null) {
-            return retVal;
+            LOGGER.debug("Return {} masked public observations for unregistered user", retVal.size());
+            return sortObservationsByDateAndId(retVal);
         }
         // Else: This is a registered user without special privileges. Show public observations + user's own
         retVal.addAll(observationBean.getObservationsForUser(user));
-        return retVal;
+        LOGGER.debug("Return {} masked public observations and user's own observations for registered user {}", retVal.size(), user.getUserId());
+        return sortObservationsByDateAndId(retVal);
     }
 
     /**
@@ -907,7 +909,7 @@ public class ObservationService {
             String observationJson
     ) {
         LOGGER.info("In syncObservationFromApp");
-        LOGGER.info(observationJson);
+        LOGGER.debug(observationJson);
 
         try {
             VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
@@ -1057,4 +1059,25 @@ public class ObservationService {
         }
 
     }
+
+
+    /**
+     * Sort observations by date in descending order, and by id in descending order if dates are identical
+     *
+     * @param observations The original list of unordered observations
+     * @return a sorted list of observations
+     */
+    private List<Observation> sortObservationsByDateAndId(List<Observation> observations) {
+        return observations.stream()
+                .sorted((o1, o2) -> {
+                    int timeCompare = o2.getTimeOfObservation().compareTo(o1.getTimeOfObservation());
+                    if (timeCompare != 0) {
+                        return timeCompare;
+                    } else {
+                        return Integer.compare(o2.getObservationId(), o1.getObservationId());
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
 }
