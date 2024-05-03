@@ -176,6 +176,8 @@ public class ObservationService {
                 user != null ? user.getOrganizationId().getDefaultLocale() :
                         userBean.getOrganization(organizationId).getDefaultLocale());
 
+        LOGGER.debug("Get filtered observations for user {}", user != null ? user.getUserId() : "<no user>");
+
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                 organizationId,
                 pestId,
@@ -195,8 +197,7 @@ public class ObservationService {
                         )
                 );
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                LOGGER.error("Exception when getting localized observation data schema for observation " + obs.getObservationId(), e);
                 return null;
             }
         }).collect(Collectors.toList());

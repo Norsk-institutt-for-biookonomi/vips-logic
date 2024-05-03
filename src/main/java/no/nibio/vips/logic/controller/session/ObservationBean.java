@@ -604,6 +604,8 @@ public class ObservationBean {
             parameters.put("isPositive", isPositive);
         }
 
+        sql += "ORDER BY time_of_observation DESC";
+
         LOGGER.debug(sql);
 
         Query q = em.createNativeQuery(sql, Observation.class);
