@@ -976,7 +976,7 @@ public class ObservationService {
                             mergeObs.setStatusChangedByUserId(user.getUserId());
                             mergeObs.setStatusChangedTime(now);
                             mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
-                        } else if(!newStatusTypeId.equals(originalStatusTypeId)) {
+                        } else if(originalStatusTypeId != null && !newStatusTypeId.equals(originalStatusTypeId)) {
                             LOGGER.info("Change status from {} to {} for observation {}", originalStatusTypeId, newStatusTypeId, mergeObs.getObservationId());
                             mergeObs.setStatusChangedByUserId(user.getUserId());
                             mergeObs.setStatusChangedTime(now);
