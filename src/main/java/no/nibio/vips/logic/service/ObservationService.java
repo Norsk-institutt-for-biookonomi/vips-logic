@@ -155,7 +155,6 @@ public class ObservationService {
         return Response.ok().entity(this.getFilteredObservationListItems(organizationId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive)).build();
     }
 
-
     private List<ObservationListItem> getFilteredObservationListItems(
             Integer organizationId,
             Integer pestId,
@@ -176,7 +175,7 @@ public class ObservationService {
                 user != null ? user.getOrganizationId().getDefaultLocale() :
                         userBean.getOrganization(organizationId).getDefaultLocale());
 
-        LOGGER.debug("Get filtered observations for user {}", user != null ? user.getUserId() : "<no user>");
+        LOGGER.info("Get filtered observations for user {}", user != null ? user.getUserId() : "<no user>");
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
                 organizationId,
                 pestId,
@@ -470,7 +469,6 @@ public class ObservationService {
         return Response.ok().entity(observationBean.getObservedCrops(organizationId)).build();
     }
 
-
     /**
      * Publicly available observations per organization
      *
@@ -657,7 +655,6 @@ public class ObservationService {
         return Response.ok().entity(observationBean.getPolygonServicesForOrganization(organizationId)).build();
     }
 
-
     /**
      * Deletes a gis entity and its corresponding observation
      *
@@ -759,7 +756,6 @@ public class ObservationService {
         return Response.ok().entity(result).build();
     }
 
-
     /**
      * @param organizationId Database id of the organization
      * @param pestId         Database id of the pest
@@ -784,7 +780,7 @@ public class ObservationService {
 
         // If superuser or orgadmin: Return everything, unchanged, uncensored
         if (user != null && (user.isSuperUser() || user.isOrganizationAdmin())) {
-            LOGGER.debug("Return uncensored list of {} observations to {}", filteredObservations.size(), (user.isSuperUser() ? "super" : "admin") + " user");
+            LOGGER.info("Return uncensored list of {} observations to {}", filteredObservations.size(), (user.isSuperUser() ? "super" : "admin") + " user");
             return sortObservationsByDateAndId(filteredObservations);
         }
         List<Observation> retVal = filteredObservations.stream().filter(obs -> obs.getBroadcastMessage() || (isPositive == null || !isPositive)).collect(Collectors.toList());
@@ -793,12 +789,12 @@ public class ObservationService {
         //retVal.forEach(o->System.out.println(o.getObservationId()));
         // If user is not logged in, return only the publicly available observations
         if (user == null) {
-            LOGGER.debug("Return {} masked public observations for unregistered user", retVal.size());
+            LOGGER.info("Return {} masked public observations for unregistered user", retVal.size());
             return sortObservationsByDateAndId(retVal);
         }
         // Else: This is a registered user without special privileges. Show public observations + user's own
         retVal.addAll(observationBean.getObservationsForUser(user));
-        LOGGER.debug("Return {} masked public observations and user's own observations for registered user {}", retVal.size(), user.getUserId());
+        LOGGER.info("Return {} masked public observations and user's own observations for registered user {}", retVal.size(), user.getUserId());
         return sortObservationsByDateAndId(retVal);
     }
 
@@ -909,7 +905,6 @@ public class ObservationService {
             String observationJson
     ) {
         LOGGER.info("In syncObservationFromApp");
-        LOGGER.debug(observationJson);
 
         try {
             VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
@@ -924,132 +919,128 @@ public class ObservationService {
                 });
                 LOGGER.info("Syncing for user {} with roles {}. mapFromApp.get(\"userId\")={}", user.getUserId(), user.getVipsLogicRoles(), mapFromApp.get("userId"));
 
-                // Check if it is marked as deleted or not
-                if (mapFromApp.get("deleted") != null && ((Boolean) mapFromApp.get("deleted").equals(true))) {
-                    if (observationBean.getObservation((Integer) mapFromApp.get("observationId")) != null) {
-                        observationBean.deleteObservation((Integer) mapFromApp.get("observationId"));
-                        return Response.ok().build();
-                    } else {
+            // Check if it is marked as deleted or not
+            if (mapFromApp.get("deleted") != null && ((Boolean) mapFromApp.get("deleted").equals(true))) {
+                if (observationBean.getObservation((Integer) mapFromApp.get("observationId")) != null) {
+                    observationBean.deleteObservation((Integer) mapFromApp.get("observationId"));
+                    return Response.ok().build();
+                } else {
+                    return Response.status(Status.NOT_FOUND).build();
+                }
+            } else {
+                Integer observationId = (Integer) mapFromApp.get("observationId");
+                Date now = new Date(); // For setting timestamps
+
+                Observation mergeObs;
+                if (observationId > 0) { // Observation already in database
+                    mergeObs = observationBean.getObservation(observationId);
+                    if (mergeObs == null) {
+                        LOGGER.warn("Observation with id {} not found", observationId);
                         return Response.status(Status.NOT_FOUND).build();
                     }
-                } else {
-                    Integer observationId = (Integer) mapFromApp.get("observationId");
-                    Date now = new Date(); // For setting timestamps
+                } else { // New observation!
+                    mergeObs = new Observation("APP");
+                }
 
-                    Observation mergeObs;
-                    if(observationId > 0) { // Observation already in database
-                        mergeObs = observationBean.getObservation(observationId);
-                        if (mergeObs == null) {
-                            LOGGER.warn("Observation with id {} not found", observationId);
-                            return Response.status(Status.NOT_FOUND).build();
-                        }
-                    } else { // New observation!
-                        mergeObs = new Observation("APP");
-                    }
-
-                    // Observation time series
-                    if(mapFromApp.get("observationTimeSeriesId") != null) {
-                        Integer observationTimeSeriesId = (Integer) mapFromApp.get("observationTimeSeriesId");
-                        mergeObs.setObservationTimeSeries(observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId));
-                    }
-                    // Pest organism
-                    mergeObs.setOrganism(organismBean.getOrganism((Integer) mapFromApp.get("organismId")));
-                    // Crop organism
-                    mergeObs.setCropOrganism(organismBean.getOrganism((Integer) mapFromApp.get("cropOrganismId")));
-                    // Other properties
+                // Observation time series
+                if (mapFromApp.get("observationTimeSeriesId") != null) {
+                    Integer observationTimeSeriesId = (Integer) mapFromApp.get("observationTimeSeriesId");
+                    mergeObs.setObservationTimeSeries(observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId));
+                }
+                // Pest organism
+                mergeObs.setOrganism(organismBean.getOrganism((Integer) mapFromApp.get("organismId")));
+                // Crop organism
+                mergeObs.setCropOrganism(organismBean.getOrganism((Integer) mapFromApp.get("cropOrganismId")));
+                // Other properties
                     mergeObs.setTimeOfObservation(oM.convertValue(mapFromApp.get("timeOfObservation"), new TypeReference<Date>() {
                     }));
-                    mergeObs.setIsPositive(mapFromApp.get("isPositive") != null ? (Boolean) mapFromApp.get("isPositive") : false);
-                    mergeObs.setUserId(mapFromApp.get("userId") != null ? (Integer) mapFromApp.get("userId") : user.getUserId());
-                    mergeObs.setGeoinfo((String) mapFromApp.get("geoinfo"));
-                    mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);
-                    mergeObs.setObservationHeading(mapFromApp.get("observationHeading") != null ? (String) mapFromApp.get("observationHeading") : null);
-                    mergeObs.setObservationText(mapFromApp.get("observationText") != null ? (String) mapFromApp.get("observationText") : null);
-                    mergeObs.setBroadcastMessage(mapFromApp.get("broadcastMessage") != null ? (Boolean) mapFromApp.get("broadcastMessage") : false);
+                mergeObs.setIsPositive(mapFromApp.get("isPositive") != null ? (Boolean) mapFromApp.get("isPositive") : false);
+                mergeObs.setUserId(mapFromApp.get("userId") != null ? (Integer) mapFromApp.get("userId") : user.getUserId());
+                mergeObs.setGeoinfo((String) mapFromApp.get("geoinfo"));
+                mergeObs.setLocationPointOfInterestId(mapFromApp.get("locationPointOfInterestId") != null ? (Integer) mapFromApp.get("locationPointOfInterestId") : null);
+                mergeObs.setObservationHeading(mapFromApp.get("observationHeading") != null ? (String) mapFromApp.get("observationHeading") : null);
+                mergeObs.setObservationText(mapFromApp.get("observationText") != null ? (String) mapFromApp.get("observationText") : null);
+                mergeObs.setBroadcastMessage(mapFromApp.get("broadcastMessage") != null ? (Boolean) mapFromApp.get("broadcastMessage") : false);
 
-                    // If the user has the role of observation approver, change to approved if set to pending
-                    Integer newStatusTypeId = (Integer) mapFromApp.get("statusTypeId");
-                    if(newStatusTypeId != null) {
-                        Integer originalStatusTypeId = mergeObs.getStatusTypeId();
-                        if (newStatusTypeId.equals(ObservationStatusType.STATUS_PENDING) && user.isObservationAuthority()) {
-                            LOGGER.info("Change status from pending to approved for observation {}", mergeObs.getObservationId());
-                            mergeObs.setStatusChangedByUserId(user.getUserId());
-                            mergeObs.setStatusChangedTime(now);
-                            mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
-                        } else if(originalStatusTypeId != null && !newStatusTypeId.equals(originalStatusTypeId)) {
-                            LOGGER.info("Change status from {} to {} for observation {}", originalStatusTypeId, newStatusTypeId, mergeObs.getObservationId());
-                            mergeObs.setStatusChangedByUserId(user.getUserId());
-                            mergeObs.setStatusChangedTime(now);
-                            mergeObs.setStatusTypeId(newStatusTypeId);
-                        }
-                        // If status type id has not changed, leave the fields as they are
-                    }
+                mergeObs.setIsQuantified(mapFromApp.get("isQuantified") != null ? (Boolean) mapFromApp.get("isQuantified") : false);
+                mergeObs.setLocationIsPrivate(mapFromApp.get("locationIsPrivate") != null ? (Boolean) mapFromApp.get("locationIsPrivate") : false);
+                Object polygonServiceValue = mapFromApp.get("polygonService");
+                if (polygonServiceValue != null && !polygonServiceValue.toString().isBlank()) {
+                    PolygonService polygonService = oM.convertValue(mapFromApp.get("polygonService"), PolygonService.class);
+                    mergeObs.setPolygonService(polygonService);
+                }
 
-                    mergeObs.setIsQuantified(mapFromApp.get("isQuantified") != null ? (Boolean) mapFromApp.get("isQuantified") : false);
-                    mergeObs.setLocationIsPrivate(mapFromApp.get("locationIsPrivate") != null ? (Boolean) mapFromApp.get("locationIsPrivate") : false);
-                    Object polygonServiceValue = mapFromApp.get("polygonService");
-                    if(polygonServiceValue != null && !polygonServiceValue.toString().isBlank()) {
-                        PolygonService polygonService = oM.convertValue(mapFromApp.get("polygonService"), PolygonService.class);
-                        mergeObs.setPolygonService(polygonService);
-                    }
+                mergeObs.setObservationDataSchema(observationBean.getObservationDataSchema(user.getOrganization_id(), mergeObs.getOrganismId()));
+                mergeObs.setObservationData(mapFromApp.get("observationData") != null ? mapFromApp.get("observationData").toString() : null);
+                mergeObs.setLastEditedBy(user.getUserId());
+                mergeObs.setLastEditedTime(now);
 
-                    mergeObs.setObservationDataSchema(observationBean.getObservationDataSchema(user.getOrganization_id(), mergeObs.getOrganismId()));
-                    mergeObs.setObservationData(mapFromApp.get("observationData") != null ? mapFromApp.get("observationData").toString() : null);
-                    mergeObs.setLastEditedBy(user.getUserId());
-                    mergeObs.setLastEditedTime(now);
-
-                    // Input check before storing
-                    // Location must be set
-                    if ((mergeObs.getGeoinfo() == null || mergeObs.getGeoinfo().trim().isEmpty()) && mergeObs.getLocationPointOfInterestId() == null) {
-                        return Response.status(Status.BAD_REQUEST).entity("{\"error\": \"The observation is missing location data.\"}").type(MediaType.APPLICATION_JSON).build();
-                    }
-
-                    boolean sendNotification = false;
-                    // Storing approval status
-                    // If superusers or user with correct authorization: Set as approved and send message
-                    if (userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)) {
-                        LOGGER.debug("user properly authorized to register observations");
-                        LOGGER.debug("observation Id=" + mergeObs.getObservationId());
-                        LOGGER.debug("broadcast this message? " + mergeObs.getBroadcastMessage());
-                        if (mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0) {
-                            mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_APPROVED);
-                            sendNotification = mergeObs.getBroadcastMessage(); // Only send the ones intended for sending
-                        }
-                    } else if (mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0) {
+                boolean sendNotification = false; // Notification should be sent if status is set to approved
+                boolean newRegistration = mergeObs.getObservationId() == null || mergeObs.getObservationId() <= 0;
+                boolean automaticApproval = userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER);
+                if (newRegistration) {
+                    if (automaticApproval) {
+                        LOGGER.info("Set status to approved for new observation registered by user {}", user.getUserId());
+                        mergeObs.setStatusChangedByUserId(user.getUserId());
+                        mergeObs.setStatusChangedTime(now);
+                        mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
+                        sendNotification = mergeObs.getBroadcastMessage(); // Only send for approved observations
+                    } else {
+                        LOGGER.info("Set status to pending for new observation registered by user {}", user.getUserId());
                         mergeObs.setStatusTypeId(Observation.STATUS_TYPE_ID_PENDING);
                     }
+                } else {
+                    // Existing observation
+                    Integer newStatusTypeId = (Integer) mapFromApp.get("statusTypeId");
+                    Integer originalStatusTypeId = mergeObs.getStatusTypeId();
+                    if (automaticApproval && ObservationStatusType.STATUS_PENDING.equals(newStatusTypeId) && ObservationStatusType.STATUS_PENDING.equals(originalStatusTypeId)) {
+                        LOGGER.info("Set status to approved for existing observation {} and user {}", mergeObs.getObservationId(), user.getUserId());
+                        mergeObs.setStatusChangedByUserId(user.getUserId());
+                        mergeObs.setStatusChangedTime(now);
+                        mergeObs.setStatusTypeId(ObservationStatusType.STATUS_APPROVED);
+                        sendNotification = mergeObs.getBroadcastMessage(); // Only send for approved observations
+                    }
+                    // No option for changing the status in registration form in app
+                }
 
-                    // We need to get an observation Id before storing the illustrations!
-                    mergeObs = observationBean.storeObservation(mergeObs);
+                // Input check before storing, location must be set
+                if ((mergeObs.getGeoinfo() == null || mergeObs.getGeoinfo().trim().isEmpty()) && mergeObs.getLocationPointOfInterestId() == null) {
+                    LOGGER.error("The observation is missing location data, return bad request.");
+                    return Response.status(Status.BAD_REQUEST).entity("{\"error\": \"The observation is missing location data.\"}").type(MediaType.APPLICATION_JSON).build();
+                }
 
-                    // ObservationIllustrationSet
-                    // Including data that may need to be stored
-                    if (mapFromApp.get("observationIllustrationSet") != null) {
-                        List<Map<Object, Object>> illusMaps = (List<Map<Object, Object>>) mapFromApp.get("observationIllustrationSet");
-                        for (Map<Object, Object> illusMap : illusMaps) {
-                            ObservationIllustrationPK pk = oM.convertValue(illusMap.get("observationIllustrationPK"), new TypeReference<ObservationIllustrationPK>() {
-                            });
+                // We need to get an observation Id before storing the illustrations!
+                mergeObs = observationBean.storeObservation(mergeObs);
 
-                            if (illusMap.get("deleted") != null && ((Boolean) illusMap.get("deleted")) == true) {
-                                observationBean.deleteObservationIllustration(mergeObs, new String[]{pk.getFileName()});
-                            } else if (illusMap.get("uploaded") != null && ((Boolean) illusMap.get("uploaded")) == false && illusMap.get("imageTextData") != null) {
-                                mergeObs = observationBean.storeObservationIllustration(mergeObs, pk.getFileName(), (String) illusMap.get("imageTextData"));
-                            }
+                // ObservationIllustrationSet
+                // Including data that may need to be stored
+                if (mapFromApp.get("observationIllustrationSet") != null) {
+                    List<Map<Object, Object>> illusMaps = (List<Map<Object, Object>>) mapFromApp.get("observationIllustrationSet");
+                    for (Map<Object, Object> illusMap : illusMaps) {
+                        ObservationIllustrationPK pk = oM.convertValue(illusMap.get("observationIllustrationPK"), new TypeReference<ObservationIllustrationPK>() {
+                        });
+
+                        if (illusMap.get("deleted") != null && ((Boolean) illusMap.get("deleted")) == true) {
+                            observationBean.deleteObservationIllustration(mergeObs, new String[]{pk.getFileName()});
+                        } else if (illusMap.get("uploaded") != null && ((Boolean) illusMap.get("uploaded")) == false && illusMap.get("imageTextData") != null) {
+                            mergeObs = observationBean.storeObservationIllustration(mergeObs, pk.getFileName(), (String) illusMap.get("imageTextData"));
                         }
                     }
-                    boolean messagingSystemDisabled = System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true");
-                    LOGGER.info("Notification should be sent? " + sendNotification);
-                    LOGGER.info("Messaging system is disabled? " + messagingSystemDisabled);
-
-                    // All transactions finished, we can send notifications
-                    // if conditions are met
-                    if (sendNotification && !messagingSystemDisabled) {
-                        LOGGER.info("Sending the message!");
-                        messagingBean.sendUniversalMessage(mergeObs);
-                    }
-
-                    return Response.ok().entity(mergeObs).build();
                 }
+                boolean messagingSystemDisabled = System.getProperty("DISABLE_MESSAGING_SYSTEM") != null && System.getProperty("DISABLE_MESSAGING_SYSTEM").equals("true");
+                LOGGER.info("Notification should be sent? " + sendNotification);
+                LOGGER.info("System property DISABLE_MESSAGING_SYSTEM = " + System.getProperty("DISABLE_MESSAGING_SYSTEM"));
+                LOGGER.info("Messaging system is disabled? " + messagingSystemDisabled);
+
+                // All transactions finished, we can send notifications
+                // if conditions are met
+                if (sendNotification && !messagingSystemDisabled) {
+                    LOGGER.info("Sending the message!");
+                    messagingBean.sendUniversalMessage(mergeObs);
+                }
+
+                return Response.ok().entity(mergeObs).build();
+            }
             } catch (IOException e) {
                 return Response.serverError().entity(e).build();
             }
@@ -1057,9 +1048,7 @@ public class ObservationService {
             LOGGER.error("Exception occurred while syncing observations from app", e);
             return Response.serverError().entity(e).build();
         }
-
     }
-
 
     /**
      * Sort observations by date in descending order, and by id in descending order if dates are identical
