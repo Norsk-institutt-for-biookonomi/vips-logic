@@ -127,7 +127,10 @@
 					</tr>
 					<#if seasonTrapsite.season gt 2021>
 					<tr>
-						<td>Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen? Beskriv hva som er observert (omfang, sted m.m.; <a href="/images/modules/barkbeetle/${FILENAME_KJENN_IGJEN_ANGREP}" target="new">instruksjon</a>)</td>
+						<td>Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen?
+		Beskriv omfang og symptomer. Symptomer tidlig i sesong: Boremel eller fjorårets drepte trær som har mistet litt bark og har grå kroner. 
+		Symptomer sent i sesong: Årets drepte trær, med røde kroner. Det er også mulig å rapportere skader på 
+		<a href="https://skogskader.nibio.no/skogskader2/meld-skade" target="new">skogskader.nibio.no</a></td>
 						<td colspan="8">
 							<textarea class="form-control" name="${reg.trapsiteRegistrationPK.week}_observedAttacksDescription"<#if tooEarly> disabled="disabled"</#if>>${reg.observedAttacksDescription!""}</textarea>
 						</td>
