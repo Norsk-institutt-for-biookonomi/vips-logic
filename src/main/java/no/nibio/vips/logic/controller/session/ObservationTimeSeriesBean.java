@@ -18,15 +18,14 @@
 
 package no.nibio.vips.logic.controller.session;
 
-import no.nibio.vips.logic.entity.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import no.nibio.vips.logic.entity.ObservationTimeSeries;
+import no.nibio.vips.logic.entity.PointOfInterest;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.util.*;
 
 @Stateless
@@ -101,6 +100,11 @@ public class ObservationTimeSeriesBean {
         });
     }
 
+    /**
+     * Enrich given observation time series with point of interest information
+     *
+     * @param ots The observation time series to enrich
+     */
     public void enrichObservationTimeSeriesWithPointOfInterest(ObservationTimeSeries ots) {
         if (ots == null || ots.getLocationPointOfInterestId() == null) {
             return;
