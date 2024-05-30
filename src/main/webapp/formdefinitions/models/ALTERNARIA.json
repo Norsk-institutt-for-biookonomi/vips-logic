@@ -42,6 +42,18 @@
             "dataType" : "DATE",
             "dateFormat" : "yyyy-MM-dd",
             "required" : false
+        },
+        {
+            "name" : "thresholdDSVMax",
+            "dataType" : "DOUBLE",
+            "defaultValue" : "20.0",
+            "required" : false
+        } ,
+        {
+            "name" : "thresholdDSVTempMin",
+            "dataType" : "DOUBLE",
+            "defaultValue" : "13.0",
+            "required" : false
         }         
         ]
 }
