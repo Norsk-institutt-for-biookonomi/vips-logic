@@ -675,6 +675,10 @@ public class ForecastBean {
         q = em.createNativeQuery("DELETE FROM public.forecast_summary WHERE forecast_configuration_id=:forecastConfigurationId");
         q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
         q.executeUpdate();
+        // Entries in ForecastNotificationLog referencing the ForecastConfiguration must also be deleted
+        q = em.createNativeQuery("DELETE FROM messaging.forecast_notification_log WHERE forecast_configuration_id=:forecastConfigurationId");
+        q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
+        q.executeUpdate();
         em.remove(forecastConfiguration);
         
     }
