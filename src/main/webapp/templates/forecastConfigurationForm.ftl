@@ -26,8 +26,12 @@
 	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
-        <script type="text/javascript" src="/js/environment.js"></script>
-        <script type="text/javascript" src="/js/util.js"></script>
+    <script type="text/javascript" src="/js/environment.js"></script>
+    <script type="text/javascript" src="/js/util.js"></script>
+    <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
+    <script type="text/javascript">
+        $(".chosen-select").chosen();
+    </script>
 	<script type="text/javascript">
             $(document).ready(function() {
 		// Make sure that there is a date picker present for HTML5 
@@ -188,6 +192,9 @@
             };
 	</script>
 </#macro>
+<#macro custom_css>
+    <link href="/css/3rdparty/chosen.min.css" rel="stylesheet" />
+</#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
 	<p><a href="/forecastConfiguration" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
@@ -287,7 +294,7 @@
 	  <input type="hidden" name="multipleNew" value="true"/>
 	  <div class="form-group">
 	    <label for="weatherStationPointOfInterestIds">${i18nBundle.weatherStationPointOfInterestIds}</label>
-	    <select class="form-control" name="weatherStationPointOfInterestIds" onblur="validateField(this);" multiple="multiple" size="5">
+	    <select class="form-control chosen-select" name="weatherStationPointOfInterestIds" onblur="validateField(this);" multiple="multiple">
 	    	<#list weatherStationPointOfInterests?sort_by("name") as poi>
 	    	<option value="${poi.pointOfInterestId}">${poi.name}</option>
 	    	</#list>
