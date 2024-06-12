@@ -439,11 +439,11 @@ public class SeasonTrapsite implements Serializable, Comparable {
 
     // Thresholds for warning status
     @Transient
-    private final Integer THRESHOLD_LOW_RISK = 1000;
+    private final Integer THRESHOLD_LOW_RISK = 5000;
     @Transient
-    private final Integer THRESHOLD_MEDIUM_RISK = 5000;
+    private final Integer THRESHOLD_MEDIUM_RISK = 10000;
     @Transient
-    private final Integer THRESHOLD_HIGH_RISK = 10000;
+    private final Integer THRESHOLD_HIGH_RISK = 15000;
     
     @Transient
     public Integer getWarningStatus(){
