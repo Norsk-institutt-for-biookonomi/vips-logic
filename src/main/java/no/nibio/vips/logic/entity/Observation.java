@@ -558,6 +558,11 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.observationIllustrationSet = observationIllustrationSet;
     }
 
+    @Transient
+    public Integer getObservationTimeSeriesId() {
+        return observationTimeSeries != null ? observationTimeSeries.getObservationTimeSeriesId() : null;
+    }
+
     /**
       * @return the observation time series
      */
@@ -686,6 +691,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         }
         return new ObservationListItem(
                 this.getObservationId(),
+                this.getObservationTimeSeriesId(),
                 this.getTimeOfObservation(),
                 this.getOrganismId(),
                 ! this.getOrganism().getLocalName(locale).trim().isBlank() ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),

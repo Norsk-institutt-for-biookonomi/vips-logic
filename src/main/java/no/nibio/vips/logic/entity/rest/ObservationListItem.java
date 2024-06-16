@@ -27,7 +27,7 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ObservationListItem implements Comparable{
-    private Integer observationId, organismId, cropOrganismId;
+    private Integer observationId, observationTimeSeriesId, organismId, cropOrganismId;
     private Date timeOfObservation;
     private String organismName, cropOrganismName;
     private String geoInfo;
@@ -40,6 +40,7 @@ public class ObservationListItem implements Comparable{
 
     public ObservationListItem(
             Integer observationId,
+            Integer observationTimeSeriesId,
             Date timeOfObservation,
             Integer organismId,
             String organismName,
@@ -54,6 +55,7 @@ public class ObservationListItem implements Comparable{
             ObservationDataSchema observationDataSchema
     ){
         this.observationId = observationId;
+        this.observationTimeSeriesId = observationTimeSeriesId;
         this.timeOfObservation = timeOfObservation;
         this.organismId = organismId;
         this.organismName = organismName;
@@ -91,6 +93,20 @@ public class ObservationListItem implements Comparable{
      */
     public void setObservationId(Integer observationId) {
         this.observationId = observationId;
+    }
+
+    /**
+     * @return the observationTimeSeriesId
+     */
+    public Integer getObservationTimeSeriesId() {
+        return observationTimeSeriesId;
+    }
+
+    /**
+     * @param observationTimeSeriesId the observationTimeSeriesId to set
+     */
+    public void setObservationTimeSeriesId(Integer observationTimeSeriesId) {
+        this.observationTimeSeriesId = observationTimeSeriesId;
     }
 
     /**
