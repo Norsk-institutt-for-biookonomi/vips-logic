@@ -555,13 +555,13 @@ public class ObservationBean {
 
     public List<Observation> getFilteredObservations(
             Integer organizationId,
+            Integer observationTimeSeriesId,
             Integer pestId,
             Integer cropId,
             List<Integer> cropCategoryId,
             Date from,
             Date to,
-            Boolean isPositive
-    ) {
+            Boolean isPositive) {
         // The minimum SQL
         String sql = "SELECT * FROM public.observation \n" +
                 "WHERE status_type_id = :statusTypeId \n " +
@@ -571,6 +571,11 @@ public class ObservationBean {
         parameters.put("statusTypeId", ObservationStatusType.STATUS_APPROVED);
         parameters.put("organizationId", organizationId);
 
+        // Filter for observation time series
+        if (observationTimeSeriesId != null && observationTimeSeriesId > 0) {
+            sql += "AND observation_time_series_id = :observationTimeSeriesId \n";
+            parameters.put("observationTimeSeriesId", observationTimeSeriesId);
+        }
         // Filter for pest
         if (pestId != null && pestId > 0) {
             sql += "AND organism_id = :organismId \n";
