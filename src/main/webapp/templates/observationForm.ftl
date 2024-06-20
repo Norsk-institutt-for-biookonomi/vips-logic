@@ -230,38 +230,41 @@
 		
 		var allPois = [];
 		
-                /**
-                 * Fetches locations, farms, fields and weather stations, renders the list
-                 */
-		function refreshLocationPointOfInterests(pointOfInterestId)
+        /**
+         * Fetches locations, farms, fields, traps and weather stations, renders the list
+         */
+		function refreshLocationPointOfInterests(selectedPointOfInterestId)
 		{
-                    var poiTypes = ["${i18nBundle.genericPlaces}","${i18nBundle.weatherStations}","${i18nBundle.farms}","${i18nBundle.fields}"];
-                    $.getJSON("/rest/poi/user", function( json ) {
-                                    allPois = json;
-                                    var theList = document.getElementById("locationPointOfInterestId");
-                                    theList.options.length = 1;
-                                    // Locations first, weather stations next
-                                    for(var h=0;h<poiTypes.length;h++)
-                                    {
-                                        var option = new Option("-- " + poiTypes[h] + " --","-1");
-                                        theList.options[theList.options.length] = option;
-                                        for(var i=0;i< allPois.length;i++)
-                                        {
-                                            var poi = allPois[i];
-                                            if(poi.pointOfInterestTypeId == h)
-                                            {
-                                                var option = new Option(poi.name, poi.pointOfInterestId);
-                                                if(poi.pointOfInterestId == pointOfInterestId)
-                                                {
-                                                        option.selected=true;
-                                                }
-                                                theList.options[theList.options.length] = option;
-                                            }
-                                        }
-                                    }
-                                    showCorrectMap();
+            const poiTypes = {
+                0: "${i18nBundle.genericPlaces}",
+                1: "${i18nBundle.weatherStations}",
+                2: "${i18nBundle.farms}",
+                3: "${i18nBundle.fields}",
+                5: "${i18nBundle.traps}"
+            };
+            $.getJSON("/rest/poi/user", function(json) {
+                const allPois = json;
+                const poiListElement = document.getElementById("locationPointOfInterestId");
+                poiListElement.options.length = 1;
+                // Iterate through each point of interest type
+                for (const [typeId, typeName] of Object.entries(poiTypes)) {
+                    poiListElement.options[poiListElement.options.length] = new Option("-- " + typeName + " --", "-1");
+
+                    // Iterate through all POIs and add them to the list if they match the type
+                    for (let i = 0; i < allPois.length; i++) {
+                        const poi = allPois[i];
+
+                        if (poi.pointOfInterestTypeId == typeId) {
+                            const poiOption = new Option(poi.name, poi.pointOfInterestId);
+                            if (poi.pointOfInterestId === selectedPointOfInterestId) {
+                                poiOption.selected = true;
                             }
-                    );
+                            poiListElement.options[poiListElement.options.length] = poiOption;
+                        }
+                    }
+                }
+                showCorrectMap();
+            });
 		}
 		
 		
@@ -515,7 +518,7 @@
 			  <input type="hidden" name="observationData" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <!--button type="button" onclick="var theForm=document.getElementById('observationForm');theForm['geoInfo'].value=getFeatures();try{mw.save();theForm['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(theForm) && validateGIS(theForm);}catch(e){console.log(e.message);console.log(e);return false;}">Test</button-->
-			  <#if observation.user?has_content>
+                <#if observation.user?has_content>
                           <div class="form-group">
                             <label>${i18nBundle.observer}: ${observation.user.firstName} ${observation.user.lastName}</label>
                           </div>
