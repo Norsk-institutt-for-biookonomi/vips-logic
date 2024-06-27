@@ -18,15 +18,14 @@
 
 package no.nibio.vips.logic.controller.session;
 
-import no.nibio.vips.logic.entity.ObservationTimeSeries;
-import no.nibio.vips.logic.entity.PointOfInterest;
-import no.nibio.vips.logic.entity.VipsLogicUser;
-
+import java.util.*;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.*;
+import no.nibio.vips.logic.entity.ObservationTimeSeries;
+import no.nibio.vips.logic.entity.PointOfInterest;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 
 @Stateless
 public class ObservationTimeSeriesBean {
@@ -49,8 +48,13 @@ public class ObservationTimeSeriesBean {
         return resultList;
     }
 
-    public ObservationTimeSeries getObservationTimeSeries(Integer id) {
-        ObservationTimeSeries ots = em.find(ObservationTimeSeries.class, id);
+    /**
+     * Get observation time series with given id. Enrich object with user information before returning.
+     * @param observationTimeSeriesId the id of the observation time series to retrieve
+     * @return the observation time series with the given id
+     */
+    public ObservationTimeSeries getObservationTimeSeries(Integer observationTimeSeriesId) {
+        ObservationTimeSeries ots = em.find(ObservationTimeSeries.class, observationTimeSeriesId);
         if (ots != null) {
             ots.setUser(em.find(VipsLogicUser.class, ots.getUserId()));
             if (ots.getLastModifiedBy() != null) {
@@ -58,6 +62,12 @@ public class ObservationTimeSeriesBean {
             }
         }
         return ots;
+    }
+
+    public List<ObservationTimeSeries> getObservationTimeSeriesList(Set<Integer> observationTimeSeriesIds) {
+        return em.createNamedQuery("ObservationTimeSeries.findByObservationTimeSeriesIds")
+                .setParameter("observationTimeSeriesIds", observationTimeSeriesIds)
+                .getResultList();
     }
 
     /**

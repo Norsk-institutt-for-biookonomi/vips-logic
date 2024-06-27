@@ -27,9 +27,10 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ObservationListItem implements Comparable{
-    private Integer observationId, organismId, cropOrganismId;
+    private Integer observationId, observationTimeSeriesId, organismId, cropOrganismId;
     private Date timeOfObservation;
     private String organismName, cropOrganismName;
+    private String observationTimeSeriesLabel;
     private String geoInfo;
     private String observationHeading;
     private String observationData;
@@ -40,11 +41,13 @@ public class ObservationListItem implements Comparable{
 
     public ObservationListItem(
             Integer observationId,
+            Integer observationTimeSeriesId,
             Date timeOfObservation,
             Integer organismId,
             String organismName,
             Integer cropOrganismId,
             String cropOrganismName,
+            String observationTimeSeriesLabel,
             String geoinfo,
             String observationHeading,
             Boolean broadcastMessage,
@@ -54,11 +57,13 @@ public class ObservationListItem implements Comparable{
             ObservationDataSchema observationDataSchema
     ){
         this.observationId = observationId;
+        this.observationTimeSeriesId = observationTimeSeriesId;
         this.timeOfObservation = timeOfObservation;
         this.organismId = organismId;
         this.organismName = organismName;
         this.cropOrganismId = cropOrganismId;
         this.cropOrganismName = cropOrganismName;
+        this.observationTimeSeriesLabel = observationTimeSeriesLabel;
         this.geoInfo = geoinfo;
         this.observationHeading = observationHeading;
         this.broadcastMessage = broadcastMessage;
@@ -91,6 +96,20 @@ public class ObservationListItem implements Comparable{
      */
     public void setObservationId(Integer observationId) {
         this.observationId = observationId;
+    }
+
+    /**
+     * @return the observationTimeSeriesId
+     */
+    public Integer getObservationTimeSeriesId() {
+        return observationTimeSeriesId;
+    }
+
+    /**
+     * @param observationTimeSeriesId the observationTimeSeriesId to set
+     */
+    public void setObservationTimeSeriesId(Integer observationTimeSeriesId) {
+        this.observationTimeSeriesId = observationTimeSeriesId;
     }
 
     /**
@@ -133,6 +152,14 @@ public class ObservationListItem implements Comparable{
      */
     public void setCropOrganismName(String cropOrganismName) {
         this.cropOrganismName = cropOrganismName;
+    }
+
+    public String getObservationTimeSeriesLabel() {
+        return observationTimeSeriesLabel;
+    }
+
+    public void setObservationTimeSeriesLabel(String observationTimeSeriesLabel) {
+        this.observationTimeSeriesLabel = observationTimeSeriesLabel;
     }
 
     /**

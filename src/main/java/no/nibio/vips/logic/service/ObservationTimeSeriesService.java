@@ -107,15 +107,14 @@ public class ObservationTimeSeriesService {
         if (requester == null && userUUID != null) {
             requester = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
+        observationTimeSeriesBean.enrichObservationTimeSeriesWithPointOfInterest(ots);
 
         boolean requesterNotValidUser = requester == null;
         boolean requesterRegularUser = requester != null && !requester.isSuperUser() && !requester.isOrganizationAdmin();
         boolean requesterNotCreator = requester != null && !ots.getUserId().equals(requester.getUserId());
-
         if (requesterNotValidUser || requesterRegularUser) {
             // Mask for all users except creator, super and orgadmin
             if (!(ots.getLocationIsPrivate() && (requesterNotValidUser || requesterNotCreator)) && ots.getPolygonService() != null) {
-                observationTimeSeriesBean.enrichObservationTimeSeriesWithPointOfInterest(ots);
                 this.maskLocation(ots.getPolygonService(), ots);
             }
         }

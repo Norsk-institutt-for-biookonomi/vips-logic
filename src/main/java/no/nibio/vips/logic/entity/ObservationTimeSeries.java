@@ -35,6 +35,7 @@ import java.util.Date;
 @NamedQueries({
         @NamedQuery(name = "ObservationTimeSeries.findAll", query = "SELECT ots FROM ObservationTimeSeries ots"),
         @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId = :id"),
+        @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesIds", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId IN :observationTimeSeriesIds"),
         @NamedQuery(name = "ObservationTimeSeries.findByOrganizationId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
         @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId)")
 })
@@ -161,6 +162,21 @@ public class ObservationTimeSeries implements Serializable {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * This logic if also implemented in the observation app, see the function timeSeriesLabel in CommonUtil.vue
+     * @return the first eight letters of the given name, in uppercase with spaces removed
+     */
+    @Transient
+    public String getLabel() {
+        if (this.name == null) {
+            return null;
+        }
+        String timeSeriesName = this.name;
+        timeSeriesName = timeSeriesName.replaceAll("\\s", "");
+        timeSeriesName = timeSeriesName.substring(0, Math.min(timeSeriesName.length(), 8));
+        return timeSeriesName.toUpperCase();
     }
 
     /**

@@ -29,18 +29,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -77,6 +68,9 @@ public class ObservationBean {
     PointOfInterestBean pointOfInterestBean;
     @EJB
     UserBean userBean;
+
+    @EJB
+    ObservationTimeSeriesBean observationTimeSeriesBean;
 
     public List<Observation> getObservations(Integer organizationId) {
         Organization organization = em.find(Organization.class, organizationId);
@@ -508,6 +502,30 @@ public class ObservationBean {
         return observations;
     }
 
+    public List<Observation> getObservationsWithTimeSeries(List<Observation> observations) {
+        Set<Integer> observationTimeSeriesIds = observations.stream()
+                .map(Observation::getObservationTimeSeriesId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (observationTimeSeriesIds.isEmpty()) {
+            return observations;
+        }
+
+        List<ObservationTimeSeries> timeSeriesList = observationTimeSeriesBean.getObservationTimeSeriesList(observationTimeSeriesIds);
+        Map<Integer, ObservationTimeSeries> timeSeriesMap = timeSeriesList.stream()
+                .collect(Collectors.toMap(ObservationTimeSeries::getObservationTimeSeriesId, Function.identity()));
+
+        observations.stream()
+                .filter(o -> o.getObservationTimeSeriesId() != null)
+                .forEach(o -> o.setObservationTimeSeries(timeSeriesMap.get(o.getObservationTimeSeriesId())));
+
+        for (Observation o : observations) {
+            LOGGER.info("{}", o);
+        }
+
+        return observations;
+    }
     private List<Observation> getObservationsWithObservers(List<Observation> observations) {
         Set<Integer> userIds = new HashSet<>();
         observations.stream().filter((o) -> (o.getUserId() != null)).forEach((o) -> {
@@ -555,13 +573,13 @@ public class ObservationBean {
 
     public List<Observation> getFilteredObservations(
             Integer organizationId,
+            Integer observationTimeSeriesId,
             Integer pestId,
             Integer cropId,
             List<Integer> cropCategoryId,
             Date from,
             Date to,
-            Boolean isPositive
-    ) {
+            Boolean isPositive) {
         // The minimum SQL
         String sql = "SELECT * FROM public.observation \n" +
                 "WHERE status_type_id = :statusTypeId \n " +
@@ -571,6 +589,11 @@ public class ObservationBean {
         parameters.put("statusTypeId", ObservationStatusType.STATUS_APPROVED);
         parameters.put("organizationId", organizationId);
 
+        // Filter for observation time series
+        if (observationTimeSeriesId != null && observationTimeSeriesId > 0) {
+            sql += "AND observation_time_series_id = :observationTimeSeriesId \n";
+            parameters.put("observationTimeSeriesId", observationTimeSeriesId);
+        }
         // Filter for pest
         if (pestId != null && pestId > 0) {
             sql += "AND organism_id = :organismId \n";
@@ -637,11 +660,10 @@ public class ObservationBean {
             //start = new Date();
             retVal = this.getObservationsWithLocations(retVal);
             //System.out.println("Finding locations took " + (new Date().getTime() - start.getTime()) + " milliseconds");
+            retVal = this.getObservationsWithTimeSeries(retVal);
         }
 
-
         return retVal;
-
     }
 
     public List<Organism> getObservedPests(Integer organizationId) {
