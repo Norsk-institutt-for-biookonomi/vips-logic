@@ -219,7 +219,7 @@ public class MessagingBean {
         Date in10Days = cal.getTime();
         List<ForecastConfiguration> forecastConfigurations = em.createNativeQuery(
                 "SELECT * FROM public.forecast_configuration f "
-                + "WHERE f.forecast_configuration_id IN ("
+                + "WHERE NOT f.is_private AND f.forecast_configuration_id IN ("
                 + "     SELECT forecast_configuration_id FROM forecast_result WHERE valid_time_start between :dateStart AND :dateEnd"
                 + ")",
                 ForecastConfiguration.class
