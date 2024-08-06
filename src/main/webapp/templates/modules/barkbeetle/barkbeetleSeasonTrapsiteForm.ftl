@@ -21,7 +21,7 @@
 </#macro>
 <#macro custom_js>
 	<script type="text/javascript" src="/js/constants.js"></script>
-	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol_6_5_0.js"></script>
 	<script type="text/javascript" src="/js/modules/barkbeetle/seasonTrapsiteFormMap.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
@@ -168,7 +168,7 @@
 </#macro>
 <#macro custom_css>
 	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol_6_5_0.css"/ >
 	<style type="text/css">
 		#seasonTrapsiteFormMap {
 			height: 600px;	

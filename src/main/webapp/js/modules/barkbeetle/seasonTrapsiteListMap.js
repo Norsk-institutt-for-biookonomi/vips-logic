@@ -27,16 +27,7 @@
  var poiDetails;
  
  function initMap(season){
- 	 // Background layer is OpenStreetMap
-    var backgroundLayer = new ol.layer.Tile({
-                    source: new ol.source.OSM({
-                        attributions: [
-                            new ol.Attribution({
-                              html: mapConstants.MAP_ATTRIBUTION
-                            })
-                          ]
-                    })
-    });
+ 	 
     
     // The trapsite layer
     var trapLayer = new ol.layer.Vector({
@@ -55,13 +46,13 @@
       element: document.getElementById("popover")
     });
     var parser = new ol.format.WMTSCapabilities();
-  fetch('https://opencache.statkart.no/gatekeeper/gk/gk.open_wmts?Version=1.0.0&service=wmts&request=getcapabilities').then(function(response) {
+  fetch('https://cache.kartverket.no/v1/wmts/1.0.0/WMTSCapabilities.xml').then(function(response) {
         return response.text();
       }).then(function(text) {
         var result = parser.read(text);
         var options = ol.source.WMTS.optionsFromCapabilities(result, {
-          layer: 'topo4',
-          matrixSet: 'EPSG:3857'
+          layer: 'topo',
+          matrixSet: 'webmercator'
         });
         var topo4 = 
           new ol.layer.Tile({

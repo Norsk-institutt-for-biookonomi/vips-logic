@@ -157,7 +157,7 @@
 </#macro>
 <#macro custom_js>
 	<script type="text/javascript" src="/js/constants.js"></script>
-	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol_6_5_0.js"></script>
 	<script type="text/javascript" src="/js/modules/barkbeetle/seasonTrapsiteListMap.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
@@ -186,7 +186,7 @@ function filter(searchTxt){
 </script>
 </#macro>
 <#macro custom_css>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol_6_5_0.css"/ >
 	<style type="text/css">
 		td.status_1 {
 			background-color: #ffe066 !important;
