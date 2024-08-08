@@ -118,6 +118,30 @@ public class BarkbeetleBean {
     }
 
     /**
+     * Get all trapsites belonging to a specific user
+     * @param user
+     * @return
+     */
+    public List<SeasonTrapsite> getSeasonTrapsites(VipsLogicUser user)
+    {
+        return em.createNamedQuery("SeasonTrapsite.findByUserId")
+            .setParameter("userId", user)
+            .getResultList();
+    }
+
+    /**
+     * Transferring ownership of all season trapsites for all seasons belonging to a user
+     * to another user
+     * @param fromUser the current owner of the sites
+     * @param toUser the new owner of the sites
+     */
+    public void transferSeasonTrapsites(VipsLogicUser fromUser, VipsLogicUser toUser){
+        em.createNativeQuery("UPDATE barkbeetle.season_trapsite SET user_id=:toUserId WHERE user_id=:fromUserId")
+        .setParameter("fromUserId", fromUser.getUserId())
+        .setParameter("toUserId", toUser.getUserId())
+        .executeUpdate();
+    }
+    /**
      * Get the list of trapsites for the given season
      *
      * @param season

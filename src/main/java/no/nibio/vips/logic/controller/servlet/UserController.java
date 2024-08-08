@@ -51,6 +51,8 @@ import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.modules.barkbeetle.BarkbeetleBean;
+import no.nibio.vips.logic.modules.barkbeetle.SeasonTrapsite;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
@@ -71,6 +73,9 @@ public class UserController extends HttpServlet {
     
     @EJB
     UserBean userBean;
+
+    @EJB
+    BarkbeetleBean barkbeetleBean;
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -406,9 +411,12 @@ public class UserController extends HttpServlet {
                     Integer userId = Integer.valueOf(request.getParameter("userId"));
                     VipsLogicUser viewUser = em.find(VipsLogicUser.class, userId);
                     UserResources userResources = userBean.getUserResources(viewUser);
+
+                    // Barkbeetle module dependencies
+                    List<SeasonTrapsite> userSeasonTrapsites = barkbeetleBean.getSeasonTrapsites(viewUser);
  
                     // If some resources connected, render form, otherwise, route to user delete
-                    if(userResources.isEmpty())
+                    if(userResources.isEmpty() && userSeasonTrapsites.isEmpty())
                     {
                         response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/user").append("?action=deleteUser&userId=").append(userId).toString());
                     }
@@ -423,7 +431,9 @@ public class UserController extends HttpServlet {
                         
                         request.setAttribute("viewUser", viewUser);
                         request.setAttribute("userResources", userResources);
+                        java.util.Collections.sort(users);
                         request.setAttribute("users", users);
+                        request.setAttribute("userBarkbeetleSeasonTrapsites", userSeasonTrapsites);
                         request.setAttribute("errorMsg", request.getParameter("errorMsg"));
                         request.getRequestDispatcher("/userDeleteForm.ftl").forward(request, response);
                     }
@@ -450,7 +460,9 @@ public class UserController extends HttpServlet {
                     
                     // Are there resources connected to this user?
                     UserResources userResources = userBean.getUserResources(viewUser);
-                    if(! userResources.isEmpty())
+                    // Barkbeetle module dependencies
+                    List<SeasonTrapsite> userSeasonTrapsites = barkbeetleBean.getSeasonTrapsites(viewUser);
+                    if(! userResources.isEmpty() || ! userSeasonTrapsites.isEmpty())
                     {
                         boolean resourcesTransferred = false;
                         try
@@ -460,6 +472,7 @@ public class UserController extends HttpServlet {
                             if(transferToUser != null)
                             {
                                 userBean.transferUserResources(viewUser,transferToUser);
+                                barkbeetleBean.transferSeasonTrapsites(viewUser,transferToUser);
                                 resourcesTransferred = true;
                             }
                         }

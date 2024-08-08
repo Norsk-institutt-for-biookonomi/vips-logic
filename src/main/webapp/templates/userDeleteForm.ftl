@@ -35,7 +35,10 @@
 		<li>${i18nBundle.weatherStations}: ${userResources.pois?size}</li>
 		<li>${i18nBundle.messages}: ${userResources.messageLocales?size}</li>
 		<li>${i18nBundle.forecasts}: ${userResources.forecastConfigurations?size}</li>
-                <li>${i18nBundle.observations}: ${userResources.observations?size}</li>
+        <li>${i18nBundle.observations}: ${userResources.observations?size}</li>
+		<#if userBarkbeetleSeasonTrapsites?size gt 0 >
+			<li>Barkbillefellelokaliteter: ${userBarkbeetleSeasonTrapsites?size}</li>
+		</#if>
 	</ul>
 	<h2>${i18nBundle.transferResources}</h2>
 	<form action="/user?action=deleteUser" method="POST" onsubmit="return confirm('${i18nBundle.confirmDelete}');"/>
@@ -48,7 +51,7 @@
                         </#if>
 		<#list users as user>
 			<#if user.userId != viewUser.userId>
-			<option value="${user.userId}">${user.firstName!""} ${user.lastName}</option>
+			<option value="${user.userId}">${user.lastName}, ${user.firstName!""}</option>
 			</#if>
 		</#list>
 		</select>
