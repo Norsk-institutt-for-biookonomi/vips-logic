@@ -803,8 +803,10 @@ public class ObservationService {
             LOGGER.info("Return {} masked public observations for unregistered user", retVal.size());
             return sortObservationsByDateAndId(retVal);
         }
-        // Else: This is a registered user without special privileges. Show public observations + user's own
-        retVal.addAll(observationBean.getObservationsForUser(user));
+         // Else: This is a registered user without special privileges. Show public observations + user's own
+        // Making sure we don't add duplicates
+        Set<Integer> obsIds = retVal.stream().map(o->o.getObservationId()).collect(Collectors.toSet());
+        retVal.addAll(observationBean.getObservationsForUser(user).stream().filter(o->!obsIds.contains(o.getObservationId())).collect(Collectors.toList()));
         LOGGER.info("Return {} masked public observations and user's own observations for registered user {}", retVal.size(), user.getUserId());
         return sortObservationsByDateAndId(retVal);
     }
