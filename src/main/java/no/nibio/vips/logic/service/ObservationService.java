@@ -32,6 +32,7 @@ import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.messaging.MessagingBean;
+import no.nibio.vips.logic.util.ExcelFileGenerator;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import org.jboss.resteasy.annotations.GZIP;
@@ -59,6 +60,8 @@ import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -130,12 +133,13 @@ public class ObservationService {
     }
 
     /**
-     * @param organizationId Database ID of the organization
-     * @param pestId         Database ID of the pest
-     * @param cropId         Database ID of the crop
-     * @param cropCategoryId cropCategoryId Database IDs of the crop category/categories
-     * @param fromStr        format "yyyy-MM-dd"
-     * @param toStr          format "yyyy-MM-dd"
+     * @param organizationId          Database ID of the organization
+     * @param observationTimeSeriesId Database ID of the observation time series
+     * @param pestId                  Database ID of the pest
+     * @param cropId                  Database ID of the crop
+     * @param cropCategoryId          cropCategoryId Database IDs of the crop category/categories
+     * @param fromStr                 format "yyyy-MM-dd"
+     * @param toStr                   format "yyyy-MM-dd"
      * @return Observation objects for which the user is authorized to observe with properties relevant for lists
      */
     @GET
@@ -158,6 +162,55 @@ public class ObservationService {
         return Response.ok().entity(this.getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive)).build();
     }
 
+    /**
+     * @param organizationId          Database ID of the organization
+     * @param observationTimeSeriesId Database ID of the observation time series
+     * @param pestId                  Database ID of the pest
+     * @param cropId                  Database ID of the crop
+     * @param cropCategoryId          cropCategoryId Database IDs of the crop category/categories
+     * @param fromStr                 format "yyyy-MM-dd"
+     * @param toStr                   format "yyyy-MM-dd"
+     * @return Observation objects for which the user is authorized to observe with properties relevant for lists
+     */
+    @GET
+    @Path("list/filter/{organizationId}/xlsx")
+    @GZIP
+    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public Response getFilteredObservationListItemsAsXlsx(
+            @PathParam("organizationId") Integer organizationId,
+            @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
+            @QueryParam("pestId") Integer pestId,
+            @QueryParam("cropId") Integer cropId,
+            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+            @QueryParam("from") String fromStr,
+            @QueryParam("to") String toStr,
+            @QueryParam("userUUID") String userUUID,
+            @QueryParam("locale") String localeStr,
+            @QueryParam("isPositive") Boolean isPositive
+    ) {
+        LOGGER.info("Generate xlsx file for observations");
+        VipsLogicUser user = getVipsLogicUser(userUUID);
+        ULocale locale = new ULocale(localeStr != null ? localeStr :
+                user != null ? user.getOrganizationId().getDefaultLocale() :
+                        userBean.getOrganization(organizationId).getDefaultLocale());
+
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String filenameTimestamp = now.format(formatter);
+
+        try {
+            byte[] excelFile = ExcelFileGenerator.generateExcel(getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive), locale);
+
+            return Response
+                    .ok(excelFile)
+                    .header("Content-Disposition", "attachment; filename=\"" +filenameTimestamp+ "-observations.xlsx\"")
+                    .build();
+        } catch (IOException e) {
+            return Response.serverError().entity("Error generating Excel file: " + e.getMessage()).build();
+        }
+    }
+
     private List<ObservationListItem> getFilteredObservationListItems(
             Integer organizationId,
             Integer observationTimeSeriesId,
@@ -169,11 +222,7 @@ public class ObservationService {
             String userUUID,
             String localeStr,
             Boolean isPositive) {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-
-        if (user == null && userUUID != null) {
-            user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
-        }
+        VipsLogicUser user = getVipsLogicUser(userUUID);
         ULocale locale = new ULocale(localeStr != null ? localeStr :
                 user != null ? user.getOrganizationId().getDefaultLocale() :
                         userBean.getOrganization(organizationId).getDefaultLocale());
@@ -766,14 +815,14 @@ public class ObservationService {
     }
 
     /**
-     * @param organizationId Database id of the organization
+     * @param organizationId          Database id of the organization
      * @param observationTimeSeriesId Database id of the observation time series
-     * @param pestId         Database id of the pest
-     * @param cropId         Database id of the crop
-     * @param cropCategoryId Database ids of the crop categories
-     * @param fromStr        format "yyyy-MM-dd"
-     * @param toStr          format "yyyy-MM-dd"
-     * @param user           The user that requests this (used for authorization)
+     * @param pestId                  Database id of the pest
+     * @param cropId                  Database id of the crop
+     * @param cropCategoryId          Database ids of the crop categories
+     * @param fromStr                 format "yyyy-MM-dd"
+     * @param toStr                   format "yyyy-MM-dd"
+     * @param user                    The user that requests this (used for authorization)
      * @return A list of observations that meets the filter criteria
      */
     private List<Observation> getFilteredObservationsFromBackend(
@@ -803,10 +852,10 @@ public class ObservationService {
             LOGGER.info("Return {} masked public observations for unregistered user", retVal.size());
             return sortObservationsByDateAndId(retVal);
         }
-         // Else: This is a registered user without special privileges. Show public observations + user's own
+        // Else: This is a registered user without special privileges. Show public observations + user's own
         // Making sure we don't add duplicates
-        Set<Integer> obsIds = retVal.stream().map(o->o.getObservationId()).collect(Collectors.toSet());
-        retVal.addAll(observationBean.getObservationsForUser(user).stream().filter(o->!obsIds.contains(o.getObservationId())).collect(Collectors.toList()));
+        Set<Integer> obsIds = retVal.stream().map(o -> o.getObservationId()).collect(Collectors.toSet());
+        retVal.addAll(observationBean.getObservationsForUser(user).stream().filter(o -> !obsIds.contains(o.getObservationId())).collect(Collectors.toList()));
         LOGGER.info("Return {} masked public observations and user's own observations for registered user {}", retVal.size(), user.getUserId());
         return sortObservationsByDateAndId(retVal);
     }
@@ -1084,6 +1133,21 @@ public class ObservationService {
                 })
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Find VipsLogic user from session or given userUUID
+     *
+     * @param userUUID the UUID of the user
+     * @return the corresponding VipsLogicUser
+     */
+    private VipsLogicUser getVipsLogicUser(String userUUID) {
+        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        if (user == null && userUUID != null) {
+            user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
+        }
+        return user;
+    }
+
 
     /**
      * Utility method for getting the string value of a given property in a given map.
