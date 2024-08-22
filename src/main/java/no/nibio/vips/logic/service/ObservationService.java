@@ -188,25 +188,26 @@ public class ObservationService {
             @QueryParam("locale") String localeStr,
             @QueryParam("isPositive") Boolean isPositive
     ) {
-        LOGGER.info("Generate xlsx file for observations");
         VipsLogicUser user = getVipsLogicUser(userUUID);
         ULocale locale = new ULocale(localeStr != null ? localeStr :
                 user != null ? user.getOrganizationId().getDefaultLocale() :
                         userBean.getOrganization(organizationId).getDefaultLocale());
-
+        LOGGER.info("Generate xlsx file for observations for user {}", user != null ? user.getUserId() : "unregistered");
 
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String filenameTimestamp = now.format(formatter);
 
         try {
-            byte[] excelFile = ExcelFileGenerator.generateExcel(getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive), locale);
+            List<ObservationListItem> observations = getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive);
+            byte[] excelFile = ExcelFileGenerator.generateExcel(observations, locale);
 
             return Response
                     .ok(excelFile)
-                    .header("Content-Disposition", "attachment; filename=\"" +filenameTimestamp+ "-observations.xlsx\"")
+                    .header("Content-Disposition", "attachment; filename=\"" + filenameTimestamp + "-observations.xlsx\"")
                     .build();
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             return Response.serverError().entity("Error generating Excel file: " + e.getMessage()).build();
         }
     }
