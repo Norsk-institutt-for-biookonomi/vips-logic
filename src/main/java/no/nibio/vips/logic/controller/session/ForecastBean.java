@@ -600,6 +600,7 @@ public class ForecastBean {
         forecastConfiguration.setCropOrganismId(em.find(Organism.class, formFields.get("cropOrganismId").getValueAsInteger()));
         forecastConfiguration.setPestOrganismId(em.find(Organism.class, formFields.get("pestOrganismId").getValueAsInteger()));
         forecastConfiguration.setIsPrivate(formFields.get("isPrivate").getWebValue() != null);
+        forecastConfiguration.setUseGridWeatherData(formFields.get("useGridWeatherData").getWebValue() != null);
         PointOfInterest locationPoi = em.find(PointOfInterest.class, formFields.get("locationPointOfInterestId").getValueAsInteger());
         forecastConfiguration.setLocationPointOfInterestId(locationPoi);
         PointOfInterest weatherStationPoi = em.find(PointOfInterestWeatherStation.class, formFields.get("weatherStationPointOfInterestId").getValueAsInteger());
