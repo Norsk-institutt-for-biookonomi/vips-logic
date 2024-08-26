@@ -520,10 +520,6 @@ public class ObservationBean {
                 .filter(o -> o.getObservationTimeSeriesId() != null)
                 .forEach(o -> o.setObservationTimeSeries(timeSeriesMap.get(o.getObservationTimeSeriesId())));
 
-        for (Observation o : observations) {
-            LOGGER.info("{}", o);
-        }
-
         return observations;
     }
     private List<Observation> getObservationsWithObservers(List<Observation> observations) {
