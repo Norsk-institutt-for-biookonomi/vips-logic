@@ -69,13 +69,15 @@ public final class ExcelFileGenerator {
 
                     if (item.getObservationData() != null) {
                         Map<String, Object> observationDataMap = objectMapper.readValue(item.getObservationData(), HashMap.class);
-                        pestSheetColIndex = COL_START_INDEX_DATA;
-                        for (String key : dataColumnTitles.keySet()) {
-                            Object value = observationDataMap.get(key);
-                            if (value instanceof Number) {
-                                row.createCell(pestSheetColIndex++).setCellValue(((Number) value).intValue());
-                            } else {
-                                row.createCell(pestSheetColIndex++).setCellValue(value != null ? value.toString() : "");
+                        if (observationDataMap != null) {
+                            pestSheetColIndex = COL_START_INDEX_DATA;
+                            for (String key : dataColumnTitles.keySet()) {
+                                Object value = observationDataMap.get(key);
+                                if (value instanceof Number) {
+                                    row.createCell(pestSheetColIndex++).setCellValue(((Number) value).intValue());
+                                } else {
+                                    row.createCell(pestSheetColIndex++).setCellValue(value != null ? value.toString() : "");
+                                }
                             }
                         }
                     }
