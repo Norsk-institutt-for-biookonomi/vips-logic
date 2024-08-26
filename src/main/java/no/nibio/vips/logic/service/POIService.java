@@ -37,7 +37,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
@@ -102,7 +104,70 @@ public class POIService {
         PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(pointOfInterestId);
         return Response.ok().entity(retVal).build();
     }
-    
+
+    @POST
+    @Consumes("application/json;charset=UTF-8")
+    @Produces("application/json;charset=UTF-8")
+    public Response postPoi(String poiJson) {
+        // TODO Fix authentication
+        ObjectMapper oM = new ObjectMapper();
+        Map<Object, Object> poiMap;
+        try {
+            poiMap = oM.readValue(poiJson, new TypeReference<HashMap<Object, Object>>() {});
+        } catch (JsonProcessingException e) {
+            LOGGER.error(e.getMessage(), e);
+            return Response.status(Status.BAD_REQUEST).entity("Unable to parse input").build();
+        }
+
+        Integer poiUserId = poiMap.get("userId") != null ? Integer.parseInt(poiMap.get("userId").toString()) : null;
+
+        VipsLogicUser user = SessionControllerGetter.getUserBean().getVipsLogicUser(poiUserId);
+        if (user == null) {
+            LOGGER.error("No user found for userId={}", poiUserId);
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+        LOGGER.error("Remember to check for roles as well, if necessary!");
+
+        PointOfInterestBean poiBean = SessionControllerGetter.getPointOfInterestBean();
+
+        Integer poiTypeId = poiMap.get("typeId") != null ? Integer.parseInt(poiMap.get("typeId").toString()) : null;
+        if(poiTypeId == null) {
+            return Response.status(Status.BAD_REQUEST).entity("Point of interest type is required").build();
+        }
+        String poiName = poiMap.get("name") != null ? poiMap.get("name").toString() : null;
+        Double poiLongitude = poiMap.get("longitude") != null ? Double.valueOf(poiMap.get("longitude").toString()): null;
+        Double poiLatitude = poiMap.get("latitude") != null ? Double.valueOf(poiMap.get("latitude").toString()): null;
+        Double poiAltitude = poiMap.get("altitude") != null ? Double.valueOf(poiMap.get("altitude").toString()): null;
+
+        PointOfInterest poiToSave = PointOfInterestFactory.getPointOfInterest(poiTypeId);
+        poiToSave.setName(poiName);
+        poiToSave.setLongitude(poiLongitude);
+        poiToSave.setLatitude(poiLatitude);
+        poiToSave.setAltitude(poiAltitude);
+        poiToSave.setLastEditedTime(new Date());
+        poiToSave.setUser(user);
+        poiToSave.setCountryCode(user.getOrganizationId().getCountryCode());
+
+        if (poiLongitude != null && poiLatitude != null && poiAltitude != null) {
+            GISUtil gisUtil = new GISUtil();
+            Coordinate coordinate = new Coordinate(poiLongitude, poiLatitude, poiAltitude);
+            Point p3d = gisUtil.createPointWGS84(coordinate);
+            poiToSave.setGisGeom(p3d);
+        }
+
+        poiToSave = poiBean.storePoi(poiToSave);
+
+        if (poiToSave != null) {
+            return Response.status(Response.Status.CREATED)
+                    .entity(poiToSave)
+                    .build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to create PointOfInterest")
+                    .build();
+        }
+    }
+
     /**
      * @param organizationId Id of the organization in question
      * @param poiTypesStr Comma separated list of poiTypes

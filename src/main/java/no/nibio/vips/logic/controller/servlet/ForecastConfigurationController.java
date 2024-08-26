@@ -18,6 +18,7 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.Calendar;
 import java.io.IOException;
 import java.text.ParseException;
@@ -37,12 +38,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
-import no.nibio.vips.logic.entity.ForecastConfiguration;
-import no.nibio.vips.logic.entity.ModelInformation;
-import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.VipsLogicRole;
-import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
@@ -52,6 +50,9 @@ import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wololo.geojson.GeoJSON;
 
 /**
  * Handles form configuration actions
@@ -59,7 +60,7 @@ import no.nibio.web.forms.FormValidator;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ForecastConfigurationController extends HttpServlet {
-    
+
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
     
@@ -71,6 +72,9 @@ public class ForecastConfigurationController extends HttpServlet {
     
     @EJB
     OrganismBean organismBean;
+
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -203,7 +207,7 @@ public class ForecastConfigurationController extends HttpServlet {
                     if(forecastConfiguration == null)
                     {
                         forecastConfiguration = new ForecastConfiguration();
-                        multipleNew =   request.getParameter("multipleNew") != null 
+                        multipleNew =   request.getParameter("multipleNew") != null
                                         && request.getParameter("multipleNew").equals("true");
                     }
                     // Only superusers can view and edit forecasts from other organizations
@@ -221,14 +225,22 @@ public class ForecastConfigurationController extends HttpServlet {
                         // TODO: More intelligent selection of locations, weather stations and users
                         if(user.isSuperUser())
                         {
-                            request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
-                            request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAllByActivity").setParameter("active", Boolean.TRUE).getResultList());
+                            List<PointOfInterest> poiList = em.createNamedQuery("PointOfInterest.findAll").getResultList();
+                            request.setAttribute("locationPointOfInterests", poiList);
+                            request.setAttribute("locationPointOfInterestsGeoJson", convertToGeoJson(poiList));
+                            List<PointOfInterest> weatherStationPoiList = em.createNamedQuery("PointOfInterestWeatherStation.findAllByActivity").setParameter("active", Boolean.TRUE).getResultList();
+                            request.setAttribute("weatherStationPointOfInterests", weatherStationPoiList);
+                            request.setAttribute("weatherStationPointOfInterestsGeoJson", convertToGeoJson(weatherStationPoiList));
                             request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
                         }
                         else
                         {
-                            request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
-                            request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList());
+                            List<PointOfInterest> poiList = em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList();
+                            request.setAttribute("locationPointOfInterests", poiList);
+                            request.setAttribute("locationPointOfInterestsGeoJson", convertToGeoJson(poiList));
+                            List<PointOfInterest> weatherStationPoiList = em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList();
+                            request.setAttribute("weatherStationPointOfInterests", weatherStationPoiList);
+                            request.setAttribute("weatherStationPointOfInterestsGeoJson", convertToGeoJson(weatherStationPoiList));
                             request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
                         }
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
@@ -244,7 +256,7 @@ public class ForecastConfigurationController extends HttpServlet {
                         request.setAttribute("modelInformations", forecastBean.getBatchableModels());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
                         request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
-                       
+
                     }
                 }
                 catch(NullPointerException | NumberFormatException ex)
@@ -264,13 +276,17 @@ public class ForecastConfigurationController extends HttpServlet {
                         forecastConfiguration.setIsPrivate(Boolean.TRUE);
                     }
                     request.setAttribute("forecastConfiguration", forecastConfiguration);
-                    request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
-                    request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList());
+                    List<PointOfInterest> poiList = em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList();
+                    request.setAttribute("locationPointOfInterests", poiList);
+                    request.setAttribute("locationPointOfInterestsGeoJson", convertToGeoJson(poiList));
+                    List<PointOfInterest> weatherStationPoiList = em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList();
+                    request.setAttribute("weatherStationPointOfInterests", weatherStationPoiList);
+                    request.setAttribute("weatherStationPointOfInterestsGeoJson", convertToGeoJson(weatherStationPoiList));
                     request.setAttribute("forecastConfiguration", forecastConfiguration);
                     request.setAttribute("formId","forecastConfigurationForm");
                     request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
-                    
+
                     request.setAttribute("allCrops", em.createNamedQuery("Organism.findAllCrops").getResultList());
                     request.setAttribute("allPests", em.createNamedQuery("Organism.findAllPests").getResultList());
                     // Hierarchy categories
@@ -279,13 +295,13 @@ public class ForecastConfigurationController extends HttpServlet {
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
                 }
-                else 
+                else
                 {
                     response.sendError(403,"Access not authorized");
                 }
             }
         }
-        
+
         // Store forecast configuration(s)
         // Authorization: SUPERUSERS and ORGANIZATION ADMINS
         else if(action.equals("forecastConfigurationFormSubmit"))
@@ -310,8 +326,8 @@ public class ForecastConfigurationController extends HttpServlet {
                 }
                 else
                 {
-                    String formId = request.getParameter("multipleNew") != null && request.getParameter("multipleNew").equals("true") ? 
-                            "forecastConfigurationMultipleNewForm" 
+                    String formId = request.getParameter("multipleNew") != null && request.getParameter("multipleNew").equals("true") ?
+                            "forecastConfigurationMultipleNewForm"
                             :"forecastConfigurationForm";
                     FormValidation formValidation = FormValidator.validateForm(formId,request,getServletContext());
                     // Also validation the model specific fields
@@ -344,7 +360,7 @@ public class ForecastConfigurationController extends HttpServlet {
                             for(String optionVal:formValidation.getFormField("weatherStationPointOfInterestIds").getWebValues())
                             {
                                 Integer weatherStationPointOfInterestId = Integer.valueOf(optionVal);
-                                forecastBean.storeNewMultipleForecastConfiguration(weatherStationPointOfInterestId, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());    
+                                forecastBean.storeNewMultipleForecastConfiguration(weatherStationPointOfInterestId, formValidation.getFormFields(), modelFieldFormValidation.getFormFields());
                             }
                             request.setAttribute("messageKey", request.getParameter("multipleForecastConfigurationsCreated"));
                             response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?messageKey=").append("multipleForecastConfigurationsCreated").toString());
@@ -357,8 +373,12 @@ public class ForecastConfigurationController extends HttpServlet {
                         // We must get date formats!
                         Map<String, FormField> formFields = FormValidator.getFormFields("forecastConfigurationForm",getServletContext());
                         // TODO: More intelligent selection of locations, weather stations and users
-                        request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findAll").getResultList());
-                        request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList());
+                        List<PointOfInterest> poiList = em.createNamedQuery("PointOfInterest.findAll").getResultList();
+                        request.setAttribute("locationPointOfInterests", poiList);
+                        request.setAttribute("locationPointOfInterestsGeoJson", convertToGeoJson(poiList));
+                        List<PointOfInterest> weatherStationPoiList = em.createNamedQuery("PointOfInterestWeatherStation.findAll").getResultList();
+                        request.setAttribute("weatherStationPointOfInterests", weatherStationPoiList);
+                        request.setAttribute("weatherStationPointOfInterestsGeoJson", convertToGeoJson(weatherStationPoiList));
                         request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findAll").getResultList());
                         request.setAttribute("dateStart_dateFormat", formFields.get("dateStart").getDateFormat());
                         request.setAttribute("dateEnd_dateFormat", formFields.get("dateEnd").getDateFormat());
@@ -403,13 +423,13 @@ public class ForecastConfigurationController extends HttpServlet {
                 try
                 {
                     forecastBean.deleteForecastConfiguration(forecastConfigurationId);
-                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?").append("&messageKey=").append("forecastConfigurationDeleted").toString());                       
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/forecastConfiguration?").append("&messageKey=").append("forecastConfigurationDeleted").toString());
                 }
                 catch(NullPointerException | NumberFormatException ex)
                 {
                     response.sendError(500, "Invalid forecast configurationId " + request.getParameter("forecastConfigurationId"));
                 }
-                
+
             }
             else
             {
@@ -417,6 +437,11 @@ public class ForecastConfigurationController extends HttpServlet {
             }
         }
     }
+
+    private GeoJSON convertToGeoJson(List<PointOfInterest> poiList) {
+        return pointOfInterestBean.getPoisAsGeoJson(poiList);
+    }
+
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

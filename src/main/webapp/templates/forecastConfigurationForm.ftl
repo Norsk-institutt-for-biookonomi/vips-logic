@@ -1,6 +1,6 @@
-<#-- 
-    Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
-  
+<#--
+    Copyright (c) 2016 NIBIO <http://www.nibio.no/>.
+
   This file is part of VIPSLogic.
   This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -16,21 +16,78 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
 <#macro page_head>
-        <title>${i18nBundle.viewForecastConfiguration}</title>
+    <title>${i18nBundle.viewForecastConfiguration}</title>
 </#macro>
 <#macro custom_js>
-	<script src="/js/resourcebundle.js"></script>
-	<script src="/js/forecastConfigurationForm.js"></script>
-	<script src="/js/validateForm.js"></script>
-	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
-	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
-	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
-	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
+    <script src="/js/resourcebundle.js"></script>
+    <script src="/js/forecastConfigurationForm.js"></script>
+    <script src="/js/validateForm.js"></script>
+    <script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+    <link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="/css/mapModal.css" />
+    <script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
+    <script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
     <script type="text/javascript" src="/js/environment.js"></script>
     <script type="text/javascript" src="/js/util.js"></script>
     <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
     <script type="text/javascript">
         $(".chosen-select").chosen();
+    </script>
+    <script type="module">
+        import MapModal from '/js/mapModal.js';
+        function callbackUpdateLocationPointOfInterest(pointData) {
+            const selectBox = document.querySelector('select[name="locationPointOfInterestId"]');
+            if(pointData.id) {
+                let optionFound = false;
+                for (let i = 0; i < selectBox.options.length; i++) {
+                    if (selectBox.options[i].value == pointData.id) {
+                        selectBox.selectedIndex = i; // Select the matching option
+                        optionFound = true;
+                        break;
+                    }
+                }
+                if (!optionFound) {
+                    console.error("No matching option found for feature.id:", pointData.id);
+                }
+            } else {
+                const userId = ${user.userId};
+                const params = {
+                    'name': pointData.name,
+                    'typeId': pointData.typeId,
+                    'longitude': pointData.longitude,
+                    'latitude': pointData.latitude,
+                    'altitude': pointData.altitude,
+                    'userId': userId,
+                }
+                $.ajax({
+                    url: "/rest/poi",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(params),
+                    success: function(response) {
+                        console.info("Success:", response);
+
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("Error:", textStatus, errorThrown);
+                    }
+                });
+            }
+        }
+        const typeNameMap = {
+            2: "${i18nBundle["pointOfInterestType_2"]}",
+            3: "${i18nBundle["pointOfInterestType_3"]}",
+            5: "${i18nBundle["pointOfInterestType_5"]}"
+        };
+
+        const poiGeoJson = JSON.parse('${locationPointOfInterestsGeoJson?json_string}');
+        const stationGeoJson = JSON.parse('${weatherStationPointOfInterestsGeoJson?json_string}')
+        const mapModalInstance = new MapModal('mapContainer', typeNameMap, poiGeoJson, true, callbackUpdateLocationPointOfInterest);
+        window.mapModalInstance = mapModalInstance;
+
+        window.openModal = () => window.mapModalInstance && window.mapModalInstance.openModal();
+        window.closeModal = () => window.mapModalInstance && window.mapModalInstance.closeModal();
     </script>
 	<script type="text/javascript">
             $(document).ready(function() {
@@ -278,6 +335,14 @@
 	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.locationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.locationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
 	    	</#list>
 	    </select>
+          <button onclick="openModal()">Open Map</button>
+          <div id="mapModal" class="modal">
+              <div class="modal-content">
+                  <span class="close-button" onclick="closeModal()">&times;</span>
+                  <div id="mapContainer" style="height: 100vh; width: 100%; position: relative;">
+                  </div>
+              </div>
+          </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
 	  <div class="form-group">
