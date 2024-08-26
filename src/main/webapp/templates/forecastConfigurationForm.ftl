@@ -36,57 +36,80 @@
     </script>
     <script type="module">
         import MapModal from '/js/mapModal.js';
-        function callbackUpdateLocationPointOfInterest(pointData) {
+        function callbackPersistNewPoint(pointData) {
+            const userId = ${user.userId};
+            const params = {
+                'name': pointData.name,
+                'typeId': pointData.typeId,
+                'longitude': pointData.longitude,
+                'latitude': pointData.latitude,
+                'altitude': '0', // default value - populate using a service for getting altitude for coordinates?
+                'userId': userId,
+            }
+            $.ajax({
+                url: "/rest/poi",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(params),
+                success: function(response) {
+                    addOption(response.pointOfInterestId, response.name);
+                    mapModalInstance.saveSuccess(response.pointOfInterestId);
+                    console.info("Success:", response);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error:", textStatus, errorThrown);
+                }
+            });
+        }
+        function callbackUpdateLocationPointOfInterest(pointOfInterestId) {
             const selectBox = document.querySelector('select[name="locationPointOfInterestId"]');
-            if(pointData.id) {
+            if(pointOfInterestId) {
                 let optionFound = false;
                 for (let i = 0; i < selectBox.options.length; i++) {
-                    if (selectBox.options[i].value == pointData.id) {
+                    if (selectBox.options[i].value == pointOfInterestId) {
                         selectBox.selectedIndex = i; // Select the matching option
                         optionFound = true;
                         break;
                     }
                 }
                 if (!optionFound) {
-                    console.error("No matching option found for feature.id:", pointData.id);
+                    console.error("No matching option found for poi.id:", pointOfInterestId);
                 }
-            } else {
-                const userId = ${user.userId};
-                const params = {
-                    'name': pointData.name,
-                    'typeId': pointData.typeId,
-                    'longitude': pointData.longitude,
-                    'latitude': pointData.latitude,
-                    'altitude': pointData.altitude,
-                    'userId': userId,
-                }
-                $.ajax({
-                    url: "/rest/poi",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(params),
-                    success: function(response) {
-                        console.info("Success:", response);
-
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("Error:", textStatus, errorThrown);
-                    }
-                });
             }
         }
+        // TODO Ensure options are sorted alphabetically..?
+        function addOption(pointOfInterestId, name) {
+            let selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
+            let newOption = document.createElement("option");
+            newOption.value = pointOfInterestId;
+            newOption.text = name;
+            selectElement.insertBefore(newOption, selectElement.firstChild);
+            selectElement.value = pointOfInterestId;
+        }
         const typeNameMap = {
+            0: "${i18nBundle["pointOfInterestType_0"]}",
+            1: "${i18nBundle["pointOfInterestType_1"]}",
             2: "${i18nBundle["pointOfInterestType_2"]}",
             3: "${i18nBundle["pointOfInterestType_3"]}",
-            5: "${i18nBundle["pointOfInterestType_5"]}"
+            5: "${i18nBundle["pointOfInterestType_5"]}",
+            6: "${i18nBundle["pointOfInterestType_6"]}",
+            7: "${i18nBundle["pointOfInterestType_7"]}"
         };
 
         const poiGeoJson = JSON.parse('${locationPointOfInterestsGeoJson?json_string}');
         const stationGeoJson = JSON.parse('${weatherStationPointOfInterestsGeoJson?json_string}')
-        const mapModalInstance = new MapModal('mapContainer', typeNameMap, poiGeoJson, true, callbackUpdateLocationPointOfInterest);
+        const mapModalInstance = new MapModal('mapContainer', typeNameMap, poiGeoJson, true, callbackPersistNewPoint, callbackUpdateLocationPointOfInterest);
         window.mapModalInstance = mapModalInstance;
 
-        window.openModal = () => window.mapModalInstance && window.mapModalInstance.openModal();
+        window.openModal = () => {
+            const selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if(selectedOption.value && selectedOption.value !== '-1') {
+                window.mapModalInstance.setSelectedLocation(selectedOption.value);
+            }
+            window.mapModalInstance.openModal();
+        };
+
         window.closeModal = () => window.mapModalInstance && window.mapModalInstance.closeModal();
     </script>
 	<script type="text/javascript">
