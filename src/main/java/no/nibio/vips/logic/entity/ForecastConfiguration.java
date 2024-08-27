@@ -127,7 +127,7 @@ public class ForecastConfiguration implements Serializable, Comparable {
     private Boolean useGridWeatherData;
     
     public Boolean getUseGridWeatherData() {
-        return useGridWeatherData;
+        return useGridWeatherData != null ? this.useGridWeatherData:false;
     }
 
     public void setUseGridWeatherData(Boolean useGridWeatherData) {
@@ -257,6 +257,29 @@ public class ForecastConfiguration implements Serializable, Comparable {
      * @return the weatherStationPointOfInterestId
      */
     public PointOfInterest getWeatherStationPointOfInterestId() {
+        if( this.getUseGridWeatherData() && this.getVipsLogicUserId().getOrganizationId().getDefaultGridWeatherStationDataSource() != null)
+        {
+            // Create a "weather station" with coordinates from the location
+            // And the default grid weather data source for the current organization (get location owner's organization)
+            PointOfInterestWeatherStation gridStation = new PointOfInterestWeatherStation();
+            gridStation.setLatitude(this.getLocationPointOfInterestId().getLatitude());
+            gridStation.setLongitude(this.getLocationPointOfInterestId().getLongitude());
+            gridStation.setName("GRID-punkt for " + this.getLocationPointOfInterestId().getName()); // TODO Translate!!!
+            gridStation.setTimeZone(this.getLocationPointOfInterestId().getTimeZone());
+            gridStation.setWeatherStationDataSourceId(this.getVipsLogicUserId().getOrganizationId().getDefaultGridWeatherStationDataSource());
+            gridStation.setUser(this.getVipsLogicUserId());
+            gridStation.setWeatherForecastProviderId(null);
+            gridStation.setWeatherStationRemoteId(gridStation.getLongitude() + "_" + gridStation.getLatitude());
+            gridStation.setGisGeom(this.getLocationPointOfInterestId().getGisGeom());
+            gridStation.setAltitude(this.getLocationPointOfInterestId().getAltitude());
+            gridStation.setCountryCode(this.getLocationPointOfInterestId().getCountryCode());
+            gridStation.setIsForecastLocation(true);
+            gridStation.setPointOfInterestTypeId(PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
+            gridStation.setUser(this.getVipsLogicUserId());
+            gridStation.setProperties(this.getLocationPointOfInterestId().getProperties());
+            return gridStation;
+        }
+
         return weatherStationPointOfInterestId;
     }
 

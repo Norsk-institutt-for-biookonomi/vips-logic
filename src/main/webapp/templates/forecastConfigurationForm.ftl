@@ -229,7 +229,7 @@
           };
 
           // Setting weather station select list state correct on page load
-          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
 
 	</script>
 </#macro>
@@ -328,7 +328,10 @@
 	    	<option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
         <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
 	    	<#list weatherStationPointOfInterests?sort_by("name") as poi>
-	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
+	    	<option value="${poi.pointOfInterestId}"<#if 
+          forecastConfiguration.weatherStationPointOfInterestId?has_content 
+          && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content 
+          && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
 	    	</#list>
 	    </select>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
