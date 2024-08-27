@@ -3,7 +3,9 @@ import {
     map,
     tileLayer,
     geoJSON,
-    circleMarker, GeoJSON,
+    circleMarker,
+    marker,
+    GeoJSON,
     DomEvent
 } from 'https://unpkg.com/leaflet/dist/leaflet-src.esm.js';
 
@@ -56,7 +58,8 @@ class MapModal {
                 maxZoom: 19
             }).addTo(this.map);
 
-            this.createSelectedPointInfo();
+            this.setUpSelectedPointInfoPanel();
+            this.setUpZoomToCurrentLocation();
 
             // Add points to the map
             geoJSON(this.geoJsonData, {
@@ -90,13 +93,39 @@ class MapModal {
     /**
      * Create information panel for selected point, initially hidden.
      */
-    createSelectedPointInfo() {
+    setUpSelectedPointInfoPanel() {
         const selectedPointInfoHtml = `
         <div id="selectedPointInfo" style="display: none;">
             <div id="infoMessage"></div>
             <button id="confirmButton" class="btn btn-primary">Velg sted</button>
         </div>`;
         document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', selectedPointInfoHtml);
+    }
+
+    setUpZoomToCurrentLocation() {
+        const zoomButtonHtml = `<button id="zoomToMyLocationButton" class="btn btn-primary">Zoom til meg</button>`;
+        document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', zoomButtonHtml);
+
+        let zoomButton = document.getElementById('zoomToMyLocationButton')
+        DomEvent.disableClickPropagation(zoomButton);
+        zoomButton.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    this.map.setView([latitude, longitude], 13);
+
+                    // Add a marker at the user's location
+                    const userLocationMarker = marker([latitude, longitude]).addTo(this.map);
+                }, (error) => {
+                    console.error('Geolocation failed: ' + error.message);
+                    alert('Unable to retrieve your location.');
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        });
     }
 
     /**
@@ -129,12 +158,7 @@ class MapModal {
     }
 
     getFeatureById(pointOfInterestId) {
-        let feature = this.geoJsonData.features.find(feature => feature.properties.pointOfInterestId == pointOfInterestId);
-        if (!feature) {
-            console.info("Feature with id=" + pointOfInterestId + " not found, assume that the user wants the newly created", this.createdPoints[0]);
-            return this.createdPoints.length > 0 ? this.createdPoints[0] : null;
-        }
-        return feature;
+        return this.geoJsonData.features.find(feature => feature.properties.pointOfInterestId == pointOfInterestId);
     }
 
     getLayerById(pointOfInterestId) {
@@ -148,12 +172,6 @@ class MapModal {
                 });
             }
         });
-        if (!result) {
-            console.info("Layer with id=" + pointOfInterestId + " not found, assume that the user wants the newly created", this.createdPointLayer);
-            this.createdPointLayer.eachLayer((layer) => {
-                result = layer;
-            });
-        }
         return result;
     }
 
@@ -213,49 +231,41 @@ class MapModal {
 
             // If a form already exists, remove it
             this.closeNewPointFormIfOpen();
+
             // Calculate the pixel position from the map's click event
             const containerPoint = this.map.latLngToContainerPoint(latlng);
+            const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x, containerPoint.y, latlng.lat, latlng.lng)
 
-            // Show form for creating a new point
-            const formHtml = `
-            <div id="pointForm" class="panel panel-default"  style="top: ${containerPoint.y}px; left: ${containerPoint.x}px;">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Create new point</h3>
-                </div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label for="name">Name:</label>
-                        <input type="text" class="form-control" id="name" name="name" autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="poiTypeSelect">Type:</label>
-                        <select class="form-control" id="poiTypeSelect" name="poiTypeSelect">
-                            <option value="2">${this.typeNameMap[2]}</option>
-                            <option value="3">${this.typeNameMap[3]}</option>
-                            <option value="5">${this.typeNameMap[5]}</option>
-                        </select>
-                    </div>
-                    <div class="form-group text-right">
-                        <button id="savePointButton" class="btn btn-primary">Save</button>
-                    </div>                
-                </div>
-            </div>`;
-            document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', formHtml);
-
-            const formElement = document.getElementById('pointForm');
-            DomEvent.disableClickPropagation(formElement);
-
+            // Click inside the form should not propagate to underlying map
+            DomEvent.disableClickPropagation(newPointFormElement);
             // Add event listener to close the form if clicked outside
             document.addEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
 
-            document.getElementById('savePointButton').addEventListener('click', () => {
-                this.savePoint(latlng.lat, latlng.lng);
+            const nameInput = newPointFormElement.querySelector('#name');
+            const latitudeInput = newPointFormElement.querySelector('#latitude');
+            const longitudeInput = newPointFormElement.querySelector('#longitude');
+            const typeInput = newPointFormElement.querySelector('#type');
+            const submitButton = newPointFormElement.querySelector('#submit-button');
+
+            const validateInputs = () => {
+                const isValidLat = !isNaN(parseFloat(latitudeInput.value)) && isFinite(latitudeInput.value);
+                const isValidLng = !isNaN(parseFloat(longitudeInput.value)) && isFinite(longitudeInput.value);
+                submitButton.disabled = !(isValidLat && isValidLng);
+            };
+            latitudeInput.addEventListener('input', validateInputs);
+            longitudeInput.addEventListener('input', validateInputs);
+            validateInputs();
+
+            submitButton.addEventListener('click', () => {
+                this.removeExistingNewPoint();
+                this.setNewPointAsSelected(nameInput.value, parseFloat(latitudeInput.value), parseFloat(longitudeInput.value), parseInt(typeInput.value, 10));
+                newPointFormElement.remove();
             });
         });
     }
 
     handleClickOutsidePointForm(event) {
-        const formElement = document.getElementById('pointForm');
+        const formElement = document.getElementById('newPointForm');
 
         // If the clicked element is not inside the form, close the form
         if (formElement && !formElement.contains(event.target)) {
@@ -264,7 +274,7 @@ class MapModal {
     }
 
     closeNewPointFormIfOpen() {
-        const formElement = document.getElementById('pointForm');
+        const formElement = document.getElementById('newPointForm');
         if (formElement) {
             formElement.remove();
         }
@@ -273,16 +283,17 @@ class MapModal {
         document.removeEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
     }
 
-    createFeatureForPoint(lng, lat, poiName, poiType) {
+    createFeatureForPoint(longitude, latitude, name, type) {
+        console.info("Create feature for [" + longitude + "," + latitude + "," + name + "," + type + "]");
         return {
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [lng, lat]
+                "coordinates": [longitude, latitude]
             },
             "properties": {
-                "pointOfInterestName": poiName,
-                "pointOfInterestTypeId": poiType
+                "pointOfInterestName": name,
+                "pointOfInterestTypeId": type
             }
         };
     }
@@ -307,33 +318,21 @@ class MapModal {
         }).addTo(this.map);
     }
 
-    savePoint(lat, lng) {
-        const poiNameElement = document.getElementById('name');
-        const poiTypeElement = document.getElementById("poiTypeSelect")
+    setNewPointAsSelected(name, latitude, longitude, type) {
+        const feature = this.createFeatureForPoint(longitude, latitude, name, type);
+        this.createdPoints.push(feature);
+        this.createdPointLayer = this.addNewPointToMap(feature);
+        this.createdPointLayer.eachLayer((layer) => {
+            this.selectPoint(feature, layer);
+        });
+    }
 
-        if (poiNameElement && poiTypeElement) {
-            const poiName = poiNameElement.value;
-            const poiType = parseInt(poiTypeElement.value, 10);
-
-            // There should only be one newly created point available
-            if (this.createdPointLayer) {
-                this.map.removeLayer(this.createdPointLayer);
-            }
-            if (this.createdPoints.length > 0) {
-                this.createdPoints.pop();
-            }
-
-            const newPoint = this.createFeatureForPoint(lng, lat, poiName, poiType);
-            this.createdPoints.push(newPoint);
-            this.createdPointLayer = this.addNewPointToMap(newPoint);
-            this.createdPointLayer.eachLayer((layer) => {
-                this.selectPoint(newPoint, layer);
-            });
-
-            const formElement = document.getElementById('pointForm');
-            if (formElement) {
-                formElement.remove();
-            }
+    removeExistingNewPoint(){
+        if (this.createdPointLayer) {
+            this.map.removeLayer(this.createdPointLayer);
+        }
+        if (this.createdPoints.length > 0) {
+            this.createdPoints.pop();
         }
     }
 
@@ -343,6 +342,54 @@ class MapModal {
         return `<div id="poiPopup">
                 <strong>${feature.properties.pointOfInterestName}</strong><br>${coordinates}<br>${localizedTypeName}
                 </div>`;
+    }
+
+    /**
+     * Creates the HTML form for adding a new point, and add it to the map container.
+     *
+     * @param positionX Where to place the form on the x axis
+     * @param positionY Where to place the form on the y axis
+     * @param latitude  Latitude of the point clicked
+     * @param longitude Longitude of the point clicked
+     * @returns {Element}
+     */
+    addHtmlElementNewPointForm(positionX, positionY, latitude, longitude) {
+        const html = `
+            <div id="newPointForm" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Opprett nytt sted</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="name">Navn:</label>
+                        <input type="text" class="form-control" id="name" name="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="latitude">Breddegrad:</label>
+                        <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude}">
+                    </div>
+                    <div class="form-group">
+                        <label for="longitude">Lengdegrad:</label>
+                        <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude}">
+                    </div>
+                    <div class="form-group">
+                        <label for="poiTypeSelect">Type:</label>
+                        <select class="form-control" id="type" name="type">
+                            <option value="2">${this.typeNameMap[2]}</option>
+                            <option value="3">${this.typeNameMap[3]}</option>
+                            <option value="5">${this.typeNameMap[5]}</option>
+                        </select>
+                    </div>
+                    <div class="form-group text-right">
+                        <button id="submit-button" class="btn btn-primary">Save</button>
+                    </div>                
+                </div>
+            </div>`;
+        const tmpContainer = document.createElement("div");
+        tmpContainer.innerHTML = html;
+        const htmlElement = tmpContainer.querySelector('#newPointForm');
+        document.getElementById(this.mapContainerId).appendChild(htmlElement);
+        return htmlElement;
     }
 
     /**
@@ -368,11 +415,10 @@ class MapModal {
         console.info("this.geoJsonData.features", this.geoJsonData.features);
     }
 
-    setSelectedLocation(selectedValue) {
-        this.selectPointById(selectedValue);
-    }
-
-    openModal(points) {
+    openModal(selectedPointOfInterestId) {
+        if(selectedPointOfInterestId) {
+            this.selectPointById(selectedPointOfInterestId);
+        }
         document.getElementById('mapModal').style.display = 'block';
         this.initMap();
     }

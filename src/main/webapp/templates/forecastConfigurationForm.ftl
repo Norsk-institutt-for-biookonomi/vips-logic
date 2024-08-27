@@ -101,13 +101,20 @@
         const mapModalInstance = new MapModal('mapContainer', typeNameMap, poiGeoJson, true, callbackPersistNewPoint, callbackUpdateLocationPointOfInterest);
         window.mapModalInstance = mapModalInstance;
 
+        // If poi is selected, send id to map modal before opening
         window.openModal = () => {
             const selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
             const selectedOption = selectElement.options[selectElement.selectedIndex];
-            if(selectedOption.value && selectedOption.value !== '-1') {
-                window.mapModalInstance.setSelectedLocation(selectedOption.value);
+
+            let selectedPointOfInterestId;
+            const value = selectedOption.value;
+            if(value) {
+                const parsedValue = parseInt(value, 10);
+                if (!isNaN(parsedValue) && parsedValue > 0) {
+                    selectedPointOfInterestId = parsedValue;
+                }
             }
-            window.mapModalInstance.openModal();
+            window.mapModalInstance.openModal(selectedPointOfInterestId);
         };
 
         window.closeModal = () => window.mapModalInstance && window.mapModalInstance.closeModal();
@@ -362,8 +369,7 @@
           <div id="mapModal" class="modal">
               <div class="modal-content">
                   <span class="close-button" onclick="closeModal()">&times;</span>
-                  <div id="mapContainer" style="height: 100vh; width: 100%; position: relative;">
-                  </div>
+                  <div id="mapContainer" style="height: 100vh; width: 100%; position: relative;"></div>
               </div>
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
