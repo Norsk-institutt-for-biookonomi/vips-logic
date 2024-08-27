@@ -401,13 +401,15 @@
 	  <#if !multipleNew?has_content || !multipleNew>
 	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
-	    <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);">
-	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
-	    	<#list locationPointOfInterests?sort_by("name") as poi>
-	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.locationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.locationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
-	    	</#list>
-	    </select>
-          <button onclick="openModal()">Open Map</button>
+          <div class="select-container" style="flex: 1; display: flex; align-items: center;">
+            <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);" style="width: calc(100% - 30px);">
+                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
+                <#list locationPointOfInterests?sort_by("name") as poi>
+                <option value="${poi.pointOfInterestId}"<#if forecastConfiguration.locationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.locationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
+                </#list>
+            </select>
+            <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openModal()"></i>
+          </div>
           <div id="mapModal" class="modal">
               <div class="modal-content">
                   <span class="close-button" onclick="closeModal()">&times;</span>
