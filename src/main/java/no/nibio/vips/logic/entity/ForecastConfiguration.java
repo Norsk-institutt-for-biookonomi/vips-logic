@@ -127,7 +127,7 @@ public class ForecastConfiguration implements Serializable, Comparable {
     private Boolean useGridWeatherData;
     
     public Boolean getUseGridWeatherData() {
-        return useGridWeatherData;
+        return useGridWeatherData != null ? useGridWeatherData : Boolean.FALSE;
     }
 
     public void setUseGridWeatherData(Boolean useGridWeatherData) {
