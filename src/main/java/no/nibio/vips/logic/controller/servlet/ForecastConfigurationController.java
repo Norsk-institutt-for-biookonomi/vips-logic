@@ -36,6 +36,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.LoggerFactory;
+
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
@@ -60,6 +63,8 @@ import org.wololo.geojson.GeoJSON;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class ForecastConfigurationController extends HttpServlet {
+
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ForecastConfigurationController.class);
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
@@ -330,9 +335,12 @@ public class ForecastConfigurationController extends HttpServlet {
                             "forecastConfigurationMultipleNewForm"
                             :"forecastConfigurationForm";
                     FormValidation formValidation = FormValidator.validateForm(formId,request,getServletContext());
+                    LOGGER.debug("formValidation=" + formValidation.isValid());
                     // Also validation the model specific fields
                     String modelId = formValidation.getFormField("modelId").getWebValue();
                     FormValidation modelFieldFormValidation = FormValidator.validateForm("models/" + modelId, request, getServletContext());
+
+                    // Additional input check: If the Grid data checkbox is not checked, a
 
                     if(formValidation.isValid() && modelFieldFormValidation.isValid())
                     {

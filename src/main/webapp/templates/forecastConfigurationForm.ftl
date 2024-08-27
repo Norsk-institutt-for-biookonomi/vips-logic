@@ -277,6 +277,47 @@
                             }
                     }
             };
+          var handleUseGridWeatherDataClicked = function(theCheckBox, weatherStationPointOfInterestId) {
+            weatherStationList = document.getElementById("weatherStationPointOfInterestId");
+            weatherStationPointOfInterestIdHiddenField = document.getElementById("weatherStationPointOfInterestIdHidden");
+            if(theCheckBox.checked)
+            {
+              // Select weatherStationId -2
+              weatherStationList.selectedIndex = 0;
+              // Disable the weatherstation select list
+              weatherStationList.disabled=true;
+              weatherStationList.name="weatherStationPointOfInterestIdDisabled";
+
+              // Enable the hidden field
+              weatherStationPointOfInterestIdHiddenField.disabled=false
+              weatherStationPointOfInterestIdHiddenField.name="weatherStationPointOfInterestId";
+            }
+            else
+            {
+              // Select weatherStationId -1 OR the optionally provided weatherStationPointOfInterestId
+              if(weatherStationPointOfInterestId == undefined || weatherStationPointOfInterestId == null)
+              {
+                weatherStationList.selectedIndex = 1;
+              }
+              else
+              {
+                 for(let i=0;i<weatherStationList.options.length;i++)
+                 {
+                    weatherStationList.options[i].selected = parseInt(weatherStationList.options[i].value) == weatherStationPointOfInterestId;
+                 }
+              }
+              // Enable the weather station select list
+              weatherStationList.disabled=false;
+              weatherStationList.name="weatherStationPointOfInterestId";
+              // Disable the hidden field
+              weatherStationPointOfInterestIdHiddenField.disabled=true
+              weatherStationPointOfInterestIdHiddenField.name="weatherStationPointOfInterestIdDisabled";
+            }
+          };
+
+          // Setting weather station select list state correct on page load
+          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+
 	</script>
 </#macro>
 <#macro custom_css>
@@ -340,6 +381,7 @@
 				<#if ! user.isSuperUser() && ! user.isOrganizationAdmin()> readonly="readonly" disabled="disabled"</#if>/>
 			</label>
 			${i18nBundle.isPrivate}
+      <span class="help-block" id="${formId}_isPrivate_validation"></span>
 		</div>
 	  </div>
 	  <div class="form-group">
@@ -359,7 +401,7 @@
 	  <#if !multipleNew?has_content || !multipleNew>
 	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
-	    <select class="form-control" name="locationPointOfInterestId" onblur="validateField(this);">
+	    <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);">
 	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
 	    	<#list locationPointOfInterests?sort_by("name") as poi>
 	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.locationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.locationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
@@ -376,14 +418,24 @@
 	  </div>
 	  <div class="form-group">
 	    <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
-	    <select class="form-control" name="weatherStationPointOfInterestId" onblur="validateField(this);">
-	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+	    <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);};">
+	    	<option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+        <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
 	    	<#list weatherStationPointOfInterests?sort_by("name") as poi>
 	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
 	    	</#list>
 	    </select>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
+    <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
+    <div class="form-group">
+		  <div class="checkbox">
+			<label>
+				<input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
+			</label>
+			${i18nBundle.useGridWeatherData}
+      <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
+		</div>
 	  <#else>
 	  <input type="hidden" name="multipleNew" value="true"/>
 	  <div class="form-group">
