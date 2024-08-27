@@ -263,8 +263,17 @@ public class PointOfInterestBean {
         return kml;
     }
 
+    public WeatherStationDataSource getWeatherStationDataSource(Integer weatherStationDataSourceId)
+    {
+        return em.find(WeatherStationDataSource.class, weatherStationDataSourceId);
+    }
+
     public List<WeatherStationDataSource> getWeatherStationDataSources() {
         return em.createNamedQuery("WeatherStationDataSource.findAll").getResultList();
+    }
+
+    public List<WeatherStationDataSource> getGridWeatherStationDataSources() {
+        return em.createNamedQuery("WeatherStationDataSource.findGridSources").getResultList();
     }
 
     public PointOfInterestWeatherStation storeWeatherStation(PointOfInterestWeatherStation weatherStation) {

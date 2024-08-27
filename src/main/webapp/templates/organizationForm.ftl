@@ -119,7 +119,7 @@
 			    <input type="text" class="form-control" name="vipswebUrl" placeholder="${i18nBundle.vipswebUrl}" value="${(organization.vipswebUrl)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_vipswebUrl_validation"></span>
 			  </div>
-                          <div class="form-group">
+                <div class="form-group">
 			    <label for="archiveUserId">${i18nBundle.archiveUserId}</label>
 			    <select class="form-control" name="archiveUserId" onblur="validateField(this);">
 			    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.archiveUserId?lower_case}
@@ -131,20 +131,32 @@
 			     </select>
 			     <span class="help-block" id="${formId}_archiveUserId_validation"></span>
 			  </div>
-                          <div class="form-group">
+                <div class="form-group">
 			    <label for="defaultVipsCoreUserId">${i18nBundle.defaultVipsCoreUserId}</label>
 			    <input type="number" class="form-control" name="defaultVipsCoreUserId" placeholder="${i18nBundle.defaultVipsCoreUserId}" value="${(organization.defaultVipsCoreUserId)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_defaultVipsCoreUserId_validation"></span>
 			  </div>
-                           <div class="form-group">
+                <div class="form-group">
 			    <label for="defaultMapZoom">${i18nBundle.defaultMapZoom}</label>
 			    <input type="number" class="form-control" name="defaultMapZoom" placeholder="${i18nBundle.defaultMapZoom}" value="${(organization.defaultMapZoom)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_defaultMapZoom_validation"></span>
 			  </div>
-                          <div class="form-group">
+                <div class="form-group">
 			    <label for="defaultMapCenter">${i18nBundle.defaultMapCenter} (WGS84 longitude,latitude)</label>
 			    <input type="text" class="form-control" name="defaultMapCenter" placeholder="${i18nBundle.defaultMapCenter}" value="${(defaultMapCenterLon?c)!""},${(defaultMapCenterLat?c)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_defaultMapCenter_validation"></span>
+			  </div>
+			  <div class="form-group">
+			    <label for="defaultGridWeatherStationDataSourceId">${i18nBundle.defaultGridWeatherStationDataSource}</label>
+			    <select class="form-control" name="defaultGridWeatherStationDataSourceId" onblur="validateField(this);">
+			    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.defaultGridWeatherStationDataSource?lower_case}
+				<#list gridWeatherDataSources as dSource>
+					<option value="${dSource.weatherStationDataSourceId}"
+						<#if organization.defaultGridWeatherStationDataSource?has_content && organization.defaultGridWeatherStationDataSource.weatherStationDataSourceId == dSource.weatherStationDataSourceId>selected="selected"</#if>
+					>${dSource.name}</option>
+				</#list>
+			     </select>
+			     <span class="help-block" id="${formId}_defaultGridWeatherStationDataSourceId_validation"></span>
 			  </div>
 			  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			  <#if organization.organizationId?has_content>
