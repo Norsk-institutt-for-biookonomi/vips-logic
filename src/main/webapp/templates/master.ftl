@@ -59,6 +59,9 @@
 		  <#else>
 		  	<li><a href="/user?action=viewUser&userId=${user.userId}">${i18nBundle.myAccount}</a></li>
 		  </#if>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser()>
+		  	<li><a href="/weatherstationdatasource">${i18nBundle.weatherStationDataSources}</a></li>
+		  </#if>
 		  <li><a href="/poi">${i18nBundle.pois}</a></li>
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isMessageAuthor()>
 		  	<li><a href="/message">${i18nBundle.messages}</a></li>

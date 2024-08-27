@@ -80,6 +80,10 @@
         <servlet-class>no.nibio.vips.logic.controller.servlet.CropCategoryController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>WeatherStationDataSourceController</servlet-name>
+        <servlet-class>no.nibio.vips.logic.controller.servlet.WeatherStationDataSourceController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>JSEnvironment</servlet-name>
         <servlet-class>no.nibio.vips.logic.web.js.JSEnvironment</servlet-class>
     </servlet>
@@ -155,6 +159,10 @@
     <servlet-mapping>
         <servlet-name>CropCategoryController</servlet-name>
         <url-pattern>/organism/cropcategory</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>WeatherStationDataSourceController</servlet-name>
+        <url-pattern>/weatherstationdatasource</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>JSEnvironment</servlet-name>
