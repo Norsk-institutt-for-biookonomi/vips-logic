@@ -39,13 +39,13 @@ class MapModal {
 
         // Colours for the available types of pois
         this.typeColorMap = {
-            0: "#B3CDE0",  // Light blue
-            1: "#FBB4AE",  // Soft pink
-            2: "#CCEBC5",  // Light green
-            3: "#DECBE4",  // Lavender
-            5: "#FED9A6",  // Light peach
-            6: "#FFFFCC",  // Pale yellow
-            7: "#E5D8BD"   // Beige
+            0: "#5DADE2",  // Bright Blue
+            1: "#58D68D",  // Vibrant Green
+            2: "#AF7AC5",  // Medium Lavender
+            3: "#F5B041",  // Warm Orange
+            5: "#F7DC6F",  // Bright Yellow
+            6: "#DC7633",   // Rich Brown
+            7: "#FF33A6"  // Vivid Magenta
         };
 
     }
@@ -183,8 +183,8 @@ class MapModal {
             this.selectedPointLayer.setStyle({
                 radius: 8,  // Size of the marker
                 fillColor: color,
-                color: "#FFFFFF",  // Border color
-                weight: 2,  // Border thickness
+                color: "#FFFFFF",
+                weight: 2,
                 opacity: 1,
                 fillOpacity: 0.8
             });
@@ -192,8 +192,9 @@ class MapModal {
 
         // Highlight the new selected point
         layer.setStyle({
-            fillColor: 'red',
-            color: '#f00'
+            radius: 12,
+            fillColor: "#FF5733",
+            fillOpacity: 1,
         });
 
         if (zoomInToSelected) {
@@ -241,6 +242,7 @@ class MapModal {
             // Add event listener to close the form if clicked outside
             document.addEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
 
+            const closeButton = newPointFormElement.querySelector("#close-button");
             const nameInput = newPointFormElement.querySelector('#name');
             const latitudeInput = newPointFormElement.querySelector('#latitude');
             const longitudeInput = newPointFormElement.querySelector('#longitude');
@@ -255,6 +257,10 @@ class MapModal {
             latitudeInput.addEventListener('input', validateInputs);
             longitudeInput.addEventListener('input', validateInputs);
             validateInputs();
+
+            closeButton.addEventListener('click', function() {
+                newPointFormElement.remove();
+            });
 
             submitButton.addEventListener('click', () => {
                 this.removeExistingNewPoint();
@@ -358,6 +364,7 @@ class MapModal {
             <div id="newPointForm" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
                 <div class="panel-heading">
                     <h3 class="panel-title">Opprett nytt sted</h3>
+                    <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
@@ -381,7 +388,7 @@ class MapModal {
                         </select>
                     </div>
                     <div class="form-group text-right">
-                        <button id="submit-button" class="btn btn-primary">Save</button>
+                        <button id="submit-button" class="btn btn-primary">OK</button>
                     </div>                
                 </div>
             </div>`;
