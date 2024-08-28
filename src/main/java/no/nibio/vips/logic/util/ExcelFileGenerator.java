@@ -7,6 +7,7 @@ import com.ibm.icu.util.ULocale;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.observationdata.ObservationDataSchema;
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 
@@ -22,17 +23,18 @@ public final class ExcelFileGenerator {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final int COL_INDEX_DATE = 0;
-    private static final int COL_INDEX_LOCATION = 1;
-    private static final int COL_INDEX_OBSERVER_ID = 2;
-    private static final int COL_INDEX_OBSERVER_NAME = 3;
-    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_ID = 4;
-    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_LABEL = 5;
-    private static final int COL_INDEX_ORGANISM = 6;
-    private static final int COL_INDEX_CROP_ORGANISM = 7;
-    private static final int COL_INDEX_HEADING = 8;
-    private static final int COL_INDEX_DESCRIPTION = 9;
-    private static final int COL_START_INDEX_DATA = 10;
+    private static final int COL_INDEX_ID = 0;
+    private static final int COL_INDEX_DATE = 1;
+    private static final int COL_INDEX_LOCATION = 2;
+    private static final int COL_INDEX_OBSERVER_ID = 3;
+    private static final int COL_INDEX_OBSERVER_NAME = 4;
+    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_ID = 5;
+    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_LABEL = 6;
+    private static final int COL_INDEX_ORGANISM = 7;
+    private static final int COL_INDEX_CROP_ORGANISM = 8;
+    private static final int COL_INDEX_HEADING = 9;
+    private static final int COL_INDEX_DESCRIPTION = 10;
+    private static final int COL_START_INDEX_DATA = 11;
 
     public static byte[] generateExcel(VipsLogicUser user, ULocale locale, List<ObservationListItem> observations) throws IOException {
         ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
@@ -47,7 +49,7 @@ public final class ExcelFileGenerator {
             int mainSheetRowIndex = 1;
             // Add one row for each observation in list of all observations
             for (ObservationListItem item : observations) {
-                createItemRow(mainSheet, mainSheetRowIndex++, item);
+                createItemRow(workbook, mainSheet, mainSheetRowIndex++, item);
             }
             autoSizeColumns(mainSheet, 0, COL_INDEX_DESCRIPTION);
 
@@ -71,7 +73,7 @@ public final class ExcelFileGenerator {
 
                 int pestSheetRowIndex = 1;
                 for (ObservationListItem item : observationsForPest) {
-                    Row row = createItemRow(pestSheet, pestSheetRowIndex++, item);
+                    Row row = createItemRow(workbook, pestSheet, pestSheetRowIndex++, item);
 
                     if (item.getObservationData() != null) {
                         Map<String, Object> observationDataMap = objectMapper.readValue(item.getObservationData(), HashMap.class);
@@ -176,6 +178,7 @@ public final class ExcelFileGenerator {
      */
     public static Row createHeaderRow(Sheet sheet, ResourceBundle rb) {
         Row headerRow = sheet.createRow(0);
+        headerRow.createCell(COL_INDEX_ID).setCellValue(rb.getString("observationId"));
         headerRow.createCell(COL_INDEX_DATE).setCellValue(rb.getString("timeOfObservation"));
         headerRow.createCell(COL_INDEX_LOCATION).setCellValue(rb.getString("location"));
         headerRow.createCell(COL_INDEX_OBSERVER_ID).setCellValue(rb.getString("observerId"));
@@ -192,16 +195,18 @@ public final class ExcelFileGenerator {
     /**
      * Create row with given index, for given observation list item
      *
+     * @param workbook The current workbook
      * @param sheet    The sheet to which a row will be added
      * @param rowIndex The index of the row
      * @param item     The item of which to add data
      * @return the newly created row
      */
-    private static Row createItemRow(Sheet sheet, int rowIndex, ObservationListItem item) throws JsonProcessingException {
+    private static Row createItemRow(XSSFWorkbook workbook, Sheet sheet, int rowIndex, ObservationListItem item) throws JsonProcessingException {
         LocalDate localDateOfObservation = item.getTimeOfObservation().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         String pointOfInterestName = getPointOfInterestName(item.getGeoInfo());
 
         Row row = sheet.createRow(rowIndex);
+        addObservationLinkToFirstCol(workbook, row, item.getObservationId());
         row.createCell(COL_INDEX_DATE).setCellValue(localDateOfObservation.format(DATE_FORMATTER));
         row.createCell(COL_INDEX_LOCATION).setCellValue(pointOfInterestName);
         row.createCell(COL_INDEX_OBSERVER_ID).setCellValue(item.getObserverId());
@@ -217,6 +222,23 @@ public final class ExcelFileGenerator {
         row.createCell(COL_INDEX_HEADING).setCellValue(item.getObservationHeading());
         row.createCell(COL_INDEX_DESCRIPTION).setCellValue(item.getObservationText());
         return row;
+    }
+
+    private static void addObservationLinkToFirstCol(Workbook workbook, Row row, Integer observationId) {
+        Cell cell = row.createCell(COL_INDEX_ID);
+        cell.setCellValue(observationId);
+
+        CreationHelper creationHelper = workbook.getCreationHelper();
+        Hyperlink hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
+        hyperlink.setAddress("https://www.vips-landbruk.no/observations/" + observationId);
+        cell.setHyperlink(hyperlink);
+
+        CellStyle hlinkStyle = workbook.createCellStyle();
+        Font hlinkFont = workbook.createFont();
+        hlinkFont.setUnderline(Font.U_SINGLE);
+        hlinkFont.setColor(IndexedColors.BLUE.getIndex());
+        hlinkStyle.setFont(hlinkFont);
+        cell.setCellStyle(hlinkStyle);
     }
 
 }
