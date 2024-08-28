@@ -691,6 +691,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         }
         return new ObservationListItem(
                 this.getObservationId(),
+                this.userId,
+                this.user != null ? this.user.getFullName() : null,
                 this.getObservationTimeSeriesId(),
                 this.getTimeOfObservation(),
                 this.getOrganismId(),

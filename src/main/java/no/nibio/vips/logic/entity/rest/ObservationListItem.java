@@ -28,6 +28,8 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
  */
 public class ObservationListItem implements Comparable{
     private Integer observationId, observationTimeSeriesId, organismId, cropOrganismId;
+    private Integer observerId;
+    private String observerName;
     private Date timeOfObservation;
     private String organismName, cropOrganismName;
     private String observationTimeSeriesLabel;
@@ -42,6 +44,8 @@ public class ObservationListItem implements Comparable{
 
     public ObservationListItem(
             Integer observationId,
+            Integer observerId,
+            String observerName,
             Integer observationTimeSeriesId,
             Date timeOfObservation,
             Integer organismId,
@@ -59,6 +63,8 @@ public class ObservationListItem implements Comparable{
             ObservationDataSchema observationDataSchema
     ){
         this.observationId = observationId;
+        this.observerId = observerId;
+        this.observerName = observerName;
         this.observationTimeSeriesId = observationTimeSeriesId;
         this.timeOfObservation = timeOfObservation;
         this.organismId = organismId;
@@ -99,6 +105,34 @@ public class ObservationListItem implements Comparable{
      */
     public void setObservationId(Integer observationId) {
         this.observationId = observationId;
+    }
+
+    /**
+     * @return The ID of the observer
+     */
+    public Integer getObserverId() {
+        return observerId;
+    }
+
+    /**
+     * @param observerId The ID to set
+     */
+    public void setObserverId(Integer observerId) {
+        this.observerId = observerId;
+    }
+
+    /**
+     * @return The full name of the observer
+     */
+    public String getObserverName() {
+        return observerName;
+    }
+
+    /**
+     * @param observerName The observer name to set
+     */
+    public void setObserverName(String observerName) {
+        this.observerName = observerName;
     }
 
     /**

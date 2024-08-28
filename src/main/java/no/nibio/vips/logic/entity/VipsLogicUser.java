@@ -143,6 +143,12 @@ public class VipsLogicUser implements Serializable, Comparable{
         this.lastName = lastName;
     }
 
+    @JsonIgnore
+    @Transient
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "vipsLogicUser", fetch=FetchType.EAGER)
     @XmlTransient
     @JsonIgnore
