@@ -16,14 +16,16 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public final class ExcelFileGenerator {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(ExcelFileGenerator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExcelFileGenerator.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private enum ColumnIndex {
@@ -73,23 +75,42 @@ public final class ExcelFileGenerator {
         }
     }
 
-    public static byte[] generateExcel(VipsLogicUser user, ULocale locale, List<ObservationListItem> observations) throws IOException {
+    public static byte[] generateExcel(VipsLogicUser user, ULocale locale, LocalDateTime now, String fromStr, String toStr, List<ObservationListItem> observations) throws IOException {
         ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
         boolean isAdmin = user != null && (user.isSuperUser() || user.isOrganizationAdmin());
         LOGGER.info("Create Excel file containing {} observations for {} user", observations.size(),  isAdmin ? "admin": "regular");
         try (XSSFWorkbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
-            // Create main mainSheet for all observations, with header row
+            // Create main sheet for all observations, with header row
             Sheet mainSheet = workbook.createSheet(rb.getString("allObservations"));
             createHeaderRow(isAdmin, mainSheet, rb);
 
             int mainSheetRowIndex = 1;
             // Add one row for each observation in list of all observations
             for (ObservationListItem item : observations) {
-                createItemRow(isAdmin, workbook, mainSheet, mainSheetRowIndex++, item, rb);
+                createItemRow(isAdmin, mainSheet, mainSheetRowIndex++, item, rb);
             }
             autoSizeColumns(mainSheet, 0, ColumnIndex.INDEX_DATA.getIndex(isAdmin) - 1);
+
+            // Create meta sheet for information about the download
+            Sheet metaSheet = workbook.createSheet(rb.getString("downloadInfo"));
+            Row userRow = metaSheet.createRow(0);
+            userRow.createCell(0).setCellValue(rb.getString("downloadedBy"));
+            userRow.createCell(1).setCellValue(user != null ? user.getFullName(): rb.getString("unregisteredUser"));
+            Row timeRow = metaSheet.createRow(1);
+            timeRow.createCell(0).setCellValue(rb.getString("downloadedTime"));
+            timeRow.createCell(1).setCellValue(DATE_TIME_FORMATTER.format(now));
+            Row fromRow = metaSheet.createRow(2);
+            fromRow.createCell(0).setCellValue(rb.getString("dateStart"));
+            fromRow.createCell(1).setCellValue(fromStr);
+            Row toRow = metaSheet.createRow(3);
+            toRow.createCell(0).setCellValue(rb.getString("dateEnd"));
+            toRow.createCell(1).setCellValue(toStr);
+            Row countRow = metaSheet.createRow(4);
+            countRow.createCell(0).setCellValue(rb.getString("observationCount"));
+            countRow.createCell(1).setCellValue(observations.size());
+            autoSizeColumns(metaSheet, 0, 1);
 
             // Prepare list of observations for each type of pest
             Map<Integer, List<ObservationListItem>> pestObservations = getObservationsForEachPest(observations);
@@ -111,7 +132,7 @@ public final class ExcelFileGenerator {
 
                 int pestSheetRowIndex = 1;
                 for (ObservationListItem item : observationsForPest) {
-                    Row row = createItemRow(isAdmin, workbook, pestSheet, pestSheetRowIndex++, item, rb);
+                    Row row = createItemRow(isAdmin, pestSheet, pestSheetRowIndex++, item, rb);
 
                     if (item.getObservationData() != null) {
                         Map<String, Object> observationDataMap = objectMapper.readValue(item.getObservationData(), HashMap.class);
@@ -214,9 +235,15 @@ public final class ExcelFileGenerator {
      * @return the newly created header row
      */
     public static Row createHeaderRow(boolean isAdmin, Sheet sheet, ResourceBundle rb) {
+        Font font = sheet.getWorkbook().createFont();
+        font.setBold(true);
+        CellStyle style = sheet.getWorkbook().createCellStyle();
+        style.setFont(font);
         Row headerRow = sheet.createRow(0);
         for (ColumnIndex columnIndex : ColumnIndex.forUser(isAdmin)) {
-            headerRow.createCell(columnIndex.getIndex(isAdmin)).setCellValue(columnIndex.getColumnHeading(rb));
+            Cell cell = headerRow.createCell(columnIndex.getIndex(isAdmin));
+            cell.setCellStyle(style);
+            cell.setCellValue(columnIndex.getColumnHeading(rb));
         }
         return headerRow;
     }
@@ -225,16 +252,15 @@ public final class ExcelFileGenerator {
      * Create row with given index, for given observation list item
      *
      * @param isAdmin  Whether the user is a logged in admin
-     * @param workbook The current workbook
      * @param sheet    The sheet to which a row will be added
      * @param rowIndex The index of the row
      * @param item     The item of which to add data
      * @return the newly created row
      */
-    private static Row createItemRow(boolean isAdmin, XSSFWorkbook workbook, Sheet sheet, int rowIndex, ObservationListItem item, ResourceBundle rb) throws JsonProcessingException {
+    private static Row createItemRow(boolean isAdmin, Sheet sheet, int rowIndex, ObservationListItem item, ResourceBundle rb) throws JsonProcessingException {
         LocalDate localDateOfObservation = item.getTimeOfObservation().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         Row row = sheet.createRow(rowIndex);
-        addObservationLinkToFirstCol(isAdmin, workbook, row, item.getObservationId());
+        addObservationLinkToFirstCol(isAdmin, row, item.getObservationId());
         row.createCell(ColumnIndex.DATE.getIndex(isAdmin)).setCellValue(localDateOfObservation.format(DATE_FORMATTER));
         row.createCell(ColumnIndex.POI_NAME.getIndex(isAdmin)).setCellValue(item.getLocationPointOfInterestName());
 
@@ -265,10 +291,11 @@ public final class ExcelFileGenerator {
         return rb.getString("no");
     }
 
-    private static void addObservationLinkToFirstCol(boolean isAdmin, Workbook workbook, Row row, Integer observationId) {
+    private static void addObservationLinkToFirstCol(boolean isAdmin, Row row, Integer observationId) {
         Cell cell = row.createCell(ColumnIndex.ID.getIndex(isAdmin));
         cell.setCellValue(observationId);
 
+        Workbook workbook = row.getSheet().getWorkbook();
         CreationHelper creationHelper = workbook.getCreationHelper();
         Hyperlink hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
         //hyperlink.setAddress("https://www.vips-landbruk.no/observations/" + observationId);

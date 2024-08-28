@@ -200,7 +200,7 @@ public class ObservationService {
 
         try {
             List<ObservationListItem> observations = getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive);
-            byte[] excelFile = ExcelFileGenerator.generateExcel(user, locale, observations);
+            byte[] excelFile = ExcelFileGenerator.generateExcel(user, locale, now, fromStr, toStr, observations);
 
             return Response
                     .ok(excelFile)
