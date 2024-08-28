@@ -10,6 +10,8 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,38 +22,74 @@ import java.util.*;
 
 public final class ExcelFileGenerator {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(ExcelFileGenerator.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final int COL_INDEX_ID = 0;
-    private static final int COL_INDEX_DATE = 1;
-    private static final int COL_INDEX_LOCATION = 2;
-    private static final int COL_INDEX_OBSERVER_ID = 3;
-    private static final int COL_INDEX_OBSERVER_NAME = 4;
-    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_ID = 5;
-    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_LABEL = 6;
-    private static final int COL_INDEX_ORGANISM = 7;
-    private static final int COL_INDEX_CROP_ORGANISM = 8;
-    private static final int COL_INDEX_HEADING = 9;
-    private static final int COL_INDEX_DESCRIPTION = 10;
-    private static final int COL_START_INDEX_DATA = 11;
+    private enum ColumnIndex {
+        ID(false, 0, 0, "observationId"),
+        DATE(false, 1, 1, "timeOfObservation"),
+        POI_NAME(false, 2, 2, "location"),
+        OBSERVER_ID(true, null, 3, "observerId"),
+        OBSERVER_NAME(true, null, 4, "observer"),
+        OBSERVATION_TIME_SERIES_ID(false, 3, 5, "observationTimeSeriesId"),
+        OBSERVATION_TIME_SERIES_LABEL(false, 4, 6, "observationTimeSeriesLabel"),
+        ORGANISM(false, 5, 7, "organism"),
+        CROP_ORGANISM(false, 6, 8, "cropOrganismId"),
+        HEADING(false, 7, 9, "observationHeading"),
+        DESCRIPTION(false, 8, 10, "observationText"),
+        BROADCAST(false, 9, 11, "isBroadcast"),
+        POSITIVE(false, 10, 12, "isPositiveRegistration"),
+        INDEX_DATA(false, 11, 13, null);
+
+        private final boolean isSensitive;
+        private final Integer openIndex;
+        private final Integer adminIndex;
+        private final String rbKey;
+
+        ColumnIndex(boolean isSensitive, Integer openIndex, Integer adminIndex, String rbKey) {
+            this.isSensitive = isSensitive;
+            this.openIndex = openIndex;
+            this.adminIndex = adminIndex;
+            this.rbKey = rbKey;
+        }
+
+        public static List<ColumnIndex> forUser(boolean isAdmin) {
+            if (!isAdmin) {
+                return Arrays.stream(ColumnIndex.values()).filter(columnIndex -> !columnIndex.isSensitive).toList();
+            }
+            return Arrays.stream(ColumnIndex.values()).toList();
+        }
+
+        public String getColumnHeading(ResourceBundle rb) {
+            return rbKey != null && !rbKey.isBlank() ? rb.getString(rbKey) : "";
+        }
+
+        public Integer getIndex(boolean admin) {
+            if (admin) {
+                return adminIndex;
+            }
+            return openIndex;
+        }
+    }
 
     public static byte[] generateExcel(VipsLogicUser user, ULocale locale, List<ObservationListItem> observations) throws IOException {
         ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
-
+        boolean isAdmin = user != null && (user.isSuperUser() || user.isOrganizationAdmin());
+        LOGGER.info("Create Excel file containing {} observations for {} user", observations.size(),  isAdmin ? "admin": "regular");
         try (XSSFWorkbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             // Create main mainSheet for all observations, with header row
             Sheet mainSheet = workbook.createSheet(rb.getString("allObservations"));
-            createHeaderRow(mainSheet, rb);
+            createHeaderRow(isAdmin, mainSheet, rb);
 
             int mainSheetRowIndex = 1;
             // Add one row for each observation in list of all observations
             for (ObservationListItem item : observations) {
-                createItemRow(workbook, mainSheet, mainSheetRowIndex++, item);
+                createItemRow(isAdmin, workbook, mainSheet, mainSheetRowIndex++, item, rb);
             }
-            autoSizeColumns(mainSheet, 0, COL_INDEX_DESCRIPTION);
+            autoSizeColumns(mainSheet, 0, ColumnIndex.INDEX_DATA.getIndex(isAdmin) - 1);
 
             // Prepare list of observations for each type of pest
             Map<Integer, List<ObservationListItem>> pestObservations = getObservationsForEachPest(observations);
@@ -61,24 +99,24 @@ public final class ExcelFileGenerator {
                 List<ObservationListItem> observationsForPest = pestObservations.get(pestId);
                 ObservationListItem firstObservationForPest = observationsForPest.get(0);
                 String pestName = firstObservationForPest.getOrganismName();
-                Sheet pestSheet = workbook.createSheet(pestName);
-                Row headerRow = createHeaderRow(pestSheet, rb);
+                Sheet pestSheet = workbook.createSheet(sanitizeSheetName(pestId, pestName));
+                Row headerRow = createHeaderRow(isAdmin, pestSheet, rb);
 
                 // Add column titles for observation data
                 Map<String, String> dataColumnTitles = getObservationDataColumnTitles(firstObservationForPest.getObservationDataSchema());
-                int pestSheetColIndex = COL_START_INDEX_DATA;
+                int pestSheetColIndex = ColumnIndex.INDEX_DATA.getIndex(isAdmin);
                 for (String key : dataColumnTitles.keySet()) {
                     headerRow.createCell(pestSheetColIndex++).setCellValue(dataColumnTitles.get(key));
                 }
 
                 int pestSheetRowIndex = 1;
                 for (ObservationListItem item : observationsForPest) {
-                    Row row = createItemRow(workbook, pestSheet, pestSheetRowIndex++, item);
+                    Row row = createItemRow(isAdmin, workbook, pestSheet, pestSheetRowIndex++, item, rb);
 
                     if (item.getObservationData() != null) {
                         Map<String, Object> observationDataMap = objectMapper.readValue(item.getObservationData(), HashMap.class);
                         if (observationDataMap != null) {
-                            pestSheetColIndex = COL_START_INDEX_DATA;
+                            pestSheetColIndex = ColumnIndex.INDEX_DATA.getIndex(isAdmin);
                             for (String key : dataColumnTitles.keySet()) {
                                 Object value = observationDataMap.get(key);
                                 if (value instanceof Number) {
@@ -90,13 +128,28 @@ public final class ExcelFileGenerator {
                         }
                     }
                 }
-                autoSizeColumns(pestSheet, COL_INDEX_DATE, COL_START_INDEX_DATA + dataColumnTitles.size());
+                autoSizeColumns(pestSheet, ColumnIndex.ID.getIndex(isAdmin), ColumnIndex.INDEX_DATA.getIndex(isAdmin) + dataColumnTitles.size());
             }
 
             workbook.write(out);
             return out.toByteArray();
         }
     }
+
+    /**
+     * Create sheet name without invalid characters and within size limits
+     *
+     * @param pestId   The id of the pest
+     * @param pestName The name of the pest
+     * @return a sanitized string to be used as sheet name
+     */
+    private static String sanitizeSheetName(Integer pestId, String pestName) {
+        if (pestName == null || pestName.isBlank()) {
+            return "Id=" + pestId;
+        }
+        return pestName.replaceAll("[\\[\\]\\*/:?\\\\]", "_").substring(0, Math.min(pestName.length(), 31));
+    }
+
 
     /**
      * Auto-size columns of given sheet, from startIndex to endIndex, to ensure that content fits
@@ -132,23 +185,6 @@ public final class ExcelFileGenerator {
     }
 
     /**
-     * Find the name of the point of interest in given geoInfo string
-     *
-     * @param geoInfo The geoInfo which might contain the name of the point of interest
-     * @return the point of interest name, or empty string
-     */
-    private static String getPointOfInterestName(String geoInfo) throws JsonProcessingException {
-        JsonNode rootNode = objectMapper.readTree(geoInfo);
-        JsonNode featuresNode = rootNode.path("features");
-        if (featuresNode.isArray() && !featuresNode.isEmpty()) {
-            JsonNode firstFeature = featuresNode.get(0);
-            JsonNode propertiesNode = firstFeature.path("properties");
-            return propertiesNode.path("pointOfInterestName").asText();
-        }
-        return "";
-    }
-
-    /**
      * Create map with pestId as key, and list of corresponding observations as value
      *
      * @param observations The original list of observations
@@ -170,67 +206,74 @@ public final class ExcelFileGenerator {
     }
 
     /**
-     * Create first row of given sheet, with standard set of column titles
+     * Create first row of given sheet, with column titles dependent on user privileges
      *
-     * @param sheet The sheet to which a row will be added
-     * @param rb    A resource bundle enabling localized messages
+     * @param isAdmin Whether the user is a logged in admin
+     * @param sheet   The sheet to which a row will be added
+     * @param rb      A resource bundle enabling localized messages
      * @return the newly created header row
      */
-    public static Row createHeaderRow(Sheet sheet, ResourceBundle rb) {
+    public static Row createHeaderRow(boolean isAdmin, Sheet sheet, ResourceBundle rb) {
         Row headerRow = sheet.createRow(0);
-        headerRow.createCell(COL_INDEX_ID).setCellValue(rb.getString("observationId"));
-        headerRow.createCell(COL_INDEX_DATE).setCellValue(rb.getString("timeOfObservation"));
-        headerRow.createCell(COL_INDEX_LOCATION).setCellValue(rb.getString("location"));
-        headerRow.createCell(COL_INDEX_OBSERVER_ID).setCellValue(rb.getString("observerId"));
-        headerRow.createCell(COL_INDEX_OBSERVER_NAME).setCellValue(rb.getString("observer"));
-        headerRow.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_ID).setCellValue(rb.getString("observationTimeSeriesId"));
-        headerRow.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_LABEL).setCellValue(rb.getString("observationTimeSeriesLabel"));
-        headerRow.createCell(COL_INDEX_ORGANISM).setCellValue(rb.getString("organism"));
-        headerRow.createCell(COL_INDEX_CROP_ORGANISM).setCellValue(rb.getString("cropOrganismId"));
-        headerRow.createCell(COL_INDEX_HEADING).setCellValue(rb.getString("observationHeading"));
-        headerRow.createCell(COL_INDEX_DESCRIPTION).setCellValue(rb.getString("observationText"));
+        for (ColumnIndex columnIndex : ColumnIndex.forUser(isAdmin)) {
+            headerRow.createCell(columnIndex.getIndex(isAdmin)).setCellValue(columnIndex.getColumnHeading(rb));
+        }
         return headerRow;
     }
 
     /**
      * Create row with given index, for given observation list item
      *
+     * @param isAdmin  Whether the user is a logged in admin
      * @param workbook The current workbook
      * @param sheet    The sheet to which a row will be added
      * @param rowIndex The index of the row
      * @param item     The item of which to add data
      * @return the newly created row
      */
-    private static Row createItemRow(XSSFWorkbook workbook, Sheet sheet, int rowIndex, ObservationListItem item) throws JsonProcessingException {
+    private static Row createItemRow(boolean isAdmin, XSSFWorkbook workbook, Sheet sheet, int rowIndex, ObservationListItem item, ResourceBundle rb) throws JsonProcessingException {
         LocalDate localDateOfObservation = item.getTimeOfObservation().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        String pointOfInterestName = getPointOfInterestName(item.getGeoInfo());
-
         Row row = sheet.createRow(rowIndex);
-        addObservationLinkToFirstCol(workbook, row, item.getObservationId());
-        row.createCell(COL_INDEX_DATE).setCellValue(localDateOfObservation.format(DATE_FORMATTER));
-        row.createCell(COL_INDEX_LOCATION).setCellValue(pointOfInterestName);
-        row.createCell(COL_INDEX_OBSERVER_ID).setCellValue(item.getObserverId());
-        row.createCell(COL_INDEX_OBSERVER_NAME).setCellValue(item.getObserverName());
+        addObservationLinkToFirstCol(isAdmin, workbook, row, item.getObservationId());
+        row.createCell(ColumnIndex.DATE.getIndex(isAdmin)).setCellValue(localDateOfObservation.format(DATE_FORMATTER));
+        row.createCell(ColumnIndex.POI_NAME.getIndex(isAdmin)).setCellValue(item.getLocationPointOfInterestName());
 
-        if(item.getObservationTimeSeriesId() != null) {
-            row.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_ID).setCellValue(item.getObservationTimeSeriesId());
-            row.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_LABEL).setCellValue(item.getObservationTimeSeriesLabel());
+        if (isAdmin) {
+            row.createCell(ColumnIndex.OBSERVER_ID.getIndex(isAdmin)).setCellValue(item.getObserverId());
+            row.createCell(ColumnIndex.OBSERVER_NAME.getIndex(isAdmin)).setCellValue(item.getObserverName());
         }
+        if(item.getObservationTimeSeriesId() != null) {
+            row.createCell(ColumnIndex.OBSERVATION_TIME_SERIES_ID.getIndex(isAdmin)).setCellValue(item.getObservationTimeSeriesId());
+            row.createCell(ColumnIndex.OBSERVATION_TIME_SERIES_LABEL.getIndex(isAdmin)).setCellValue(item.getObservationTimeSeriesLabel());
+        }
+        row.createCell(ColumnIndex.ORGANISM.getIndex(isAdmin)).setCellValue(item.getOrganismName());
+        row.createCell(ColumnIndex.CROP_ORGANISM.getIndex(isAdmin)).setCellValue(item.getCropOrganismName());
+        row.createCell(ColumnIndex.HEADING.getIndex(isAdmin)).setCellValue(item.getObservationHeading());
+        row.createCell(ColumnIndex.DESCRIPTION.getIndex(isAdmin)).setCellValue(item.getObservationText());
 
-        row.createCell(COL_INDEX_ORGANISM).setCellValue(item.getOrganismName());
-        row.createCell(COL_INDEX_CROP_ORGANISM).setCellValue(item.getCropOrganismName());
-        row.createCell(COL_INDEX_HEADING).setCellValue(item.getObservationHeading());
-        row.createCell(COL_INDEX_DESCRIPTION).setCellValue(item.getObservationText());
+        row.createCell(ColumnIndex.BROADCAST.getIndex(isAdmin)).setCellValue(getBooleanStringValue(rb, item.getBroadcastMessage()));
+        row.createCell(ColumnIndex.POSITIVE.getIndex(isAdmin)).setCellValue(getBooleanStringValue(rb, item.getIsPositive()));
         return row;
     }
 
-    private static void addObservationLinkToFirstCol(Workbook workbook, Row row, Integer observationId) {
-        Cell cell = row.createCell(COL_INDEX_ID);
+    private static String getBooleanStringValue(ResourceBundle rb, Boolean value) {
+        if (value == null) {
+            return null;
+        } else if (value) {
+            return rb.getString("yes");
+        }
+        return rb.getString("no");
+    }
+
+    private static void addObservationLinkToFirstCol(boolean isAdmin, Workbook workbook, Row row, Integer observationId) {
+        Cell cell = row.createCell(ColumnIndex.ID.getIndex(isAdmin));
         cell.setCellValue(observationId);
 
         CreationHelper creationHelper = workbook.getCreationHelper();
         Hyperlink hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
-        hyperlink.setAddress("https://www.vips-landbruk.no/observations/" + observationId);
+        //hyperlink.setAddress("https://www.vips-landbruk.no/observations/" + observationId);
+        // TODO Dette må fikses før deploy til prod
+        hyperlink.setAddress("https://testvips.nibio.no/observations/" + observationId);
         cell.setHyperlink(hyperlink);
 
         CellStyle hlinkStyle = workbook.createCellStyle();

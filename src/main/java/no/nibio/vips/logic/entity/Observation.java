@@ -703,6 +703,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 // Specific geoInfo trumps location. This is to be interpreted 
                 // as that the observation has been geographically masked by
                 // choice of the observer
+                this.locationPointOfInterestId,
+                this.location != null ? this.location.getName() : null,
                 this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
                 this.getObservationHeading(),
                 this.getObservationText(),

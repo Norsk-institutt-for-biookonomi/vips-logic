@@ -33,6 +33,8 @@ public class ObservationListItem implements Comparable{
     private Date timeOfObservation;
     private String organismName, cropOrganismName;
     private String observationTimeSeriesLabel;
+    private Integer locationPointOfInterestId;
+    private String locationPointOfInterestName;
     private String geoInfo;
     private String observationHeading;
     private String observationText;
@@ -53,6 +55,8 @@ public class ObservationListItem implements Comparable{
             Integer cropOrganismId,
             String cropOrganismName,
             String observationTimeSeriesLabel,
+            Integer poiId,
+            String poiName,
             String geoinfo,
             String observationHeading,
             String observationText,
@@ -60,8 +64,7 @@ public class ObservationListItem implements Comparable{
             Boolean locationIsPrivate,
             Boolean isPositive,
             String observationData,
-            ObservationDataSchema observationDataSchema
-    ){
+            ObservationDataSchema observationDataSchema){
         this.observationId = observationId;
         this.observerId = observerId;
         this.observerName = observerName;
@@ -72,6 +75,8 @@ public class ObservationListItem implements Comparable{
         this.cropOrganismId = cropOrganismId;
         this.cropOrganismName = cropOrganismName;
         this.observationTimeSeriesLabel = observationTimeSeriesLabel;
+        this.locationPointOfInterestId = poiId;
+        this.locationPointOfInterestName = poiName;
         this.geoInfo = geoinfo;
         this.observationHeading = observationHeading;
         this.observationText = observationText;
@@ -197,6 +202,22 @@ public class ObservationListItem implements Comparable{
 
     public void setObservationTimeSeriesLabel(String observationTimeSeriesLabel) {
         this.observationTimeSeriesLabel = observationTimeSeriesLabel;
+    }
+
+    public Integer getLocationPointOfInterestId() {
+        return locationPointOfInterestId;
+    }
+
+    public void setLocationPointOfInterestId(Integer locationPointOfInterestId) {
+        this.locationPointOfInterestId = locationPointOfInterestId;
+    }
+
+    public String getLocationPointOfInterestName() {
+        return locationPointOfInterestName;
+    }
+
+    public void setLocationPointOfInterestName(String locationPointOfInterestName) {
+        this.locationPointOfInterestName = locationPointOfInterestName;
     }
 
     /**
