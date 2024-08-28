@@ -33,6 +33,7 @@ public class ObservationListItem implements Comparable{
     private String observationTimeSeriesLabel;
     private String geoInfo;
     private String observationHeading;
+    private String observationText;
     private String observationData;
     private ObservationDataSchema observationDataSchema;
     private Boolean broadcastMessage;
@@ -50,6 +51,7 @@ public class ObservationListItem implements Comparable{
             String observationTimeSeriesLabel,
             String geoinfo,
             String observationHeading,
+            String observationText,
             Boolean broadcastMessage,
             Boolean locationIsPrivate,
             Boolean isPositive,
@@ -66,6 +68,7 @@ public class ObservationListItem implements Comparable{
         this.observationTimeSeriesLabel = observationTimeSeriesLabel;
         this.geoInfo = geoinfo;
         this.observationHeading = observationHeading;
+        this.observationText = observationText;
         this.broadcastMessage = broadcastMessage;
         this.locationIsPrivate = locationIsPrivate;
         this.isPositive = isPositive;
@@ -188,6 +191,20 @@ public class ObservationListItem implements Comparable{
      */
     public void setObservationHeading(String observationHeading) {
         this.observationHeading = observationHeading;
+    }
+
+    /**
+     * @return the observation text
+     */
+    public String getObservationText() {
+        return observationText;
+    }
+
+    /**
+     * @param observationText The observation text to set
+     */
+    public void setObservationText(String observationText) {
+        this.observationText = observationText;
     }
 
     /**

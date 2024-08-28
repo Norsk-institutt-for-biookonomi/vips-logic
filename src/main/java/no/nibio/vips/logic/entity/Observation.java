@@ -703,6 +703,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 // choice of the observer
                 this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
                 this.getObservationHeading(),
+                this.getObservationText(),
                 this.getBroadcastMessage(),
                 this.getLocationIsPrivate(),
                 this.getIsPositive(),

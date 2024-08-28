@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -26,9 +27,10 @@ public final class ExcelFileGenerator {
     private static final int COL_INDEX_ORGANISM = 2;
     private static final int COL_INDEX_CROP_ORGANISM = 3;
     private static final int COL_INDEX_HEADING = 4;
-    private static final int COL_START_INDEX_DATA = 5;
+    private static final int COL_INDEX_DESCRIPTION = 5;
+    private static final int COL_START_INDEX_DATA = 6;
 
-    public static byte[] generateExcel(List<ObservationListItem> observations, ULocale locale) throws IOException {
+    public static byte[] generateExcel(VipsLogicUser user, ULocale locale, List<ObservationListItem> observations) throws IOException {
         ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
 
         try (XSSFWorkbook workbook = new XSSFWorkbook();
@@ -43,7 +45,7 @@ public final class ExcelFileGenerator {
             for (ObservationListItem item : observations) {
                 createItemRow(mainSheet, mainSheetRowIndex++, item);
             }
-            autoSizeColumns(mainSheet, 0, COL_INDEX_HEADING);
+            autoSizeColumns(mainSheet, 0, COL_INDEX_DESCRIPTION);
 
             // Prepare list of observations for each type of pest
             Map<Integer, List<ObservationListItem>> pestObservations = getObservationsForEachPest(observations);
@@ -162,6 +164,24 @@ public final class ExcelFileGenerator {
     }
 
     /**
+     * Create first row of given sheet, with standard set of column titles
+     *
+     * @param sheet The sheet to which a row will be added
+     * @param rb    A resource bundle enabling localized messages
+     * @return the newly created header row
+     */
+    public static Row createHeaderRow(Sheet sheet, ResourceBundle rb) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(COL_INDEX_DATE).setCellValue(rb.getString("timeOfObservation"));
+        headerRow.createCell(COL_INDEX_LOCATION).setCellValue(rb.getString("location"));
+        headerRow.createCell(COL_INDEX_ORGANISM).setCellValue(rb.getString("organism"));
+        headerRow.createCell(COL_INDEX_CROP_ORGANISM).setCellValue(rb.getString("cropOrganismId"));
+        headerRow.createCell(COL_INDEX_HEADING).setCellValue(rb.getString("observationHeading"));
+        headerRow.createCell(COL_INDEX_DESCRIPTION).setCellValue(rb.getString("observationText"));
+        return headerRow;
+    }
+
+    /**
      * Create row with given index, for given observation list item
      *
      * @param sheet    The sheet to which a row will be added
@@ -179,23 +199,8 @@ public final class ExcelFileGenerator {
         row.createCell(COL_INDEX_ORGANISM).setCellValue(item.getOrganismName());
         row.createCell(COL_INDEX_CROP_ORGANISM).setCellValue(item.getCropOrganismName());
         row.createCell(COL_INDEX_HEADING).setCellValue(item.getObservationHeading());
+        row.createCell(COL_INDEX_DESCRIPTION).setCellValue(item.getObservationText());
         return row;
     }
 
-    /**
-     * Create first row of given sheet, with standard set of column titles
-     *
-     * @param sheet The sheet to which a row will be added
-     * @param rb    A resource bundle enabling localized messages
-     * @return the newly created header row
-     */
-    public static Row createHeaderRow(Sheet sheet, ResourceBundle rb) {
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(COL_INDEX_DATE).setCellValue(rb.getString("timeOfObservation"));
-        headerRow.createCell(COL_INDEX_LOCATION).setCellValue(rb.getString("location"));
-        headerRow.createCell(COL_INDEX_ORGANISM).setCellValue(rb.getString("organism"));
-        headerRow.createCell(COL_INDEX_CROP_ORGANISM).setCellValue(rb.getString("cropOrganismId"));
-        headerRow.createCell(COL_INDEX_HEADING).setCellValue(rb.getString("observationHeading"));
-        return headerRow;
-    }
 }
