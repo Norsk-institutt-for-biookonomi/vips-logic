@@ -26,11 +26,13 @@ public final class ExcelFileGenerator {
     private static final int COL_INDEX_LOCATION = 1;
     private static final int COL_INDEX_OBSERVER_ID = 2;
     private static final int COL_INDEX_OBSERVER_NAME = 3;
-    private static final int COL_INDEX_ORGANISM = 4;
-    private static final int COL_INDEX_CROP_ORGANISM = 5;
-    private static final int COL_INDEX_HEADING = 6;
-    private static final int COL_INDEX_DESCRIPTION = 7;
-    private static final int COL_START_INDEX_DATA = 8;
+    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_ID = 4;
+    private static final int COL_INDEX_OBSERVATION_TIME_SERIES_LABEL = 5;
+    private static final int COL_INDEX_ORGANISM = 6;
+    private static final int COL_INDEX_CROP_ORGANISM = 7;
+    private static final int COL_INDEX_HEADING = 8;
+    private static final int COL_INDEX_DESCRIPTION = 9;
+    private static final int COL_START_INDEX_DATA = 10;
 
     public static byte[] generateExcel(VipsLogicUser user, ULocale locale, List<ObservationListItem> observations) throws IOException {
         ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
@@ -178,6 +180,8 @@ public final class ExcelFileGenerator {
         headerRow.createCell(COL_INDEX_LOCATION).setCellValue(rb.getString("location"));
         headerRow.createCell(COL_INDEX_OBSERVER_ID).setCellValue(rb.getString("observerId"));
         headerRow.createCell(COL_INDEX_OBSERVER_NAME).setCellValue(rb.getString("observer"));
+        headerRow.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_ID).setCellValue(rb.getString("observationTimeSeriesId"));
+        headerRow.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_LABEL).setCellValue(rb.getString("observationTimeSeriesLabel"));
         headerRow.createCell(COL_INDEX_ORGANISM).setCellValue(rb.getString("organism"));
         headerRow.createCell(COL_INDEX_CROP_ORGANISM).setCellValue(rb.getString("cropOrganismId"));
         headerRow.createCell(COL_INDEX_HEADING).setCellValue(rb.getString("observationHeading"));
@@ -202,6 +206,12 @@ public final class ExcelFileGenerator {
         row.createCell(COL_INDEX_LOCATION).setCellValue(pointOfInterestName);
         row.createCell(COL_INDEX_OBSERVER_ID).setCellValue(item.getObserverId());
         row.createCell(COL_INDEX_OBSERVER_NAME).setCellValue(item.getObserverName());
+
+        if(item.getObservationTimeSeriesId() != null) {
+            row.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_ID).setCellValue(item.getObservationTimeSeriesId());
+            row.createCell(COL_INDEX_OBSERVATION_TIME_SERIES_LABEL).setCellValue(item.getObservationTimeSeriesLabel());
+        }
+
         row.createCell(COL_INDEX_ORGANISM).setCellValue(item.getOrganismName());
         row.createCell(COL_INDEX_CROP_ORGANISM).setCellValue(item.getCropOrganismName());
         row.createCell(COL_INDEX_HEADING).setCellValue(item.getObservationHeading());
