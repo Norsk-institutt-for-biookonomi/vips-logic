@@ -72,6 +72,8 @@ public class WeatherStationDataSource implements Serializable {
     @Column(name = "is_grid")
     private Boolean isGrid;
 
+   
+
     public Boolean getIsGrid() {
         return isGrid;
     }

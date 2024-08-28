@@ -24,16 +24,16 @@
 </#macro>
 <#macro page_contents>
 <div class="singleBlockContainer">
-<h1>${i18nBundle.weatherStationDataSources}</h1>
 <#if messageKey?has_content>
         <div class="alert alert-success">${i18nBundle(messageKey)}</div>
 </#if>
+<h1>${i18nBundle.weatherStationDataSources}</h1>
 <ul>
 <#list weatherStationDataSources as dSource>
 <li><a href="/weatherstationdatasource?action=editWeatherStationDataSource&weatherStationDataSourceId=${dSource.weatherStationDataSourceId}">${dSource.name}</a></li>
 </#list>
 </ul>
-<p><a href="/weatherstationdatasource??action=newWeatherStationDataSource" class="btn btn-default back" role="button">${i18nBundle.newWeatherStationDataSource}</a></p>
+<p><a href="/weatherstationdatasource?action=newWeatherStationDataSource" class="btn btn-default back" role="button">${i18nBundle.newWeatherStationDataSource}</a></p>
 </div>
 </#macro>
 <@page_html/>
