@@ -268,7 +268,8 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
     // Single select field - check for nullValue
     if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE)
     {
-        webValue = fieldEl.options[fieldEl.selectedIndex].value;
+        // Fallback if this is not a select list (could be a readonly list using a twin hidden field)
+        webValue = webValue = fieldEl.options != undefined ? fieldEl.options[fieldEl.selectedIndex].value : fieldEl.value;
         if(fieldDefinition.nullValue === webValue && fieldDefinition.required === true)
         {
             invalidizeField(fieldEl, theForm, getI18nMsg("fieldIsRequired",null));
@@ -471,7 +472,7 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
 }
 
 /**
- * Recursive function to travers upwards in tree until we find the form
+ * Recursive function to traverse upwards in tree until we find the form
  * for the given element
  * @param {DOMElement} fieldEl
  * @returns {DOMelement} the form

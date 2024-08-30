@@ -1,6 +1,6 @@
-<#-- 
-    Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
-  
+<#--
+    Copyright (c) 2016 NIBIO <http://www.nibio.no/>.
+
   This file is part of VIPSLogic.
   This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -16,21 +16,108 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
 <#macro page_head>
-        <title>${i18nBundle.viewForecastConfiguration}</title>
+    <title>${i18nBundle.viewForecastConfiguration}</title>
 </#macro>
 <#macro custom_js>
-	<script src="/js/resourcebundle.js"></script>
-	<script src="/js/forecastConfigurationForm.js"></script>
-	<script src="/js/validateForm.js"></script>
-	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
-	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
-	<script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
-	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
+    <script src="/js/resourcebundle.js"></script>
+    <script src="/js/forecastConfigurationForm.js"></script>
+    <script src="/js/validateForm.js"></script>
+    <script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
+    <link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="/css/mapModal.css" />
+    <script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
+    <script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
     <script type="text/javascript" src="/js/environment.js"></script>
     <script type="text/javascript" src="/js/util.js"></script>
     <script type="text/javascript" src="/js/3rdparty/chosen.jquery.min.js"></script>
     <script type="text/javascript">
         $(".chosen-select").chosen();
+    </script>
+    <script type="module">
+        import MapModal from '/js/mapModal.js';
+        function callbackPersistNewPoint(pointData) {
+            const userId = ${user.userId};
+            const params = {
+                'name': pointData.name,
+                'typeId': pointData.typeId,
+                'longitude': pointData.longitude,
+                'latitude': pointData.latitude,
+                'altitude': '0', // default value - populate using a service for getting altitude for coordinates?
+                'userId': userId,
+            }
+            $.ajax({
+                url: "/rest/poi",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(params),
+                success: function(response) {
+                    addOption(response.pointOfInterestId, response.name);
+                    mapModalInstance.saveSuccess(response.pointOfInterestId);
+                    console.info("Success:", response);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error:", textStatus, errorThrown);
+                }
+            });
+        }
+        function callbackUpdateLocationPointOfInterest(pointOfInterestId) {
+            const selectBox = document.querySelector('select[name="locationPointOfInterestId"]');
+            if(pointOfInterestId) {
+                let optionFound = false;
+                for (let i = 0; i < selectBox.options.length; i++) {
+                    if (selectBox.options[i].value == pointOfInterestId) {
+                        selectBox.selectedIndex = i; // Select the matching option
+                        optionFound = true;
+                        break;
+                    }
+                }
+                if (!optionFound) {
+                    console.error("No matching option found for poi.id:", pointOfInterestId);
+                }
+            }
+        }
+        // TODO Ensure options are sorted alphabetically..?
+        function addOption(pointOfInterestId, name) {
+            let selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
+            let newOption = document.createElement("option");
+            newOption.value = pointOfInterestId;
+            newOption.text = name;
+            selectElement.insertBefore(newOption, selectElement.firstChild);
+            selectElement.value = pointOfInterestId;
+        }
+        const typeNameMap = {
+            0: "${i18nBundle["pointOfInterestType_0"]}",
+            1: "${i18nBundle["pointOfInterestType_1"]}",
+            2: "${i18nBundle["pointOfInterestType_2"]}",
+            3: "${i18nBundle["pointOfInterestType_3"]}",
+            5: "${i18nBundle["pointOfInterestType_5"]}",
+            6: "${i18nBundle["pointOfInterestType_6"]}",
+            7: "${i18nBundle["pointOfInterestType_7"]}"
+        };
+
+        const poiGeoJson = JSON.parse('${locationPointOfInterestsGeoJson?json_string}');
+        const stationGeoJson = JSON.parse('${weatherStationPointOfInterestsGeoJson?json_string}')
+        const mapModalInstance = new MapModal('mapContainer', typeNameMap, poiGeoJson, true, callbackPersistNewPoint, callbackUpdateLocationPointOfInterest);
+        window.mapModalInstance = mapModalInstance;
+
+        // If poi is selected, send id to map modal before opening
+        window.openModal = () => {
+            const selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+
+            let selectedPointOfInterestId;
+            const value = selectedOption.value;
+            if(value) {
+                const parsedValue = parseInt(value, 10);
+                if (!isNaN(parsedValue) && parsedValue > 0) {
+                    selectedPointOfInterestId = parsedValue;
+                }
+            }
+            window.mapModalInstance.openModal(selectedPointOfInterestId);
+        };
+
+        window.closeModal = () => window.mapModalInstance && window.mapModalInstance.closeModal();
     </script>
 	<script type="text/javascript">
             $(document).ready(function() {
@@ -190,6 +277,47 @@
                             }
                     }
             };
+          var handleUseGridWeatherDataClicked = function(theCheckBox, weatherStationPointOfInterestId) {
+            weatherStationList = document.getElementById("weatherStationPointOfInterestId");
+            weatherStationPointOfInterestIdHiddenField = document.getElementById("weatherStationPointOfInterestIdHidden");
+            if(theCheckBox.checked)
+            {
+              // Select weatherStationId -2
+              weatherStationList.selectedIndex = 0;
+              // Disable the weatherstation select list
+              weatherStationList.disabled=true;
+              weatherStationList.name="weatherStationPointOfInterestIdDisabled";
+
+              // Enable the hidden field
+              weatherStationPointOfInterestIdHiddenField.disabled=false
+              weatherStationPointOfInterestIdHiddenField.name="weatherStationPointOfInterestId";
+            }
+            else
+            {
+              // Select weatherStationId -1 OR the optionally provided weatherStationPointOfInterestId
+              if(weatherStationPointOfInterestId == undefined || weatherStationPointOfInterestId == null)
+              {
+                weatherStationList.selectedIndex = 1;
+              }
+              else
+              {
+                 for(let i=0;i<weatherStationList.options.length;i++)
+                 {
+                    weatherStationList.options[i].selected = parseInt(weatherStationList.options[i].value) == weatherStationPointOfInterestId;
+                 }
+              }
+              // Enable the weather station select list
+              weatherStationList.disabled=false;
+              weatherStationList.name="weatherStationPointOfInterestId";
+              // Disable the hidden field
+              weatherStationPointOfInterestIdHiddenField.disabled=true
+              weatherStationPointOfInterestIdHiddenField.name="weatherStationPointOfInterestIdDisabled";
+            }
+          };
+
+          // Setting weather station select list state correct on page load
+          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+
 	</script>
 </#macro>
 <#macro custom_css>
@@ -253,6 +381,7 @@
 				<#if ! user.isSuperUser() && ! user.isOrganizationAdmin()> readonly="readonly" disabled="disabled"</#if>/>
 			</label>
 			${i18nBundle.isPrivate}
+      <span class="help-block" id="${formId}_isPrivate_validation"></span>
 		</div>
 	  </div>
 	  <div class="form-group">
@@ -272,24 +401,43 @@
 	  <#if !multipleNew?has_content || !multipleNew>
 	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
-	    <select class="form-control" name="locationPointOfInterestId" onblur="validateField(this);">
-	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
-	    	<#list locationPointOfInterests?sort_by("name") as poi>
-	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.locationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.locationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
-	    	</#list>
-	    </select>
+          <div class="select-container" style="flex: 1; display: flex; align-items: center;">
+            <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);" style="width: calc(100% - 30px);">
+                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
+                <#list locationPointOfInterests?sort_by("name") as poi>
+                <option value="${poi.pointOfInterestId}"<#if forecastConfiguration.locationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.locationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
+                </#list>
+            </select>
+            <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openModal()"></i>
+          </div>
+          <div id="mapModal" class="modal">
+              <div class="modal-content">
+                  <span class="close-button" onclick="closeModal()">&times;</span>
+                  <div id="mapContainer" style="height: 100vh; width: 100%; position: relative;"></div>
+              </div>
+          </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
-	    <select class="form-control" name="weatherStationPointOfInterestId" onblur="validateField(this);">
-	    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+	    <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);};">
+	    	<option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+        <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
 	    	<#list weatherStationPointOfInterests?sort_by("name") as poi>
 	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
 	    	</#list>
 	    </select>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
+    <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
+    <div class="form-group">
+		  <div class="checkbox">
+			<label>
+				<input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
+			</label>
+			${i18nBundle.useGridWeatherData}
+      <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
+		</div>
 	  <#else>
 	  <input type="hidden" name="multipleNew" value="true"/>
 	  <div class="form-group">

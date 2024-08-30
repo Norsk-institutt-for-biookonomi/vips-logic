@@ -50,7 +50,7 @@ import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
 /**
- * @copyright 2014-2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2024 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -123,7 +123,17 @@ public class ForecastConfiguration implements Serializable, Comparable {
     private Organism pestOrganismId;
     @Column(name = "is_private")
     private Boolean isPrivate;
+    @Column(name = "use_grid_weather_data")
+    private Boolean useGridWeatherData;
     
+    public Boolean getUseGridWeatherData() {
+        return useGridWeatherData != null ? useGridWeatherData : Boolean.FALSE;
+    }
+
+    public void setUseGridWeatherData(Boolean useGridWeatherData) {
+        this.useGridWeatherData = useGridWeatherData;
+    }
+
     @Type(type = "IntegerArray")
     @Column(name = "grid_weather_station_point_of_interest_ids")
     private Integer[] gridWeatherStationPointOfInterestIds;
