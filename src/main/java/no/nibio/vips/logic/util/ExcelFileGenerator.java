@@ -31,18 +31,19 @@ public final class ExcelFileGenerator {
     private enum ColumnIndex {
         ID(false, 0, 0, "observationId"),
         DATE(false, 1, 1, "timeOfObservation"),
-        POI_NAME(false, 2, 2, "location"),
-        OBSERVER_ID(true, null, 3, "observerId"),
-        OBSERVER_NAME(true, null, 4, "observer"),
-        OBSERVATION_TIME_SERIES_ID(false, 3, 5, "observationTimeSeriesId"),
-        OBSERVATION_TIME_SERIES_LABEL(false, 4, 6, "observationTimeSeriesLabel"),
-        ORGANISM(false, 5, 7, "organism"),
-        CROP_ORGANISM(false, 6, 8, "cropOrganismId"),
-        HEADING(false, 7, 9, "observationHeading"),
-        DESCRIPTION(false, 8, 10, "observationText"),
-        BROADCAST(false, 9, 11, "isBroadcast"),
-        POSITIVE(false, 10, 12, "isPositiveRegistration"),
-        INDEX_DATA(false, 11, 13, null);
+        POI_ID(false, 2, 2, "locationPointOfInterestId"),
+        POI_NAME(false, 3, 3, "location"),
+        OBSERVER_ID(true, null, 4, "observerId"),
+        OBSERVER_NAME(true, null, 5, "observer"),
+        OBSERVATION_TIME_SERIES_ID(false, 4, 6, "observationTimeSeriesId"),
+        OBSERVATION_TIME_SERIES_LABEL(false, 5, 7, "observationTimeSeriesLabel"),
+        ORGANISM(false, 6, 8, "organism"),
+        CROP_ORGANISM(false, 7, 9, "cropOrganismId"),
+        HEADING(false, 8, 10, "observationHeading"),
+        DESCRIPTION(false, 9, 11, "observationText"),
+        BROADCAST(false, 10, 12, "isBroadcast"),
+        POSITIVE(false, 11, 13, "isPositiveRegistration"),
+        INDEX_DATA(false, 12, 14, null);
 
         private final boolean isSensitive;
         private final Integer openIndex;
@@ -78,13 +79,18 @@ public final class ExcelFileGenerator {
     public static byte[] generateExcel(VipsLogicUser user, ULocale locale, LocalDateTime now, String fromStr, String toStr, List<ObservationListItem> observations) throws IOException {
         ResourceBundle rb = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
         boolean isAdmin = user != null && (user.isSuperUser() || user.isOrganizationAdmin());
-        LOGGER.info("Create Excel file containing {} observations for {} user", observations.size(),  isAdmin ? "admin": "regular");
+        LOGGER.info("Create Excel file containing {} observations for {} user", observations.size(), isAdmin ? "admin" : "regular");
         try (XSSFWorkbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
+            Font font = workbook.createFont();
+            font.setBold(true);
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFont(font);
+
             // Create main sheet for all observations, with header row
             Sheet mainSheet = workbook.createSheet(rb.getString("allObservations"));
-            createHeaderRow(isAdmin, mainSheet, rb);
+            createHeaderRow(isAdmin, mainSheet, headerStyle, rb);
 
             int mainSheetRowIndex = 1;
             // Add one row for each observation in list of all observations
@@ -97,7 +103,7 @@ public final class ExcelFileGenerator {
             Sheet metaSheet = workbook.createSheet(rb.getString("downloadInfo"));
             Row userRow = metaSheet.createRow(0);
             userRow.createCell(0).setCellValue(rb.getString("downloadedBy"));
-            userRow.createCell(1).setCellValue(user != null ? user.getFullName(): rb.getString("unregisteredUser"));
+            userRow.createCell(1).setCellValue(user != null ? user.getFullName() : rb.getString("unregisteredUser"));
             Row timeRow = metaSheet.createRow(1);
             timeRow.createCell(0).setCellValue(rb.getString("downloadedTime"));
             timeRow.createCell(1).setCellValue(DATE_TIME_FORMATTER.format(now));
@@ -121,13 +127,15 @@ public final class ExcelFileGenerator {
                 ObservationListItem firstObservationForPest = observationsForPest.get(0);
                 String pestName = firstObservationForPest.getOrganismName();
                 Sheet pestSheet = workbook.createSheet(sanitizeSheetName(pestId, pestName));
-                Row headerRow = createHeaderRow(isAdmin, pestSheet, rb);
+                Row headerRow = createHeaderRow(isAdmin, pestSheet, headerStyle, rb);
 
                 // Add column titles for observation data
                 Map<String, String> dataColumnTitles = getObservationDataColumnTitles(firstObservationForPest.getObservationDataSchema());
                 int pestSheetColIndex = ColumnIndex.INDEX_DATA.getIndex(isAdmin);
                 for (String key : dataColumnTitles.keySet()) {
-                    headerRow.createCell(pestSheetColIndex++).setCellValue(dataColumnTitles.get(key));
+                    Cell cell = headerRow.createCell(pestSheetColIndex++);
+                    cell.setCellStyle(headerStyle);
+                    cell.setCellValue(dataColumnTitles.get(key));
                 }
 
                 int pestSheetRowIndex = 1;
@@ -139,12 +147,7 @@ public final class ExcelFileGenerator {
                         if (observationDataMap != null) {
                             pestSheetColIndex = ColumnIndex.INDEX_DATA.getIndex(isAdmin);
                             for (String key : dataColumnTitles.keySet()) {
-                                Object value = observationDataMap.get(key);
-                                if (value instanceof Number) {
-                                    row.createCell(pestSheetColIndex++).setCellValue(((Number) value).intValue());
-                                } else {
-                                    row.createCell(pestSheetColIndex++).setCellValue(value != null ? value.toString() : "");
-                                }
+                                pestSheetColIndex = addValueToCell(row, pestSheetColIndex, observationDataMap.get(key));
                             }
                         }
                     }
@@ -229,20 +232,17 @@ public final class ExcelFileGenerator {
     /**
      * Create first row of given sheet, with column titles dependent on user privileges
      *
-     * @param isAdmin Whether the user is a logged in admin
-     * @param sheet   The sheet to which a row will be added
-     * @param rb      A resource bundle enabling localized messages
+     * @param isAdmin     Whether the user is a logged in admin
+     * @param sheet       The sheet to which a row will be added
+     * @param headerStyle The style to be applied to each cell in the header row
+     * @param rb          A resource bundle enabling localized messages
      * @return the newly created header row
      */
-    public static Row createHeaderRow(boolean isAdmin, Sheet sheet, ResourceBundle rb) {
-        Font font = sheet.getWorkbook().createFont();
-        font.setBold(true);
-        CellStyle style = sheet.getWorkbook().createCellStyle();
-        style.setFont(font);
+    public static Row createHeaderRow(boolean isAdmin, Sheet sheet, CellStyle headerStyle, ResourceBundle rb) {
         Row headerRow = sheet.createRow(0);
         for (ColumnIndex columnIndex : ColumnIndex.forUser(isAdmin)) {
             Cell cell = headerRow.createCell(columnIndex.getIndex(isAdmin));
-            cell.setCellStyle(style);
+            cell.setCellStyle(headerStyle);
             cell.setCellValue(columnIndex.getColumnHeading(rb));
         }
         return headerRow;
@@ -260,28 +260,64 @@ public final class ExcelFileGenerator {
     private static Row createItemRow(boolean isAdmin, Sheet sheet, int rowIndex, ObservationListItem item, ResourceBundle rb) throws JsonProcessingException {
         LocalDate localDateOfObservation = item.getTimeOfObservation().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         Row row = sheet.createRow(rowIndex);
-        addObservationLinkToFirstCol(isAdmin, row, item.getObservationId());
-        row.createCell(ColumnIndex.DATE.getIndex(isAdmin)).setCellValue(localDateOfObservation.format(DATE_FORMATTER));
-        row.createCell(ColumnIndex.POI_NAME.getIndex(isAdmin)).setCellValue(item.getLocationPointOfInterestName());
+        addObservationLinkToIdCol(isAdmin, row, item.getObservationId());
+        addValueToCell(row, ColumnIndex.DATE.getIndex(isAdmin), localDateOfObservation.format(DATE_FORMATTER));
+
+        if (item.getLocationPointOfInterestId() != null) {
+            addValueToCell(row, ColumnIndex.POI_ID.getIndex(isAdmin), item.getLocationPointOfInterestId());
+            addValueToCell(row, ColumnIndex.POI_NAME.getIndex(isAdmin), item.getLocationPointOfInterestName());
+        }
 
         if (isAdmin) {
-            row.createCell(ColumnIndex.OBSERVER_ID.getIndex(isAdmin)).setCellValue(item.getObserverId());
-            row.createCell(ColumnIndex.OBSERVER_NAME.getIndex(isAdmin)).setCellValue(item.getObserverName());
+            addValueToCell(row, ColumnIndex.OBSERVER_ID.getIndex(isAdmin), item.getObserverId());
+            addValueToCell(row, ColumnIndex.OBSERVER_NAME.getIndex(isAdmin), item.getObserverName());
         }
-        if(item.getObservationTimeSeriesId() != null) {
-            row.createCell(ColumnIndex.OBSERVATION_TIME_SERIES_ID.getIndex(isAdmin)).setCellValue(item.getObservationTimeSeriesId());
-            row.createCell(ColumnIndex.OBSERVATION_TIME_SERIES_LABEL.getIndex(isAdmin)).setCellValue(item.getObservationTimeSeriesLabel());
+        if (item.getObservationTimeSeriesId() != null) {
+            addValueToCell(row, ColumnIndex.OBSERVATION_TIME_SERIES_ID.getIndex(isAdmin), item.getObservationTimeSeriesId());
+            addValueToCell(row, ColumnIndex.OBSERVATION_TIME_SERIES_LABEL.getIndex(isAdmin), item.getObservationTimeSeriesLabel());
         }
-        row.createCell(ColumnIndex.ORGANISM.getIndex(isAdmin)).setCellValue(item.getOrganismName());
-        row.createCell(ColumnIndex.CROP_ORGANISM.getIndex(isAdmin)).setCellValue(item.getCropOrganismName());
-        row.createCell(ColumnIndex.HEADING.getIndex(isAdmin)).setCellValue(item.getObservationHeading());
-        row.createCell(ColumnIndex.DESCRIPTION.getIndex(isAdmin)).setCellValue(item.getObservationText());
+        addValueToCell(row, ColumnIndex.ORGANISM.getIndex(isAdmin), item.getOrganismName());
+        addValueToCell(row, ColumnIndex.CROP_ORGANISM.getIndex(isAdmin), item.getCropOrganismName());
+        addValueToCell(row, ColumnIndex.HEADING.getIndex(isAdmin), item.getObservationHeading());
+        addValueToCell(row, ColumnIndex.DESCRIPTION.getIndex(isAdmin), item.getObservationText());
 
-        row.createCell(ColumnIndex.BROADCAST.getIndex(isAdmin)).setCellValue(getBooleanStringValue(rb, item.getBroadcastMessage()));
-        row.createCell(ColumnIndex.POSITIVE.getIndex(isAdmin)).setCellValue(getBooleanStringValue(rb, item.getIsPositive()));
+        addValueToCell(row, ColumnIndex.BROADCAST.getIndex(isAdmin), getBooleanStringValue(rb, item.getBroadcastMessage()));
+        addValueToCell(row, ColumnIndex.POSITIVE.getIndex(isAdmin), getBooleanStringValue(rb, item.getIsPositive()));
         return row;
     }
 
+    /**
+     * Add value to cell
+     *
+     * @param row      The row to which the value should be added
+     * @param colIndex The index of the column to add the value to
+     * @param value    The value
+     * @return The next index value
+     */
+    private static Integer addValueToCell(Row row, Integer colIndex, Object value) {
+        Integer index = colIndex;
+        if (value == null) {
+            row.createCell(index++).setCellValue("");
+        } else if (value instanceof Number) {
+            row.createCell(index++).setCellValue(((Number) value).intValue());
+        } else {
+            try {
+                int intValue = Integer.parseInt(value.toString());
+                row.createCell(index++).setCellValue(intValue);
+            } catch (NumberFormatException e) {
+                row.createCell(index++).setCellValue(value.toString());
+            }
+        }
+        return index;
+    }
+
+    /**
+     * Get a localized String representing either true or false
+     *
+     * @param rb    The resource bundle to get the localized string from
+     * @param value Either true or false
+     * @return A localized String
+     */
     private static String getBooleanStringValue(ResourceBundle rb, Boolean value) {
         if (value == null) {
             return null;
@@ -291,7 +327,14 @@ public final class ExcelFileGenerator {
         return rb.getString("no");
     }
 
-    private static void addObservationLinkToFirstCol(boolean isAdmin, Row row, Integer observationId) {
+    /**
+     * Add link to observation details in column containing the observation Id
+     *
+     * @param isAdmin       Whether or not the user is admin
+     * @param row           A reference to the current row
+     * @param observationId The id of the observation
+     */
+    private static void addObservationLinkToIdCol(boolean isAdmin, Row row, Integer observationId) {
         Cell cell = row.createCell(ColumnIndex.ID.getIndex(isAdmin));
         cell.setCellValue(observationId);
 
