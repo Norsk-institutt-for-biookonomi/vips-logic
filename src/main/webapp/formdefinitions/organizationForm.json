@@ -95,6 +95,12 @@
             "name" : "defaultMapCenter",
             "dataType" : "STRING",
             "required" : false
+        },
+        {
+            "name": "defaultGridWeatherStationDataSourceId",
+            "dataType": "INTEGER",
+            "fieldType": "SELECT_SINGLE",
+            "required": false
         }
         
     ]

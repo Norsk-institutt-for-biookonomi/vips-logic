@@ -15,6 +15,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
+<#assign isGridForecastSupported = (user.organizationId.defaultGridWeatherStationDataSource?has_content)>
 <#macro page_head>
     <title>${i18nBundle.viewForecastConfiguration}</title>
 </#macro>
@@ -316,7 +317,9 @@
           };
 
           // Setting weather station select list state correct on page load
-          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+          <#if isGridForecastSupported>
+          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+          </#if>
 
 	</script>
 </#macro>
@@ -421,23 +424,30 @@
 	  <div class="form-group">
 	    <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
 	    <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);};">
-	    	<option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+	    	<#if isGridForecastSupported>
+          <option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+        </#if>
         <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
 	    	<#list weatherStationPointOfInterests?sort_by("name") as poi>
-	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
+	    	<option value="${poi.pointOfInterestId}"<#if 
+          forecastConfiguration.weatherStationPointOfInterestId?has_content 
+          && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content 
+          && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
 	    	</#list>
 	    </select>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
-    <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
-    <div class="form-group">
-		  <div class="checkbox">
-			<label>
-				<input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
-			</label>
-			${i18nBundle.useGridWeatherData}
-      <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
-		</div>
+    <#if isGridForecastSupported>
+      <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
+      <div class="form-group">
+        <div class="checkbox">
+        <label>
+          <input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
+        </label>
+        ${i18nBundle.useGridWeatherData}
+        <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
+      </div>
+    </#if>
 	  <#else>
 	  <input type="hidden" name="multipleNew" value="true"/>
 	  <div class="form-group">

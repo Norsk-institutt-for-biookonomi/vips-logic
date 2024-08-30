@@ -24,6 +24,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.ejb.EJB;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import no.nibio.vips.i18n.I18nImpl;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
@@ -46,6 +50,8 @@ import no.nibio.web.forms.FormField;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class RunAllForecastConfigurationsTask extends VipsLogicTask{
+
+    private static Logger LOGGER = LoggerFactory.getLogger(RunAllForecastConfigurationsTask.class);
     
     private I18nImpl i18n;
     //private boolean DEBUG=true;
@@ -91,24 +97,30 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                 noForecastConfigurationsFound = false;
                 for(ForecastConfiguration forecastConfiguration:currentForecastConfigurations)
                 {
-                    if(
-                            weatherStationPointOfInterestId == null
-                            || weatherStationPointOfInterestId <= 0
-                            || (forecastConfiguration.getWeatherStationPointOfInterestId() != null && forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                    if(forecastConfiguration.getUseGridWeatherData() && forecastConfiguration.getWeatherStationPointOfInterestId() == null)
+                    {
+                        errorMessage.append(
+                            SchedulingUtil.createSchedulingMessageHTML(
+                                "Error with forecast #" + forecastConfiguration.getForecastConfigurationId()  + " (" + forecastConfiguration.getLocationPointOfInterestId().getName() + " - " + modelInformationMap.get(forecastConfiguration.getModelId()).getDefaultName() + ")", 
+                                "The forecast is configured to use gridded weather data, but the organization " + forecastConfiguration.getVipsLogicUserId().getOrganizationId().getOrganizationName() + " has not set its gridded weather data source. Please contact the system administrator.", 
+                                SchedulingUtil.MESSAGE_STATUS_WARNING
                             )
+                        );
+                        totalNumberofForecastConfigurations++;
+                    }
+                    else if(
+                        weatherStationPointOfInterestId == null
+                        || weatherStationPointOfInterestId <= 0
+                        || (forecastConfiguration.getWeatherStationPointOfInterestId() != null && forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                    )
+
                     {
                         try 
                         {
                             totalNumberofForecastConfigurations++;
-                            //System.out.println("Running forecast #" + forecastConfiguration.getForecastConfigurationId());
+                            LOGGER.debug("Running forecast #" + forecastConfiguration.getForecastConfigurationId());
                             SessionControllerGetter.getForecastBean().runForecast(forecastConfiguration);
-                            /*
-                            if(DEBUG && totalNumberofForecastConfigurations == 2)
-                            {
-                                throw new RunModelException("This is a test!!!");
-                            }*/
                             numberOfCompletedForecastConfigurations++;
-                            //System.out.println("All went well");
                         }
                         catch (PreprocessorException | RunModelException ex) 
                         {
@@ -119,38 +131,32 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                                             ex.getMessage(), 
                                             SchedulingUtil.MESSAGE_STATUS_DANGER)
                                     );
-                            //System.out.println("###########################   Error caught: " + errorMessage);
-                            //System.out.println("numberOfCompletedForecastConfigurations=" + numberOfCompletedForecastConfigurations);
-                            //System.out.println("totalNumberofForecastConfigurations=" + totalNumberofForecastConfigurations);
-                            //continue;
                         }
 
                     }
                     if(totalNumberofForecastConfigurations > 0)
                     {
                         noForecastConfigurationsFound = false;
-                        double completeness = (double) numberOfCompletedForecastConfigurations/totalNumberofForecastConfigurations;
-                        tec.setCompleteness(completeness);
+                        tec.setCompleteness(Double.valueOf(numberOfCompletedForecastConfigurations)/Double.valueOf(totalNumberofForecastConfigurations));
                     }
                     else
                     {
                         noForecastConfigurationsFound = true;
-                        //System.out.println("noForecastConfigurationsFound == true!!");
+
                     }
-                    //System.out.println("Current completeness=" + tec.getTaskExecutor().getCompleteness());
                 }
             }
             
         }
+
         if(noForecastConfigurationsFound)
         {
                tec.setCompleteness(1.0);
                tec.setStatusMessage("No current forecast configurations were found");
         }
         
-        //System.out.println("Total completeness=" + tec.getTaskExecutor().getCompleteness());
         
-        if(tec.getTaskExecutor().getCompleteness() != 1.0)
+        if(tec.getTaskExecutor().getCompleteness() != 1.0 || ! errorMessage.isEmpty())
         {
             //System.out.println("Error detected, RuntimeException thrown just after this");
             tec.setStatusMessage(errorMessage.toString());

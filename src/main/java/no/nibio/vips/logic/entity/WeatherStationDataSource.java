@@ -40,6 +40,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "WeatherStationDataSource.findAll", query = "SELECT w FROM WeatherStationDataSource w"),
+    @NamedQuery(name = "WeatherStationDataSource.findGridSources", query = "SELECT w FROM WeatherStationDataSource w WHERE w.isGrid IS TRUE"),
     @NamedQuery(name = "WeatherStationDataSource.findByWeatherStationDataSourceId", query = "SELECT w FROM WeatherStationDataSource w WHERE w.weatherStationDataSourceId = :weatherStationDataSourceId"),
     @NamedQuery(name = "WeatherStationDataSource.findByName", query = "SELECT w FROM WeatherStationDataSource w WHERE w.name = :name"),
     @NamedQuery(name = "WeatherStationDataSource.findByDefaultDescription", query = "SELECT w FROM WeatherStationDataSource w WHERE w.defaultDescription = :defaultDescription"),
@@ -68,6 +69,18 @@ public class WeatherStationDataSource implements Serializable {
     @Size(max = 1024)
     @Column(name = "info_uri_expression")
     private String infoUriExpression;
+    @Column(name = "is_grid")
+    private Boolean isGrid;
+
+   
+
+    public Boolean getIsGrid() {
+        return isGrid;
+    }
+
+    public void setIsGrid(Boolean isGrid) {
+        this.isGrid = isGrid;
+    }
 
     public WeatherStationDataSource() {
     }
