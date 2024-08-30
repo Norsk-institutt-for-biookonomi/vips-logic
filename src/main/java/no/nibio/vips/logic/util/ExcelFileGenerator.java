@@ -28,22 +28,23 @@ public final class ExcelFileGenerator {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    // TODO Dette må fikses før deploy til prod
+    private static final String VIPSWEB = "https://testvips.nibio.no";
+    private static final String VIPSLOGIC = "https://logic.testvips.nibio.no";
+
     private enum ColumnIndex {
         ID(false, 0, 0, "observationId"),
         DATE(false, 1, 1, "timeOfObservation"),
-        POI_ID(false, 2, 2, "locationPointOfInterestId"),
-        POI_NAME(false, 3, 3, "location"),
-        OBSERVER_ID(true, null, 4, "observerId"),
-        OBSERVER_NAME(true, null, 5, "observer"),
-        OBSERVATION_TIME_SERIES_ID(false, 4, 6, "observationTimeSeriesId"),
-        OBSERVATION_TIME_SERIES_LABEL(false, 5, 7, "observationTimeSeriesLabel"),
-        ORGANISM(false, 6, 8, "organism"),
-        CROP_ORGANISM(false, 7, 9, "cropOrganismId"),
-        HEADING(false, 8, 10, "observationHeading"),
-        DESCRIPTION(false, 9, 11, "observationText"),
-        BROADCAST(false, 10, 12, "isBroadcast"),
-        POSITIVE(false, 11, 13, "isPositiveRegistration"),
-        INDEX_DATA(false, 12, 14, null);
+        POI_NAME(false, 2, 2, "location"),
+        OBSERVER_NAME(true, null, 3, "observer"),
+        OBSERVATION_TIME_SERIES_LABEL(false, 3, 4, "observationTimeSeriesLabel"),
+        ORGANISM(false, 4, 5, "organism"),
+        CROP_ORGANISM(false, 5, 6, "cropOrganismId"),
+        HEADING(false, 6, 7, "observationHeading"),
+        DESCRIPTION(false, 7, 8, "observationText"),
+        BROADCAST(false, 8, 9, "isBroadcast"),
+        POSITIVE(false, 9, 10, "isPositiveRegistration"),
+        INDEX_DATA(false, 10, 11, null);
 
         private final boolean isSensitive;
         private final Integer openIndex;
@@ -101,22 +102,7 @@ public final class ExcelFileGenerator {
 
             // Create meta sheet for information about the download
             Sheet metaSheet = workbook.createSheet(rb.getString("downloadInfo"));
-            Row userRow = metaSheet.createRow(0);
-            userRow.createCell(0).setCellValue(rb.getString("downloadedBy"));
-            userRow.createCell(1).setCellValue(user != null ? user.getFullName() : rb.getString("unregisteredUser"));
-            Row timeRow = metaSheet.createRow(1);
-            timeRow.createCell(0).setCellValue(rb.getString("downloadedTime"));
-            timeRow.createCell(1).setCellValue(DATE_TIME_FORMATTER.format(now));
-            Row fromRow = metaSheet.createRow(2);
-            fromRow.createCell(0).setCellValue(rb.getString("dateStart"));
-            fromRow.createCell(1).setCellValue(fromStr);
-            Row toRow = metaSheet.createRow(3);
-            toRow.createCell(0).setCellValue(rb.getString("dateEnd"));
-            toRow.createCell(1).setCellValue(toStr);
-            Row countRow = metaSheet.createRow(4);
-            countRow.createCell(0).setCellValue(rb.getString("observationCount"));
-            countRow.createCell(1).setCellValue(observations.size());
-            autoSizeColumns(metaSheet, 0, 1);
+            addMetaInfo(metaSheet, user, now, fromStr, toStr, observations, headerStyle, rb);
 
             // Prepare list of observations for each type of pest
             Map<Integer, List<ObservationListItem>> pestObservations = getObservationsForEachPest(observations);
@@ -158,6 +144,47 @@ public final class ExcelFileGenerator {
             workbook.write(out);
             return out.toByteArray();
         }
+    }
+
+    /**
+     * Add meta information to given sheet
+     *
+     * @param metaSheet    The sheet in which to add content
+     * @param user         The current user
+     * @param now          The current timestamp
+     * @param fromStr      The start of the period for which we have observations
+     * @param toStr        The end of the period for which we have observations
+     * @param observations The list of observations
+     * @param headerStyle  How to style the title cells
+     * @param rb           Resource bundle with translations
+     */
+    private static void addMetaInfo(Sheet metaSheet, VipsLogicUser user, LocalDateTime now, String fromStr, String toStr, List<ObservationListItem> observations, CellStyle headerStyle, ResourceBundle rb) {
+        Row userRow = metaSheet.createRow(0);
+        Cell downloadedByCell = userRow.createCell(0);
+        downloadedByCell.setCellStyle(headerStyle);
+        downloadedByCell.setCellValue(rb.getString("downloadedBy"));
+        userRow.createCell(1).setCellValue(user != null ? user.getFullName() : rb.getString("unregisteredUser"));
+        Row timeRow = metaSheet.createRow(1);
+        Cell downloadedTimeCell = timeRow.createCell(0);
+        downloadedTimeCell.setCellStyle(headerStyle);
+        downloadedTimeCell.setCellValue(rb.getString("downloadedTime"));
+        timeRow.createCell(1).setCellValue(DATE_TIME_FORMATTER.format(now));
+        Row fromRow = metaSheet.createRow(2);
+        Cell dateFromCell = fromRow.createCell(0);
+        dateFromCell.setCellStyle(headerStyle);
+        dateFromCell.setCellValue(rb.getString("dateStart"));
+        fromRow.createCell(1).setCellValue(fromStr);
+        Row toRow = metaSheet.createRow(3);
+        Cell dateToCell = toRow.createCell(0);
+        dateToCell.setCellStyle(headerStyle);
+        dateToCell.setCellValue(rb.getString("dateEnd"));
+        toRow.createCell(1).setCellValue(toStr);
+        Row countRow = metaSheet.createRow(4);
+        Cell countCell = countRow.createCell(0);
+        countCell.setCellStyle(headerStyle);
+        countCell.setCellValue(rb.getString("observationCount"));
+        countRow.createCell(1).setCellValue(observations.size());
+        autoSizeColumns(metaSheet, 0, 1);
     }
 
     /**
@@ -260,21 +287,23 @@ public final class ExcelFileGenerator {
     private static Row createItemRow(boolean isAdmin, Sheet sheet, int rowIndex, ObservationListItem item, ResourceBundle rb) throws JsonProcessingException {
         LocalDate localDateOfObservation = item.getTimeOfObservation().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         Row row = sheet.createRow(rowIndex);
-        addObservationLinkToIdCol(isAdmin, row, item.getObservationId());
+        addObservationLink(row, ColumnIndex.ID.getIndex(isAdmin), item.getObservationId());
         addValueToCell(row, ColumnIndex.DATE.getIndex(isAdmin), localDateOfObservation.format(DATE_FORMATTER));
 
         if (item.getLocationPointOfInterestId() != null) {
-            addValueToCell(row, ColumnIndex.POI_ID.getIndex(isAdmin), item.getLocationPointOfInterestId());
-            addValueToCell(row, ColumnIndex.POI_NAME.getIndex(isAdmin), item.getLocationPointOfInterestName());
+            Integer poiNameIndex = ColumnIndex.POI_NAME.getIndex(isAdmin);
+            if(isAdmin) {
+                addPoiLink(row, poiNameIndex, item.getLocationPointOfInterestId(), item.getLocationPointOfInterestName());
+            } else {
+                addValueToCell(row, poiNameIndex, item.getLocationPointOfInterestName());
+            }
         }
 
         if (isAdmin) {
-            addValueToCell(row, ColumnIndex.OBSERVER_ID.getIndex(isAdmin), item.getObserverId());
-            addValueToCell(row, ColumnIndex.OBSERVER_NAME.getIndex(isAdmin), item.getObserverName());
+            addUserLink(row, ColumnIndex.OBSERVER_NAME.getIndex(isAdmin), item.getObserverId(), item.getObserverName());
         }
         if (item.getObservationTimeSeriesId() != null) {
-            addValueToCell(row, ColumnIndex.OBSERVATION_TIME_SERIES_ID.getIndex(isAdmin), item.getObservationTimeSeriesId());
-            addValueToCell(row, ColumnIndex.OBSERVATION_TIME_SERIES_LABEL.getIndex(isAdmin), item.getObservationTimeSeriesLabel());
+            addTimeSeriesLink(row, ColumnIndex.OBSERVATION_TIME_SERIES_LABEL.getIndex(isAdmin), item.getObservationTimeSeriesId(), item.getObservationTimeSeriesLabel());
         }
         addValueToCell(row, ColumnIndex.ORGANISM.getIndex(isAdmin), item.getOrganismName());
         addValueToCell(row, ColumnIndex.CROP_ORGANISM.getIndex(isAdmin), item.getCropOrganismName());
@@ -330,28 +359,84 @@ public final class ExcelFileGenerator {
     /**
      * Add link to observation details in column containing the observation Id
      *
-     * @param isAdmin       Whether or not the user is admin
      * @param row           A reference to the current row
+     * @param colIndex      The index of the column in which the link should be added
      * @param observationId The id of the observation
      */
-    private static void addObservationLinkToIdCol(boolean isAdmin, Row row, Integer observationId) {
-        Cell cell = row.createCell(ColumnIndex.ID.getIndex(isAdmin));
+    private static void addObservationLink(Row row, Integer colIndex, Integer observationId) {
+        Cell cell = row.createCell(colIndex);
         cell.setCellValue(observationId);
 
         Workbook workbook = row.getSheet().getWorkbook();
+        cell.setHyperlink(createHyperlink(workbook, VIPSWEB + "/observations/" + observationId));
+        cell.setCellStyle(hyperlinkCellStyle(workbook));
+    }
+
+    /**
+     * Add link to timeseries details in column with given index
+     *
+     * @param row             A reference to the current row
+     * @param colIndex        The index of the column in which the link should be added
+     * @param timeSeriesId    The id of the timeseries
+     * @param timeSeriesLabel The text which should be displayed in the cell
+     */
+    private static void addTimeSeriesLink(Row row, Integer colIndex, Integer timeSeriesId, String timeSeriesLabel) {
+        Cell cell = row.createCell(colIndex);
+        cell.setCellValue(timeSeriesLabel);
+
+        Workbook workbook = row.getSheet().getWorkbook();
+        cell.setHyperlink(createHyperlink(workbook, VIPSWEB + "/observations/timeseries/" + timeSeriesId));
+        cell.setCellStyle(hyperlinkCellStyle(workbook));
+    }
+
+    /**
+     * Add link to poi details in column with given index
+     *
+     * @param row      A reference to the current row
+     * @param colIndex The index of the column in which the link should be added
+     * @param poiId    The id of the poi
+     * @param poiName  The text which should be displayed in the cell
+     */
+    private static void addPoiLink(Row row, Integer colIndex, Integer poiId, String poiName) {
+        Cell cell = row.createCell(colIndex);
+        cell.setCellValue(poiName);
+
+        Workbook workbook = row.getSheet().getWorkbook();
+        cell.setHyperlink(createHyperlink(workbook, VIPSLOGIC + "/weatherStation?pointOfInterestId=" + poiId));
+        cell.setCellStyle(hyperlinkCellStyle(workbook));
+    }
+
+    /**
+     * Add link to user details in column with given index
+     *
+     * @param row      A reference to the current row
+     * @param colIndex The index of the column in which the link should be added
+     * @param userId   The id of the user
+     * @param userName The text which should be displayed in the cell
+     */
+    private static void addUserLink(Row row, Integer colIndex, Integer userId, String userName) {
+        Cell cell = row.createCell(colIndex);
+        cell.setCellValue(userName);
+
+        Workbook workbook = row.getSheet().getWorkbook();
+        cell.setHyperlink(createHyperlink(workbook, VIPSLOGIC + "/user?action=viewUser&userId=" + userId));
+        cell.setCellStyle(hyperlinkCellStyle(workbook));
+    }
+
+    private static Hyperlink createHyperlink(Workbook workbook, String url) {
         CreationHelper creationHelper = workbook.getCreationHelper();
         Hyperlink hyperlink = creationHelper.createHyperlink(HyperlinkType.URL);
-        //hyperlink.setAddress("https://www.vips-landbruk.no/observations/" + observationId);
-        // TODO Dette må fikses før deploy til prod
-        hyperlink.setAddress("https://testvips.nibio.no/observations/" + observationId);
-        cell.setHyperlink(hyperlink);
+        hyperlink.setAddress(url);
+        return hyperlink;
+    }
 
-        CellStyle hlinkStyle = workbook.createCellStyle();
+    private static CellStyle hyperlinkCellStyle(Workbook workbook) {
+        CellStyle hyperlinkStyle = workbook.createCellStyle();
         Font hlinkFont = workbook.createFont();
         hlinkFont.setUnderline(Font.U_SINGLE);
         hlinkFont.setColor(IndexedColors.BLUE.getIndex());
-        hlinkStyle.setFont(hlinkFont);
-        cell.setCellStyle(hlinkStyle);
+        hyperlinkStyle.setFont(hlinkFont);
+        return hyperlinkStyle;
     }
 
 }
