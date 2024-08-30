@@ -192,7 +192,7 @@ public class ObservationService {
         ULocale locale = new ULocale(localeStr != null ? localeStr :
                 user != null ? user.getOrganizationId().getDefaultLocale() :
                         userBean.getOrganization(organizationId).getDefaultLocale());
-        LOGGER.info("Generate xlsx file for observations for user {}", user != null ? user.getUserId() : "unregistered");
+        LOGGER.info("Generate xlsx file for observations for user {} from {} to {}", user != null ? user.getUserId() : "unregistered", fromStr, toStr);
 
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -200,7 +200,7 @@ public class ObservationService {
 
         try {
             List<ObservationListItem> observations = getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive);
-            byte[] excelFile = ExcelFileGenerator.generateExcel(observations, locale);
+            byte[] excelFile = ExcelFileGenerator.generateExcel(user, locale, now, fromStr, toStr, observations);
 
             return Response
                     .ok(excelFile)

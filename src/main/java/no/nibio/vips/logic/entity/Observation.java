@@ -691,6 +691,8 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         }
         return new ObservationListItem(
                 this.getObservationId(),
+                this.userId,
+                this.user != null ? this.user.getFullName() : null,
                 this.getObservationTimeSeriesId(),
                 this.getTimeOfObservation(),
                 this.getOrganismId(),
@@ -701,8 +703,11 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
                 // Specific geoInfo trumps location. This is to be interpreted 
                 // as that the observation has been geographically masked by
                 // choice of the observer
+                this.location != null ? this.location.getPointOfInterestId() : null,
+                this.location != null ? this.location.getName() : null,
                 this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
                 this.getObservationHeading(),
+                this.getObservationText(),
                 this.getBroadcastMessage(),
                 this.getLocationIsPrivate(),
                 this.getIsPositive(),
