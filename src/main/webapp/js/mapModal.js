@@ -16,19 +16,18 @@ import {
 class MapModal {
 
     /**
-     * @param mapContainerId    The id of the HTML element to which the map should be added
+     * @param mapModalId    The id of the HTML element in which the modal should be opened
      * @param typeNameMap   A mapping from pointOfInterestTypeIds to their localized names
      * @param geoJsonData   GeoJson containing all features which should be displayed on the map
      * @param allowNewPoints    Whether or not the user should be allowed to add new points
-     * @param callbackOnPersistNew  Callback function for persisting newly created point
      * @param callbackOnClose   Callback function to call when closing the modal
      */
-    constructor(mapContainerId, typeNameMap, geoJsonData, allowNewPoints = false, callbackOnPersistNew = null, callbackOnClose = null) {
-        this.mapContainerId = mapContainerId;
+    constructor(mapModalId, typeNameMap, geoJsonData, allowNewPoints = false, callbackOnClose = null) {
+        this.mapModalId = mapModalId;
+        this.mapContainerId = mapModalId + "-container";
         this.typeNameMap = typeNameMap;
         this.geoJsonData = geoJsonData;
         this.allowNewPoints = allowNewPoints;
-        this.callbackOnPersistNew = callbackOnPersistNew;
         this.callbackOnClose = callbackOnClose;
 
         this.map = null;
@@ -57,6 +56,7 @@ class MapModal {
             tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19
             }).addTo(this.map);
+            console.info("Create map " + this.mapContainerId + " with points", this.geoJsonData);
 
             this.setUpSelectedPointInfoPanel();
             this.setUpZoomToCurrentLocation();
@@ -208,19 +208,15 @@ class MapModal {
 
     confirmSelection(feature) {
         console.info("Confirm selection", feature);
-        let poiId = feature.properties.pointOfInterestId;
-        if (!poiId && typeof this.callbackOnPersistNew === 'function') {
+        if (typeof this.callbackOnClose === 'function') {
             const pointData = {
+                id: feature.properties.pointOfInterestId,
                 name: feature.properties.pointOfInterestName,
                 typeId: feature.properties.pointOfInterestTypeId,
                 longitude: feature.geometry.coordinates[0],
                 latitude: feature.geometry.coordinates[1]
             };
-            console.info("Persist new", pointData);
-            this.callbackOnPersistNew(pointData);
-        }
-        if (typeof this.callbackOnClose === 'function') {
-            this.callbackOnClose(poiId);
+            this.callbackOnClose(pointData);
             console.info("Goodbye from map modal!")
         }
         this.closeModal();
@@ -423,15 +419,20 @@ class MapModal {
     }
 
     openModal(selectedPointOfInterestId) {
+        document.getElementById(this.mapModalId).style.display = 'block';
+        this.initMap();
         if(selectedPointOfInterestId) {
             this.selectPointById(selectedPointOfInterestId);
         }
-        document.getElementById('mapModal').style.display = 'block';
-        this.initMap();
     }
 
     closeModal() {
-        document.getElementById('mapModal').style.display = 'none';
+        document.getElementById(this.mapModalId).style.display = 'none';
+        if (this.map) {
+            console.info("Remove map");
+            this.map.remove();
+            this.map = null;
+        }
     }
 }
 

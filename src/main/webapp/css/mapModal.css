@@ -1,4 +1,4 @@
-.modal {
+.map-modal {
     display: none;
     position: fixed;
     z-index: 1000;
@@ -10,7 +10,7 @@
     background-color: rgba(0, 0, 0, 0.9);
 }
 
-.modal-content {
+.map-modal-content {
     position: relative;
     height: 100%;
     width: 100%;
