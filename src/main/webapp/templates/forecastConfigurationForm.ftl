@@ -25,7 +25,7 @@
     <script src="/js/validateForm.js"></script>
     <script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
     <link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="/css/3rdparty/leaflet.css" />
     <link rel="stylesheet" href="/css/mapModal.css" />
     <script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
     <script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
@@ -93,7 +93,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'Authorization': '${user.userUuid}'
+                    'Authorization': '${user.userUuid!'NOT LOGGED IN?'}'
                 },
                 body: JSON.stringify(params)
             })
@@ -141,6 +141,11 @@
         };
 
         window.openModal = () => {
+            let language = '${currentLanguage}';
+            // In some browsers, initial language seems to be set to no. Hack to avoid subsequent problems:
+            if(language === 'no') {
+                language = 'nb';
+            }
             let poiIds = poiList.map(poi => poi.pointOfInterestId);
             fetch("/rest/poi/geojson", {
                 method: 'POST',
@@ -152,7 +157,7 @@
             })
             .then(response => response.json())
             .then(geoJson => {
-                window.mapModalInstance = new MapModal('map-modal', typeNameMap, geoJson, '${currentLanguage}', true, callbackOnClose);
+                window.mapModalInstance = new MapModal('map-modal', typeNameMap, geoJson, language, true, callbackOnClose);
                 window.mapModalInstance.openModal(getSelectedPointOfInterestId());
             })
             .catch(error => {

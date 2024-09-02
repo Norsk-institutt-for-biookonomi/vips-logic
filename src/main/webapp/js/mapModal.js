@@ -9,7 +9,8 @@ import {
     DomEvent,
     Control,
     DomUtil
-} from 'https://unpkg.com/leaflet/dist/leaflet-src.esm.js';
+} from '/js/3rdparty/leaflet-src.esm.js';
+// https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js
 
 /**
  * Uses css classes from bootstrap 3.4.1
