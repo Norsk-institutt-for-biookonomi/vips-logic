@@ -142,10 +142,6 @@
 
         window.openModal = () => {
             let language = '${currentLanguage}';
-            // In some browsers, initial language seems to be set to no. Hack to avoid subsequent problems:
-            if(language === 'no') {
-                language = 'nb';
-            }
             let poiIds = poiList.map(poi => poi.pointOfInterestId);
             fetch("/rest/poi/geojson", {
                 method: 'POST',

@@ -23,7 +23,7 @@
     cursor: pointer;
 }
 
-#selectedPointInfo {
+#selected-point-info-panel {
     font-family: Arial, sans-serif;
     font-size: 12px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);

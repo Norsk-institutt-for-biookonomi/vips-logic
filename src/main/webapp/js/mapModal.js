@@ -58,9 +58,8 @@ class MapModal {
 
         this.map = null;
         this.isMapInitialized = false;
-        this.selectedPointLayer = null;
-        this.createdPointLayer = null;
-        this.createdPoints = [];
+        this.selectedNewPointMarker = null;
+        this.selectedExistingPointMarker = null;
 
         // Colours for the available types of pois
         this.typeColorMap = {
@@ -72,7 +71,29 @@ class MapModal {
             6: "#DC7633",   // Rich Brown
             7: "#FF33A6"  // Vivid Magenta
         };
+    }
 
+    styleOfSelectedPointMarker() {
+        return {
+            radius: 12,
+            fillColor: "#FF5733",
+            color: "#FFFFFF",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 1,
+        }
+    }
+
+    styleOfPointMarker(pointOfInterestTypeId) {
+        const color = this.typeColorMap[pointOfInterestTypeId] || "#3498DB";
+        return {
+            radius: 8,
+            fillColor: color,
+            color: "#FFFFFF",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }
     }
 
     initMap() {
@@ -100,15 +121,7 @@ class MapModal {
             geoJSON(this.geoJsonData, {
                 filter: (feature) => feature.geometry.type === "Point",
                 pointToLayer: (feature, latlng) => {
-                    const color = this.typeColorMap[feature.properties.pointOfInterestTypeId] || "#3498DB";
-                    return circleMarker(latlng, {
-                        radius: 8,  // Size of the marker
-                        fillColor: color,
-                        color: "#FFFFFF",  // Border color
-                        weight: 2,  // Border thickness
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    });
+                    return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
                 },
                 onEachFeature: (feature, layer) => {
                     layer.bindPopup(this.popupContent(feature));
@@ -118,7 +131,6 @@ class MapModal {
 
             // Enable adding new points if allowed
             if (this.allowNewPoints) {
-                console.info("Enable point creation")
                 this.enablePointCreation();
             }
             this.isMapInitialized = true;
@@ -130,7 +142,7 @@ class MapModal {
      */
     setUpSelectedPointInfoPanel() {
         const selectedPointInfoHtml = `
-        <div id="selectedPointInfo" style="display: none;">
+        <div id="selected-point-info-panel" style="display: none;">
             <div id="infoMessage"></div>
             <button id="confirmButton" class="btn btn-primary">${this.translations.selectLocation}</button>
         </div>`;
@@ -142,12 +154,12 @@ class MapModal {
      * and a button to bring you back to the original page.
      */
     displaySelectedPointInfo(feature) {
+        console.info("Display selected point", feature);
         const name = feature.properties.pointOfInterestName;
-        console.info("Display selected point " + name);
         const type = this.typeNameMap[feature.properties.pointOfInterestTypeId];
         const coordinates = feature.geometry.coordinates[1].toFixed(5) + ", " + feature.geometry.coordinates[0].toFixed(5);
 
-        const selectedPointInfo = document.getElementById('selectedPointInfo');
+        const selectedPointInfo = document.getElementById('selected-point-info-panel');
         const infoMessage = document.getElementById('infoMessage');
 
         infoMessage.innerHTML = `<strong>${name}</strong><br>${coordinates}<br>${type}`;
@@ -158,6 +170,11 @@ class MapModal {
         confirmButton.onclick = () => {
             this.confirmSelection(feature);
         };
+    }
+
+    hideSelectedPointInfo() {
+        const selectedPointInfo = document.getElementById('selected-point-info-panel');
+        selectedPointInfo.style.display = 'none';
     }
 
     selectPointById(pointOfInterestId) {
@@ -186,32 +203,17 @@ class MapModal {
 
     displaySelectedPoint(feature, layer, zoomInToSelected = false) {
         // Deselect previously selected point, if any
-        if (this.selectedPointLayer) {
-            const color = this.typeColorMap[feature.properties.pointOfInterestTypeId] || "#3498DB";
-            this.selectedPointLayer.setStyle({
-                radius: 8,  // Size of the marker
-                fillColor: color,
-                color: "#FFFFFF",
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            });
-        }
+        this.removeSelectedPointMarkerIfExists();
+        this.removeNewPointMarkerIfExists();
 
-        // Highlight the new selected point
-        layer.setStyle({
-            radius: 12,
-            fillColor: "#FF5733",
-            fillOpacity: 1,
-        });
-
+        this.selectedExistingPointMarker = layer;
+        this.selectedExistingPointMarker.setStyle(this.styleOfSelectedPointMarker());
         if (zoomInToSelected) {
-            const latLng = layer.getLatLng();
+            const latLng = this.selectedExistingPointMarker.getLatLng();
             this.map.setView(latLng, 10);
         }
 
         this.displaySelectedPointInfo(feature)
-        this.selectedPointLayer = layer;
     }
 
     confirmSelection(feature) {
@@ -232,12 +234,17 @@ class MapModal {
         this.map.on('click', (e) => {
             const latlng = e.latlng;
 
-            // If a form already exists, remove it
+            // Click on the map should remove any previously selections
+            this.removeSelectedPointMarkerIfExists();
+            this.removeNewPointMarkerIfExists();
             this.closeNewPointFormIfOpen();
+            this.hideSelectedPointInfo();
 
             // Calculate the pixel position from the map's click event
             const containerPoint = this.map.latLngToContainerPoint(latlng);
-            const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x, containerPoint.y, latlng.lat, latlng.lng)
+
+            this.selectedNewPointMarker = circleMarker(latlng, this.styleOfSelectedPointMarker()).addTo(this.map);
+            const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x + 25, containerPoint.y - 25, latlng.lat, latlng.lng)
 
             // Click inside the form should not propagate to underlying map
             DomEvent.disableClickPropagation(newPointFormElement);
@@ -260,22 +267,37 @@ class MapModal {
             longitudeInput.addEventListener('input', validateInputs);
             validateInputs();
 
-            closeButton.addEventListener('click', function() {
+            closeButton.addEventListener('click', () => {
                 newPointFormElement.remove();
+                this.removeNewPointMarkerIfExists();
             });
 
             submitButton.addEventListener('click', () => {
-                this.removeExistingNewPoint();
-                this.setNewPointAsSelected(nameInput.value, parseFloat(latitudeInput.value), parseFloat(longitudeInput.value), parseInt(typeInput.value, 10));
+                const feature = this.createFeatureForPoint(nameInput.value, parseInt(typeInput.value, 10), parseFloat(latitudeInput.value), parseFloat(longitudeInput.value));
+                this.displaySelectedPointInfo(feature);
                 newPointFormElement.remove();
             });
         });
     }
 
+    removeNewPointMarkerIfExists() {
+        if (this.selectedNewPointMarker) {
+            console.info("Remove selected new point marker", this.selectedNewPointMarker);
+            this.map.removeLayer(this.selectedNewPointMarker);
+            this.currentMarker = null;
+        }
+    }
+
+    removeSelectedPointMarkerIfExists(){
+        if (this.selectedExistingPointMarker) {
+            console.info("Remove selected existing point marker", this.selectedExistingPointMarker);
+            const pointOfInterestTypeId = this.selectedExistingPointMarker.feature.properties.pointOfInterestTypeId;
+            this.selectedExistingPointMarker.setStyle(this.styleOfPointMarker(pointOfInterestTypeId));
+        }
+    }
+
     handleClickOutsidePointForm(event) {
         const formElement = document.getElementById('newPointForm');
-
-        // If the clicked element is not inside the form, close the form
         if (formElement && !formElement.contains(event.target)) {
             this.closeNewPointFormIfOpen();
         }
@@ -286,12 +308,10 @@ class MapModal {
         if (formElement) {
             formElement.remove();
         }
-
-        // Remove the event listener after closing the form
         document.removeEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
     }
 
-    createFeatureForPoint(longitude, latitude, name, type) {
+    createFeatureForPoint(name, type, longitude, latitude) {
         console.info("Create feature for [" + longitude + "," + latitude + "," + name + "," + type + "]");
         return {
             "type": "Feature",
@@ -304,44 +324,6 @@ class MapModal {
                 "pointOfInterestTypeId": type
             }
         };
-    }
-
-    addNewPointToMap(point) {
-        console.info("Add new point to map", point);
-        return geoJSON(point, {
-            pointToLayer: (feature, latlng) => {
-                return circleMarker(latlng, {
-                    radius: 8,
-                    fillColor: 'green',
-                    color: '#000',
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                });
-            },
-            onEachFeature: (feature, layer) => {
-                layer.bindPopup(this.popupContent(feature));
-                layer.on('click', () => this.displaySelectedPoint(feature, layer));
-            }
-        }).addTo(this.map);
-    }
-
-    setNewPointAsSelected(name, latitude, longitude, type) {
-        const feature = this.createFeatureForPoint(longitude, latitude, name, type);
-        this.createdPoints.push(feature);
-        this.createdPointLayer = this.addNewPointToMap(feature);
-        this.createdPointLayer.eachLayer((layer) => {
-            this.displaySelectedPoint(feature, layer);
-        });
-    }
-
-    removeExistingNewPoint(){
-        if (this.createdPointLayer) {
-            this.map.removeLayer(this.createdPointLayer);
-        }
-        if (this.createdPoints.length > 0) {
-            this.createdPoints.pop();
-        }
     }
 
     popupContent(feature) {
@@ -399,29 +381,6 @@ class MapModal {
         const htmlElement = tmpContainer.querySelector('#newPointForm');
         document.getElementById(this.mapContainerId).appendChild(htmlElement);
         return htmlElement;
-    }
-
-    /**
-     * Function is called when newly created point of interest is successfully persisted to database.
-     * @param pointOfInterestId
-     */
-    saveSuccess(pointOfInterestId) {
-        if (this.createdPoints.length < 1 || !this.createdPointLayer) {
-            console.error('No newly created points, unable to update with pointOfInterestId=' + pointOfInterestId);
-            return;
-        }
-        let latestCreatedFeature = this.createdPoints[0];
-        latestCreatedFeature.properties.pointOfInterestId = pointOfInterestId;
-        this.geoJsonData.features.push(latestCreatedFeature);
-        this.createdPoints = [];
-
-        this.map.removeLayer(this.createdPointLayer);
-        this.addNewPointToMap(latestCreatedFeature);
-        this.createdPointLayer = null;
-
-        console.info("this.createdPoints", this.createdPoints);
-        console.info("this.createdPointLayer", this.createdPointLayer);
-        console.info("this.geoJsonData.features", this.geoJsonData.features);
     }
 
     openModal(selectedPointOfInterestId) {
