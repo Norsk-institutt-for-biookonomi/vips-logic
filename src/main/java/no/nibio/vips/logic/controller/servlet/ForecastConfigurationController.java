@@ -169,7 +169,8 @@ public class ForecastConfigurationController extends HttpServlet {
                     forecasts = forecastBean.getForecastConfigurations(user.getOrganizationId(), selectedModelIds, from, to);
                 }
                 Collections.sort(forecasts);
-                
+
+                request.setAttribute("currentLanguage", SessionLocaleUtil.getCurrentLocale(request).getLanguage());
                 request.setAttribute("forecastConfigurations", forecasts);
                 
                 List<ForecastConfiguration> privateForecasts;
@@ -237,6 +238,7 @@ public class ForecastConfigurationController extends HttpServlet {
                             request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList());
                             request.setAttribute("vipsLogicUsers", em.createNamedQuery("VipsLogicUser.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
                         }
+                        request.setAttribute("currentLanguage", SessionLocaleUtil.getCurrentLocale(request).getLanguage());
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
                         request.setAttribute("formId", multipleNew ? "forecastConfigurationMultipleNewForm" : "forecastConfigurationForm");
                         request.setAttribute("multipleNew", multipleNew);
@@ -269,10 +271,10 @@ public class ForecastConfigurationController extends HttpServlet {
                         forecastConfiguration = new ForecastConfiguration();
                         forecastConfiguration.setIsPrivate(Boolean.TRUE);
                     }
+                    request.setAttribute("currentLanguage", SessionLocaleUtil.getCurrentLocale(request).getLanguage());
                     request.setAttribute("forecastConfiguration", forecastConfiguration);
                     request.setAttribute("locationPointOfInterests", em.createNamedQuery("PointOfInterest.findByOrganizationId").setParameter("organizationId", user.getOrganizationId()).getResultList());
                     request.setAttribute("weatherStationPointOfInterests", em.createNamedQuery("PointOfInterestWeatherStation.findByActivityAndOrganizationId").setParameter("active", Boolean.TRUE).setParameter("organizationId", user.getOrganizationId()).getResultList());
-                    request.setAttribute("forecastConfiguration", forecastConfiguration);
                     request.setAttribute("formId","forecastConfigurationForm");
                     request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                     request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
@@ -374,6 +376,7 @@ public class ForecastConfigurationController extends HttpServlet {
                         request.getSession().setAttribute("availableTimeZones", SystemTime.getAvailableTimeZones());
                         request.getSession().setAttribute("defaultTimeZoneId", user.getOrganizationId().getDefaultTimeZone());
                         request.setAttribute("modelInformations", em.createNamedQuery("ModelInformation.findAll").getResultList());
+                        request.setAttribute("currentLanguage", SessionLocaleUtil.getCurrentLocale(request).getLanguage());
                         request.setAttribute("forecastConfiguration", forecastConfiguration);
                         request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
                     }

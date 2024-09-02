@@ -17,18 +17,41 @@ import {
  */
 class MapModal {
 
+    static TRANSLATIONS = {
+        nb: {
+            selectLocation: 'Velg sted',
+            createNewLocation: 'Opprett nytt sted',
+            name: 'Navn',
+            latitude: 'Breddegrad',
+            longitude: 'Lengdegrad',
+            type: 'Type',
+            submitLocation: 'OK'
+        },
+        en: {
+            selectLocation: 'Select location',
+            createNewLocation: 'Create new location',
+            name: 'Name',
+            latitude: 'Latitude',
+            longitude: 'Longitude',
+            type: 'Type',
+            submitLocation: 'OK'
+        }
+    };
+
     /**
      * @param mapModalId    The id of the HTML element in which the modal should be opened
      * @param typeNameMap   A mapping from pointOfInterestTypeIds to their localized names
      * @param geoJsonData   GeoJson containing all features which should be displayed on the map
+     * @param language  The language in which texts should be displayed, either 'nb' or 'en'
      * @param allowNewPoints    Whether or not the user should be allowed to add new points
      * @param callbackOnClose   Callback function to call when closing the modal
      */
-    constructor(mapModalId, typeNameMap, geoJsonData, allowNewPoints = false, callbackOnClose = null) {
+    constructor(mapModalId, typeNameMap, geoJsonData, language = 'nb', allowNewPoints = false, callbackOnClose = null) {
         this.mapModalId = mapModalId;
         this.mapContainerId = mapModalId + "-container";
         this.typeNameMap = typeNameMap;
         this.geoJsonData = geoJsonData;
+        this.translations = MapModal.TRANSLATIONS[language];
         this.allowNewPoints = allowNewPoints;
         this.callbackOnClose = callbackOnClose;
 
@@ -88,7 +111,7 @@ class MapModal {
                 },
                 onEachFeature: (feature, layer) => {
                     layer.bindPopup(this.popupContent(feature));
-                    layer.on('click', () => this.selectPoint(feature, layer));
+                    layer.on('click', () => this.displaySelectedPoint(feature, layer));
                 }
             }).addTo(this.map);
 
@@ -108,7 +131,7 @@ class MapModal {
         const selectedPointInfoHtml = `
         <div id="selectedPointInfo" style="display: none;">
             <div id="infoMessage"></div>
-            <button id="confirmButton" class="btn btn-primary">Velg sted</button>
+            <button id="confirmButton" class="btn btn-primary">${this.translations.selectLocation}</button>
         </div>`;
         document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', selectedPointInfoHtml);
     }
@@ -139,7 +162,7 @@ class MapModal {
     selectPointById(pointOfInterestId) {
         const selectedFeature = this.getFeatureById(pointOfInterestId);
         const selectedLayer = this.getLayerById(pointOfInterestId);
-        this.selectPoint(selectedFeature, selectedLayer, true);
+        this.displaySelectedPoint(selectedFeature, selectedLayer, true);
     }
 
     getFeatureById(pointOfInterestId) {
@@ -160,8 +183,7 @@ class MapModal {
         return result;
     }
 
-    selectPoint(feature, layer, zoomInToSelected = false) {
-        console.info("Select point", feature);
+    displaySelectedPoint(feature, layer, zoomInToSelected = false) {
         // Deselect previously selected point, if any
         if (this.selectedPointLayer) {
             const color = this.typeColorMap[feature.properties.pointOfInterestTypeId] || "#3498DB";
@@ -192,7 +214,6 @@ class MapModal {
     }
 
     confirmSelection(feature) {
-        console.info("Confirm selection", feature);
         if (typeof this.callbackOnClose === 'function') {
             const pointData = {
                 id: feature.properties.pointOfInterestId,
@@ -202,7 +223,6 @@ class MapModal {
                 latitude: feature.geometry.coordinates[1]
             };
             this.callbackOnClose(pointData);
-            console.info("Goodbye from map modal!")
         }
         this.closeModal();
     }
@@ -300,7 +320,7 @@ class MapModal {
             },
             onEachFeature: (feature, layer) => {
                 layer.bindPopup(this.popupContent(feature));
-                layer.on('click', () => this.selectPoint(feature, layer));
+                layer.on('click', () => this.displaySelectedPoint(feature, layer));
             }
         }).addTo(this.map);
     }
@@ -310,7 +330,7 @@ class MapModal {
         this.createdPoints.push(feature);
         this.createdPointLayer = this.addNewPointToMap(feature);
         this.createdPointLayer.eachLayer((layer) => {
-            this.selectPoint(feature, layer);
+            this.displaySelectedPoint(feature, layer);
         });
     }
 
@@ -344,24 +364,24 @@ class MapModal {
         const html = `
             <div id="newPointForm" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Opprett nytt sted</h3>
+                    <h3 class="panel-title">${this.translations.createNewLocation}</h3>
                     <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label for="name">Navn:</label>
+                        <label for="name">${this.translations.name}:</label>
                         <input type="text" class="form-control" id="name" name="name">
                     </div>
                     <div class="form-group">
-                        <label for="latitude">Breddegrad:</label>
+                        <label for="latitude">${this.translations.latitude}:</label>
                         <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude}">
                     </div>
                     <div class="form-group">
-                        <label for="longitude">Lengdegrad:</label>
+                        <label for="longitude">${this.translations.longitude}:</label>
                         <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude}">
                     </div>
                     <div class="form-group">
-                        <label for="poiTypeSelect">Type:</label>
+                        <label for="poiTypeSelect">${this.translations.type}:</label>
                         <select class="form-control" id="type" name="type">
                             <option value="2">${this.typeNameMap[2]}</option>
                             <option value="3">${this.typeNameMap[3]}</option>
@@ -369,7 +389,7 @@ class MapModal {
                         </select>
                     </div>
                     <div class="form-group text-right">
-                        <button id="submit-button" class="btn btn-primary">OK</button>
+                        <button id="submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
                     </div>                
                 </div>
             </div>`;

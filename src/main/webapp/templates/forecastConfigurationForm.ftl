@@ -152,7 +152,7 @@
             })
             .then(response => response.json())
             .then(geoJson => {
-                window.mapModalInstance = new MapModal('map-modal', typeNameMap, geoJson, true, callbackOnClose);
+                window.mapModalInstance = new MapModal('map-modal', typeNameMap, geoJson, '${currentLanguage}', true, callbackOnClose);
                 window.mapModalInstance.openModal(getSelectedPointOfInterestId());
             })
             .catch(error => {
