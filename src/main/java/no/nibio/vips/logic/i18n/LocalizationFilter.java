@@ -20,9 +20,10 @@ package no.nibio.vips.logic.i18n;
 
 import com.ibm.icu.util.ULocale;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import static java.util.stream.Collectors.toList;
+import java.util.Map;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -31,7 +32,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import no.nibio.vips.i18n.LanguageUtil;
-import no.nibio.vips.logic.util.SystemTime;
 
 /**
  * This filter checks if there are any changes in locale requests, and
@@ -42,6 +42,12 @@ import no.nibio.vips.logic.util.SystemTime;
  */
 public class LocalizationFilter implements Filter{
     private List<ULocale> availableLocales;
+
+    private static final Map<String, String> LOCALE_MAPPING = new HashMap<>();
+    static {
+        LOCALE_MAPPING.put("no", "nb");
+        LOCALE_MAPPING.put("nn", "nb");
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -63,8 +69,8 @@ public class LocalizationFilter implements Filter{
         }*/
 
         ULocale currentLocale = SessionLocaleUtil.getCurrentLocale((HttpServletRequest)request);
-        ULocale browserRequestedLocale = ULocale.forLocale(((HttpServletRequest)request).getLocale());
-        String userRequestedLocaleStr = ((HttpServletRequest)request).getParameter("userRequestedLocale");
+        ULocale browserRequestedLocale = getBrowserRequestedLocale(request);
+        String userRequestedLocaleStr = request.getParameter("userRequestedLocale");
         ULocale userRequestedLocale = userRequestedLocaleStr != null ? new ULocale(userRequestedLocaleStr) : null;
         
         /* 
@@ -110,7 +116,19 @@ public class LocalizationFilter implements Filter{
         chain.doFilter(request, response);
         
     }
-    
+
+    /**
+     * Get locale from request. Map from unsupported 'no' and 'nn', to 'nb'.
+     *
+     * @param request The request from which to get the locale
+     * @return A locale which is supported by the system
+     */
+    private static ULocale getBrowserRequestedLocale(ServletRequest request) {
+        ULocale locale = ULocale.forLocale(request.getLocale());
+        String language = locale.getLanguage();
+        String mappedLanguage = LOCALE_MAPPING.getOrDefault(language, language);
+        return new ULocale(mappedLanguage);
+    }
 
     @Override
     public void destroy() {
