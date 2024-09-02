@@ -110,12 +110,11 @@ class MapModal {
             const zoomToLocationControl = new ZoomToLocationControl();
             this.map.addControl(zoomToLocationControl);
 
-            const closeMapControl = new CloseMapControl({
-                onClose: () => {
-                    this.closeModal();
-                }
-            });
+            const closeMapControl = new CloseMapControl({onClose: () => {this.closeModal();}});
             this.map.addControl(closeMapControl);
+
+            const legendControl = new LegendControl({typeColorMap: this.typeColorMap, typeNameMap: this.typeNameMap});
+            this.map.addControl(legendControl);
 
             // Add points to the map
             geoJSON(this.geoJsonData, {
@@ -463,6 +462,31 @@ const CloseMapControl = Control.extend({
         });
         return container;
     }
+});
+
+const LegendControl = Control.extend({
+        options: {
+            position: 'bottomright',
+            typeColorMap: {},
+            typeNameMap: {}
+        },
+
+        onAdd: function(map){
+            const div = DomUtil.create('div', 'info legend');
+            const typeColorMap = this.options.typeColorMap;
+            const typeNameMap = this.options.typeNameMap;
+
+            for (const type in typeColorMap) {
+                const color = typeColorMap[type];
+                div.innerHTML += `
+                <div class="legend-item">
+                    <i style="background:${color};"></i>
+                    <span>${typeNameMap[type]}</span>
+                </div>`;
+            }
+
+            return div;
+        }
 });
 
 // Export the module

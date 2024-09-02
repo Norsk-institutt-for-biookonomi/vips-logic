@@ -41,16 +41,36 @@
     font-size: 24px;
 }
 
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-item i {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+}
+
+.info.legend {
+    background-color: white;
+    padding: 10px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
 #confirmButton {
     margin-top: 10px;
 }
 
 .leaflet-container {
-    cursor: default !important;  /* Force the arrow cursor */
-}
-
-.leaflet-container {
-    font-size: 0.9rem; /* Make font-size of popup larger */
+    cursor: default !important;
+    font-size: 12px;
 }
 
 #newPointForm {
