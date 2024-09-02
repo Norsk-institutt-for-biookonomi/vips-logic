@@ -453,10 +453,7 @@
             <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openModal()"></i>
           </div>
           <div id="map-modal" class="map-modal">
-              <div class="map-modal-content">
-                  <span class="close-button" onclick="closeModal()">&times;</span>
-                  <div id="map-modal-container" style="height: 100vh; width: 100%; position: relative;"></div>
-              </div>
+              <div id="map-modal-container" style="height: 100vh; width: 100%; position: relative;"></div>
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>

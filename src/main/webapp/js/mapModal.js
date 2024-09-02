@@ -6,7 +6,9 @@ import {
     circleMarker,
     marker,
     GeoJSON,
-    DomEvent
+    DomEvent,
+    Control,
+    DomUtil
 } from 'https://unpkg.com/leaflet/dist/leaflet-src.esm.js';
 
 /**
@@ -59,7 +61,16 @@ class MapModal {
             console.info("Create map " + this.mapContainerId + " with points", this.geoJsonData);
 
             this.setUpSelectedPointInfoPanel();
-            this.setUpZoomToCurrentLocation();
+
+            const zoomToLocationControl = new ZoomToLocationControl();
+            this.map.addControl(zoomToLocationControl);
+
+            const closeMapControl = new CloseMapControl({
+                onClose: () => {
+                    this.closeModal();
+                }
+            });
+            this.map.addControl(closeMapControl);
 
             // Add points to the map
             geoJSON(this.geoJsonData, {
@@ -100,32 +111,6 @@ class MapModal {
             <button id="confirmButton" class="btn btn-primary">Velg sted</button>
         </div>`;
         document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', selectedPointInfoHtml);
-    }
-
-    setUpZoomToCurrentLocation() {
-        const zoomButtonHtml = `<button id="zoomToMyLocationButton" class="btn btn-primary">Zoom til meg</button>`;
-        document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', zoomButtonHtml);
-
-        let zoomButton = document.getElementById('zoomToMyLocationButton')
-        DomEvent.disableClickPropagation(zoomButton);
-        zoomButton.addEventListener('click', () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    this.map.setView([latitude, longitude], 13);
-
-                    // Add a marker at the user's location
-                    const userLocationMarker = marker([latitude, longitude]).addTo(this.map);
-                }, (error) => {
-                    console.error('Geolocation failed: ' + error.message);
-                    alert('Unable to retrieve your location.');
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        });
     }
 
     /**
@@ -429,12 +414,76 @@ class MapModal {
     closeModal() {
         document.getElementById(this.mapModalId).style.display = 'none';
         if (this.map) {
-            console.info("Remove map");
             this.map.remove();
             this.map = null;
         }
     }
 }
+
+const ZoomToLocationControl = Control.extend({
+    options: {
+        position: 'topleft'
+    },
+
+    onAdd: function(map) {
+        // Create the button element
+        const container = DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const button = DomUtil.create('a', 'zoom-to-my-location-button', container);
+        button.innerHTML = 'Zoom';
+        button.href = '#';
+        button.title = 'Zoom to My Location';
+
+        DomEvent.disableClickPropagation(button);
+
+        DomEvent.on(button, 'click', DomEvent.stop)
+            .on(button, 'click', DomEvent.preventDefault)
+            .on(button, 'click', () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        map.setView([latitude, longitude], 13);
+
+                        // Add a marker at the user's location
+                        marker([latitude, longitude]).addTo(map);
+                    }, (error) => {
+                        console.error('Geolocation failed: ' + error.message);
+                        alert('Unable to retrieve your location.');
+                    });
+                } else {
+                    alert('Geolocation is not supported by this browser.');
+                }
+            });
+        return container;
+    }
+});
+
+
+const CloseMapControl = Control.extend({
+    options: {
+        position: 'topright'
+    },
+
+    onAdd: function(map) {
+        // Create a container for the button
+        const container = DomUtil.create('div', 'leaflet-bar leaflet-control');
+
+        // Create the button element
+        const button = DomUtil.create('a', 'close-map-button', container);
+        button.innerHTML = '×'; // Unicode for close symbol
+        button.href = '#';
+        button.title = 'Close Map';
+
+        // Disable click propagation and default behavior
+        DomEvent.disableClickPropagation(button);
+        DomEvent.on(button, 'click', DomEvent.preventDefault);
+        DomEvent.on(button, 'click', () => {
+            this.options.onClose();
+        });
+        return container;
+    }
+});
 
 // Export the module
 export default MapModal;
