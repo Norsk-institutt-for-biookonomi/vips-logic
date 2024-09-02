@@ -113,7 +113,7 @@ async function initMap()
             }
             //console.info(retVal[0].getImage().getStroke().getWidth());
             // If symptom has been registered, mark with inner black dot
-            if (observationData["symptom"] != "Ikke symptom")
+            if (observationData["symptom"] != "Ikke symptom" && observationData["symptom"] != "Irrelevant")
             {
                 retVal = [
                     new ol.style.Style({
@@ -467,7 +467,7 @@ var getCropOrganism = function (organismId)
 }
 
 
-var symptoms = ["Flekker", "Glisne kroner","Andre symptom","Andre skader","Ikke symptom"];
+var symptoms = ["Flekker", "Glisne kroner","Andre symptom","Andre skader","Ikke symptom","Irrelevant"];
 var funns = ["[Ukjent]", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
 var provetypes = ["[Ikke prøve]","Jord","Vev","Vann"];
 
