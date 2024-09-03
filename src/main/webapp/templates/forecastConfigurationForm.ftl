@@ -49,18 +49,7 @@
         ];
         renderPoiSelect("locationPointOfInterestId", locationList);
 
-        // Read the list of weather stations into javascript array, to be able to dynamically manipulate it
-        let weatherStationList = [
-            <#list weatherStationPointOfInterests as poi>
-            {
-                "pointOfInterestId": "${poi.pointOfInterestId}",
-                "name": "${poi.name?json_string}"
-            },
-            </#list>
-        ];
-        renderPoiSelect("weatherStationPointOfInterestId", weatherStationList);
-
-        // Populate select list for point of interest
+        // Populate select list for point of interest -> NOT GENERAL! Default value is specific to location.
         function renderPoiSelect(elementName, elementList, selectedId) {
             let selectElement = document.querySelector('select[name="'+elementName+'"]');
             selectElement.innerHTML = '';
@@ -126,10 +115,6 @@
             }
         }
 
-        function callbackOnCloseWeatherStationMap(poiData) {
-            selectPoi("weatherStationPointOfInterestId", poiData.id);
-        }
-
         function persistNewLocation(poiData) {
             const params = {
                 'name': poiData.name,
@@ -190,27 +175,6 @@
             });
         }
 
-        // Make function globally available
-        window.openWeatherStationMap = () => {
-            let poiIds = weatherStationList.map(poi => poi.pointOfInterestId);
-            fetch("/rest/poi/geojson", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(poiIds)
-            })
-                .then(response => response.json())
-                .then(geoJson => {
-                    const weatherStationMapInstance = new MapModal('weather-station-map', typeNameMap, geoJson, '${currentLanguage}', false, callbackOnCloseWeatherStationMap);
-                    const selectedPoiId = getSelectedPoiId("weatherStationPointOfInterestId");
-                    weatherStationMapInstance.openModal(selectedPoiId);
-                })
-                .catch(error => {
-                    console.error('Unable to convert weather station poi list to GeoJson, cannot open map', error);
-                });
-        }
     </script>
 	<script type="text/javascript">
             $(document).ready(function() {
@@ -506,8 +470,7 @@
 	  </div>
 	  <div class="form-group">
 	    <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
-          <div class="select-container" style="flex: 1; display: flex; align-items: center;">
-            <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);};" style="width: calc(100% - 30px);">
+            <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);}">
                 <#if isGridForecastSupported>
               <option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
             </#if>
@@ -519,9 +482,6 @@
               && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
                 </#list>
             </select>
-              <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openWeatherStationMap()"></i>
-              <div id="weather-station-map" class="map-modal"></div>
-          </div>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
     <#if isGridForecastSupported>
