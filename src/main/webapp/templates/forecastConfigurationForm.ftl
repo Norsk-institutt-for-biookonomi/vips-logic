@@ -52,6 +52,7 @@
         ];
         renderLocationPointOfInterestSelect(poiList);
 
+        // Populate select list for location point of interest
         function renderLocationPointOfInterestSelect(elementList, selectedId) {
             let selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
             elementList.forEach(poi => {
@@ -63,6 +64,7 @@
             selectPointOfInterest(selectedId);
         }
 
+        // Iterate options in select list, display option with given id as selected
         function selectPointOfInterest(selectedId) {
             const selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
             if(selectedId) {
@@ -111,10 +113,12 @@
         function callbackOnClose(pointOfInterestData) {
             if(!pointOfInterestData.id) {
                 persistNewPoint(pointOfInterestData);
+            } else {
+                selectPointOfInterest(pointOfInterestData.id);
             }
-            selectPointOfInterest(pointOfInterestData.id);
         }
 
+        // Get id of currently selected point of interest from select element
         function getSelectedPointOfInterestId() {
             const selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
             const selectedOption = selectElement.options[selectElement.selectedIndex];
@@ -140,8 +144,8 @@
             7: "${i18nBundle["pointOfInterestType_7"]}"
         };
 
-        window.openModal = () => {
-            let language = '${currentLanguage}';
+        window.openPoiMap = () => {
+            const language = '${currentLanguage}';
             let poiIds = poiList.map(poi => poi.pointOfInterestId);
             fetch("/rest/poi/geojson", {
                 method: 'POST',
@@ -153,15 +157,15 @@
             })
             .then(response => response.json())
             .then(geoJson => {
-                window.mapModalInstance = new MapModal('map-modal', typeNameMap, geoJson, language, true, callbackOnClose);
-                window.mapModalInstance.openModal(getSelectedPointOfInterestId());
+                window.poiMapInstance = new MapModal('poi-map', typeNameMap, geoJson, language, true, callbackOnClose);
+                window.poiMapInstance.openModal(getSelectedPointOfInterestId());
             })
             .catch(error => {
                 console.error('Unable to convert poi list to GeoJson, cannot open map', error);
             });
         };
 
-        window.closeModal = () => window.mapModalInstance && window.mapModalInstance.closeModal();
+        window.closePoiMap = () => window.poiMapInstance && window.poiMapInstance.closeModal();
     </script>
 	<script type="text/javascript">
             $(document).ready(function() {
@@ -451,10 +455,10 @@
             <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);" style="width: calc(100% - 30px);">
                 <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
             </select>
-            <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openModal()"></i>
+            <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openPoiMap()"></i>
           </div>
-          <div id="map-modal" class="map-modal">
-              <div id="map-modal-container" style="height: 100vh; width: 100%; position: relative;"></div>
+          <div id="poi-map" class="map-modal">
+              <div id="poi-map-container" style="height: 100vh; width: 100%; position: relative;"></div>
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
