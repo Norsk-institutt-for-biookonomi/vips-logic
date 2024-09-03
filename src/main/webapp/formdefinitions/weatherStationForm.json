@@ -87,6 +87,11 @@
             "dataType" : "STRING",
             "fieldType" : "MULTIPLE_MAP",
             "required" : false
+        },
+        {
+            "name" : "isPrivate",
+            "dataType" : "STRING",
+            "required" : false
         }
         
     ]

@@ -91,8 +91,17 @@ public class PointOfInterest implements Serializable, Comparable {
     private Boolean isForecastLocation;
     private Integer pointOfInterestTypeId;
     private Date lastEditedTime;
+    private Boolean isPrivate;
    
-    
+    @Column(name = "is_private")
+    public Boolean getIsPrivate() {
+        return isPrivate;
+    }
+
+    public void setIsPrivate(Boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
+
     // For attaching ad-hoc properties
     // e.g. Worst warning for map
     private Map<String, Object> properties;

@@ -298,6 +298,8 @@ public class PointOfInterestController extends HttpServlet {
                             {
                                 weatherStation.setIsForecastLocation(Boolean.TRUE);
                             }
+                            
+                            weatherStation.setIsPrivate(formValidation.getFormField("isPrivate").getWebValue() != null);
 
                             Double altitude = 0.0;
                             Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();
@@ -657,6 +659,8 @@ public class PointOfInterestController extends HttpServlet {
                                 {
                                     poi.setIsForecastLocation(Boolean.FALSE);
                                 }
+
+                                poi.setIsPrivate(formValidation.getFormField("isPrivate").getWebValue() != null);
                                 
                                 Double altitude = 0.0;
                                 Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();

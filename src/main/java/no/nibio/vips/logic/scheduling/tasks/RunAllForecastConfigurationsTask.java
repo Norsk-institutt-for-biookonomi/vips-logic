@@ -111,7 +111,11 @@ public class RunAllForecastConfigurationsTask extends VipsLogicTask{
                     else if(
                         weatherStationPointOfInterestId == null
                         || weatherStationPointOfInterestId <= 0
-                        || (forecastConfiguration.getWeatherStationPointOfInterestId() != null && forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId))
+                        || (
+                            forecastConfiguration.getWeatherStationPointOfInterestId() != null 
+                            && forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId() != null 
+                            && forecastConfiguration.getWeatherStationPointOfInterestId().getPointOfInterestId().equals(weatherStationPointOfInterestId)
+                           )
                     )
 
                     {
