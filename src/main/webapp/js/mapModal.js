@@ -6,36 +6,69 @@ import {
     circleMarker,
     marker,
     GeoJSON,
-    DomEvent
-} from 'https://unpkg.com/leaflet/dist/leaflet-src.esm.js';
+    DomEvent,
+    Control,
+    DomUtil
+} from '/js/3rdparty/leaflet-src.esm.js';
 
 /**
  * Uses css classes from bootstrap 3.4.1
- *
+ * Leaflet: https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js
  */
 class MapModal {
 
+    static TRANSLATIONS = {
+        nb: {
+            selectLocation: 'Velg sted',
+            createNewLocation: 'Opprett nytt sted',
+            name: 'Navn',
+            latitude: 'Breddegrad',
+            longitude: 'Lengdegrad',
+            type: 'Type',
+            submitLocation: 'OK',
+            zoomToLocation: 'Zoom til meg',
+            geolocationNotSupported: 'Geolokalisering støttes ikke av denne nettleseren',
+            geolocationFailed: 'Fant ikke din posisjon',
+            closeMap: 'Lukk kart'
+        },
+        en: {
+            selectLocation: 'Select location',
+            createNewLocation: 'Create New Location',
+            name: 'Name',
+            latitude: 'Latitude',
+            longitude: 'Longitude',
+            type: 'Type',
+            submitLocation: 'OK',
+            zoomToLocation: 'Zoom to My Location',
+            geolocationNotSupported: 'Geolocation is not supported by this browser',
+            geolocationFailed: 'Unable to retrieve your location',
+            closeMap: 'Close Map'
+        }
+    };
+
     /**
-     * @param mapContainerId    The id of the HTML element to which the map should be added
+     * @param mapModalId    The id of the HTML element in which the modal should be opened
      * @param typeNameMap   A mapping from pointOfInterestTypeIds to their localized names
      * @param geoJsonData   GeoJson containing all features which should be displayed on the map
+     * @param language  The language in which texts should be displayed, either 'nb' or 'en'
      * @param allowNewPoints    Whether or not the user should be allowed to add new points
-     * @param callbackOnPersistNew  Callback function for persisting newly created point
      * @param callbackOnClose   Callback function to call when closing the modal
      */
-    constructor(mapContainerId, typeNameMap, geoJsonData, allowNewPoints = false, callbackOnPersistNew = null, callbackOnClose = null) {
-        this.mapContainerId = mapContainerId;
+    constructor(mapModalId, typeNameMap, geoJsonData, language = 'nb', allowNewPoints = false, callbackOnClose = null) {
+        this.mapModalElement = document.getElementById(mapModalId);
+        this.mapContainerId = mapModalId + "-container";
+        this.mapContainerElement = this.addMapContainer(this.mapModalElement, this.mapContainerId);
         this.typeNameMap = typeNameMap;
         this.geoJsonData = geoJsonData;
+        this.translations = MapModal.TRANSLATIONS[language];
         this.allowNewPoints = allowNewPoints;
-        this.callbackOnPersistNew = callbackOnPersistNew;
         this.callbackOnClose = callbackOnClose;
 
         this.map = null;
         this.isMapInitialized = false;
-        this.selectedPointLayer = null;
-        this.createdPointLayer = null;
-        this.createdPoints = [];
+        this.markersByType = {};
+        this.selectedNewPointMarker = null;
+        this.selectedExistingPointMarker = null;
 
         // Colours for the available types of pois
         this.typeColorMap = {
@@ -47,85 +80,111 @@ class MapModal {
             6: "#DC7633",   // Rich Brown
             7: "#FF33A6"  // Vivid Magenta
         };
+    }
 
+    addMapContainer(parentDiv, id) {
+        const mapContainer = document.createElement('div');
+        mapContainer.id = id;
+        mapContainer.style.height = '100vh';
+        mapContainer.style.width = '100%';
+        mapContainer.style.position = 'relative';
+        parentDiv.appendChild(mapContainer);
+        return mapContainer;
+    }
+
+    styleOfSelectedPointMarker() {
+        return {
+            radius: 12,
+            fillColor: "#FF5733",
+            color: "#FFFFFF",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 1,
+        }
+    }
+
+    styleOfPointMarker(pointOfInterestTypeId) {
+        const color = this.typeColorMap[pointOfInterestTypeId] || "#3498DB";
+        return {
+            radius: 8,
+            fillColor: color,
+            color: "#FFFFFF",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }
     }
 
     initMap() {
-        if (!this.isMapInitialized) {
-            // Initialize the map centered on Norway
-            this.map = map(this.mapContainerId).setView([63.4226, 10.3951], 5);
-            tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19
-            }).addTo(this.map);
-
-            this.setUpSelectedPointInfoPanel();
-            this.setUpZoomToCurrentLocation();
-
-            // Add points to the map
-            geoJSON(this.geoJsonData, {
-                filter: (feature) => feature.geometry.type === "Point",
-                pointToLayer: (feature, latlng) => {
-                    const color = this.typeColorMap[feature.properties.pointOfInterestTypeId] || "#3498DB";
-                    return circleMarker(latlng, {
-                        radius: 8,  // Size of the marker
-                        fillColor: color,
-                        color: "#FFFFFF",  // Border color
-                        weight: 2,  // Border thickness
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    });
-                },
-                onEachFeature: (feature, layer) => {
-                    layer.bindPopup(this.popupContent(feature));
-                    layer.on('click', () => this.selectPoint(feature, layer));
-                }
-            }).addTo(this.map);
-
-            // Enable adding new points if allowed
-            if (this.allowNewPoints) {
-                console.info("Enable point creation")
-                this.enablePointCreation();
-            }
-            this.isMapInitialized = true;
+        if (this.isMapInitialized) {
+            console.error("Map is already initialized");
+            return;
         }
+        // Initialize the map centered on Norway
+        this.map = map(this.mapContainerId).setView([63.4226, 10.3951], 5);
+        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(this.map);
+        console.info("Create map " + this.mapContainerId + " with points", this.geoJsonData);
+
+        this.setUpSelectedPointInfoPanel();
+
+        // Add points to the map
+        geoJSON(this.geoJsonData, {
+            filter: (feature) => feature.geometry.type === "Point",
+            pointToLayer: (feature, latlng) => {
+                return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
+            },
+            onEachFeature: (feature, layer) => {
+                const typeId = feature.properties.pointOfInterestTypeId;
+
+                layer.bindPopup(this.popupContent(feature));
+                layer.on('click', () => this.displaySelectedPoint(feature, layer));
+
+                // Add the marker to the markersByType object
+                if (!this.markersByType[typeId]) {
+                    this.markersByType[typeId] = [];
+                }
+                this.markersByType[typeId].push(layer);
+            }
+        }).addTo(this.map);
+
+        const zoomToLocationControl = new ZoomToLocationControl({translations: this.translations});
+        this.map.addControl(zoomToLocationControl);
+
+        const closeMapControl = new CloseMapControl({
+            translations: this.translations,
+            onClose: () => {
+                this.closeModal();
+            }
+        });
+        this.map.addControl(closeMapControl);
+
+        const legendControl = new LegendControl({
+            typeColorMap: this.typeColorMap,
+            typeNameMap: this.typeNameMap,
+            markersByType: this.markersByType
+        });
+        this.map.addControl(legendControl);
+
+        // Enable adding new points if allowed
+        if (this.allowNewPoints) {
+            this.enablePointCreation();
+        }
+        this.isMapInitialized = true;
     }
 
     /**
      * Create information panel for selected point, initially hidden.
      */
     setUpSelectedPointInfoPanel() {
+        console.info("Set up selected point info panel");
         const selectedPointInfoHtml = `
-        <div id="selectedPointInfo" style="display: none;">
+        <div id="selected-point-info-panel" style="display: none;">
             <div id="infoMessage"></div>
-            <button id="confirmButton" class="btn btn-primary">Velg sted</button>
+            <button id="confirmButton" class="btn btn-primary">${this.translations.selectLocation}</button>
         </div>`;
-        document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', selectedPointInfoHtml);
-    }
-
-    setUpZoomToCurrentLocation() {
-        const zoomButtonHtml = `<button id="zoomToMyLocationButton" class="btn btn-primary">Zoom til meg</button>`;
-        document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', zoomButtonHtml);
-
-        let zoomButton = document.getElementById('zoomToMyLocationButton')
-        DomEvent.disableClickPropagation(zoomButton);
-        zoomButton.addEventListener('click', () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    this.map.setView([latitude, longitude], 13);
-
-                    // Add a marker at the user's location
-                    const userLocationMarker = marker([latitude, longitude]).addTo(this.map);
-                }, (error) => {
-                    console.error('Geolocation failed: ' + error.message);
-                    alert('Unable to retrieve your location.');
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        });
+        this.mapContainerElement.insertAdjacentHTML('beforeend', selectedPointInfoHtml);
     }
 
     /**
@@ -133,13 +192,14 @@ class MapModal {
      * and a button to bring you back to the original page.
      */
     displaySelectedPointInfo(feature) {
+        console.info("Display selected point", feature);
         const name = feature.properties.pointOfInterestName;
-        console.info("Display selected point " + name);
         const type = this.typeNameMap[feature.properties.pointOfInterestTypeId];
         const coordinates = feature.geometry.coordinates[1].toFixed(5) + ", " + feature.geometry.coordinates[0].toFixed(5);
 
-        const selectedPointInfo = document.getElementById('selectedPointInfo');
+        const selectedPointInfo = document.getElementById('selected-point-info-panel');
         const infoMessage = document.getElementById('infoMessage');
+        console.info("Add info message to panel", selectedPointInfo);
 
         infoMessage.innerHTML = `<strong>${name}</strong><br>${coordinates}<br>${type}`;
         selectedPointInfo.style.display = 'block';
@@ -151,10 +211,15 @@ class MapModal {
         };
     }
 
+    hideSelectedPointInfo() {
+        const selectedPointInfo = document.getElementById('selected-point-info-panel');
+        selectedPointInfo.style.display = 'none';
+    }
+
     selectPointById(pointOfInterestId) {
         const selectedFeature = this.getFeatureById(pointOfInterestId);
         const selectedLayer = this.getLayerById(pointOfInterestId);
-        this.selectPoint(selectedFeature, selectedLayer, true);
+        this.displaySelectedPoint(selectedFeature, selectedLayer, true);
     }
 
     getFeatureById(pointOfInterestId) {
@@ -175,53 +240,31 @@ class MapModal {
         return result;
     }
 
-    selectPoint(feature, layer, zoomInToSelected = false) {
-        console.info("Select point", feature);
+    displaySelectedPoint(feature, layer, zoomInToSelected = false) {
         // Deselect previously selected point, if any
-        if (this.selectedPointLayer) {
-            const color = this.typeColorMap[feature.properties.pointOfInterestTypeId] || "#3498DB";
-            this.selectedPointLayer.setStyle({
-                radius: 8,  // Size of the marker
-                fillColor: color,
-                color: "#FFFFFF",
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            });
-        }
+        this.removeSelectedPointMarkerIfExists();
+        this.removeNewPointMarkerIfExists();
 
-        // Highlight the new selected point
-        layer.setStyle({
-            radius: 12,
-            fillColor: "#FF5733",
-            fillOpacity: 1,
-        });
-
+        this.selectedExistingPointMarker = layer;
+        this.selectedExistingPointMarker.setStyle(this.styleOfSelectedPointMarker());
         if (zoomInToSelected) {
-            const latLng = layer.getLatLng();
+            const latLng = this.selectedExistingPointMarker.getLatLng();
             this.map.setView(latLng, 10);
         }
 
         this.displaySelectedPointInfo(feature)
-        this.selectedPointLayer = layer;
     }
 
     confirmSelection(feature) {
-        console.info("Confirm selection", feature);
-        let poiId = feature.properties.pointOfInterestId;
-        if (!poiId && typeof this.callbackOnPersistNew === 'function') {
+        if (typeof this.callbackOnClose === 'function') {
             const pointData = {
+                id: feature.properties.pointOfInterestId,
                 name: feature.properties.pointOfInterestName,
                 typeId: feature.properties.pointOfInterestTypeId,
                 longitude: feature.geometry.coordinates[0],
                 latitude: feature.geometry.coordinates[1]
             };
-            console.info("Persist new", pointData);
-            this.callbackOnPersistNew(pointData);
-        }
-        if (typeof this.callbackOnClose === 'function') {
-            this.callbackOnClose(poiId);
-            console.info("Goodbye from map modal!")
+            this.callbackOnClose(pointData);
         }
         this.closeModal();
     }
@@ -230,12 +273,17 @@ class MapModal {
         this.map.on('click', (e) => {
             const latlng = e.latlng;
 
-            // If a form already exists, remove it
+            // Click on the map should remove any previously selections
+            this.removeSelectedPointMarkerIfExists();
+            this.removeNewPointMarkerIfExists();
             this.closeNewPointFormIfOpen();
+            this.hideSelectedPointInfo();
 
             // Calculate the pixel position from the map's click event
             const containerPoint = this.map.latLngToContainerPoint(latlng);
-            const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x, containerPoint.y, latlng.lat, latlng.lng)
+
+            this.selectedNewPointMarker = circleMarker(latlng, this.styleOfSelectedPointMarker()).addTo(this.map);
+            const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x + 25, containerPoint.y - 25, latlng.lat, latlng.lng)
 
             // Click inside the form should not propagate to underlying map
             DomEvent.disableClickPropagation(newPointFormElement);
@@ -252,28 +300,53 @@ class MapModal {
             const validateInputs = () => {
                 const isValidLat = !isNaN(parseFloat(latitudeInput.value)) && isFinite(latitudeInput.value);
                 const isValidLng = !isNaN(parseFloat(longitudeInput.value)) && isFinite(longitudeInput.value);
+                if (isValidLat && isValidLng) {
+                    this.updateMarkerPosition(this.selectedNewPointMarker, parseFloat(latitudeInput.value), parseFloat(longitudeInput.value));
+                }
                 submitButton.disabled = !(isValidLat && isValidLng);
             };
-            latitudeInput.addEventListener('input', validateInputs);
-            longitudeInput.addEventListener('input', validateInputs);
-            validateInputs();
+            latitudeInput.addEventListener('blur', validateInputs);
+            longitudeInput.addEventListener('blur', validateInputs);
 
-            closeButton.addEventListener('click', function() {
+            closeButton.addEventListener('click', () => {
                 newPointFormElement.remove();
+                this.removeNewPointMarkerIfExists();
             });
 
             submitButton.addEventListener('click', () => {
-                this.removeExistingNewPoint();
-                this.setNewPointAsSelected(nameInput.value, parseFloat(latitudeInput.value), parseFloat(longitudeInput.value), parseInt(typeInput.value, 10));
+                const feature = this.createFeatureForPoint(nameInput.value, parseInt(typeInput.value, 10), parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
+                this.displaySelectedPointInfo(feature);
                 newPointFormElement.remove();
             });
         });
     }
 
+    updateMarkerPosition(marker, lat, lng) {
+        if (marker) {
+            console.info("Move marker to new position")
+            marker.setLatLng([lat, lng]);
+            this.map.setView([lat, lng], this.map.getZoom());
+        }
+    }
+
+    removeNewPointMarkerIfExists() {
+        if (this.selectedNewPointMarker) {
+            console.info("Remove selected new point marker", this.selectedNewPointMarker);
+            this.map.removeLayer(this.selectedNewPointMarker);
+            this.currentMarker = null;
+        }
+    }
+
+    removeSelectedPointMarkerIfExists() {
+        if (this.selectedExistingPointMarker) {
+            console.info("Remove selected existing point marker", this.selectedExistingPointMarker);
+            const pointOfInterestTypeId = this.selectedExistingPointMarker.feature.properties.pointOfInterestTypeId;
+            this.selectedExistingPointMarker.setStyle(this.styleOfPointMarker(pointOfInterestTypeId));
+        }
+    }
+
     handleClickOutsidePointForm(event) {
         const formElement = document.getElementById('newPointForm');
-
-        // If the clicked element is not inside the form, close the form
         if (formElement && !formElement.contains(event.target)) {
             this.closeNewPointFormIfOpen();
         }
@@ -284,12 +357,10 @@ class MapModal {
         if (formElement) {
             formElement.remove();
         }
-
-        // Remove the event listener after closing the form
         document.removeEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
     }
 
-    createFeatureForPoint(longitude, latitude, name, type) {
+    createFeatureForPoint(name, type, longitude, latitude) {
         console.info("Create feature for [" + longitude + "," + latitude + "," + name + "," + type + "]");
         return {
             "type": "Feature",
@@ -302,44 +373,6 @@ class MapModal {
                 "pointOfInterestTypeId": type
             }
         };
-    }
-
-    addNewPointToMap(point) {
-        console.info("Add new point to map", point);
-        return geoJSON(point, {
-            pointToLayer: (feature, latlng) => {
-                return circleMarker(latlng, {
-                    radius: 8,
-                    fillColor: 'green',
-                    color: '#000',
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                });
-            },
-            onEachFeature: (feature, layer) => {
-                layer.bindPopup(this.popupContent(feature));
-                layer.on('click', () => this.selectPoint(feature, layer));
-            }
-        }).addTo(this.map);
-    }
-
-    setNewPointAsSelected(name, latitude, longitude, type) {
-        const feature = this.createFeatureForPoint(longitude, latitude, name, type);
-        this.createdPoints.push(feature);
-        this.createdPointLayer = this.addNewPointToMap(feature);
-        this.createdPointLayer.eachLayer((layer) => {
-            this.selectPoint(feature, layer);
-        });
-    }
-
-    removeExistingNewPoint(){
-        if (this.createdPointLayer) {
-            this.map.removeLayer(this.createdPointLayer);
-        }
-        if (this.createdPoints.length > 0) {
-            this.createdPoints.pop();
-        }
     }
 
     popupContent(feature) {
@@ -363,24 +396,24 @@ class MapModal {
         const html = `
             <div id="newPointForm" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Opprett nytt sted</h3>
+                    <h3 class="panel-title">${this.translations.createNewLocation}</h3>
                     <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label for="name">Navn:</label>
+                        <label for="name">${this.translations.name}:</label>
                         <input type="text" class="form-control" id="name" name="name">
                     </div>
                     <div class="form-group">
-                        <label for="latitude">Breddegrad:</label>
+                        <label for="latitude">${this.translations.latitude}:</label>
                         <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude}">
                     </div>
                     <div class="form-group">
-                        <label for="longitude">Lengdegrad:</label>
+                        <label for="longitude">${this.translations.longitude}:</label>
                         <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude}">
                     </div>
                     <div class="form-group">
-                        <label for="poiTypeSelect">Type:</label>
+                        <label for="poiTypeSelect">${this.translations.type}:</label>
                         <select class="form-control" id="type" name="type">
                             <option value="2">${this.typeNameMap[2]}</option>
                             <option value="3">${this.typeNameMap[3]}</option>
@@ -388,52 +421,162 @@ class MapModal {
                         </select>
                     </div>
                     <div class="form-group text-right">
-                        <button id="submit-button" class="btn btn-primary">OK</button>
+                        <button id="submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
                     </div>                
                 </div>
             </div>`;
         const tmpContainer = document.createElement("div");
         tmpContainer.innerHTML = html;
         const htmlElement = tmpContainer.querySelector('#newPointForm');
-        document.getElementById(this.mapContainerId).appendChild(htmlElement);
+        this.mapContainerElement.appendChild(htmlElement);
         return htmlElement;
     }
 
     /**
-     * Function is called when newly created point of interest is successfully persisted to database.
-     * @param pointOfInterestId
+     * Make modal visible. Initialise map with selected point marked, if given.
+     *
+     * @param selectedPointOfInterestId
      */
-    saveSuccess(pointOfInterestId) {
-        if (this.createdPoints.length < 1 || !this.createdPointLayer) {
-            console.error('No newly created points, unable to update with pointOfInterestId=' + pointOfInterestId);
-            return;
-        }
-        let latestCreatedFeature = this.createdPoints[0];
-        latestCreatedFeature.properties.pointOfInterestId = pointOfInterestId;
-        this.geoJsonData.features.push(latestCreatedFeature);
-        this.createdPoints = [];
-
-        this.map.removeLayer(this.createdPointLayer);
-        this.addNewPointToMap(latestCreatedFeature);
-        this.createdPointLayer = null;
-
-        console.info("this.createdPoints", this.createdPoints);
-        console.info("this.createdPointLayer", this.createdPointLayer);
-        console.info("this.geoJsonData.features", this.geoJsonData.features);
-    }
-
     openModal(selectedPointOfInterestId) {
-        if(selectedPointOfInterestId) {
+        this.mapModalElement.style.display = 'block';
+        this.initMap();
+        if (selectedPointOfInterestId) {
             this.selectPointById(selectedPointOfInterestId);
         }
-        document.getElementById('mapModal').style.display = 'block';
-        this.initMap();
     }
 
+    /**
+     * Hide modal. Remove container element and map.
+     */
     closeModal() {
-        document.getElementById('mapModal').style.display = 'none';
+        this.mapModalElement.style.display = 'none';
+        this.mapContainerElement.remove();
+        this.map.remove();
+        this.map = null;
     }
 }
+
+const ZoomToLocationControl = Control.extend({
+    options: {
+        position: 'topleft',
+        translations: {}
+    },
+
+    onAdd: function (map) {
+        // Create the button element
+        const container = DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const button = DomUtil.create('a', 'zoom-to-my-location-button', container);
+        button.innerHTML = '<i class="fa fa-map-marker"></i>';
+        button.href = '#';
+        button.title = this.options.translations.zoomToLocation;
+
+        DomEvent.disableClickPropagation(button);
+
+        DomEvent.on(button, 'click', DomEvent.stop)
+            .on(button, 'click', DomEvent.preventDefault)
+            .on(button, 'click', () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        map.setView([latitude, longitude], 13);
+
+                        // Add a marker at the user's location
+                        marker([latitude, longitude]).addTo(map);
+                    }, (error) => {
+                        console.error('Geolocation failed: ' + error.message);
+                        alert(this.options.translations.geolocationFailed);
+                    });
+                } else {
+                    alert(this.options.translations.geolocationNotSupported);
+                }
+            });
+        return container;
+    }
+});
+
+
+const CloseMapControl = Control.extend({
+    options: {
+        position: 'topright',
+        translations: {}
+    },
+
+    onAdd: function (map) {
+        // Create a container for the button
+        const container = DomUtil.create('div', 'leaflet-bar leaflet-control');
+
+        // Create the button element
+        const button = DomUtil.create('a', 'close-map-button', container);
+        button.innerHTML = '×'; // Unicode for close symbol
+        button.href = '#';
+        button.title = this.options.translations.closeMap;
+
+        // Disable click propagation and default behavior
+        DomEvent.disableClickPropagation(button);
+        DomEvent.on(button, 'click', DomEvent.preventDefault);
+        DomEvent.on(button, 'click', () => {
+            this.options.onClose();
+        });
+        return container;
+    }
+});
+
+const LegendControl = Control.extend({
+    options: {
+        position: 'bottomright',
+        typeColorMap: {},
+        typeNameMap: {},
+        markersByType: {}
+    },
+
+    onAdd: function (map) {
+        const div = DomUtil.create('div', 'info legend');
+        const typeColorMap = this.options.typeColorMap;
+        const typeNameMap = this.options.typeNameMap;
+        const markersByType = this.options.markersByType;
+
+        DomEvent.disableClickPropagation(div);
+
+        for (const type in typeColorMap) {
+            if (!markersByType[type]) {
+                console.info("No markers found for " + typeNameMap[type]);
+                continue;
+            }
+            const count = markersByType[type].length;
+            const color = typeColorMap[type];
+
+            const itemDiv = DomUtil.create('div', 'legend-item', div);
+            itemDiv.innerHTML = `<i style="background:${color};"></i>
+                    <span>${typeNameMap[type]} (${count})</span>`;
+
+            // Add click listener to toggle markers visibility
+            DomEvent.on(itemDiv, 'click', (e) => {
+                e.stopPropagation();
+                this.toggleMarkers(type, markersByType[type], itemDiv);
+            });
+        }
+        return div;
+    },
+
+    toggleMarkers: function (type, markers, itemDiv) {
+        if (!markers) return;
+        const wasVisible = markers[0].options.opacity !== 0;
+        const isVisible = !wasVisible;
+
+        markers.forEach(marker => {
+            if (wasVisible) {
+                marker.setStyle({opacity: 0, fillOpacity: 0});
+            } else {
+                marker.setStyle({opacity: 1, fillOpacity: 0.8});
+            }
+        });
+        // Make legend text grey if hidden
+        itemDiv.style.color = isVisible ? "#000000" : "#B0B0B0";
+    }
+
+});
 
 // Export the module
 export default MapModal;

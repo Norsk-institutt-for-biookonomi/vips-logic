@@ -15,6 +15,7 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
+<#assign isGridForecastSupported = (user.organizationId.defaultGridWeatherStationDataSource?has_content)>
 <#macro page_head>
     <title>${i18nBundle.viewForecastConfiguration}</title>
 </#macro>
@@ -24,7 +25,7 @@
     <script src="/js/validateForm.js"></script>
     <script src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
     <link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="/css/3rdparty/leaflet.css" />
     <link rel="stylesheet" href="/css/mapModal.css" />
     <script type="text/javascript" src="/js/3rdparty/modernizr_custom.js"></script>
     <script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
@@ -36,74 +37,67 @@
     </script>
     <script type="module">
         import MapModal from '/js/mapModal.js';
-        function callbackPersistNewPoint(pointData) {
-            const userId = ${user.userId};
-            const params = {
-                'name': pointData.name,
-                'typeId': pointData.typeId,
-                'longitude': pointData.longitude,
-                'latitude': pointData.latitude,
-                'altitude': '0', // default value - populate using a service for getting altitude for coordinates?
-                'userId': userId,
-            }
-            $.ajax({
-                url: "/rest/poi",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(params),
-                success: function(response) {
-                    addOption(response.pointOfInterestId, response.name);
-                    mapModalInstance.saveSuccess(response.pointOfInterestId);
-                    console.info("Success:", response);
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("Error:", textStatus, errorThrown);
-                }
+
+        // Read the list of locationPointOfInterest into javascript array, to be able to dynamically manipulate it
+        let locationList = [
+            <#list locationPointOfInterests as poi>
+            {
+                "pointOfInterestId": "${poi.pointOfInterestId}",
+                "name": "${poi.name?json_string}",
+                "latitude": "${poi.latitude!''}",
+                "longitude": "${poi.longitude!''}",
+                "pointOfInterestTypeId": "${poi.pointOfInterestTypeId!''}"
+            },
+            </#list>
+        ];
+        renderPoiSelect("locationPointOfInterestId", locationList);
+
+        let weatherStationList = [
+            <#list weatherStationPointOfInterests as poi>
+            {
+                "pointOfInterestId": "${poi.pointOfInterestId}",
+                "name": "${poi.name?json_string}",
+                "latitude": "${poi.latitude!''}",
+                "longitude": "${poi.longitude!''}",
+                "pointOfInterestTypeId": "${poi.pointOfInterestTypeId!''}"
+            },
+            </#list>
+        ];
+        renderPoiSelect("weatherStationPointOfInterestId", weatherStationList);
+
+        // Populate select list for point of interest
+        function renderPoiSelect(elementName, elementList, selectedId) {
+            let selectElement = document.querySelector('select[name="'+elementName+'"]');
+            elementList.forEach(poi => {
+                let option = document.createElement('option');
+                option.value = poi.pointOfInterestId;
+                option.textContent = poi.name;
+                selectElement.appendChild(option);
             });
+            selectPoi(elementName, selectedId);
         }
-        function callbackUpdateLocationPointOfInterest(pointOfInterestId) {
-            const selectBox = document.querySelector('select[name="locationPointOfInterestId"]');
-            if(pointOfInterestId) {
+
+        // Iterate options in select list, display option with given id as selected
+        function selectPoi(elementName, selectedId) {
+            const selectElement = document.querySelector('select[name="'+elementName+'"]');
+            if(selectedId) {
                 let optionFound = false;
-                for (let i = 0; i < selectBox.options.length; i++) {
-                    if (selectBox.options[i].value == pointOfInterestId) {
-                        selectBox.selectedIndex = i; // Select the matching option
+                for (let i = 0; i < selectElement.options.length; i++) {
+                    if (selectElement.options[i].value == selectedId) {
+                        selectElement.selectedIndex = i;
                         optionFound = true;
                         break;
                     }
                 }
                 if (!optionFound) {
-                    console.error("No matching option found for poi.id:", pointOfInterestId);
+                    console.error("No matching option found for poi.id=" + selectedId + " in " + elementName);
                 }
             }
         }
-        // TODO Ensure options are sorted alphabetically..?
-        function addOption(pointOfInterestId, name) {
-            let selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
-            let newOption = document.createElement("option");
-            newOption.value = pointOfInterestId;
-            newOption.text = name;
-            selectElement.insertBefore(newOption, selectElement.firstChild);
-            selectElement.value = pointOfInterestId;
-        }
-        const typeNameMap = {
-            0: "${i18nBundle["pointOfInterestType_0"]}",
-            1: "${i18nBundle["pointOfInterestType_1"]}",
-            2: "${i18nBundle["pointOfInterestType_2"]}",
-            3: "${i18nBundle["pointOfInterestType_3"]}",
-            5: "${i18nBundle["pointOfInterestType_5"]}",
-            6: "${i18nBundle["pointOfInterestType_6"]}",
-            7: "${i18nBundle["pointOfInterestType_7"]}"
-        };
 
-        const poiGeoJson = JSON.parse('${locationPointOfInterestsGeoJson?json_string}');
-        const stationGeoJson = JSON.parse('${weatherStationPointOfInterestsGeoJson?json_string}')
-        const mapModalInstance = new MapModal('mapContainer', typeNameMap, poiGeoJson, true, callbackPersistNewPoint, callbackUpdateLocationPointOfInterest);
-        window.mapModalInstance = mapModalInstance;
-
-        // If poi is selected, send id to map modal before opening
-        window.openModal = () => {
-            const selectElement = document.querySelector('select[name="locationPointOfInterestId"]');
+        // Get id of currently selected poi from select element
+        function getSelectedPoiId(elementName) {
+            const selectElement = document.querySelector('select[name="'+elementName+'"]');
             const selectedOption = selectElement.options[selectElement.selectedIndex];
 
             let selectedPointOfInterestId;
@@ -114,10 +108,102 @@
                     selectedPointOfInterestId = parsedValue;
                 }
             }
-            window.mapModalInstance.openModal(selectedPointOfInterestId);
+            return selectedPointOfInterestId;
+        }
+
+        function callbackOnCloseLocationMap(poiData) {
+            if(!poiData.id) {
+                persistNewLocation(poiData);
+            } else {
+                selectPoi("locationPointOfInterestId", poiData.id);
+            }
+        }
+
+        function callbackOnCloseWeatherStationMap(poiData) {
+            selectPoi("weatherStationPointOfInterestId", poiData.id);
+        }
+
+        function persistNewLocation(poiData) {
+            const params = {
+                'name': poiData.name,
+                'typeId': poiData.typeId,
+                'longitude': poiData.longitude,
+                'latitude': poiData.latitude,
+                'altitude': '0', // default value - populate using a service for getting altitude for coordinates?
+            }
+            fetch("/rest/poi", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': '${user.userUuid!'NOT LOGGED IN?'}'
+                },
+                body: JSON.stringify(params)
+            })
+                .then(response => response.json())
+                .then(poi => {
+                    locationList.push(poi);
+                    renderPoiSelect("locationPointOfInterestId", locationList, poi.pointOfInterestId);
+                    console.info("Point of interest successfully persisted", poi);
+                })
+                .catch(error => {
+                    console.error("Unable to persist new point of interest", error);
+                });
+        }
+
+        const typeNameMap = {
+            0: "${i18nBundle["pointOfInterestType_0"]}",
+            1: "${i18nBundle["pointOfInterestType_1"]}",
+            2: "${i18nBundle["pointOfInterestType_2"]}",
+            3: "${i18nBundle["pointOfInterestType_3"]}",
+            5: "${i18nBundle["pointOfInterestType_5"]}",
+            6: "${i18nBundle["pointOfInterestType_6"]}",
+            7: "${i18nBundle["pointOfInterestType_7"]}"
         };
 
-        window.closeModal = () => window.mapModalInstance && window.mapModalInstance.closeModal();
+        // Make function globally available
+        window.openLocationMap = () => {
+            let poiIds = locationList.map(poi => poi.pointOfInterestId);
+            fetch("/rest/poi/geojson", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(poiIds)
+            })
+            .then(response => response.json())
+            .then(geoJson => {
+                const locationMapInstance = new MapModal('location-map', typeNameMap, geoJson, '${currentLanguage}', true, callbackOnCloseLocationMap);
+                const selectedPoiId = getSelectedPoiId("locationPointOfInterestId");
+                locationMapInstance.openModal(selectedPoiId);
+            })
+            .catch(error => {
+                console.error('Unable to convert poi list to GeoJson, cannot open map', error);
+            });
+        }
+
+        // Make function globally available
+        window.openWeatherStationMap = () => {
+            let poiIds = weatherStationList.map(poi => poi.pointOfInterestId);
+            fetch("/rest/poi/geojson", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(poiIds)
+            })
+                .then(response => response.json())
+                .then(geoJson => {
+                    const weatherStationMapInstance = new MapModal('weather-station-map', typeNameMap, geoJson, '${currentLanguage}', false, callbackOnCloseWeatherStationMap);
+                    const selectedPoiId = getSelectedPoiId("weatherStationPointOfInterestId");
+                    weatherStationMapInstance.openModal(selectedPoiId);
+                })
+                .catch(error => {
+                    console.error('Unable to convert weather station poi list to GeoJson, cannot open map', error);
+                });
+        }
     </script>
 	<script type="text/javascript">
             $(document).ready(function() {
@@ -316,7 +402,9 @@
           };
 
           // Setting weather station select list state correct on page load
-          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+          <#if isGridForecastSupported>
+          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+          </#if>
 
 	</script>
 </#macro>
@@ -404,40 +492,43 @@
           <div class="select-container" style="flex: 1; display: flex; align-items: center;">
             <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);" style="width: calc(100% - 30px);">
                 <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
-                <#list locationPointOfInterests?sort_by("name") as poi>
-                <option value="${poi.pointOfInterestId}"<#if forecastConfiguration.locationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.locationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
-                </#list>
             </select>
-            <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openModal()"></i>
-          </div>
-          <div id="mapModal" class="modal">
-              <div class="modal-content">
-                  <span class="close-button" onclick="closeModal()">&times;</span>
-                  <div id="mapContainer" style="height: 100vh; width: 100%; position: relative;"></div>
-              </div>
+            <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openLocationMap()"></i>
+              <div id="location-map" class="map-modal"></div>
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
 	  <div class="form-group">
 	    <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
-	    <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);};">
-	    	<option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
-        <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
-	    	<#list weatherStationPointOfInterests?sort_by("name") as poi>
-	    	<option value="${poi.pointOfInterestId}"<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
-	    	</#list>
-	    </select>
+          <div class="select-container" style="flex: 1; display: flex; align-items: center;">
+            <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);};" style="width: calc(100% - 30px);">
+                <#if isGridForecastSupported>
+              <option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+            </#if>
+            <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+                <#list weatherStationPointOfInterests?sort_by("name") as poi>
+                <option value="${poi.pointOfInterestId}"<#if
+              forecastConfiguration.weatherStationPointOfInterestId?has_content
+              && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content
+              && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
+                </#list>
+            </select>
+              <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openWeatherStationMap()"></i>
+              <div id="weather-station-map" class="map-modal"></div>
+          </div>
 	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
 	  </div>
-    <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
-    <div class="form-group">
-		  <div class="checkbox">
-			<label>
-				<input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
-			</label>
-			${i18nBundle.useGridWeatherData}
-      <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
-		</div>
+    <#if isGridForecastSupported>
+      <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
+      <div class="form-group">
+        <div class="checkbox">
+        <label>
+          <input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
+        </label>
+        ${i18nBundle.useGridWeatherData}
+        <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
+      </div>
+    </#if>
 	  <#else>
 	  <input type="hidden" name="multipleNew" value="true"/>
 	  <div class="form-group">

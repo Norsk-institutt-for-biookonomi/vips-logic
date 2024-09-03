@@ -1,4 +1,4 @@
-.modal {
+.map-modal {
     display: none;
     position: fixed;
     z-index: 1000;
@@ -10,20 +10,14 @@
     background-color: rgba(0, 0, 0, 0.9);
 }
 
-.modal-content {
+.map-modal-content {
     position: relative;
     height: 100%;
     width: 100%;
     background-color: #fefefe;
 }
 
-#open-map-modal-icon {
-    font-size: 30px;
-    margin-left: 15px;
-    cursor: pointer;
-}
-
-#selectedPointInfo {
+#selected-point-info-panel {
     font-family: Arial, sans-serif;
     font-size: 12px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
@@ -37,11 +31,36 @@
     z-index: 1100;
 }
 
-#zoomToMyLocationButton {
-    position: absolute;
-    top: 10px;
-    left: 50px;
-    z-index: 1100;
+.close-map-button {
+    font-size: 24px;
+}
+
+.zoom-to-my-location-button{
+    font-size: 24px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-item i {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+}
+
+.info.legend {
+    background-color: white;
+    padding: 10px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    cursor: default !important;
 }
 
 #confirmButton {
@@ -49,29 +68,8 @@
 }
 
 .leaflet-container {
-    cursor: default !important;  /* Force the arrow cursor */
-}
-
-.leaflet-container {
-    font-size: 0.9rem; /* Make font-size of popup larger */
-}
-
-.close-button {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 50px;
-    font-weight: bold;
-    text-shadow:
-            -1px -1px 0 #000,  /* Top left shadow */
-            1px -1px 0 #000,   /* Top right shadow */
-            -1px 1px 0 #000,   /* Bottom left shadow */
-            1px 1px 0 #000;
-    color: white;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    z-index: 1500;
+    cursor: default !important;
+    font-size: 12px;
 }
 
 #newPointForm {

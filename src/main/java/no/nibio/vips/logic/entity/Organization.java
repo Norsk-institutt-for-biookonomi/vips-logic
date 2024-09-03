@@ -111,6 +111,21 @@ public class Organization implements Serializable {
     @OneToOne
     @JsonIgnore
     private VipsLogicUser archiveUser; 
+    
+    @JoinColumn(name = "default_grid_weather_station_data_source_id", referencedColumnName = "weather_station_data_source_id")
+    @ManyToOne
+    private WeatherStationDataSource defaultGridWeatherStationDataSource;
+
+    public WeatherStationDataSource getDefaultGridWeatherStationDataSource() {
+        return defaultGridWeatherStationDataSource;
+    }
+
+    public void setDefaultGridWeatherStationDataSource(WeatherStationDataSource defaultGridWeatherStationDataSource) {
+        this.defaultGridWeatherStationDataSource = defaultGridWeatherStationDataSource;
+    }
+
+    
+
 
     public Organization() {
     }

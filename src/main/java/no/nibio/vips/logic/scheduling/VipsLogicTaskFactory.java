@@ -49,7 +49,7 @@ public class VipsLogicTaskFactory {
     public static final int RUN_FORECAST_CONFIGURATIONS_BY_ID_TASK = 9;
 
     
-    private final static int[] ALL_TASK_IDS = {1,2,3,4,5,6,7,8,9};
+    private final static int[] ALL_TASK_IDS = {1,2,3,4,5,6,7,9};
     
     private final static int[] ORGANIZATION_ADMIN_TASK_IDS = {7};
     
