@@ -38,28 +38,23 @@
     <script type="module">
         import MapModal from '/js/mapModal.js';
 
-        // Read the list of locationPointOfInterest into javascript array, to be able to dynamically manipulate it
+        // Read the list of locations into javascript array, to be able to dynamically manipulate it
         let locationList = [
             <#list locationPointOfInterests as poi>
             {
                 "pointOfInterestId": "${poi.pointOfInterestId}",
-                "name": "${poi.name?json_string}",
-                "latitude": "${poi.latitude!''}",
-                "longitude": "${poi.longitude!''}",
-                "pointOfInterestTypeId": "${poi.pointOfInterestTypeId!''}"
+                "name": "${poi.name?json_string}"
             },
             </#list>
         ];
         renderPoiSelect("locationPointOfInterestId", locationList);
 
+        // Read the list of weather stations into javascript array, to be able to dynamically manipulate it
         let weatherStationList = [
             <#list weatherStationPointOfInterests as poi>
             {
                 "pointOfInterestId": "${poi.pointOfInterestId}",
-                "name": "${poi.name?json_string}",
-                "latitude": "${poi.latitude!''}",
-                "longitude": "${poi.longitude!''}",
-                "pointOfInterestTypeId": "${poi.pointOfInterestTypeId!''}"
+                "name": "${poi.name?json_string}"
             },
             </#list>
         ];
@@ -68,13 +63,16 @@
         // Populate select list for point of interest
         function renderPoiSelect(elementName, elementList, selectedId) {
             let selectElement = document.querySelector('select[name="'+elementName+'"]');
+            selectElement.innerHTML = '';
             elementList.forEach(poi => {
                 let option = document.createElement('option');
                 option.value = poi.pointOfInterestId;
                 option.textContent = poi.name;
+                if(selectedId && option.value == selectedId) {
+                    option.selected = true;
+                }
                 selectElement.appendChild(option);
             });
-            selectPoi(elementName, selectedId);
         }
 
         // Iterate options in select list, display option with given id as selected
