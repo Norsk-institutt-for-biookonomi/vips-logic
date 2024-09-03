@@ -469,7 +469,7 @@ var getCropOrganism = function (organismId)
 }
 
 
-var symptoms = ["Flekker", "Glisne kroner","Død","Andre symptom","Andre skader","Ikke symptom","Irrelevant"];
+var symptoms = ["Flekker", "Glisne kroner","Oppsprekking","Død","Andre symptom","Andre skader","Ikke symptom","Irrelevant"];
 var funns = ["[Ukjent]", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
 var provetypes = ["[Ikke prøve]","Jord","Vev","Vann","Blad","Bait"];
 
