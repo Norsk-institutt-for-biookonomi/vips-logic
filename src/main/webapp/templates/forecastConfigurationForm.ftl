@@ -64,6 +64,15 @@
         function renderPoiSelect(elementName, elementList, selectedId) {
             let selectElement = document.querySelector('select[name="'+elementName+'"]');
             selectElement.innerHTML = '';
+
+            let defaultOption = document.createElement('option');
+            defaultOption.value = "-1";
+            defaultOption.textContent = "${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}";
+            if(!selectedId) {
+                defaultOption.selected = true;
+            }
+            selectElement.appendChild(defaultOption);
+
             elementList.forEach(poi => {
                 let option = document.createElement('option');
                 option.value = poi.pointOfInterestId;
@@ -489,7 +498,6 @@
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
           <div class="select-container" style="flex: 1; display: flex; align-items: center;">
             <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);" style="width: calc(100% - 30px);">
-                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}</option>
             </select>
             <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openLocationMap()"></i>
               <div id="location-map" class="map-modal"></div>
