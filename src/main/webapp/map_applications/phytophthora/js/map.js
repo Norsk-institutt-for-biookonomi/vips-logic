@@ -413,12 +413,14 @@ var displayFeature = function (feature)
         '<button type="button" onclick="deleteFeature(' + feature.getId() + ')">Slett</button>',
         '<h3>Registrering</h3>',
         '<table>',
-        '<tr><td>Type</td><td>', getLocalizedOrganismName(feature.get("cropOrganism"), hardcodedLanguage), '</td></tr>',
+        '<tr><td>Plante</td><td>', getLocalizedOrganismName(feature.get("cropOrganism"), hardcodedLanguage), '</td></tr>',
+        '<tr><td>Plante spes</td><td>', observationData["plantespes"], '</td></tr>',
         '<tr><td>Symptom</td><td>', observationData["symptom"], '</td></tr>',
-        '<tr><td>Funn</td><td>', observationData["funn"], '</td></tr>',
+        '<tr><td>Sym spes</td><td>', observationData["symspes"], '</td></tr>',
         '<tr><td>Prøvetype</td><td>', observationData["provetype"], '</td></tr>',
         '<tr><td>Prøvenummer</td><td>', observationData["provenummer"], '</td></tr>',
-        '<tr><td>Beskrivelse</td><td>', feature.get("observationText"), '</td></tr>',
+        '<tr><td>Funn</td><td>', observationData["funn"], '</td></tr>',
+        '<tr><td>Mer info</td><td>', feature.get("observationText"), '</td></tr>',
         '<tr><td>Dato</td><td>', timeOfObservation.format("DD.MM.YYYY"), '</td></tr>',
         '</table>'
     ];
@@ -467,9 +469,9 @@ var getCropOrganism = function (organismId)
 }
 
 
-var symptoms = ["Flekker", "Glisne kroner","Andre symptom","Andre skader","Ikke symptom","Irrelevant"];
+var symptoms = ["Flekker", "Glisne kroner","Død","Andre symptom","Andre skader","Ikke symptom","Irrelevant"];
 var funns = ["[Ukjent]", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
-var provetypes = ["[Ikke prøve]","Jord","Vev","Vann"];
+var provetypes = ["[Ikke prøve]","Jord","Vev","Vann","Blad","Bait"];
 
 
 var editFeature = function (featureId)
@@ -484,22 +486,26 @@ var editFeature = function (featureId)
             (featureId > 0 ? '<button type="button" onclick="deleteFeature(' + featureId + ')">Delete</button>' : '') +
             '<h3>' + (featureId > 0 ? "R" : "Ny r") + 'egistrering</h3>' +
             '<table>' +
-            '<tr><td>Type</td><td>' +
+            '<tr><td>Plante</td><td>' +
             generateCropSelect("forekomsttype", forekomsttyper, feature.get("cropOrganism")["organismId"]) +
             '</td></tr>' +
+            '<tr><td>Plante spes.</td><td>' +
+            '<input type="text" id="plantespes" name="plantespes" size="15" value="' + (observationData["plantespes"] != null ? observationData["plantespes"] : "") + '"/></td></tr>' +
             '<tr><td>Symptom</td><td>' +
             generateSelect("symptom", symptoms, observationData["symptom"]) +
             '</td></tr>' +
-            '<tr><td>Funn</td><td>' +
-            generateSelect("funn", funns, observationData["funn"]) +
-            '</td></tr>' +
+            '<tr><td>Sym spes.</td><td>' +
+            '<input type="text" id="symspes" name="symspes" size="15" value="' + (observationData["symspes"] != null ? observationData["symspes"] : "") + '"/></td></tr>' +
+           
             '<tr><td>Prøvetype</td><td>' +
             generateSelect("provetype", provetypes, observationData["provetype"]) +
             '</td></tr>' +
             '<tr><td>Prøvenummer</td><td>' +
             '<input type="text" id="provenummer" name="provenummer" size="15" value="' + (observationData["provenummer"] != null ? observationData["provenummer"] : "") + '"/></td></tr>' +
-            '<tr><td></td><td>' +
-            '<tr><td>Beskrivelse</td><td>' +
+            '<tr><td>Funn</td><td>' +
+            generateSelect("funn", funns, observationData["funn"]) +
+            '</td></tr>' +
+            '<tr><td>Mer info</td><td>' +
             '<textarea id="beskrivelse" name="beskrivelse">' + (feature.get("observationText") != null ? feature.get("observationText") : "") + '</textarea>' +
             '</td></tr>' +
             '<tr><td>Dato</td><td>' +
@@ -526,10 +532,12 @@ var storeFeature = function (featureId)
     // Add the form data
     var cropOrganism = getCropOrganism(document.getElementById("forekomsttype").options[document.getElementById("forekomsttype").options.selectedIndex].value);
     //console.info(cropOrganism);
+    var plantespes = document.getElementById("plantespes").value;
     var symptom = document.getElementById("symptom").options[document.getElementById("symptom").options.selectedIndex].value;
-    var funn = document.getElementById("funn").options[document.getElementById("funn").options.selectedIndex].value;
+    var symspes = document.getElementById("symspes").value;
     var provetype = document.getElementById("provetype").options[document.getElementById("provetype").options.selectedIndex].value;
     var provenummer = document.getElementById("provenummer").value;
+    var funn = document.getElementById("funn").options[document.getElementById("funn").options.selectedIndex].value;
     var observationText = document.getElementById("beskrivelse").value;
     var observationHeading = "Registrering av phytophthora";
     var timeOfObservation = moment(document.getElementById("dato").value + "+0200", "DD.MM.YYYYZ");
@@ -545,7 +553,7 @@ var storeFeature = function (featureId)
         organism: phytophthora,
         observationHeading: observationHeading,
         observationText: observationText,
-        observationData: "{\"symptom\":\"" + symptom + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
+        observationData: "{\"plantespes\":\"" + plantespes + "\",\"symptom\":\"" + symptom + "\",\"symspes\":\"" + symspes + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
         statusTypeId: 3,
         statusRemarks: "Registrert via phytophthora-overvåkningskartet",
         isQuantified: true,
