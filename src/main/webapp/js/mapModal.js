@@ -57,8 +57,9 @@ class MapModal {
      * @param callbackOnClose   Callback function to call when closing the modal
      */
     constructor(mapModalId, typeNameMap, geoJsonData, language = 'nb', allowNewPoints = false, callbackOnClose = null) {
-        this.mapModalId = mapModalId;
+        this.mapModalElement = document.getElementById(mapModalId);
         this.mapContainerId = mapModalId + "-container";
+        this.mapContainerElement = this.addMapContainer(this.mapModalElement, this.mapContainerId);
         this.typeNameMap = typeNameMap;
         this.geoJsonData = geoJsonData;
         this.translations = MapModal.TRANSLATIONS[language];
@@ -81,6 +82,16 @@ class MapModal {
             6: "#DC7633",   // Rich Brown
             7: "#FF33A6"  // Vivid Magenta
         };
+    }
+
+    addMapContainer(parentDiv, id) {
+        const mapContainer = document.createElement('div');
+        mapContainer.id = id;
+        mapContainer.style.height = '100vh';
+        mapContainer.style.width = '100%';
+        mapContainer.style.position = 'relative';
+        parentDiv.appendChild(mapContainer);
+        return mapContainer;
     }
 
     styleOfSelectedPointMarker() {
@@ -107,73 +118,75 @@ class MapModal {
     }
 
     initMap() {
-        if (!this.isMapInitialized) {
-            // Initialize the map centered on Norway
-            this.map = map(this.mapContainerId).setView([63.4226, 10.3951], 5);
-            tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19
-            }).addTo(this.map);
-            console.info("Create map " + this.mapContainerId + " with points", this.geoJsonData);
-
-            this.setUpSelectedPointInfoPanel();
-
-            // Add points to the map
-            geoJSON(this.geoJsonData, {
-                filter: (feature) => feature.geometry.type === "Point",
-                pointToLayer: (feature, latlng) => {
-                    return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
-                },
-                onEachFeature: (feature, layer) => {
-                    const typeId = feature.properties.pointOfInterestTypeId;
-
-                    layer.bindPopup(this.popupContent(feature));
-                    layer.on('click', () => this.displaySelectedPoint(feature, layer));
-
-                    // Add the marker to the markersByType object
-                    if (!this.markersByType[typeId]) {
-                        this.markersByType[typeId] = [];
-                    }
-                    this.markersByType[typeId].push(layer);
-                }
-            }).addTo(this.map);
-
-
-            const zoomToLocationControl = new ZoomToLocationControl( {translations: this.translations });
-            this.map.addControl(zoomToLocationControl);
-
-            const closeMapControl = new CloseMapControl({
-                translations: this.translations,
-                onClose: () => {
-                    this.closeModal();
-                }
-            });
-            this.map.addControl(closeMapControl);
-
-            const legendControl = new LegendControl({
-                typeColorMap: this.typeColorMap,
-                typeNameMap: this.typeNameMap,
-                markersByType: this.markersByType
-            });
-            this.map.addControl(legendControl);
-
-            // Enable adding new points if allowed
-            if (this.allowNewPoints) {
-                this.enablePointCreation();
-            }
-            this.isMapInitialized = true;
+        if (this.isMapInitialized) {
+            console.error("Map is already initialized");
+            return;
         }
+        // Initialize the map centered on Norway
+        this.map = map(this.mapContainerId).setView([63.4226, 10.3951], 5);
+        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(this.map);
+        console.info("Create map " + this.mapContainerId + " with points", this.geoJsonData);
+
+        this.setUpSelectedPointInfoPanel();
+
+        // Add points to the map
+        geoJSON(this.geoJsonData, {
+            filter: (feature) => feature.geometry.type === "Point",
+            pointToLayer: (feature, latlng) => {
+                return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
+            },
+            onEachFeature: (feature, layer) => {
+                const typeId = feature.properties.pointOfInterestTypeId;
+
+                layer.bindPopup(this.popupContent(feature));
+                layer.on('click', () => this.displaySelectedPoint(feature, layer));
+
+                // Add the marker to the markersByType object
+                if (!this.markersByType[typeId]) {
+                    this.markersByType[typeId] = [];
+                }
+                this.markersByType[typeId].push(layer);
+            }
+        }).addTo(this.map);
+
+        const zoomToLocationControl = new ZoomToLocationControl({translations: this.translations});
+        this.map.addControl(zoomToLocationControl);
+
+        const closeMapControl = new CloseMapControl({
+            translations: this.translations,
+            onClose: () => {
+                this.closeModal();
+            }
+        });
+        this.map.addControl(closeMapControl);
+
+        const legendControl = new LegendControl({
+            typeColorMap: this.typeColorMap,
+            typeNameMap: this.typeNameMap,
+            markersByType: this.markersByType
+        });
+        this.map.addControl(legendControl);
+
+        // Enable adding new points if allowed
+        if (this.allowNewPoints) {
+            this.enablePointCreation();
+        }
+        this.isMapInitialized = true;
     }
 
     /**
      * Create information panel for selected point, initially hidden.
      */
     setUpSelectedPointInfoPanel() {
+        console.info("Set up selected point info panel");
         const selectedPointInfoHtml = `
         <div id="selected-point-info-panel" style="display: none;">
             <div id="infoMessage"></div>
             <button id="confirmButton" class="btn btn-primary">${this.translations.selectLocation}</button>
         </div>`;
-        document.getElementById(this.mapContainerId).insertAdjacentHTML('beforeend', selectedPointInfoHtml);
+        this.mapContainerElement.insertAdjacentHTML('beforeend', selectedPointInfoHtml);
     }
 
     /**
@@ -188,6 +201,7 @@ class MapModal {
 
         const selectedPointInfo = document.getElementById('selected-point-info-panel');
         const infoMessage = document.getElementById('infoMessage');
+        console.info("Add info message to panel", selectedPointInfo);
 
         infoMessage.innerHTML = `<strong>${name}</strong><br>${coordinates}<br>${type}`;
         selectedPointInfo.style.display = 'block';
@@ -288,7 +302,7 @@ class MapModal {
             const validateInputs = () => {
                 const isValidLat = !isNaN(parseFloat(latitudeInput.value)) && isFinite(latitudeInput.value);
                 const isValidLng = !isNaN(parseFloat(longitudeInput.value)) && isFinite(longitudeInput.value);
-                if(isValidLat && isValidLng) {
+                if (isValidLat && isValidLng) {
                     this.updateMarkerPosition(this.selectedNewPointMarker, parseFloat(latitudeInput.value), parseFloat(longitudeInput.value));
                 }
                 submitButton.disabled = !(isValidLat && isValidLng);
@@ -417,24 +431,31 @@ class MapModal {
         const tmpContainer = document.createElement("div");
         tmpContainer.innerHTML = html;
         const htmlElement = tmpContainer.querySelector('#newPointForm');
-        document.getElementById(this.mapContainerId).appendChild(htmlElement);
+        this.mapContainerElement.appendChild(htmlElement);
         return htmlElement;
     }
 
+    /**
+     * Make modal visible. Initialise map with selected point marked, if given.
+     *
+     * @param selectedPointOfInterestId
+     */
     openModal(selectedPointOfInterestId) {
-        document.getElementById(this.mapModalId).style.display = 'block';
+        this.mapModalElement.style.display = 'block';
         this.initMap();
         if (selectedPointOfInterestId) {
             this.selectPointById(selectedPointOfInterestId);
         }
     }
 
+    /**
+     * Hide modal. Remove container element and map.
+     */
     closeModal() {
-        document.getElementById(this.mapModalId).style.display = 'none';
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
+        this.mapModalElement.style.display = 'none';
+        this.mapContainerElement.remove();
+        this.map.remove();
+        this.map = null;
     }
 }
 
