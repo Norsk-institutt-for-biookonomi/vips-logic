@@ -41,6 +41,10 @@
     font-size: 24px;
 }
 
+.zoom-to-my-location-button{
+    font-size: 24px;
+}
+
 .legend-item {
     display: flex;
     align-items: center;
@@ -62,6 +66,7 @@
     color: #555;
     border-radius: 5px;
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    cursor: default !important;
 }
 
 #confirmButton {
