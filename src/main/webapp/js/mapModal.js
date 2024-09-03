@@ -288,6 +288,9 @@ class MapModal {
             const validateInputs = () => {
                 const isValidLat = !isNaN(parseFloat(latitudeInput.value)) && isFinite(latitudeInput.value);
                 const isValidLng = !isNaN(parseFloat(longitudeInput.value)) && isFinite(longitudeInput.value);
+                if(isValidLat && isValidLng) {
+                    this.updateMarkerPosition(this.selectedNewPointMarker, parseFloat(latitudeInput.value), parseFloat(longitudeInput.value));
+                }
                 submitButton.disabled = !(isValidLat && isValidLng);
             };
             latitudeInput.addEventListener('input', validateInputs);
@@ -305,6 +308,14 @@ class MapModal {
                 newPointFormElement.remove();
             });
         });
+    }
+
+    updateMarkerPosition(marker, lat, lng) {
+        if (marker) {
+            console.info("Move marker to new position")
+            marker.setLatLng([lat, lng]);
+            this.map.setView([lat, lng], this.map.getZoom());
+        }
     }
 
     removeNewPointMarkerIfExists() {
