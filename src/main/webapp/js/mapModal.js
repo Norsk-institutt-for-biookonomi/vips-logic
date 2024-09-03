@@ -11,11 +11,9 @@ import {
     DomUtil
 } from '/js/3rdparty/leaflet-src.esm.js';
 
-// https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js
-
 /**
  * Uses css classes from bootstrap 3.4.1
- *
+ * Leaflet: https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js
  */
 class MapModal {
 
@@ -307,9 +305,8 @@ class MapModal {
                 }
                 submitButton.disabled = !(isValidLat && isValidLng);
             };
-            latitudeInput.addEventListener('input', validateInputs);
-            longitudeInput.addEventListener('input', validateInputs);
-            validateInputs();
+            latitudeInput.addEventListener('blur', validateInputs);
+            longitudeInput.addEventListener('blur', validateInputs);
 
             closeButton.addEventListener('click', () => {
                 newPointFormElement.remove();
