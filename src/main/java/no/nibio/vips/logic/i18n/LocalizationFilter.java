@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2014 NIBIO <http://www.nibio.no/>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ import com.ibm.icu.util.ULocale;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.Filter;
@@ -51,9 +52,9 @@ public class LocalizationFilter implements Filter{
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        
+
         this.availableLocales = LanguageUtil.getAvailableLocalesWithDistinctLanguage();
-        
+
     }
 
     @Override
@@ -72,14 +73,14 @@ public class LocalizationFilter implements Filter{
         ULocale browserRequestedLocale = getBrowserRequestedLocale(request);
         String userRequestedLocaleStr = request.getParameter("userRequestedLocale");
         ULocale userRequestedLocale = userRequestedLocaleStr != null ? new ULocale(userRequestedLocaleStr) : null;
-        
-        /* 
-         * If currentLocale is not set, use either userRequestedLocale (1st priority) 
+
+        /*
+         * If currentLocale is not set, use either userRequestedLocale (1st priority)
          * or browserRequestedLocale (2nd priority) or JVM's default locale (fallback)
-         */ 
+         */
         if(currentLocale == null)
         {
-            SessionLocaleUtil.setCurrentLocale((HttpServletRequest)request, userRequestedLocale != null ? userRequestedLocale : browserRequestedLocale != null ? browserRequestedLocale : ULocale.getDefault());   
+            SessionLocaleUtil.setCurrentLocale((HttpServletRequest)request, userRequestedLocale != null ? userRequestedLocale : browserRequestedLocale != null ? browserRequestedLocale : ULocale.getDefault());
         }
         /*
          * If userRequestedLocale is set and differs from current, activate it
@@ -106,34 +107,42 @@ public class LocalizationFilter implements Filter{
                 }
             }
         }
-        
+
         // Set the available locales
-        ((HttpServletRequest)request).getSession().setAttribute("availableLocales", this.availableLocales); 
-        
+        ((HttpServletRequest)request).getSession().setAttribute("availableLocales", this.availableLocales);
+
         // We always make the system time available for FreeMarker templates
         //request.setAttribute("systemTime", SystemTime.getSystemTime());
-        
+
         chain.doFilter(request, response);
-        
+
     }
 
     /**
      * Get locale from request. Map from unsupported 'no' and 'nn', to 'nb'.
+     * If locale or language is null or blank, null is returned.
      *
      * @param request The request from which to get the locale
-     * @return A locale which is supported by the system
+     * @return A locale which is supported by the system, or null
      */
     private static ULocale getBrowserRequestedLocale(ServletRequest request) {
-        ULocale locale = ULocale.forLocale(request.getLocale());
+        Locale requestLocale = request.getLocale();
+        if (requestLocale == null) {
+            return null;
+        }
+        ULocale locale = ULocale.forLocale(requestLocale);
         String language = locale.getLanguage();
+        if(language == null || language.isBlank()) {
+            return null;
+        }
         String mappedLanguage = LOCALE_MAPPING.getOrDefault(language, language);
         return new ULocale(mappedLanguage);
     }
 
     @Override
     public void destroy() {
-        
+
     }
 
-    
+
 }
