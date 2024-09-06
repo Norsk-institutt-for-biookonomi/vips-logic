@@ -20,6 +20,7 @@ class MapModal {
     static TRANSLATIONS = {
         nb: {
             selectLocation: 'Velg sted',
+            saveLocation: 'Lagre nytt sted',
             createNewLocation: 'Opprett nytt sted',
             name: 'Navn',
             latitude: 'Breddegrad',
@@ -33,6 +34,7 @@ class MapModal {
         },
         en: {
             selectLocation: 'Select location',
+            saveLocation: 'Save new location',
             createNewLocation: 'Create New Location',
             name: 'Name',
             latitude: 'Latitude',
@@ -195,16 +197,22 @@ class MapModal {
         console.info("Display selected point", feature);
         const name = feature.properties.pointOfInterestName;
         const type = this.typeNameMap[feature.properties.pointOfInterestTypeId];
-        const coordinates = feature.geometry.coordinates[1].toFixed(5) + ", " + feature.geometry.coordinates[0].toFixed(5);
+        const latitude = feature.geometry.coordinates[1].toFixed(5);
+        const longitude = feature.geometry.coordinates[0].toFixed(5);
 
         const selectedPointInfo = document.getElementById('selected-point-info-panel');
         const infoMessage = document.getElementById('infoMessage');
         console.info("Add info message to panel", selectedPointInfo);
 
-        infoMessage.innerHTML = `<strong>${name}</strong><br>${coordinates}<br>${type}`;
+        infoMessage.innerHTML = `
+            <h4>${name}</h4>
+            <b>${this.translations.latitude}</b> ${latitude}<br>
+            <b>${this.translations.longitude}</b> ${longitude}<br>
+            <b>${this.translations.type}</b> ${type}`;
         selectedPointInfo.style.display = 'block';
 
         const confirmButton = document.getElementById('confirmButton');
+        confirmButton.innerHTML = feature.properties.pointOfInterestId ? this.translations.selectLocation : this.translations.saveLocation;
         confirmButton.style.display = 'block';
         confirmButton.onclick = () => {
             this.confirmSelection(feature);
@@ -376,10 +384,14 @@ class MapModal {
     }
 
     popupContent(feature) {
+        const latitude = feature.geometry.coordinates[1].toFixed(5);
+        const longitude = feature.geometry.coordinates[0].toFixed(5);
         const localizedTypeName = this.typeNameMap[feature.properties.pointOfInterestTypeId];
-        const coordinates = feature.geometry.coordinates[1].toFixed(5) + ", " + feature.geometry.coordinates[0].toFixed(5);
         return `<div id="poiPopup">
-                <strong>${feature.properties.pointOfInterestName}</strong><br>${coordinates}<br>${localizedTypeName}
+                <h4>${feature.properties.pointOfInterestName}</h4>
+                <b>${this.translations.latitude}</b> ${latitude}<br>
+                <b>${this.translations.longitude}</b> ${longitude}<br>
+                <b>${this.translations.type}</b> ${localizedTypeName}
                 </div>`;
     }
 
@@ -396,7 +408,7 @@ class MapModal {
         const html = `
             <div id="newPointForm" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
                 <div class="panel-heading">
-                    <h3 class="panel-title">${this.translations.createNewLocation}</h3>
+                    <h4 class="panel-title">${this.translations.createNewLocation}</h4>
                     <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
                 </div>
                 <div class="panel-body">
@@ -406,11 +418,11 @@ class MapModal {
                     </div>
                     <div class="form-group">
                         <label for="latitude">${this.translations.latitude}:</label>
-                        <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude}">
+                        <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude.toFixed(5)}">
                     </div>
                     <div class="form-group">
                         <label for="longitude">${this.translations.longitude}:</label>
-                        <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude}">
+                        <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude.toFixed(5)}">
                     </div>
                     <div class="form-group">
                         <label for="poiTypeSelect">${this.translations.type}:</label>
