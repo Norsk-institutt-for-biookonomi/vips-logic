@@ -111,6 +111,7 @@ class MapModal {
         this.markersByType = {};
         this.selectedNewPointMarker = null;
         this.selectedExistingPointMarker = null;
+        this.coordinatePrecision = 6;
 
         // Colours for the available types of pois
         this.typeColorMap = {
@@ -237,8 +238,8 @@ class MapModal {
         console.info("Display selected point", feature);
         const name = feature.properties.pointOfInterestName;
         const type = this.typeNameMap[feature.properties.pointOfInterestTypeId];
-        const latitude = feature.geometry.coordinates[1].toFixed(5);
-        const longitude = feature.geometry.coordinates[0].toFixed(5);
+        const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
+        const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
 
         const selectedPointInfo = document.getElementById('selected-point-info-panel');
         const infoMessage = document.getElementById('infoMessage');
@@ -424,8 +425,8 @@ class MapModal {
     }
 
     popupContent(feature) {
-        const latitude = feature.geometry.coordinates[1].toFixed(5);
-        const longitude = feature.geometry.coordinates[0].toFixed(5);
+        const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
+        const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
         const localizedTypeName = this.typeNameMap[feature.properties.pointOfInterestTypeId];
         return `<div id="poiPopup">
                 <h4>${feature.properties.pointOfInterestName}</h4>
@@ -458,11 +459,11 @@ class MapModal {
                     </div>
                     <div class="form-group">
                         <label for="latitude">${this.translations.latitude}:</label>
-                        <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude.toFixed(5)}">
+                        <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude.toFixed(this.coordinatePrecision)}">
                     </div>
                     <div class="form-group">
                         <label for="longitude">${this.translations.longitude}:</label>
-                        <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude.toFixed(5)}">
+                        <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
                     </div>
                     <div class="form-group">
                         <label for="poiTypeSelect">${this.translations.type}:</label>
