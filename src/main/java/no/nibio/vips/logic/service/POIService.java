@@ -134,8 +134,11 @@ public class POIService {
         poiToSave.setLastEditedTime(new Date());
         poiToSave.setUser(user);
         poiToSave.setCountryCode(user.getOrganizationId().getCountryCode());
+        poiToSave.setTimeZone(user.getOrganizationId().getDefaultTimeZone());
+        poiToSave.setIsForecastLocation(Boolean.FALSE);
+        poiToSave.setIsPrivate(Boolean.TRUE);
 
-        if (poiLongitude != null && poiLatitude != null && poiAltitude != null) {
+        if (poiLongitude != null && poiLatitude != null) {
             GISUtil gisUtil = new GISUtil();
             Coordinate coordinate = new Coordinate(poiLongitude, poiLatitude, poiAltitude);
             Point p3d = gisUtil.createPointWGS84(coordinate);
