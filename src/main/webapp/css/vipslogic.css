@@ -279,12 +279,6 @@ div.popover {
     font-size: small;
 }
 
-#open-map-modal-icon {
-	font-size: 30px;
-	margin-left: 15px;
-	cursor: pointer;
-}
-
 @media (max-width: 500px)
 {
         #siteTitle {display: none;}

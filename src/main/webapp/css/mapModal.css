@@ -70,6 +70,12 @@
     font-size: 12px;
 }
 
+#open-map-modal-icon {
+    font-size: 30px;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
 #newPointForm {
     z-index: 1200;
     position: absolute;
