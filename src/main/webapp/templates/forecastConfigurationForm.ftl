@@ -171,7 +171,7 @@
                 locationMapInstance.openModal(selectedPoiId);
             })
             .catch(error => {
-                console.error('Unable to convert poi list to GeoJson, cannot open map', error);
+                console.error('Unable to open map', error);
             });
         }
 
