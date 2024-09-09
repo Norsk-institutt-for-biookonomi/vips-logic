@@ -1,6 +1,7 @@
 // mapModal.js
 import {
     map,
+    divIcon,
     tileLayer,
     geoJSON,
     circleMarker,
@@ -382,7 +383,6 @@ class MapModal {
         if (this.selectedNewPointMarker) {
             console.info("Remove selected new point marker", this.selectedNewPointMarker);
             this.map.removeLayer(this.selectedNewPointMarker);
-            this.currentMarker = null;
         }
     }
 
@@ -558,6 +558,13 @@ const ZoomToLocationControl = Control.extend({
             .on(button, 'click', DomEvent.preventDefault)
             .on(button, 'click', () => {
                 if (navigator.geolocation) {
+                    const locationIcon = divIcon({
+                        html: '<i class="fa fa-map-marker fa-3x"></i>',
+                        iconSize: [40, 60],
+                        className: 'location-marker',
+                        iconAnchor: [20, 60]
+                    });
+
                     navigator.geolocation.getCurrentPosition((position) => {
                         const latitude = position.coords.latitude;
                         const longitude = position.coords.longitude;
@@ -565,7 +572,7 @@ const ZoomToLocationControl = Control.extend({
                         map.setView([latitude, longitude], 13);
 
                         // Add a marker at the user's location
-                        marker([latitude, longitude]).addTo(map);
+                        marker([latitude, longitude], {icon: locationIcon}).addTo(map);
                     }, (error) => {
                         console.error('Geolocation failed: ' + error.message);
                         alert(this.options.translations.geolocationFailed);
