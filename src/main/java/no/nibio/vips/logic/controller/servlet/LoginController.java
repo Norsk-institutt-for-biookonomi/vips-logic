@@ -85,12 +85,18 @@ public class LoginController extends HttpServlet {
         // A log out request
         if(request.getServletPath().contains("logout"))
         {
+            VipsLogicUser user = request.getSession().getAttribute("user") != null ? (VipsLogicUser) request.getSession().getAttribute("user") : null;
+            // Make sure we delete the current user and their UUID
+            userBean.deleteUserUuid(user.getUserUuid());
             request.getSession().removeAttribute("user");
+
+            // Check if we have a cookie to delete as well
             Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
             if(rememberedUser != null)
             {
                 rememberedUser.setMaxAge(0);
                 response.addCookie(rememberedUser);
+                // This is likely duplication(?) - or are there cases where this makes sense?
                 userBean.deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
             }
             request.setAttribute("messageKey","logoutsuccess");
@@ -119,16 +125,19 @@ public class LoginController extends HttpServlet {
                 String password = request.getParameter("password");
                 try (PrintWriter out = response.getWriter()) {
                     
-                    Map<String,String> creds = new HashMap();
+                    Map<String,String> creds = new HashMap<>();
                     creds.put("username", username);
                     creds.put("password", password);
 
+                    // Check user credentials
                     VipsLogicUser user = userBean.authenticateUser(creds);
 
                     if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
                     {
+                        UserUuid uUUID = userBean.createAndPersistUserUuid(user);
+                        user.setUserUuid(uUUID.getUserUuidPK().getUserUuid());
                         request.getSession().setAttribute("user", user);
-                        UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
+                        this.handleRememberUser(request, response, user, returnUUID);
                         if(returnUUID)
                         {
                             nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
@@ -168,14 +177,14 @@ public class LoginController extends HttpServlet {
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
             }
         }
-        // Login from a remote resource. Return UUID
+        // Login from a remote resource, e.g. an app. Return UUID
         else if(request.getServletPath().contains("remotelogin"))
         {
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             
 
-            Map<String,String> creds = new HashMap();
+            Map<String,String> creds = new HashMap<>();
             creds.put("username", username);
             creds.put("password", password);
 
@@ -184,10 +193,11 @@ public class LoginController extends HttpServlet {
             if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
             {
                 request.getSession().setAttribute("user", user);
-                UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
+                UserUuid uUUID = userBean.createAndPersistUserUuid(user);
+                user.setUserUuid(uUUID.getUserUuidPK().getUserUuid());
+                this.handleRememberUser(request, response, user, returnUUID);
                 // All is well, return object
                 ObjectMapper mapper = new ObjectMapper();
-                user.setUserUuid(uUUID);
                 mapper.writeValue(out,user);
                 out.close();
             }
@@ -262,27 +272,30 @@ public class LoginController extends HttpServlet {
      * 
      * @param request
      * @param response
-     * @param user 
+     * @param user the VIPS user
+     * @param returnUUID has a UUID been requested to be returned to the client?
+     * @return
      */
-    private UUID handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user, Boolean returnUUID)
+    private void handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user, Boolean returnUUID)
     {
-        
+        // This is from the login form, the checkbox that you tick off to save your login
         String rememberUser = request.getParameter("rememberUser") != null ? 
                 request.getParameter("rememberUser") 
                 : (String) request.getSession().getAttribute("rememberUser");
         request.getSession().removeAttribute("rememberUser");
         if(returnUUID || (rememberUser != null && rememberUser.equals("on")))
         {
-            UserUuid uUUID = userBean.createAndPersistUserUuid(user);
+            
             if(rememberUser != null && rememberUser.equals("on"))
             {
-                Cookie rememberedUser = new Cookie("rememberedUser", uUUID.getUserUuidPK().getUserUuid().toString());
+                Cookie rememberedUser = new Cookie("rememberedUser", user.getUserUuid().toString());
                 rememberedUser.setPath("/");
                 rememberedUser.setMaxAge(Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS * 24 * 60 * 60);
                 response.addCookie(rememberedUser);
             }
-            return uUUID.getUserUuidPK().getUserUuid();
+            //return uUUID.getUserUuidPK().getUserUuid();
         }
+        // Unremember the user both server side and browser side
         else
         {
             Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
@@ -292,7 +305,7 @@ public class LoginController extends HttpServlet {
                 response.addCookie(rememberedUser);
                 userBean.deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
             }
-            return null;
+            //return null;
         }
     }
     
