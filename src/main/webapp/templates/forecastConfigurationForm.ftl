@@ -108,21 +108,14 @@
         }
 
         function callbackOnCloseLocationMap(poiData) {
-            if(!poiData.id) {
+            if(!poiData.pointOfInterestId) {
                 persistNewLocation(poiData);
             } else {
-                selectPoi("locationPointOfInterestId", poiData.id);
+                selectPoi("locationPointOfInterestId", poiData.pointOfInterestId);
             }
         }
 
         function persistNewLocation(poiData) {
-            const params = {
-                'name': poiData.name,
-                'typeId': poiData.typeId,
-                'longitude': poiData.longitude,
-                'latitude': poiData.latitude,
-                'altitude': '0', // default value - populate using a service for getting altitude for coordinates?
-            }
             fetch("/rest/poi", {
                 method: 'POST',
                 headers: {
@@ -130,7 +123,7 @@
                     'Accept': 'application/json',
                     'Authorization': '${user.userUuid!'NOT LOGGED IN?'}'
                 },
-                body: JSON.stringify(params)
+                body: JSON.stringify(poiData)
             })
                 .then(response => response.json())
                 .then(poi => {

@@ -117,14 +117,14 @@ public class POIService {
         LOGGER.error("Remember to check for roles as well, if necessary!");
 
         PointOfInterestBean poiBean = SessionControllerGetter.getPointOfInterestBean();
-        Integer poiTypeId = poiMap.get("typeId") != null ? Integer.parseInt(poiMap.get("typeId").toString()) : null;
+        Integer poiTypeId = poiMap.get("pointOfInterestTypeId") != null ? Integer.parseInt(poiMap.get("pointOfInterestTypeId").toString()) : null;
         if(poiTypeId == null) {
-            return Response.status(Status.BAD_REQUEST).entity("Point of interest type is required").build();
+            return Response.status(Status.BAD_REQUEST).entity("pointOfInterestTypeId is required").build();
         }
         String poiName = poiMap.get("name") != null ? poiMap.get("name").toString() : null;
         Double poiLongitude = poiMap.get("longitude") != null ? Double.valueOf(poiMap.get("longitude").toString()): null;
         Double poiLatitude = poiMap.get("latitude") != null ? Double.valueOf(poiMap.get("latitude").toString()): null;
-        Double poiAltitude = poiMap.get("altitude") != null ? Double.valueOf(poiMap.get("altitude").toString()): null;
+        Double poiAltitude = 0.0;
 
         PointOfInterest poiToSave = PointOfInterestFactory.getPointOfInterest(poiTypeId);
         poiToSave.setName(poiName);
@@ -149,7 +149,7 @@ public class POIService {
                     .build();
         } else {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Failed to create PointOfInterest")
+                    .entity("Failed to create PointOfInterest " + poiName)
                     .build();
         }
     }

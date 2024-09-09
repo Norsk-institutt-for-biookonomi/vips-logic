@@ -306,9 +306,9 @@ class MapModal {
     confirmSelection(feature) {
         if (typeof this.callbackOnClose === 'function') {
             const pointData = {
-                id: feature.properties.pointOfInterestId,
+                pointOfInterestId: feature.properties.pointOfInterestId,
                 name: feature.properties.pointOfInterestName,
-                typeId: feature.properties.pointOfInterestTypeId,
+                pointOfInterestTypeId: feature.properties.pointOfInterestTypeId,
                 longitude: feature.geometry.coordinates[0],
                 latitude: feature.geometry.coordinates[1]
             };
