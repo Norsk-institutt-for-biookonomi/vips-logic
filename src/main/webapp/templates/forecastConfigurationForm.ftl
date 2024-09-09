@@ -37,6 +37,7 @@
     </script>
     <script type="module">
         import MapModal from '/js/mapModal.js';
+        const selectLocationElement = document.querySelector('select[name="locationPointOfInterestId"]');
 
         // Read the list of locations into javascript array, to be able to dynamically manipulate it
         let locationList = [
@@ -47,71 +48,60 @@
             },
             </#list>
         ];
-        renderPoiSelect("locationPointOfInterestId", locationList);
+        renderPoiSelect(selectLocationElement, locationList);
 
         // Populate select list for point of interest -> NOT GENERAL! Default value is specific to location.
-        function renderPoiSelect(elementName, elementList, selectedId) {
-            let selectElement = document.querySelector('select[name="'+elementName+'"]');
+        function renderPoiSelect(selectElement, elementList, selectedId) {
             selectElement.innerHTML = '';
 
-            let defaultOption = document.createElement('option');
-            defaultOption.value = "-1";
-            defaultOption.textContent = "${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}";
-            if(!selectedId) {
-                defaultOption.selected = true;
-            }
-            selectElement.appendChild(defaultOption);
+            const createOption = (value, text, isSelected = false) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                if (isSelected) option.selected = true;
+                return option;
+            };
 
+            // Add default option
+            selectElement.appendChild(createOption(
+                "-1",
+                "${i18nBundle.pleaseSelect} ${i18nBundle.locationPointOfInterestId?lower_case}",
+                !selectedId
+            ));
+
+            // Add options from elementList
             elementList.forEach(poi => {
-                let option = document.createElement('option');
-                option.value = poi.pointOfInterestId;
-                option.textContent = poi.name;
-                if(selectedId && option.value == selectedId) {
-                    option.selected = true;
-                }
-                selectElement.appendChild(option);
+                selectElement.appendChild(createOption(
+                    poi.pointOfInterestId,
+                    poi.name,
+                    selectedId && poi.pointOfInterestId == selectedId
+                ));
             });
         }
 
-        // Iterate options in select list, display option with given id as selected
-        function selectPoi(elementName, selectedId) {
-            const selectElement = document.querySelector('select[name="'+elementName+'"]');
-            if(selectedId) {
-                let optionFound = false;
-                for (let i = 0; i < selectElement.options.length; i++) {
-                    if (selectElement.options[i].value == selectedId) {
-                        selectElement.selectedIndex = i;
-                        optionFound = true;
-                        break;
-                    }
-                }
-                if (!optionFound) {
-                    console.error("No matching option found for poi.id=" + selectedId + " in " + elementName);
+        function selectPoi(selectElement, selectedId) {
+            if (selectedId) {
+                const optionIndex = Array.from(selectElement.options).findIndex(option => option.value == selectedId);
+                if (optionIndex !== -1) {
+                    selectElement.selectedIndex = optionIndex;
+                } else {
+                    console.error("No matching option found for poi.id=" + selectedId);
                 }
             }
         }
 
         // Get id of currently selected poi from select element
-        function getSelectedPoiId(elementName) {
-            const selectElement = document.querySelector('select[name="'+elementName+'"]');
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-
-            let selectedPointOfInterestId;
-            const value = selectedOption.value;
-            if(value) {
-                const parsedValue = parseInt(value, 10);
-                if (!isNaN(parsedValue) && parsedValue > 0) {
-                    selectedPointOfInterestId = parsedValue;
-                }
-            }
-            return selectedPointOfInterestId;
+        function getSelectedPoiId(selectElement) {
+            const value = selectElement.value;
+            const parsedValue = parseInt(value, 10);
+            return (!isNaN(parsedValue) && parsedValue > 0) ? parsedValue : undefined;
         }
 
         function callbackOnCloseLocationMap(poiData) {
             if(!poiData.pointOfInterestId) {
                 persistNewLocation(poiData);
             } else {
-                selectPoi("locationPointOfInterestId", poiData.pointOfInterestId);
+                selectPoi(selectLocationElement, poiData.pointOfInterestId);
             }
         }
 
@@ -128,7 +118,7 @@
                 .then(response => response.json())
                 .then(poi => {
                     locationList.push(poi);
-                    renderPoiSelect("locationPointOfInterestId", locationList, poi.pointOfInterestId);
+                    renderPoiSelect(selectLocationElement, locationList, poi.pointOfInterestId);
                     console.info("Point of interest successfully persisted", poi);
                 })
                 .catch(error => {
@@ -160,7 +150,7 @@
             .then(response => response.json())
             .then(geoJson => {
                 const locationMapInstance = new MapModal('location-map', typeNameMap, geoJson, '${currentLanguage}', true, callbackOnCloseLocationMap);
-                const selectedPoiId = getSelectedPoiId("locationPointOfInterestId");
+                const selectedPoiId = getSelectedPoiId(selectLocationElement);
                 locationMapInstance.openModal(selectedPoiId);
             })
             .catch(error => {
