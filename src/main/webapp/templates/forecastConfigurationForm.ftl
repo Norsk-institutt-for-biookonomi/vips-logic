@@ -151,7 +151,7 @@
             .then(geoJson => {
                 const locationMapInstance = new MapModal('location-map', typeNameMap, geoJson, '${currentLanguage}', true, callbackOnCloseLocationMap);
                 const selectedPoiId = getSelectedPoiId(selectLocationElement);
-                locationMapInstance.openModal(selectedPoiId);
+                locationMapInstance.openModal(selectedPoiId, ${user.organizationId.defaultMapCenter.y?c}, ${user.organizationId.defaultMapCenter.x?c}, ${user.organizationId.defaultMapZoom} + 1);
             })
             .catch(error => {
                 console.error('Unable to open map', error);

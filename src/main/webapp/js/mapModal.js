@@ -158,17 +158,17 @@ class MapModal {
         }
     }
 
-    initMap() {
+    initMap(latitude= 65, longitude= 14, zoomLevel= 5) {
         if (this.isMapInitialized) {
             console.error("Map is already initialized");
             return;
         }
         // Initialize the map centered on Norway
-        this.map = map(this.mapContainerId).setView([63.4226, 10.3951], 5);
+        this.map = map(this.mapContainerId).setView([latitude, longitude], zoomLevel);
         tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19
         }).addTo(this.map);
-        console.info("Create map " + this.mapContainerId + " with points", this.geoJsonData);
+        console.info("Create map " + this.mapContainerId + " centered on (" + latitude + "," + longitude + ") with points", this.geoJsonData);
 
         this.setUpSelectedPointInfoPanel();
 
@@ -489,10 +489,12 @@ class MapModal {
      * Make modal visible. Initialise map with selected point marked, if given.
      *
      * @param selectedPointOfInterestId
+     * @param mapCenter
+     * @param zoomLevel
      */
-    openModal(selectedPointOfInterestId) {
+    openModal(selectedPointOfInterestId, latitude, longitude, zoomLevel) {
         this.mapModalElement.style.display = 'block';
-        this.initMap();
+        this.initMap(latitude, longitude, zoomLevel);
         if (selectedPointOfInterestId) {
             this.selectPointById(selectedPointOfInterestId);
         }
@@ -507,6 +509,33 @@ class MapModal {
         this.map.remove();
         this.map = null;
     }
+
+    hexToDouble(hex) {
+        // Create a buffer from the hex string
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+
+        // Fill the buffer with the hex string (convert 2 hex characters to 1 byte)
+        for (let i = 0; i < 8; i++) {
+            view.setUint8(i, parseInt(hex.substring(i * 2, 2), 16));
+        }
+
+        // Convert the buffer to a 64-bit floating point number (double)
+        return view.getFloat64(0, true); // true for little-endian
+    }
+
+    getLatLngFromWKB(wkb) {
+        // Extract the longitude and latitude parts from the WKB string (after metadata)
+        const longitudeHex = wkb.slice(18, 34);
+        const latitudeHex = wkb.slice(34, 50);
+
+        // Convert the hex parts to floating point numbers
+        const longitude = this.hexToDouble(longitudeHex);
+        const latitude = this.hexToDouble(latitudeHex);
+
+        return { longitude, latitude };
+    }
+
 }
 
 const ZoomToLocationControl = Control.extend({
@@ -628,6 +657,8 @@ const LegendControl = Control.extend({
         // Make legend text grey if hidden
         itemDiv.style.color = isVisible ? "#000000" : "#B0B0B0";
     }
+
+
 
 });
 
