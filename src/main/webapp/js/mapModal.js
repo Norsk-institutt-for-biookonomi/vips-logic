@@ -114,6 +114,20 @@ class MapModal {
         this.selectedExistingPointMarker = null;
         this.coordinatePrecision = 6;
 
+        this.displaySelectedFeatureInfoControl = new DisplaySelectedFeatureInfoControl({
+            translations: this.translations,
+            typeNameMap: this.typeNameMap,
+            onSubmit: (feature) => {this.confirmSelection(feature)},
+            coordinatePrecision: this.coordinatePrecision
+        });
+        this.zoomToLocationControl = new ZoomToLocationControl({
+            translations: this.translations
+        });
+        this.closeMapControl = new CloseMapControl({
+            translations: this.translations,
+            onClose: () => {this.closeModal()}
+        });
+
         // Colours for the available types of pois
         this.typeColorMap = {
             0: "#5DADE2",  // Bright Blue
@@ -171,7 +185,9 @@ class MapModal {
         }).addTo(this.map);
         console.info("Create map " + this.mapContainerId + " centered on (" + latitude + "," + longitude + ") with points", this.geoJsonData);
 
-        this.setUpSelectedPointInfoPanel();
+        this.map.addControl(this.displaySelectedFeatureInfoControl);
+        this.map.addControl(this.zoomToLocationControl);
+        this.map.addControl(this.closeMapControl);
 
         // Add points to the map
         geoJSON(this.geoJsonData, {
@@ -183,33 +199,23 @@ class MapModal {
                 const typeId = feature.properties.pointOfInterestTypeId;
 
                 layer.bindPopup(this.popupContent(feature));
-                layer.on('click', () => this.displaySelectedPoint(feature, layer));
+                layer.on('click', () => {
+                    this.displaySelectedPoint(feature, layer, false);
+                    this.displaySelectedFeatureInfoControl.updateInfoPanel(feature)
+                });
 
-                // Add the marker to the markersByType object
                 if (!this.markersByType[typeId]) {
                     this.markersByType[typeId] = [];
                 }
                 this.markersByType[typeId].push(layer);
             }
         }).addTo(this.map);
-
-        const zoomToLocationControl = new ZoomToLocationControl({translations: this.translations});
-        this.map.addControl(zoomToLocationControl);
-
-        const closeMapControl = new CloseMapControl({
-            translations: this.translations,
-            onClose: () => {
-                this.closeModal();
-            }
-        });
-        this.map.addControl(closeMapControl);
-
-        const legendControl = new LegendControl({
+        this.legendControl = new LegendControl({
             typeColorMap: this.typeColorMap,
             typeNameMap: this.typeNameMap,
             markersByType: this.markersByType
         });
-        this.map.addControl(legendControl);
+        this.map.addControl(this.legendControl);
 
         // Enable adding new points if allowed
         if (this.allowNewPoints) {
@@ -218,58 +224,12 @@ class MapModal {
         this.isMapInitialized = true;
     }
 
-    /**
-     * Create information panel for selected point, initially hidden.
-     */
-    setUpSelectedPointInfoPanel() {
-        console.info("Set up selected point info panel");
-        const selectedPointInfoHtml = `
-        <div id="selected-point-info-panel" style="display: none;">
-            <div id="infoMessage"></div>
-            <button id="confirmButton" class="btn btn-primary">${this.translations.selectLocation}</button>
-        </div>`;
-        this.mapContainerElement.insertAdjacentHTML('beforeend', selectedPointInfoHtml);
-    }
-
-    /**
-     * Display the panel which contains information about the currently selected point,
-     * and a button to bring you back to the original page.
-     */
-    displaySelectedPointInfo(feature) {
-        console.info("Display selected point", feature);
-        const name = feature.properties.pointOfInterestName;
-        const type = this.typeNameMap[feature.properties.pointOfInterestTypeId];
-        const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
-        const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
-
-        const selectedPointInfo = document.getElementById('selected-point-info-panel');
-        const infoMessage = document.getElementById('infoMessage');
-        console.info("Add info message to panel", selectedPointInfo);
-
-        infoMessage.innerHTML = `
-            <h4>${name}</h4>
-            <b>${this.translations.latitude}</b> ${latitude}<br>
-            <b>${this.translations.longitude}</b> ${longitude}<br>
-            <b>${this.translations.type}</b> ${type}`;
-        selectedPointInfo.style.display = 'block';
-
-        const confirmButton = document.getElementById('confirmButton');
-        confirmButton.innerHTML = feature.properties.pointOfInterestId ? this.translations.selectLocation : this.translations.saveLocation;
-        confirmButton.style.display = 'block';
-        confirmButton.onclick = () => {
-            this.confirmSelection(feature);
-        };
-    }
-
-    hideSelectedPointInfo() {
-        const selectedPointInfo = document.getElementById('selected-point-info-panel');
-        selectedPointInfo.style.display = 'none';
-    }
-
     selectPointById(pointOfInterestId) {
         const selectedFeature = this.getFeatureById(pointOfInterestId);
         const selectedLayer = this.getLayerById(pointOfInterestId);
         this.displaySelectedPoint(selectedFeature, selectedLayer, true);
+        selectedLayer.openPopup();
+        this.displaySelectedFeatureInfoControl.updateInfoPanel(selectedFeature);
     }
 
     getFeatureById(pointOfInterestId) {
@@ -301,8 +261,6 @@ class MapModal {
             const latLng = this.selectedExistingPointMarker.getLatLng();
             this.map.setView(latLng, 10);
         }
-
-        this.displaySelectedPointInfo(feature)
     }
 
     confirmSelection(feature) {
@@ -323,11 +281,11 @@ class MapModal {
         this.map.on('click', (e) => {
             const latlng = e.latlng;
 
-            // Click on the map should remove any previously selections
+            // Click on the map should remove any previous selections
             this.removeSelectedPointMarkerIfExists();
             this.removeNewPointMarkerIfExists();
             this.closeNewPointFormIfOpen();
-            this.hideSelectedPointInfo();
+            this.displaySelectedFeatureInfoControl.updateInfoPanel(null);
 
             // Calculate the pixel position from the map's click event
             const containerPoint = this.map.latLngToContainerPoint(latlng);
@@ -335,9 +293,7 @@ class MapModal {
             this.selectedNewPointMarker = circleMarker(latlng, this.styleOfSelectedPointMarker()).addTo(this.map);
             const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x + 25, containerPoint.y - 25, latlng.lat, latlng.lng)
 
-            // Click inside the form should not propagate to underlying map
             DomEvent.disableClickPropagation(newPointFormElement);
-            // Add event listener to close the form if clicked outside
             document.addEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
 
             const closeButton = newPointFormElement.querySelector("#close-button");
@@ -365,7 +321,7 @@ class MapModal {
 
             submitButton.addEventListener('click', () => {
                 const feature = this.createFeatureForPoint(nameInput.value, parseInt(typeInput.value, 10), parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
-                this.displaySelectedPointInfo(feature);
+                this.displaySelectedFeatureInfoControl.updateInfoPanel(feature);
                 newPointFormElement.remove();
             });
         });
@@ -395,14 +351,14 @@ class MapModal {
     }
 
     handleClickOutsidePointForm(event) {
-        const formElement = document.getElementById('newPointForm');
+        const formElement = document.getElementById('new-point-form');
         if (formElement && !formElement.contains(event.target)) {
             this.closeNewPointFormIfOpen();
         }
     }
 
     closeNewPointFormIfOpen() {
-        const formElement = document.getElementById('newPointForm');
+        const formElement = document.getElementById('new-point-form');
         if (formElement) {
             formElement.remove();
         }
@@ -428,7 +384,7 @@ class MapModal {
         const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
         const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
         const localizedTypeName = this.typeNameMap[feature.properties.pointOfInterestTypeId];
-        return `<div id="poiPopup">
+        return `<div id='poi-popup'>
                 <h4>${feature.properties.pointOfInterestName}</h4>
                 <b>${this.translations.latitude}</b> ${latitude}<br>
                 <b>${this.translations.longitude}</b> ${longitude}<br>
@@ -489,7 +445,8 @@ class MapModal {
      * Make modal visible. Initialise map with selected point marked, if given.
      *
      * @param selectedPointOfInterestId
-     * @param mapCenter
+     * @param latitude
+     * @param longitude
      * @param zoomLevel
      */
     openModal(selectedPointOfInterestId, latitude, longitude, zoomLevel) {
@@ -510,33 +467,57 @@ class MapModal {
         this.map = null;
     }
 
-    hexToDouble(hex) {
-        // Create a buffer from the hex string
-        const buffer = new ArrayBuffer(8);
-        const view = new DataView(buffer);
-
-        // Fill the buffer with the hex string (convert 2 hex characters to 1 byte)
-        for (let i = 0; i < 8; i++) {
-            view.setUint8(i, parseInt(hex.substring(i * 2, 2), 16));
-        }
-
-        // Convert the buffer to a 64-bit floating point number (double)
-        return view.getFloat64(0, true); // true for little-endian
-    }
-
-    getLatLngFromWKB(wkb) {
-        // Extract the longitude and latitude parts from the WKB string (after metadata)
-        const longitudeHex = wkb.slice(18, 34);
-        const latitudeHex = wkb.slice(34, 50);
-
-        // Convert the hex parts to floating point numbers
-        const longitude = this.hexToDouble(longitudeHex);
-        const latitude = this.hexToDouble(latitudeHex);
-
-        return { longitude, latitude };
-    }
-
 }
+
+const DisplaySelectedFeatureInfoControl = Control.extend({
+    options: {
+        position: 'bottomleft',
+        onSubmit: undefined,
+        typeNameMap: {},
+        translations: {},
+        coordinatePrecision: 5
+    },
+
+    onAdd: function (map) {
+        const container = DomUtil.create('div', 'leaflet-bar leaflet-control hidden');
+        container.id = 'selected-point-info-panel';
+        const infoMessageDiv = DomUtil.create('div', 'info-message', container);
+        infoMessageDiv.id = 'info-message';
+        const button = DomUtil.create('button', 'btn btn-primary', container);
+        button.id = 'confirm-button';
+        return container;
+    },
+
+    updateInfoPanel: function (feature) {
+        const container = this._container;
+        const infoMessageDiv = container.querySelector('#info-message');
+        const confirmButton = container.querySelector('#confirm-button');
+
+        if (feature) {
+            const name = feature.properties.pointOfInterestName;
+            const type = this.options.typeNameMap[feature.properties.pointOfInterestTypeId];
+            const latitude = feature.geometry.coordinates[1].toFixed(this.options.coordinatePrecision);
+            const longitude = feature.geometry.coordinates[0].toFixed(this.options.coordinatePrecision);
+
+            infoMessageDiv.innerHTML = `
+            <h4>${name}</h4>
+            <b>${this.options.translations.latitude}</b> ${latitude}<br>
+            <b>${this.options.translations.longitude}</b> ${longitude}<br>
+            <b>${this.options.translations.type}</b> ${type}`;
+
+            confirmButton.innerHTML = feature.properties.pointOfInterestId
+                ? this.options.translations.selectLocation
+                : this.options.translations.saveLocation;
+
+            confirmButton.onclick = () => {
+                this.options.onSubmit(feature);
+            };
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    }
+});
 
 const ZoomToLocationControl = Control.extend({
     options: {
@@ -547,16 +528,14 @@ const ZoomToLocationControl = Control.extend({
     onAdd: function (map) {
         // Create the button element
         const container = DomUtil.create('div', 'leaflet-bar leaflet-control');
-        const button = DomUtil.create('a', 'zoom-to-my-location-button', container);
-        button.innerHTML = '<i class="fa fa-map-marker"></i>';
-        button.href = '#';
-        button.title = this.options.translations.zoomToLocation;
+        const zoomToLocationButton = DomUtil.create('a', 'map-button', container);
+        zoomToLocationButton.innerHTML = '<i class="fa fa-map-marker"></i>';
+        zoomToLocationButton.href = '#';
+        zoomToLocationButton.title = this.options.translations.zoomToLocation;
 
-        DomEvent.disableClickPropagation(button);
-
-        DomEvent.on(button, 'click', DomEvent.stop)
-            .on(button, 'click', DomEvent.preventDefault)
-            .on(button, 'click', () => {
+        DomEvent
+            .on(zoomToLocationButton, 'click', DomEvent.stop)
+            .on(zoomToLocationButton, 'click', () => {
                 if (navigator.geolocation) {
                     const locationIcon = divIcon({
                         html: '<i class="fa fa-map-marker fa-3x"></i>',
@@ -564,14 +543,11 @@ const ZoomToLocationControl = Control.extend({
                         className: 'location-marker',
                         iconAnchor: [20, 60]
                     });
-
                     navigator.geolocation.getCurrentPosition((position) => {
                         const latitude = position.coords.latitude;
                         const longitude = position.coords.longitude;
 
                         map.setView([latitude, longitude], 13);
-
-                        // Add a marker at the user's location
                         marker([latitude, longitude], {icon: locationIcon}).addTo(map);
                     }, (error) => {
                         console.error('Geolocation failed: ' + error.message);
@@ -597,16 +573,17 @@ const CloseMapControl = Control.extend({
         const container = DomUtil.create('div', 'leaflet-bar leaflet-control');
 
         // Create the button element
-        const button = DomUtil.create('a', 'close-map-button', container);
-        button.innerHTML = '×'; // Unicode for close symbol
-        button.href = '#';
-        button.title = this.options.translations.closeMap;
+        const closeMapButton = DomUtil.create('a', 'map-button', container);
+        closeMapButton.innerHTML = '×'; // Unicode for close symbol
+        closeMapButton.href = '#';
+        closeMapButton.title = this.options.translations.closeMap;
 
-        // Disable click propagation and default behavior
-        DomEvent.disableClickPropagation(button);
-        DomEvent.on(button, 'click', DomEvent.preventDefault);
-        DomEvent.on(button, 'click', () => {
-            this.options.onClose();
+        DomEvent
+            .on(closeMapButton, 'click', DomEvent.stop)
+            .on(closeMapButton, 'click', () => {
+                if(this.options.onClose) {
+                    this.options.onClose();
+                }
         });
         return container;
     }
@@ -621,32 +598,31 @@ const LegendControl = Control.extend({
     },
 
     onAdd: function (map) {
-        const div = DomUtil.create('div', 'info legend');
+        const legendDiv = DomUtil.create('div', 'info legend');
         const typeColorMap = this.options.typeColorMap;
         const typeNameMap = this.options.typeNameMap;
         const markersByType = this.options.markersByType;
 
-        DomEvent.disableClickPropagation(div);
+        DomEvent.disableClickPropagation(legendDiv);
 
         for (const type in typeColorMap) {
             if (!markersByType[type]) {
-                console.info("No markers found for " + typeNameMap[type]);
                 continue;
             }
             const count = markersByType[type].length;
             const color = typeColorMap[type];
 
-            const itemDiv = DomUtil.create('div', 'legend-item', div);
+            const itemDiv = DomUtil.create('div', 'legend-item', legendDiv);
             itemDiv.innerHTML = `<i style="background:${color};"></i>
                     <span>${typeNameMap[type]} (${count})</span>`;
 
-            // Add click listener to toggle markers visibility
-            DomEvent.on(itemDiv, 'click', (e) => {
-                e.stopPropagation();
-                this.toggleMarkers(type, markersByType[type], itemDiv);
-            });
-        }
-        return div;
+            DomEvent
+                .on(itemDiv, 'click', DomEvent.stop)
+                .on(itemDiv, 'click', () => {
+                    this.toggleMarkers(type, markersByType[type], itemDiv);
+                });
+    }
+        return legendDiv;
     },
 
     toggleMarkers: function (type, markers, itemDiv) {

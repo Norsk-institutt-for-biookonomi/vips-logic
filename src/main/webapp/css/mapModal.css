@@ -18,22 +18,15 @@
 }
 
 #selected-point-info-panel {
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     width: 160px;
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
     background: white;
     padding: 0 10px 10px 10px;
     border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     z-index: 1100;
 }
 
-.close-map-button {
-    font-size: 24px;
-}
-
-.zoom-to-my-location-button{
+.map-button {
     font-size: 24px;
 }
 
@@ -61,7 +54,7 @@
     cursor: default !important;
 }
 
-#confirmButton {
+#confirm-button {
     margin-top: 10px;
 }
 
@@ -76,11 +69,11 @@
     cursor: pointer;
 }
 
-#newPointForm {
+#new-point-form {
     z-index: 1200;
     position: absolute;
 }
 
-#poiPopup {
+#poi-popup {
     width: 160px;
 }
