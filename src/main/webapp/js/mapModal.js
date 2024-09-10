@@ -384,15 +384,7 @@ class MapModal {
     }
 
     popupContent(feature) {
-        const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
-        const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
-        const localizedTypeName = this.typeNameMap[feature.properties.pointOfInterestTypeId];
-        return `<div id='poi-popup'>
-                <h4>${feature.properties.pointOfInterestName}</h4>
-                <b>${this.translations.latitude}</b> ${latitude}<br>
-                <b>${this.translations.longitude}</b> ${longitude}<br>
-                <b>${this.translations.type}</b> ${localizedTypeName}
-                </div>`;
+        return `<div id='poi-popup'>${feature.properties.pointOfInterestName}</div>`;
     }
 
     /**
