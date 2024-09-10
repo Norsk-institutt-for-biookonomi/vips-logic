@@ -150,15 +150,18 @@ class MapModal {
         return mapContainer;
     }
 
-    styleOfSelectedPointMarker() {
-        return {
+    styleOfSelectedPointMarker(newPoint) {
+        const styleMap = {
             radius: 12,
-            fillColor: "#FF5733",
             color: "#FFFFFF",
             weight: 2,
             opacity: 1,
             fillOpacity: 1,
+        };
+        if (newPoint) {
+            styleMap['fillColor'] = "#FF5733";
         }
+        return styleMap
     }
 
     styleOfPointMarker(pointOfInterestTypeId) {
@@ -256,7 +259,7 @@ class MapModal {
         this.removeNewPointMarkerIfExists();
 
         this.selectedExistingPointMarker = layer;
-        this.selectedExistingPointMarker.setStyle(this.styleOfSelectedPointMarker());
+        this.selectedExistingPointMarker.setStyle(this.styleOfSelectedPointMarker(false));
         if (zoomInToSelected) {
             const latLng = this.selectedExistingPointMarker.getLatLng();
             this.map.setView(latLng, 10);
@@ -290,7 +293,7 @@ class MapModal {
             // Calculate the pixel position from the map's click event
             const containerPoint = this.map.latLngToContainerPoint(latlng);
 
-            this.selectedNewPointMarker = circleMarker(latlng, this.styleOfSelectedPointMarker()).addTo(this.map);
+            this.selectedNewPointMarker = circleMarker(latlng, this.styleOfSelectedPointMarker(true)).addTo(this.map);
             const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x + 25, containerPoint.y - 25, latlng.lat, latlng.lng)
 
             DomEvent.disableClickPropagation(newPointFormElement);
@@ -403,7 +406,7 @@ class MapModal {
      */
     addHtmlElementNewPointForm(positionX, positionY, latitude, longitude) {
         const html = `
-            <div id="newPointForm" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
+            <div id="new-point-form" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
                 <div class="panel-heading">
                     <h4 class="panel-title">${this.translations.createNewLocation}</h4>
                     <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
@@ -436,7 +439,7 @@ class MapModal {
             </div>`;
         const tmpContainer = document.createElement("div");
         tmpContainer.innerHTML = html;
-        const htmlElement = tmpContainer.querySelector('#newPointForm');
+        const htmlElement = tmpContainer.querySelector('#new-point-form');
         this.mapContainerElement.appendChild(htmlElement);
         return htmlElement;
     }
