@@ -24,30 +24,8 @@ import {
  * 2) Include HTML to display a button, and a div in which the map will be opened:
  *      <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openLocationMap()"></i>
  *      <div id="location-map" class="map-modal"></div>
- * 3) Include MapModal within a script tag of type 'module', and implement the function openLocationMap()
- * <script type="module">
- *    import MapModal from 'https://logic.vips.nibio.no/js/mapModal.js';
- *    window.openLocationMap = () => {  // Makes the function globally available
- *      let poiIds = locationList.map(poi => poi.pointOfInterestId);
- *      fetch("/rest/poi/geojson", {
- *          method: 'POST',
- *              headers: {
- *                  'Content-Type': 'application/json',
- *                  'Accept': 'application/json'
- *              },
- *              body: JSON.stringify(poiIds)
- *      })
- *          .then(response => response.json())
- *          .then(geoJson => {
- *              const locationMapInstance = new MapModal('location-map', typeNameMap, geoJson, '${currentLanguage}', true, callbackOnCloseLocationMap);
- *              const selectedPoiId = getSelectedPoiId("locationPointOfInterestId");
- *              locationMapInstance.openModal(selectedPoiId);
- *          })
- *          .catch(error => {
- *              console.error('Unable to convert poi list to GeoJson, cannot open map', error);
- *          });
- *      }
- * </script>
+ * 3) Include MapModal within a script tag of type 'module', and implement the function openLocationMap(),
+ *    which initializes and opens the map modal.
  *
  * Uses css classes from bootstrap 3.4.1
  * Leaflet: https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js
