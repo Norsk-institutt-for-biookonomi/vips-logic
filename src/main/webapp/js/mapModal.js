@@ -186,6 +186,13 @@ class MapModal {
                     this.displaySelectedFeatureInfoControl.updateInfoPanel(feature)
                 });
 
+                // In order to be able to deactivate actions when points are hidden:
+                layer._originalBindPopup = this.popupContent(feature);
+                layer._originalClickHandler = (e) => {
+                    this.displaySelectedPoint(feature, layer, false);
+                    this.displaySelectedFeatureInfoControl.updateInfoPanel(feature)
+                }
+
                 if (!this.markersByType[typeId]) {
                     this.markersByType[typeId] = [];
                 }
@@ -570,7 +577,6 @@ const LegendControl = Control.extend({
         typeNameMap: {},
         markersByType: {}
     },
-
     onAdd: function (map) {
         const legendDiv = DomUtil.create('div', 'info legend');
         const typeColorMap = this.options.typeColorMap;
@@ -605,10 +611,25 @@ const LegendControl = Control.extend({
         const isVisible = !wasVisible;
 
         markers.forEach(marker => {
+            const markerElement = marker.getElement();
             if (wasVisible) {
                 marker.setStyle({opacity: 0, fillOpacity: 0});
+                marker.unbindPopup()
+                if (marker._originalClickHandler) {
+                    marker.off('click', marker._originalClickHandler);
+                }
+                if (markerElement) {
+                    markerElement.style.pointerEvents = 'none';
+                }
             } else {
                 marker.setStyle({opacity: 1, fillOpacity: 0.8});
+                marker.bindPopup(marker._originalBindPopup);
+                if (marker._originalClickHandler) {
+                    marker.on('click', marker._originalClickHandler);
+                }
+                if (markerElement) {
+                    markerElement.style.pointerEvents = '';
+                }
             }
         });
         // Mark hidden with line-through
