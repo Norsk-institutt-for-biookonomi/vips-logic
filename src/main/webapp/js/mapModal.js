@@ -179,20 +179,7 @@ class MapModal {
             },
             onEachFeature: (feature, layer) => {
                 const typeId = feature.properties.pointOfInterestTypeId;
-
-                layer.bindPopup(this.popupContent(feature));
-                layer.on('click', () => {
-                    this.displaySelectedPoint(feature, layer, false);
-                    this.displaySelectedFeatureInfoControl.updateInfoPanel(feature)
-                });
-
-                // In order to be able to deactivate actions when points are hidden:
-                layer._originalBindPopup = this.popupContent(feature);
-                layer._originalClickHandler = (e) => {
-                    this.displaySelectedPoint(feature, layer, false);
-                    this.displaySelectedFeatureInfoControl.updateInfoPanel(feature)
-                }
-
+                this.bindActionToPoint(layer);
                 if (!this.markersByType[typeId]) {
                     this.markersByType[typeId] = [];
                 }
@@ -202,7 +189,8 @@ class MapModal {
         this.legendControl = new LegendControl({
             typeColorMap: this.typeColorMap,
             typeNameMap: this.typeNameMap,
-            markersByType: this.markersByType
+            markersByType: this.markersByType,
+            mapModalInstance: this
         });
         this.map.addControl(this.legendControl);
 
@@ -211,6 +199,26 @@ class MapModal {
             this.enablePointCreation();
         }
         this.isMapInitialized = true;
+    }
+
+    // Function called when point is hidden (by deselecting its location type in legend box)
+    // If point is already selected, the popup and info panel is removed.
+    unbindActionToPoint(layer) {
+        if(this.selectedExistingPointMarker === layer) {
+            layer.closePopup();
+            this.removeSelectedPointMarkerIfExists();
+            this.displaySelectedFeatureInfoControl.updateInfoPanel();
+        }
+        layer.unbindPopup();
+        layer.off('click');
+    }
+
+    bindActionToPoint(layer) {
+        layer.bindPopup(this.popupContent(layer.feature));
+        layer.on('click', () => {
+            this.displaySelectedPoint(layer.feature, layer, false);
+            this.displaySelectedFeatureInfoControl.updateInfoPanel(layer.feature)
+        });
     }
 
     selectPointById(pointOfInterestId) {
@@ -333,7 +341,6 @@ class MapModal {
 
     removeSelectedPointMarkerIfExists() {
         if (this.selectedExistingPointMarker) {
-            console.info("Remove selected existing point marker", this.selectedExistingPointMarker);
             const pointOfInterestTypeId = this.selectedExistingPointMarker.feature.properties.pointOfInterestTypeId;
             this.selectedExistingPointMarker.setStyle(this.styleOfPointMarker(pointOfInterestTypeId));
         }
@@ -575,7 +582,8 @@ const LegendControl = Control.extend({
         position: 'bottomright',
         typeColorMap: {},
         typeNameMap: {},
-        markersByType: {}
+        markersByType: {},
+        mapModalInstance: null,
     },
     onAdd: function (map) {
         const legendDiv = DomUtil.create('div', 'info legend');
@@ -613,20 +621,14 @@ const LegendControl = Control.extend({
         markers.forEach(marker => {
             const markerElement = marker.getElement();
             if (wasVisible) {
-                marker.setStyle({opacity: 0, fillOpacity: 0});
-                marker.unbindPopup()
-                if (marker._originalClickHandler) {
-                    marker.off('click', marker._originalClickHandler);
-                }
+                this.options.mapModalInstance.unbindActionToPoint(marker);
                 if (markerElement) {
                     markerElement.style.pointerEvents = 'none';
                 }
+                marker.setStyle({opacity: 0, fillOpacity: 0});
             } else {
                 marker.setStyle({opacity: 1, fillOpacity: 0.8});
-                marker.bindPopup(marker._originalBindPopup);
-                if (marker._originalClickHandler) {
-                    marker.on('click', marker._originalClickHandler);
-                }
+                this.options.mapModalInstance.bindActionToPoint(marker);
                 if (markerElement) {
                     markerElement.style.pointerEvents = '';
                 }
