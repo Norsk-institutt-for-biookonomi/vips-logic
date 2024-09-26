@@ -80,7 +80,8 @@ class MapModal {
         if(language in MapModal.TRANSLATIONS) {
             this.translations = MapModal.TRANSLATIONS[language];
         } else {
-            throw new Error("'"+ language +"' is not a supported language");
+            console.error("'"+ language +"' is not a supported language");
+            this.translations = MapModal.TRANSLATIONS['nb'];
         }
         this.allowNewPoints = allowNewPoints;
         this.callbackOnClose = callbackOnClose;
@@ -610,8 +611,8 @@ const LegendControl = Control.extend({
                 marker.setStyle({opacity: 1, fillOpacity: 0.8});
             }
         });
-        // Make legend text grey if hidden
-        itemDiv.style.color = isVisible ? "#000000" : "#B0B0B0";
+        // Mark hidden with line-through
+        itemDiv.style.textDecoration = isVisible ? "none" : "line-through solid black 2px";
     }
 
 
