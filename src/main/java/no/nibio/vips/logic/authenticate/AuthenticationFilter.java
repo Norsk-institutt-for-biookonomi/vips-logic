@@ -1,18 +1,16 @@
 /*
- * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see
+ * <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -23,7 +21,12 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.UUID;
 import javax.ejb.EJB;
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,79 +37,71 @@ import no.nibio.vips.util.ServletUtil;
 
 /**
  * Ensures that user accessing a restricted resource is actually logged in. Redirects to login page if not
+ * 
  * @copyright 2013-2022 <a href="http://www.nibio.no">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class AuthenticationFilter implements Filter{
-    
+public class AuthenticationFilter implements Filter {
+
     @EJB
     UserBean userBean;
 
     // The URLs that do not require login
     private String[] unprivilegedURLs;
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         this.setUnprivilegedURLs(Globals.UNPRIVILEGED_URLS);
-    } 
+    }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
 
-        HttpServletRequest httpRequest = (HttpServletRequest)request;
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
         /*
-        // For debugging
-        BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
-        String line;
-        while((line = reader.readLine()) != null)
-        {
-            System.out.println(line);
-        }*/
-        if(isUnprivilegedURL(httpRequest))
-        {
+         * // For debugging BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+         * String line; while((line = reader.readLine()) != null) { System.out.println(line); }
+         */
+        if (isUnprivilegedURL(httpRequest)) {
             chain.doFilter(request, response);
-            //return;
-        }
-        else
-        {
+            System.out.println("Uprivileged URL: " + httpRequest.getRequestURI());
+            // return;
+        } else {
+            System.out.println("Privileged URL: " + httpRequest.getRequestURI());
             // First: Check for session variable
-            boolean clientAuthenticated = (httpRequest.getSession().getAttribute("user") != null &&  httpRequest.getSession().getAttribute("user") instanceof VipsLogicUser);
+            boolean clientAuthenticated = (httpRequest.getSession().getAttribute("user") != null
+                    && httpRequest.getSession().getAttribute("user") instanceof VipsLogicUser);
             // Then for UUID cookie that has not expired
             boolean clientRemembered = false;
             Cookie remembered = ServletUtil.getCookie(httpRequest, "rememberedUser");
-            if(remembered != null)
-            {
+            if (remembered != null) {
                 VipsLogicUser user = userBean.findVipsLogicUser(UUID.fromString(remembered.getValue()));
-                if(user != null)
-                {
+                if (user != null) {
                     httpRequest.getSession().setAttribute("user", user);
                     clientRemembered = true;
                 }
             }
-            
-            if(! clientAuthenticated && ! clientRemembered)
-            {
+
+            if (!clientAuthenticated && !clientRemembered) {
                 String nextPageDirective = "";
-                if(!httpRequest.getServletPath().equals("/login"))
-                {
+                if (!httpRequest.getServletPath().equals("/login")) {
                     String nextPage = ServletUtil.getFullRequestURI(httpRequest);
-                    nextPageDirective= "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
+                    nextPageDirective = "?nextPage=" + URLEncoder.encode(nextPage, "UTF-8");
                 }
-                ((HttpServletResponse)response).sendRedirect(Globals.PROTOCOL + "://" + ServletUtil.getServerName(httpRequest) + "/login" + nextPageDirective);
-            }
-            else
-            {
+                ((HttpServletResponse) response).sendRedirect(Globals.PROTOCOL + "://"
+                        + ServletUtil.getServerName(httpRequest) + "/login" + nextPageDirective);
+            } else {
                 chain.doFilter(request, response);
             }
-            //return;
+            // return;
         }
     }
-    
+
     private boolean isUnprivilegedURL(HttpServletRequest request) {
         String path = request.getServletPath();
-        for (String unprivilegedURL : this.getUnprivilegedURLs()) 
-        {
-            if (path.contains(unprivilegedURL)) 
-            {
+        for (String unprivilegedURL : this.getUnprivilegedURLs()) {
+            if (path.contains(unprivilegedURL)) {
                 return true;
             }
         }
@@ -115,12 +110,10 @@ public class AuthenticationFilter implements Filter{
 
     @Override
     public void destroy() {
-        
+
     }
 
-   
 
-    
 
     /**
      * @return the upriviligerteURLer
@@ -136,6 +129,6 @@ public class AuthenticationFilter implements Filter{
         this.unprivilegedURLs = unprivilegedURLs;
     }
 
-    
-    
+
+
 }
