@@ -11,3 +11,4 @@ classes/
 selenium/.pytest_cache
 selenium/.venv
 selenium/tests/__pycache__
+selenium/.env
