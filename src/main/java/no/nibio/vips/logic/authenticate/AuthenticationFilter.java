@@ -65,10 +65,8 @@ public class AuthenticationFilter implements Filter {
          */
         if (isUnprivilegedURL(httpRequest)) {
             chain.doFilter(request, response);
-            System.out.println("Uprivileged URL: " + httpRequest.getRequestURI());
             // return;
         } else {
-            System.out.println("Privileged URL: " + httpRequest.getRequestURI());
             // First: Check for session variable
             boolean clientAuthenticated = (httpRequest.getSession().getAttribute("user") != null
                     && httpRequest.getSession().getAttribute("user") instanceof VipsLogicUser);
