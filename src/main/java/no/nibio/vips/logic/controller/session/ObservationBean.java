@@ -61,7 +61,7 @@ import org.wololo.geojson.GeoJSONFactory;
  */
 @Stateless
 public class ObservationBean {
-    private static Logger LOGGER = LoggerFactory.getLogger(ObservationBean.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ObservationBean.class);
     @PersistenceContext(unitName = "VIPSLogic-PU")
     EntityManager em;
     @EJB
