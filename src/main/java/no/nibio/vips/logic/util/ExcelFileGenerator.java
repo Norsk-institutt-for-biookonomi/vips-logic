@@ -28,9 +28,8 @@ public final class ExcelFileGenerator {
   private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  // TODO Dette må fikses før deploy til prod
-  private static final String VIPSWEB = "https://testvips.nibio.no";
-  private static final String VIPSLOGIC = "https://logic.testvips.nibio.no";
+  private static final String VIPSWEB = "https://www.vips-landbruk.no";
+  private static final String VIPSLOGIC = "https://logic.vips.nibio.no";
 
   private enum ColumnIndex {
     ID(false, 0, 0, "observationId"),
