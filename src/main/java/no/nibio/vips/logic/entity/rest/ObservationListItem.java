@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2018 NIBIO <http://www.nibio.no/>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,11 +28,16 @@ import no.nibio.vips.observationdata.ObservationDataSchema;
  */
 public class ObservationListItem implements Comparable{
     private Integer observationId, observationTimeSeriesId, organismId, cropOrganismId;
+    private Integer observerId;
+    private String observerName;
     private Date timeOfObservation;
     private String organismName, cropOrganismName;
     private String observationTimeSeriesLabel;
+    private Integer locationPointOfInterestId;
+    private String locationPointOfInterestName;
     private String geoInfo;
     private String observationHeading;
+    private String observationText;
     private String observationData;
     private ObservationDataSchema observationDataSchema;
     private Boolean broadcastMessage;
@@ -40,23 +45,29 @@ public class ObservationListItem implements Comparable{
     private Boolean isPositive;
 
     public ObservationListItem(
-            Integer observationId,
-            Integer observationTimeSeriesId,
-            Date timeOfObservation,
-            Integer organismId,
-            String organismName,
-            Integer cropOrganismId,
-            String cropOrganismName,
-            String observationTimeSeriesLabel,
-            String geoinfo,
-            String observationHeading,
-            Boolean broadcastMessage,
-            Boolean locationIsPrivate,
-            Boolean isPositive,
-            String observationData,
-            ObservationDataSchema observationDataSchema
-    ){
+        Integer observationId,
+        Integer observerId,
+        String observerName,
+        Integer observationTimeSeriesId,
+        Date timeOfObservation,
+        Integer organismId,
+        String organismName,
+        Integer cropOrganismId,
+        String cropOrganismName,
+        String observationTimeSeriesLabel,
+        Integer poiId,
+        String poiName,
+        String geoinfo,
+        String observationHeading,
+        String observationText,
+        Boolean broadcastMessage,
+        Boolean locationIsPrivate,
+        Boolean isPositive,
+        String observationData,
+        ObservationDataSchema observationDataSchema){
         this.observationId = observationId;
+        this.observerId = observerId;
+        this.observerName = observerName;
         this.observationTimeSeriesId = observationTimeSeriesId;
         this.timeOfObservation = timeOfObservation;
         this.organismId = organismId;
@@ -64,15 +75,18 @@ public class ObservationListItem implements Comparable{
         this.cropOrganismId = cropOrganismId;
         this.cropOrganismName = cropOrganismName;
         this.observationTimeSeriesLabel = observationTimeSeriesLabel;
+        this.locationPointOfInterestId = poiId;
+        this.locationPointOfInterestName = poiName;
         this.geoInfo = geoinfo;
         this.observationHeading = observationHeading;
+        this.observationText = observationText;
         this.broadcastMessage = broadcastMessage;
         this.locationIsPrivate = locationIsPrivate;
         this.isPositive = isPositive;
         this.observationData = observationData;
         this.observationDataSchema = observationDataSchema;
     }
-    
+
 
     @Override
     public int compareTo(Object otherOne)
@@ -83,7 +97,7 @@ public class ObservationListItem implements Comparable{
         }
         return this.getTimeOfObservation().compareTo(((ObservationListItem) otherOne).getTimeOfObservation());
     }
-    
+
     /**
      * @return the observationId
      */
@@ -96,6 +110,34 @@ public class ObservationListItem implements Comparable{
      */
     public void setObservationId(Integer observationId) {
         this.observationId = observationId;
+    }
+
+    /**
+     * @return The ID of the observer
+     */
+    public Integer getObserverId() {
+        return observerId;
+    }
+
+    /**
+     * @param observerId The ID to set
+     */
+    public void setObserverId(Integer observerId) {
+        this.observerId = observerId;
+    }
+
+    /**
+     * @return The full name of the observer
+     */
+    public String getObserverName() {
+        return observerName;
+    }
+
+    /**
+     * @param observerName The observer name to set
+     */
+    public void setObserverName(String observerName) {
+        this.observerName = observerName;
     }
 
     /**
@@ -162,6 +204,22 @@ public class ObservationListItem implements Comparable{
         this.observationTimeSeriesLabel = observationTimeSeriesLabel;
     }
 
+    public Integer getLocationPointOfInterestId() {
+        return locationPointOfInterestId;
+    }
+
+    public void setLocationPointOfInterestId(Integer locationPointOfInterestId) {
+        this.locationPointOfInterestId = locationPointOfInterestId;
+    }
+
+    public String getLocationPointOfInterestName() {
+        return locationPointOfInterestName;
+    }
+
+    public void setLocationPointOfInterestName(String locationPointOfInterestName) {
+        this.locationPointOfInterestName = locationPointOfInterestName;
+    }
+
     /**
      * @return the geoInfo
      */
@@ -188,6 +246,20 @@ public class ObservationListItem implements Comparable{
      */
     public void setObservationHeading(String observationHeading) {
         this.observationHeading = observationHeading;
+    }
+
+    /**
+     * @return the observation text
+     */
+    public String getObservationText() {
+        return observationText;
+    }
+
+    /**
+     * @param observationText The observation text to set
+     */
+    public void setObservationText(String observationText) {
+        this.observationText = observationText;
     }
 
     /**

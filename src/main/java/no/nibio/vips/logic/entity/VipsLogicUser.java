@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2015-2019 NIBIO <http://www.nibio.no/>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -63,7 +63,7 @@ import java.util.UUID;
     @NamedQuery(name = "VipsLogicUser.findByCompletePhoneNumber", query = "SELECT v FROM VipsLogicUser v WHERE v.phoneCountryCode || v.phone = :completePhoneNumber")
 })
 public class VipsLogicUser implements Serializable, Comparable{
-    
+
     private static final long serialVersionUID = 1L;
     private Integer userId;
     //if the field contains email address consider using this annotation to enforce field validation
@@ -93,7 +93,7 @@ public class VipsLogicUser implements Serializable, Comparable{
     private Integer vipsCoreUserId;
     private boolean approvesSmsBilling;
     private boolean freeSms;
-    
+
     private UUID userUuid;
 
     public VipsLogicUser() {
@@ -143,6 +143,12 @@ public class VipsLogicUser implements Serializable, Comparable{
         this.lastName = lastName;
     }
 
+    @JsonIgnore
+    @Transient
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "vipsLogicUser", fetch=FetchType.EAGER)
     @XmlTransient
     @JsonIgnore
@@ -160,7 +166,7 @@ public class VipsLogicUser implements Serializable, Comparable{
     public Organization getOrganizationId() {
         return organizationId;
     }
-    
+
     @Transient
     public Integer getOrganization_id(){
         return organizationId.getOrganizationId();
@@ -249,11 +255,11 @@ public class VipsLogicUser implements Serializable, Comparable{
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonIgnore
     @JoinTable(
-            name = "user_vips_logic_role",
-            joinColumns = {
-                @JoinColumn(name = "user_id")},
-            inverseJoinColumns = {
-                @JoinColumn(name = "vips_logic_role_id")}
+        name = "user_vips_logic_role",
+        joinColumns = {
+            @JoinColumn(name = "user_id")},
+        inverseJoinColumns = {
+            @JoinColumn(name = "vips_logic_role_id")}
     )
     public Set<VipsLogicRole> getVipsLogicRoles() {
         return vipsLogicRoles;
@@ -287,7 +293,7 @@ public class VipsLogicUser implements Serializable, Comparable{
         }
         return false;
     }
-    
+
     @JsonIgnore
     @Transient
     public boolean isObservationAuthority(){
@@ -298,7 +304,7 @@ public class VipsLogicUser implements Serializable, Comparable{
         }
         return false;
     }
-    
+
     @JsonIgnore
     @Transient
     public boolean isOrganismEditor() {
@@ -309,7 +315,7 @@ public class VipsLogicUser implements Serializable, Comparable{
         }
         return false;
     }
-    
+
     @JsonIgnore
     @Transient
     public boolean isAppleFruitMothAdministrator(){
@@ -320,7 +326,7 @@ public class VipsLogicUser implements Serializable, Comparable{
         }
         return false;
     }
-    
+
     @JsonIgnore
     @Transient
     public boolean isMessageAuthor(){
@@ -499,7 +505,7 @@ public class VipsLogicUser implements Serializable, Comparable{
     public boolean isFreeSms() {
         return freeSms;
     }
-    
+
 
     /**
      * @param freeSms the freeSms to set
@@ -513,6 +519,6 @@ public class VipsLogicUser implements Serializable, Comparable{
         VipsLogicUser other = (VipsLogicUser)o;
         return (this.getLastName() + ", " + this.getFirstName()).compareTo(other.getLastName() + ", " + other.getFirstName());
     }
-    
-    
+
+
 }
