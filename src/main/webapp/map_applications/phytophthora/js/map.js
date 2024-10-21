@@ -40,7 +40,18 @@ async function initMap() {
     var features = new ol.Collection();
 
     // Icon styling for the observations layer
-    var iconRadius = 10;
+    var iconRadius = 16;
+
+    const colors = {
+
+        'fagus sylvatica': [255, 0, 0, 1], // Bøk = rød
+        'alnus incana': [239, 133, 19, 1], // Gråor = dyp oransje
+        'quercus': [239, 236, 19, 1], // Eik = gul
+        'acer': [0, 255, 0, 1], // Lønn = grønn
+        'alnus glutinosa': [122, 175, 131, 1], // Svartor = grågrønn
+        'plantae': [0, 0, 255, 1]
+    };
+
     var styles = {
         // Bøk = rød
         'fagus sylvatica': [new ol.style.Style({
@@ -103,14 +114,40 @@ async function initMap() {
             var observationData = JSON.parse(feature.get("observationData"));
 
             var retVal = null;
+            const color = feature.get("cropOrganism") != null && feature.get("cropOrganism")["latinName"] != null ?
+                colors[feature.get("cropOrganism")["latinName"].toLowerCase()]
+                : colors["plantae"];
+            /*
             if (feature.get("cropOrganism") != null && feature.get("cropOrganism")["latinName"] != null) {
                 retVal = styles[feature.get("cropOrganism")["latinName"].toLowerCase()];
             } else {
                 retVal = styles["plantae"];
-            }
+            }*/
             //console.info(retVal[0].getImage().getStroke().getWidth());
             // If symptom has been registered, mark with inner black dot
-            if (observationData["symptom"] != "Ikke symptom" && observationData["symptom"] != "Irrelevant") {
+
+            retVal = [
+                new ol.style.Style({
+                    image: new ol.style.Circle({
+                        fill: new ol.style.Fill({ color: (observationData["funn"] == "[Ukjent]" ? color : [0, 0, 0, 1]) }),
+                        stroke: new ol.style.Stroke({ width: (observationData["funn"] == "[Ukjent]" ? 0 : 4), color: (observationData["funn"] == "[Ukjent]" ? [0, 0, 0, 1] : color) }),
+                        radius: iconRadius
+                    }),
+                    text: new ol.style.Text({
+                        text: observationData["provenummer"],
+                        font: '20px Arial',
+                        fill: new ol.style.Fill({
+                            color: '#000'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#fff',
+                            width: 2
+                        })
+                    })
+                })
+            ];
+            /*
+            if (observationData["funn"] == "[Ukjent]") {
                 retVal = [
                     new ol.style.Style({
                         image: new ol.style.Circle({
@@ -121,6 +158,55 @@ async function initMap() {
                     })
                 ];
             }
+            else {
+                retVal = [
+                    new ol.style.Style({
+                        image: new ol.style.Circle({
+                            fill: new ol.style.Fill({ color: [0, 0, 0, 1] }),
+                            stroke: new ol.style.Stroke({ width: 8, color: retVal[0].getImage().getFill().getColor() }),
+                            radius: iconRadius
+                        }),
+                        text: new ol.style.Text({
+                            text: observationData["provenummer"],
+                            fill: new ol.style.Fill({
+                                color: '#000'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: '#fff',
+                                width: 2
+                            })
+                        })
+                    })
+                ];
+            }
+            /*
+                 ,
+                 text: new ol.style.Text({
+                     text: "23",
+                     fill: new ol.style.Fill({
+                         color: '#000'
+                     }),
+                     stroke: new ol.style.Stroke({
+                         color: '#fff',
+                         width: 2
+                     })
+                 })*/
+            /*console.info(observationData["provenummer"])
+            if (observationData["provenummer"] != null && observationData["provenummer"].trim() != "") {
+                retVal.push(new ol.style.Style({
+                    text: new ol.style.Text({
+                        text: observationData["provenummer"],
+                        fill: new ol.style.Fill({
+                            color: '#000'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#fff',
+                            width: 2
+                        })
+                    })
+                }))
+            }*/
+            //console.info(retVal);
             return retVal;
         }
 
