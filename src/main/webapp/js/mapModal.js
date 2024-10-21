@@ -122,7 +122,7 @@ class MapModal {
     addMapContainer(parentDiv, id) {
         const mapContainer = document.createElement('div');
         mapContainer.id = id;
-        mapContainer.style.height = '100vh';
+        mapContainer.style.height = '100%';
         mapContainer.style.width = '100%';
         mapContainer.style.position = 'relative';
         parentDiv.appendChild(mapContainer);
@@ -438,7 +438,9 @@ class MapModal {
      * @param zoomLevel
      */
     openModal(selectedPointOfInterestId, latitude, longitude, zoomLevel) {
-        this.mapModalElement.style.display = 'block';
+        this.mapModalElement.style.display = 'flex';
+        this.mapModalElement.style.justifyContent = 'center';
+        this.mapModalElement.style.alignItems = 'center';
         this.initMap(latitude, longitude, zoomLevel);
         if (selectedPointOfInterestId) {
             this.selectPointById(selectedPointOfInterestId);
