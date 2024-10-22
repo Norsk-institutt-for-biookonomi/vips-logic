@@ -65,7 +65,7 @@ class MapModal {
 
     /**
      * @param mapModalId    The id of the HTML element in which the modal should be opened
-     * @param typeNameMap   A mapping from pointOfInterestTypeIds to their localized names
+     * @param typeNameMap   A mapping from pointOfInterestTypeIds to their localized names - expects names for ids 0,1,2,3,5,6,7
      * @param geoJsonData   GeoJson containing all features which should be displayed on the map
      * @param language  The language in which texts should be displayed, either 'nb' or 'en'
      * @param allowNewPoints    Whether or not the user should be allowed to add new points
@@ -75,7 +75,11 @@ class MapModal {
         this.mapModalElement = document.getElementById(mapModalId);
         this.mapContainerId = mapModalId + "-container";
         this.mapContainerElement = this.addMapContainer(this.mapModalElement, this.mapContainerId);
+
         this.typeNameMap = typeNameMap;
+        // Empty or invalid typeNameMap means that type information should not be displayed
+        this.includeTypeInformation = Object.keys(typeNameMap).length === 7;
+
         this.geoJsonData = geoJsonData;
         if(language in MapModal.TRANSLATIONS) {
             this.translations = MapModal.TRANSLATIONS[language];
@@ -186,13 +190,16 @@ class MapModal {
                 this.markersByType[typeId].push(layer);
             }
         }).addTo(this.map);
-        this.legendControl = new LegendControl({
-            typeColorMap: this.typeColorMap,
-            typeNameMap: this.typeNameMap,
-            markersByType: this.markersByType,
-            mapModalInstance: this
-        });
-        this.map.addControl(this.legendControl);
+
+        if(this.includeTypeInformation) {
+            this.legendControl = new LegendControl({
+                typeColorMap: this.typeColorMap,
+                typeNameMap: this.typeNameMap,
+                markersByType: this.markersByType,
+                mapModalInstance: this
+            });
+            this.map.addControl(this.legendControl);
+        }
 
         // Enable adding new points if allowed
         if (this.allowNewPoints) {
@@ -293,12 +300,27 @@ class MapModal {
             DomEvent.disableClickPropagation(newPointFormElement);
             document.addEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
 
-            const closeButton = newPointFormElement.querySelector("#close-button");
-            const nameInput = newPointFormElement.querySelector('#name');
-            const latitudeInput = newPointFormElement.querySelector('#latitude');
-            const longitudeInput = newPointFormElement.querySelector('#longitude');
-            const typeInput = newPointFormElement.querySelector('#type');
-            const submitButton = newPointFormElement.querySelector('#submit-button');
+            const closeButton = newPointFormElement.querySelector("#map-poi-close-button");
+            const nameInput = newPointFormElement.querySelector('#map-poi-name');
+            const latitudeInput = newPointFormElement.querySelector('#map-poi-latitude');
+            const longitudeInput = newPointFormElement.querySelector('#map-poi-longitude');
+            const typeInput = newPointFormElement.querySelector('#map-poi-type');
+            const submitButton = newPointFormElement.querySelector('#map-poi-submit-button');
+
+            // Add options for the allowed types - or remove the select list altogether
+            if(this.includeTypeInformation) {
+                ["2", "3", "5"].forEach(value => {
+                    const option = document.createElement("option");
+                    option.value = value;
+                    option.text = this.typeNameMap[value];
+                    typeInput.appendChild(option);
+                })
+            } else {
+                const formGroup = typeInput.closest('.form-group');
+                if(formGroup){
+                    formGroup.remove()
+                }
+            }
 
             const validateInputs = () => {
                 const isValidLat = !isNaN(parseFloat(latitudeInput.value)) && isFinite(latitudeInput.value);
@@ -362,7 +384,6 @@ class MapModal {
     }
 
     createFeatureForPoint(name, type, longitude, latitude) {
-        console.info("Create feature for [" + longitude + "," + latitude + "," + name + "," + type + "]");
         return {
             "type": "Feature",
             "geometry": {
@@ -412,31 +433,28 @@ class MapModal {
         form.innerHTML = `
             <div class="panel-heading">
                 <h4 class="panel-title">${this.translations.createNewLocation}</h4>
-                <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
+                <span id="map-poi-close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
             </div>
             <div class="panel-body">
                 <div class="form-group">
-                    <label for="name">${this.translations.name}:</label>
-                    <input type="text" class="form-control" id="name" name="name">
+                    <label for="map-poi-name">${this.translations.name}:</label>
+                    <input type="text" class="form-control" id="map-poi-name" name="name">
                 </div>
                 <div class="form-group">
-                    <label for="latitude">${this.translations.latitude}:</label>
-                    <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude.toFixed(this.coordinatePrecision)}">
+                    <label for="map-poi-latitude">${this.translations.latitude}:</label>
+                    <input type="text" class="form-control" id="map-poi-latitude" name="latitude" value="${latitude.toFixed(this.coordinatePrecision)}">
                 </div>
                 <div class="form-group">
-                    <label for="longitude">${this.translations.longitude}:</label>
-                    <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
+                    <label for="map-poi-longitude">${this.translations.longitude}:</label>
+                    <input type="text" class="form-control" id="map-poi-longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
                 </div>
                 <div class="form-group">
-                    <label for="poiTypeSelect">${this.translations.type}:</label>
-                    <select class="form-control" id="type" name="type">
-                        <option value="2">${this.typeNameMap[2]}</option>
-                        <option value="3">${this.typeNameMap[3]}</option>
-                        <option value="5">${this.typeNameMap[5]}</option>
+                    <label for="map-poi-type">${this.translations.type}:</label>
+                    <select class="form-control" id="map-poi-type" name="type">
                     </select>
                 </div>
                 <div class="form-group text-right">
-                    <button id="submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
+                    <button id="map-poi-submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
                 </div>                
             </div>`;
         this.mapContainerElement.appendChild(form);
@@ -506,8 +524,10 @@ const DisplaySelectedFeatureInfoControl = Control.extend({
             infoMessageDiv.innerHTML = `
             <h4>${name}</h4>
             <b>${this.options.translations.latitude}</b> ${latitude}<br>
-            <b>${this.options.translations.longitude}</b> ${longitude}<br>
-            <b>${this.options.translations.type}</b> ${type}`;
+            <b>${this.options.translations.longitude}</b> ${longitude}`;
+            if (type) {
+                infoMessageDiv.innerHTML += `<br><b>${this.options.translations.type}</b> ${type}`
+            }
 
             confirmButton.innerHTML = feature.properties.pointOfInterestId
                 ? this.options.translations.selectLocation
