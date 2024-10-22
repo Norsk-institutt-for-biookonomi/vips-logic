@@ -129,7 +129,7 @@ async function initMap() {
             retVal = [
                 new ol.style.Style({
                     image: new ol.style.Circle({
-                        fill: new ol.style.Fill({ color: (observationData["funn"] == "[Ukjent]" ? color : [0, 0, 0, 1]) }),
+                        fill: new ol.style.Fill({ color: (observationData["funn"] == "[Ukjent]" ? color : observationData["funn"] == "Sanns. Phyt." ? [204, 204, 204, 1] : [0, 0, 0, 1]) }),
                         stroke: new ol.style.Stroke({ width: (observationData["funn"] == "[Ukjent]" ? 0 : 4), color: (observationData["funn"] == "[Ukjent]" ? [0, 0, 0, 1] : color) }),
                         radius: iconRadius
                     }),
@@ -532,7 +532,7 @@ var getCropOrganism = function (organismId) {
 
 
 var symptoms = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
-var funns = ["[Ukjent]", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
+var funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
 var provetypes = ["[Ikke prøve]", "Jord", "Vev", "Vann", "Blad", "Bait"];
 
 
