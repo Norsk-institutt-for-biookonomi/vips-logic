@@ -58,7 +58,6 @@ class MapModal {
             submitLocation: 'OK',
             zoomToLocation: 'Zoom to My Location',
             geolocationNotSupported: 'Geolocation is not supported by this browser',
-            geolocationNotSupported: 'Geolocation is not supported by this browser',
             geolocationFailed: 'Unable to retrieve your location',
             closeMap: 'Close Map'
         }
@@ -301,12 +300,12 @@ class MapModal {
             DomEvent.disableClickPropagation(newPointFormElement);
             document.addEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
 
-            const closeButton = newPointFormElement.querySelector("#close-button");
-            const nameInput = newPointFormElement.querySelector('#name');
-            const latitudeInput = newPointFormElement.querySelector('#latitude');
-            const longitudeInput = newPointFormElement.querySelector('#longitude');
-            const typeInput = newPointFormElement.querySelector('#type');
-            const submitButton = newPointFormElement.querySelector('#submit-button');
+            const closeButton = newPointFormElement.querySelector("#map-poi-close-button");
+            const nameInput = newPointFormElement.querySelector('#map-poi-name');
+            const latitudeInput = newPointFormElement.querySelector('#map-poi-latitude');
+            const longitudeInput = newPointFormElement.querySelector('#map-poi-longitude');
+            const typeInput = newPointFormElement.querySelector('#map-poi-type');
+            const submitButton = newPointFormElement.querySelector('#map-poi-submit-button');
 
             // Add options for the allowed types - or remove the select list altogether
             if(this.includeTypeInformation) {
@@ -434,28 +433,28 @@ class MapModal {
         form.innerHTML = `
             <div class="panel-heading">
                 <h4 class="panel-title">${this.translations.createNewLocation}</h4>
-                <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
+                <span id="map-poi-close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
             </div>
             <div class="panel-body">
                 <div class="form-group">
-                    <label for="name">${this.translations.name}:</label>
-                    <input type="text" class="form-control" id="name" name="name">
+                    <label for="map-poi-name">${this.translations.name}:</label>
+                    <input type="text" class="form-control" id="map-poi-name" name="name">
                 </div>
                 <div class="form-group">
-                    <label for="latitude">${this.translations.latitude}:</label>
-                    <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude.toFixed(this.coordinatePrecision)}">
+                    <label for="map-poi-latitude">${this.translations.latitude}:</label>
+                    <input type="text" class="form-control" id="map-poi-latitude" name="latitude" value="${latitude.toFixed(this.coordinatePrecision)}">
                 </div>
                 <div class="form-group">
-                    <label for="longitude">${this.translations.longitude}:</label>
-                    <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
+                    <label for="map-poi-longitude">${this.translations.longitude}:</label>
+                    <input type="text" class="form-control" id="map-poi-longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
                 </div>
                 <div class="form-group">
-                    <label for="poiTypeSelect">${this.translations.type}:</label>
-                    <select class="form-control" id="type" name="type">
+                    <label for="map-poi-type">${this.translations.type}:</label>
+                    <select class="form-control" id="map-poi-type" name="type">
                     </select>
                 </div>
                 <div class="form-group text-right">
-                    <button id="submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
+                    <button id="map-poi-submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
                 </div>                
             </div>`;
         this.mapContainerElement.appendChild(form);
