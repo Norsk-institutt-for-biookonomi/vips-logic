@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2014 NIBIO <http://www.nibio.no/>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -95,15 +95,15 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Boolean broadcastMessage;
     private Boolean locationIsPrivate;
     private PolygonService polygonService;
-    
+
     private ObservationDataSchema observationDataSchema;
-    
+
     private VipsLogicUser user; // Transient
     private VipsLogicUser lastEditedByUser; //
     private PointOfInterest location; // Transient
-    
+
     private Set<ObservationIllustration> observationIllustrationSet;
-    
+
     private GISEntityUtil GISEntityUtil;
     private GISUtil GISUtil;
 
@@ -156,7 +156,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.timeOfObservation = timeOfObservation;
     }
 
-    
+
     // Using PostGIS + Hibernate-spatial + Java Topology Suite to make this work
     /*@JsonIgnore
     @Type(type = "org.hibernate.spatial.GeometryType")
@@ -168,12 +168,12 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setLocation(Point location) {
         this.location = location;
     }*/
-    
+
     public void setGeoinfos(List<Gis> geoinfo)
     {
         this.geoinfo = geoinfo;
     }
-    
+
     public void addGeoInfo(Gis geoinfo)
     {
         if(this.geoinfo == null)
@@ -182,20 +182,20 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         }
         this.geoinfo.add(geoinfo);
     }
-    
+
     @JsonIgnore
     @Transient
     public List<Gis> getGeoinfos()
     {
         return this.geoinfo;
     }
-    
-    
+
+
     public void setGeoinfo(String json)
     {
         this.setGeoinfos(this.GISEntityUtil.getGisFromGeoJSON(json));
     }
-    
+
     @Transient
     @Override
     public String getGeoinfo()
@@ -269,37 +269,37 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     @Override
     public String toString() {
         return "Observation{" +
-                "observationId=" + observationId +
-                ", timeOfObservation=" + timeOfObservation +
-                ", organism=" + organism +
-                ", cropOrganism=" + cropOrganism +
-                ", userId=" + userId +
-                ", lastEditedBy=" + lastEditedBy +
-                ", geoinfo=" + geoinfo +
-                ", observationTimeSeries=" + observationTimeSeries +
-                ", locationPointOfInterestId=" + locationPointOfInterestId +
-                ", observationHeading='" + observationHeading + '\'' +
-                ", observationText='" + observationText + '\'' +
-                ", statusTypeId=" + statusTypeId +
-                ", statusChangedByUserId=" + statusChangedByUserId +
-                ", statusChangedTime=" + statusChangedTime +
-                ", lastEditedTime=" + lastEditedTime +
-                ", statusRemarks='" + statusRemarks + '\'' +
-                ", observationData='" + observationData + '\'' +
-                ", isQuantified=" + isQuantified +
-                ", isPositive=" + isPositive +
-                ", broadcastMessage=" + broadcastMessage +
-                ", locationIsPrivate=" + locationIsPrivate +
-                ", polygonService=" + polygonService +
-                ", observationDataSchema=" + observationDataSchema +
-                ", user=" + user +
-                ", lastEditedByUser=" + lastEditedByUser +
-                ", location=" + location +
-                ", observationIllustrationSet=" + observationIllustrationSet +
-                ", GISEntityUtil=" + GISEntityUtil +
-                ", GISUtil=" + GISUtil +
-                ", source=" + source +
-                '}';
+            "observationId=" + observationId +
+            ", timeOfObservation=" + timeOfObservation +
+            ", organism=" + organism +
+            ", cropOrganism=" + cropOrganism +
+            ", userId=" + userId +
+            ", lastEditedBy=" + lastEditedBy +
+            ", geoinfo=" + geoinfo +
+            ", observationTimeSeries=" + observationTimeSeries +
+            ", locationPointOfInterestId=" + locationPointOfInterestId +
+            ", observationHeading='" + observationHeading + '\'' +
+            ", observationText='" + observationText + '\'' +
+            ", statusTypeId=" + statusTypeId +
+            ", statusChangedByUserId=" + statusChangedByUserId +
+            ", statusChangedTime=" + statusChangedTime +
+            ", lastEditedTime=" + lastEditedTime +
+            ", statusRemarks='" + statusRemarks + '\'' +
+            ", observationData='" + observationData + '\'' +
+            ", isQuantified=" + isQuantified +
+            ", isPositive=" + isPositive +
+            ", broadcastMessage=" + broadcastMessage +
+            ", locationIsPrivate=" + locationIsPrivate +
+            ", polygonService=" + polygonService +
+            ", observationDataSchema=" + observationDataSchema +
+            ", user=" + user +
+            ", lastEditedByUser=" + lastEditedByUser +
+            ", location=" + location +
+            ", observationIllustrationSet=" + observationIllustrationSet +
+            ", GISEntityUtil=" + GISEntityUtil +
+            ", GISUtil=" + GISUtil +
+            ", source=" + source +
+            '}';
     }
 
     /**
@@ -338,13 +338,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setOrganism(Organism organism) {
         this.organism = organism;
     }
-    
+
     @JoinColumn(name = "polygon_service_id", referencedColumnName = "polygon_service_id")
     @ManyToOne
     public PolygonService getPolygonService(){
         return this.polygonService;
     }
-    
+
     public void setPolygonService(PolygonService polygonService)
     {
         this.polygonService = polygonService;
@@ -363,7 +363,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         return this.getLocationCoordinate().x;
     }
     */
-    
+
     @Override
     @Transient
     public String getName() {
@@ -480,13 +480,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setObservationData(String observationData) {
         this.observationData = observationData;
     }
-    
+
     @Transient
     public ObservationDataSchema getObservationDataSchema()
     {
         return this.observationDataSchema != null ? this.observationDataSchema : null;
     }
-    
+
     public void setObservationDataSchema(ObservationDataSchema observationDataSchema)
     {
         this.observationDataSchema = observationDataSchema;
@@ -522,7 +522,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setCropOrganism(Organism cropOrganism) {
         this.cropOrganism = cropOrganism;
     }
-    
+
     @Transient
     public Integer getCropOrganismId() {
         return this.getCropOrganism() != null ? this.getCropOrganism().getOrganismId() : null;
@@ -564,7 +564,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     }
 
     /**
-      * @return the observation time series
+     * @return the observation time series
      */
     @JoinColumn(name = "observation_time_series_id", referencedColumnName = "observation_time_series_id")
     @ManyToOne
@@ -678,7 +678,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     /**
      * Simplifies the public JSON object
      * @param locale
-     * @return 
+     * @return
      */
     public ObservationListItem getListItem(String locale, ObservationDataSchema observationDataSchema)
     {
@@ -690,41 +690,41 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
             this.location.addProperty("timestamp", this.getTimeOfObservation().getTime());
         }
         return new ObservationListItem(
-                this.getObservationId(),
-                this.userId,
-                this.user != null ? this.user.getFullName() : null,
-                this.getObservationTimeSeriesId(),
-                this.getTimeOfObservation(),
-                this.getOrganismId(),
-                ! this.getOrganism().getLocalName(locale).trim().isBlank() ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
-                this.getCropOrganismId(),
-                ! this.getCropOrganism().getLocalName(locale).trim().isBlank() ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
-                this.observationTimeSeries != null ? this.observationTimeSeries.getLabel() : null,
-                // Specific geoInfo trumps location. This is to be interpreted 
-                // as that the observation has been geographically masked by
-                // choice of the observer
-                this.location != null ? this.location.getPointOfInterestId() : null,
-                this.location != null ? this.location.getName() : null,
-                this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
-                this.getObservationHeading(),
-                this.getObservationText(),
-                this.getBroadcastMessage(),
-                this.getLocationIsPrivate(),
-                this.getIsPositive(),
-                this.getObservationData(),
-                observationDataSchema
+            this.getObservationId(),
+            this.userId,
+            this.user != null ? this.user.getFullName() : null,
+            this.getObservationTimeSeriesId(),
+            this.getTimeOfObservation(),
+            this.getOrganismId(),
+            ! this.getOrganism().getLocalName(locale).trim().isBlank() ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
+            this.getCropOrganismId(),
+            ! this.getCropOrganism().getLocalName(locale).trim().isBlank() ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
+            this.observationTimeSeries != null ? this.observationTimeSeries.getLabel() : null,
+            // Specific geoInfo trumps location. This is to be interpreted
+            // as that the observation has been geographically masked by
+            // choice of the observer
+            this.location != null ? this.location.getPointOfInterestId() : null,
+            this.location != null ? this.location.getName() : null,
+            this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
+            this.getObservationHeading(),
+            this.getObservationText(),
+            this.getBroadcastMessage(),
+            this.getLocationIsPrivate(),
+            this.getIsPositive(),
+            this.getObservationData(),
+            observationDataSchema
         );
     }
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_edited_time")
-	public Date getLastEditedTime() {
-		return lastEditedTime; 
-	}
+    public Date getLastEditedTime() {
+        return lastEditedTime;
+    }
 
-	public void setLastEditedTime(Date lastEditedTime) {
-		this.lastEditedTime = lastEditedTime;
-	}
+    public void setLastEditedTime(Date lastEditedTime) {
+        this.lastEditedTime = lastEditedTime;
+    }
 
     @Column(name = "is_positive")
     public Boolean getIsPositive() {

@@ -42,7 +42,7 @@
 	<script type="text/javascript" src="/js/poiFormMap.js"></script>
 	<script type="text/javascript">
 		var organizationId = ${user.organizationId.organizationId};
-        var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId}<#else>null</#if>;
+        var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId?c}<#else>null</#if>;
 
 
 		$(document).ready(function() {

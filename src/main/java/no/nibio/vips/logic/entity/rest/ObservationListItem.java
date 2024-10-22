@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2018 NIBIO <http://www.nibio.no/>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,26 +45,26 @@ public class ObservationListItem implements Comparable{
     private Boolean isPositive;
 
     public ObservationListItem(
-            Integer observationId,
-            Integer observerId,
-            String observerName,
-            Integer observationTimeSeriesId,
-            Date timeOfObservation,
-            Integer organismId,
-            String organismName,
-            Integer cropOrganismId,
-            String cropOrganismName,
-            String observationTimeSeriesLabel,
-            Integer poiId,
-            String poiName,
-            String geoinfo,
-            String observationHeading,
-            String observationText,
-            Boolean broadcastMessage,
-            Boolean locationIsPrivate,
-            Boolean isPositive,
-            String observationData,
-            ObservationDataSchema observationDataSchema){
+        Integer observationId,
+        Integer observerId,
+        String observerName,
+        Integer observationTimeSeriesId,
+        Date timeOfObservation,
+        Integer organismId,
+        String organismName,
+        Integer cropOrganismId,
+        String cropOrganismName,
+        String observationTimeSeriesLabel,
+        Integer poiId,
+        String poiName,
+        String geoinfo,
+        String observationHeading,
+        String observationText,
+        Boolean broadcastMessage,
+        Boolean locationIsPrivate,
+        Boolean isPositive,
+        String observationData,
+        ObservationDataSchema observationDataSchema){
         this.observationId = observationId;
         this.observerId = observerId;
         this.observerName = observerName;
@@ -86,7 +86,7 @@ public class ObservationListItem implements Comparable{
         this.observationData = observationData;
         this.observationDataSchema = observationDataSchema;
     }
-    
+
 
     @Override
     public int compareTo(Object otherOne)
@@ -97,7 +97,7 @@ public class ObservationListItem implements Comparable{
         }
         return this.getTimeOfObservation().compareTo(((ObservationListItem) otherOne).getTimeOfObservation());
     }
-    
+
     /**
      * @return the observationId
      */

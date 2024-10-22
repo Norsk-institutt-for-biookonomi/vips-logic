@@ -122,7 +122,7 @@ class MapModal {
     addMapContainer(parentDiv, id) {
         const mapContainer = document.createElement('div');
         mapContainer.id = id;
-        mapContainer.style.height = '100vh';
+        mapContainer.style.height = '100%';
         mapContainer.style.width = '100%';
         mapContainer.style.position = 'relative';
         parentDiv.appendChild(mapContainer);
@@ -288,7 +288,7 @@ class MapModal {
             const containerPoint = this.map.latLngToContainerPoint(latlng);
 
             this.selectedNewPointMarker = circleMarker(latlng, this.styleOfSelectedPointMarker(true)).addTo(this.map);
-            const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x + 25, containerPoint.y - 25, latlng.lat, latlng.lng)
+            const newPointFormElement = this.addHtmlElementNewPointForm(containerPoint.x, containerPoint.y, latlng.lat, latlng.lng)
 
             DomEvent.disableClickPropagation(newPointFormElement);
             document.addEventListener('click', this.handleClickOutsidePointForm.bind(this), true);
@@ -390,43 +390,57 @@ class MapModal {
      * @returns {Element}
      */
     addHtmlElementNewPointForm(positionX, positionY, latitude, longitude) {
-        const html = `
-            <div id="new-point-form" class="panel panel-default"  style="top: ${positionY}px; left: ${positionX}px;">
-                <div class="panel-heading">
-                    <h4 class="panel-title">${this.translations.createNewLocation}</h4>
-                    <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
+        const form = document.createElement("div");
+        form.id="new-point-form"
+        form.classList.add("panel");
+        form.classList.add("panel-default");
+
+        // Adjust position so that the form is always displayed within the map
+        const mapWidth = this.mapModalElement.offsetWidth;
+        const mapHeight = this.mapModalElement.offsetHeight;
+        const formWidth = 200; // approximately
+        const formHeight = 400; // approximately
+        if (positionX + formWidth > mapWidth) {
+            positionX = mapWidth - formWidth - 10; // 10px padding from the edge
+        }
+        if (positionY + formHeight > mapHeight) {
+            positionY = mapHeight - formHeight - 10; // 10px padding from the edge
+        }
+        form.style.left = `${positionX}px`;
+        form.style.top = `${positionY}px`;
+
+        form.innerHTML = `
+            <div class="panel-heading">
+                <h4 class="panel-title">${this.translations.createNewLocation}</h4>
+                <span id="close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="name">${this.translations.name}:</label>
+                    <input type="text" class="form-control" id="name" name="name">
                 </div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label for="name">${this.translations.name}:</label>
-                        <input type="text" class="form-control" id="name" name="name">
-                    </div>
-                    <div class="form-group">
-                        <label for="latitude">${this.translations.latitude}:</label>
-                        <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude.toFixed(this.coordinatePrecision)}">
-                    </div>
-                    <div class="form-group">
-                        <label for="longitude">${this.translations.longitude}:</label>
-                        <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
-                    </div>
-                    <div class="form-group">
-                        <label for="poiTypeSelect">${this.translations.type}:</label>
-                        <select class="form-control" id="type" name="type">
-                            <option value="2">${this.typeNameMap[2]}</option>
-                            <option value="3">${this.typeNameMap[3]}</option>
-                            <option value="5">${this.typeNameMap[5]}</option>
-                        </select>
-                    </div>
-                    <div class="form-group text-right">
-                        <button id="submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
-                    </div>                
+                <div class="form-group">
+                    <label for="latitude">${this.translations.latitude}:</label>
+                    <input type="text" class="form-control" id="latitude" name="latitude" value="${latitude.toFixed(this.coordinatePrecision)}">
                 </div>
+                <div class="form-group">
+                    <label for="longitude">${this.translations.longitude}:</label>
+                    <input type="text" class="form-control" id="longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
+                </div>
+                <div class="form-group">
+                    <label for="poiTypeSelect">${this.translations.type}:</label>
+                    <select class="form-control" id="type" name="type">
+                        <option value="2">${this.typeNameMap[2]}</option>
+                        <option value="3">${this.typeNameMap[3]}</option>
+                        <option value="5">${this.typeNameMap[5]}</option>
+                    </select>
+                </div>
+                <div class="form-group text-right">
+                    <button id="submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
+                </div>                
             </div>`;
-        const tmpContainer = document.createElement("div");
-        tmpContainer.innerHTML = html;
-        const htmlElement = tmpContainer.querySelector('#new-point-form');
-        this.mapContainerElement.appendChild(htmlElement);
-        return htmlElement;
+        this.mapContainerElement.appendChild(form);
+        return form;
     }
 
     /**
@@ -438,7 +452,9 @@ class MapModal {
      * @param zoomLevel
      */
     openModal(selectedPointOfInterestId, latitude, longitude, zoomLevel) {
-        this.mapModalElement.style.display = 'block';
+        this.mapModalElement.style.display = 'flex';
+        this.mapModalElement.style.justifyContent = 'center';
+        this.mapModalElement.style.alignItems = 'center';
         this.initMap(latitude, longitude, zoomLevel);
         if (selectedPointOfInterestId) {
             this.selectPointById(selectedPointOfInterestId);

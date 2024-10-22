@@ -111,24 +111,24 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getFilteredObservations(
-            @PathParam("organizationId") Integer organizationId,
-            @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
-            @QueryParam("pestId") Integer pestId,
-            @QueryParam("cropId") Integer cropId,
-            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
-            @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr,
-            @QueryParam("isPositive") Boolean isPositive
+        @PathParam("organizationId") Integer organizationId,
+        @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
+        @QueryParam("pestId") Integer pestId,
+        @QueryParam("cropId") Integer cropId,
+        @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+        @QueryParam("from") String fromStr,
+        @QueryParam("to") String toStr,
+        @QueryParam("isPositive") Boolean isPositive
     ) {
         return Response.ok().entity(getFilteredObservationsFromBackend(
-                organizationId,
-                observationTimeSeriesId,
-                pestId,
-                cropId,
-                cropCategoryId,
-                fromStr,
-                toStr,
-                isPositive
+            organizationId,
+            observationTimeSeriesId,
+            pestId,
+            cropId,
+            cropCategoryId,
+            fromStr,
+            toStr,
+            isPositive
         )).build();
     }
 
@@ -148,16 +148,16 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ObservationListItem.class)
     public Response getFilteredObservationListItemsAsJson(
-            @PathParam("organizationId") Integer organizationId,
-            @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
-            @QueryParam("pestId") Integer pestId,
-            @QueryParam("cropId") Integer cropId,
-            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
-            @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr,
-            @QueryParam("userUUID") String userUUID,
-            @QueryParam("locale") String localeStr,
-            @QueryParam("isPositive") Boolean isPositive
+        @PathParam("organizationId") Integer organizationId,
+        @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
+        @QueryParam("pestId") Integer pestId,
+        @QueryParam("cropId") Integer cropId,
+        @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+        @QueryParam("from") String fromStr,
+        @QueryParam("to") String toStr,
+        @QueryParam("userUUID") String userUUID,
+        @QueryParam("locale") String localeStr,
+        @QueryParam("isPositive") Boolean isPositive
     ) {
         return Response.ok().entity(this.getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive)).build();
     }
@@ -177,21 +177,21 @@ public class ObservationService {
     @GZIP
     @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public Response getFilteredObservationListItemsAsXlsx(
-            @PathParam("organizationId") Integer organizationId,
-            @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
-            @QueryParam("pestId") Integer pestId,
-            @QueryParam("cropId") Integer cropId,
-            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
-            @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr,
-            @QueryParam("userUUID") String userUUID,
-            @QueryParam("locale") String localeStr,
-            @QueryParam("isPositive") Boolean isPositive
+        @PathParam("organizationId") Integer organizationId,
+        @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
+        @QueryParam("pestId") Integer pestId,
+        @QueryParam("cropId") Integer cropId,
+        @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+        @QueryParam("from") String fromStr,
+        @QueryParam("to") String toStr,
+        @QueryParam("userUUID") String userUUID,
+        @QueryParam("locale") String localeStr,
+        @QueryParam("isPositive") Boolean isPositive
     ) {
         VipsLogicUser user = getVipsLogicUser(userUUID);
         ULocale locale = new ULocale(localeStr != null ? localeStr :
-                user != null ? user.getOrganizationId().getDefaultLocale() :
-                        userBean.getOrganization(organizationId).getDefaultLocale());
+            user != null ? user.getOrganizationId().getDefaultLocale() :
+                userBean.getOrganization(organizationId).getDefaultLocale());
         LOGGER.info("Generate xlsx file for observations for user {} from {} to {}", user != null ? user.getUserId() : "unregistered", fromStr, toStr);
 
         LocalDateTime now = LocalDateTime.now();
@@ -203,9 +203,9 @@ public class ObservationService {
             byte[] excelFile = ExcelFileGenerator.generateExcel(user, locale, now, fromStr, toStr, observations);
 
             return Response
-                    .ok(excelFile)
-                    .header("Content-Disposition", "attachment; filename=\"" + filenameTimestamp + "-observations.xlsx\"")
-                    .build();
+                .ok(excelFile)
+                .header("Content-Disposition", "attachment; filename=\"" + filenameTimestamp + "-observations.xlsx\"")
+                .build();
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
             return Response.serverError().entity("Error generating Excel file: " + e.getMessage()).build();
@@ -213,40 +213,40 @@ public class ObservationService {
     }
 
     private List<ObservationListItem> getFilteredObservationListItems(
-            Integer organizationId,
-            Integer observationTimeSeriesId,
-            Integer pestId,
-            Integer cropId,
-            List<Integer> cropCategoryId,
-            String fromStr,
-            String toStr,
-            String userUUID,
-            String localeStr,
-            Boolean isPositive) {
+        Integer organizationId,
+        Integer observationTimeSeriesId,
+        Integer pestId,
+        Integer cropId,
+        List<Integer> cropCategoryId,
+        String fromStr,
+        String toStr,
+        String userUUID,
+        String localeStr,
+        Boolean isPositive) {
         VipsLogicUser user = getVipsLogicUser(userUUID);
         ULocale locale = new ULocale(localeStr != null ? localeStr :
-                user != null ? user.getOrganizationId().getDefaultLocale() :
-                        userBean.getOrganization(organizationId).getDefaultLocale());
+            user != null ? user.getOrganizationId().getDefaultLocale() :
+                userBean.getOrganization(organizationId).getDefaultLocale());
 
         LOGGER.info("Get filtered observations for user {}", user != null ? user.getUserId() : "<no user>");
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
-                organizationId,
-                observationTimeSeriesId,
-                pestId,
-                cropId,
-                cropCategoryId,
-                fromStr,
-                toStr,
-                isPositive,
-                user
+            organizationId,
+            observationTimeSeriesId,
+            pestId,
+            cropId,
+            cropCategoryId,
+            fromStr,
+            toStr,
+            isPositive,
+            user
         ).stream().map(obs -> {
             try {
                 return obs.getListItem(locale.getLanguage(),
-                        observationBean.getLocalizedObservationDataSchema(
-                                observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
-                                httpServletRequest,
-                                locale
-                        )
+                    observationBean.getLocalizedObservationDataSchema(
+                        observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
+                        httpServletRequest,
+                        locale
+                    )
                 );
             } catch (IOException e) {
                 LOGGER.error("Exception when getting localized observation data schema for observation " + obs.getObservationId(), e);
@@ -272,16 +272,16 @@ public class ObservationService {
     @Produces("text/csv;charset=UTF-8")
     @TypeHint(ObservationListItem.class)
     public Response getFilteredObservationListItemsAsCSV(
-            @PathParam("organizationId") Integer organizationId,
-            @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
-            @QueryParam("pestId") Integer pestId,
-            @QueryParam("cropId") Integer cropId,
-            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
-            @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr,
-            @QueryParam("userUUID") String userUUID,
-            @QueryParam("locale") String localeStr,
-            @QueryParam("isPositive") Boolean isPositive
+        @PathParam("organizationId") Integer organizationId,
+        @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
+        @QueryParam("pestId") Integer pestId,
+        @QueryParam("cropId") Integer cropId,
+        @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+        @QueryParam("from") String fromStr,
+        @QueryParam("to") String toStr,
+        @QueryParam("userUUID") String userUUID,
+        @QueryParam("locale") String localeStr,
+        @QueryParam("isPositive") Boolean isPositive
     ) {
         List<ObservationListItem> observations = this.getFilteredObservationListItems(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, userUUID, localeStr, isPositive);
         Collections.sort(observations);
@@ -295,12 +295,12 @@ public class ObservationService {
                 c = ((Point) geometries.get(0)).getCoordinate();
             }
             retVal += "\n" + obs.getObservationId()
-                    + ";" + obs.getOrganismName()
-                    + ";" + obs.getCropOrganismName()
-                    + ";" + obs.getTimeOfObservation()
-                    + ";" + (c != null ? c.getY() + "," + c.getX() : "")
-                    + ";" + obs.getObservationHeading()
-                    + ";" + obs.getObservationData();
+                + ";" + obs.getOrganismName()
+                + ";" + obs.getCropOrganismName()
+                + ";" + obs.getTimeOfObservation()
+                + ";" + (c != null ? c.getY() + "," + c.getX() : "")
+                + ";" + obs.getObservationHeading()
+                + ";" + obs.getObservationData();
         }
         return Response.ok().entity(retVal).build();
     }
@@ -316,14 +316,14 @@ public class ObservationService {
      * @return Observation objects for which the user is authorized to observe with properties relevant for lists
      */
     private List<Observation> getFilteredObservationsFromBackend(
-            Integer organizationId,
-            Integer observationTimeSeriesId,
-            Integer pestId,
-            Integer cropId,
-            List<Integer> cropCategoryId,
-            String fromStr,
-            String toStr,
-            Boolean isPositive) {
+        Integer organizationId,
+        Integer observationTimeSeriesId,
+        Integer pestId,
+        Integer cropId,
+        List<Integer> cropCategoryId,
+        String fromStr,
+        String toStr,
+        Boolean isPositive) {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
         //TODO Set correct timeZone!!!
         Date from = null;
@@ -336,14 +336,14 @@ public class ObservationService {
         }
 
         return observationBean.getFilteredObservations(
-                organizationId,
-                observationTimeSeriesId,
-                pestId,
-                cropId,
-                cropCategoryId,
-                from,
-                to,
-                isPositive
+            organizationId,
+            observationTimeSeriesId,
+            pestId,
+            cropId,
+            cropCategoryId,
+            from,
+            to,
+            isPositive
         );
 
     }
@@ -461,14 +461,14 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(GeoJSON.class)
     public Response getFilteredObservationsAsGeoJSON(
-            @PathParam("organizationId") Integer organizationId,
-            @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
-            @QueryParam("pestId") Integer pestId,
-            @QueryParam("cropId") Integer cropId,
-            @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
-            @QueryParam("from") String fromStr,
-            @QueryParam("to") String toStr,
-            @QueryParam("isPositive") Boolean isPositive
+        @PathParam("organizationId") Integer organizationId,
+        @QueryParam("observationTimeSeriesId") Integer observationTimeSeriesId,
+        @QueryParam("pestId") Integer pestId,
+        @QueryParam("cropId") Integer cropId,
+        @QueryParam("cropCategoryId") List<Integer> cropCategoryId,
+        @QueryParam("from") String fromStr,
+        @QueryParam("to") String toStr,
+        @QueryParam("isPositive") Boolean isPositive
 
     ) {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultDateFormat);
@@ -483,14 +483,14 @@ public class ObservationService {
         }
 
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(
-                organizationId,
-                observationTimeSeriesId,
-                pestId,
-                cropId,
-                cropCategoryId,
-                fromStr,
-                toStr,
-                isPositive
+            organizationId,
+            observationTimeSeriesId,
+            pestId,
+            cropId,
+            cropCategoryId,
+            fromStr,
+            toStr,
+            isPositive
         );
 
         GISEntityUtil gisUtil = new GISEntityUtil();
@@ -555,7 +555,7 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getObservationsForUser(
-            @QueryParam("observationIds") String observationIds
+        @QueryParam("observationIds") String observationIds
     ) {
         LOGGER.info("getObservationsForUser for observationIds={}", observationIds);
         try {
@@ -566,14 +566,14 @@ public class ObservationService {
                 LOGGER.info("Found {} observations for user {}", allObs.size(), user.getUserId());
                 if (observationIds != null) {
                     Set<Integer> observationIdSet = Arrays.asList(observationIds.split(",")).stream()
-                            .map(s -> Integer.valueOf(s))
-                            .collect(Collectors.toSet());
+                        .map(s -> Integer.valueOf(s))
+                        .collect(Collectors.toSet());
                     return Response.ok().entity(
-                                    allObs.stream()
-                                            .filter(obs -> observationIdSet.contains(obs.getObservationId()))
-                                            .collect(Collectors.toList())
-                            )
-                            .build();
+                            allObs.stream()
+                                .filter(obs -> observationIdSet.contains(obs.getObservationId()))
+                                .collect(Collectors.toList())
+                        )
+                        .build();
                 }
                 return Response.ok().entity(allObs).build();
             } else {
@@ -600,7 +600,7 @@ public class ObservationService {
         VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user != null) {
             return Response.ok().entity(observationBean.getObservationsForUser(user).stream()
-                    .map(obs -> new ObservationSyncInfo(obs)).collect(Collectors.toList())).build();
+                .map(obs -> new ObservationSyncInfo(obs)).collect(Collectors.toList())).build();
         } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
@@ -618,13 +618,13 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getBroadcastObservations(
-            @PathParam("organizationId") Integer organizationId,
-            @QueryParam("season") Integer season,
-            @QueryParam("timeOfObservationFrom") String timeOfObservationFrom,
-            @QueryParam("timeOfObservationTo") String timeOfObservationTo
+        @PathParam("organizationId") Integer organizationId,
+        @QueryParam("season") Integer season,
+        @QueryParam("timeOfObservationFrom") String timeOfObservationFrom,
+        @QueryParam("timeOfObservationTo") String timeOfObservationTo
     ) {
         if ((timeOfObservationFrom != null && !timeOfObservationFrom.isEmpty())
-                || (timeOfObservationTo != null && !timeOfObservationTo.isEmpty())) {
+            || (timeOfObservationTo != null && !timeOfObservationTo.isEmpty())) {
             Date from = null;
             Date to = null;
             try {
@@ -656,8 +656,8 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation.class)
     public Response getObservation(
-            @PathParam("observationId") Integer observationId,
-            @QueryParam("userUUID") String userUUID
+        @PathParam("observationId") Integer observationId,
+        @QueryParam("userUUID") String userUUID
     ) {
         // Observation needs to be masked here as well, or does it create trouble for VIPSLogic observation admin?
         Observation o = observationBean.getObservation(observationId);
@@ -686,9 +686,9 @@ public class ObservationService {
                 List<Observation> intermediary = new ArrayList<>();
                 intermediary.add(o);
                 intermediary = this.maskObservations(o.getPolygonService(),
-                        observationBean.getObservationsWithLocations(
-                                observationBean.getObservationsWithGeoInfo(intermediary)
-                        )
+                    observationBean.getObservationsWithLocations(
+                        observationBean.getObservationsWithGeoInfo(intermediary)
+                    )
                 );
                 o = intermediary.get(0);
             }
@@ -709,7 +709,7 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PolygonService[].class)
     public Response getPolygonServicesForOrganization(
-            @PathParam("organizationId") Integer organizationId
+        @PathParam("organizationId") Integer organizationId
     ) {
         return Response.ok().entity(observationBean.getPolygonServicesForOrganization(organizationId)).build();
     }
@@ -729,10 +729,10 @@ public class ObservationService {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         if (!userBean.authorizeUser(user,
-                VipsLogicRole.OBSERVER,
-                VipsLogicRole.OBSERVATION_AUTHORITY,
-                VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
-                VipsLogicRole.SUPERUSER
+            VipsLogicRole.OBSERVER,
+            VipsLogicRole.OBSERVATION_AUTHORITY,
+            VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
+            VipsLogicRole.SUPERUSER
         )
         ) {
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -762,10 +762,10 @@ public class ObservationService {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
             if (!userBean.authorizeUser(user,
-                    VipsLogicRole.OBSERVER,
-                    VipsLogicRole.OBSERVATION_AUTHORITY,
-                    VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
-                    VipsLogicRole.SUPERUSER
+                VipsLogicRole.OBSERVER,
+                VipsLogicRole.OBSERVATION_AUTHORITY,
+                VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
+                VipsLogicRole.SUPERUSER
             )
             ) {
                 return Response.status(Response.Status.FORBIDDEN).build();
@@ -794,7 +794,7 @@ public class ObservationService {
     public Response getFirstObservation(@PathParam("organismId") Integer organismId) {
         Date firstObsTime = observationBean.getFirstObservationTime(organismId);
         return firstObsTime != null ? Response.ok().entity(firstObsTime).build()
-                : Response.status(404).entity("No observations of organism with id=" + organismId).build();
+            : Response.status(404).entity("No observations of organism with id=" + organismId).build();
     }
 
     /**
@@ -827,15 +827,15 @@ public class ObservationService {
      * @return A list of observations that meets the filter criteria
      */
     private List<Observation> getFilteredObservationsFromBackend(
-            Integer organizationId,
-            Integer observationTimeSeriesId,
-            Integer pestId,
-            Integer cropId,
-            List<Integer> cropCategoryId,
-            String fromStr,
-            String toStr,
-            Boolean isPositive,
-            VipsLogicUser user
+        Integer organizationId,
+        Integer observationTimeSeriesId,
+        Integer pestId,
+        Integer cropId,
+        List<Integer> cropCategoryId,
+        String fromStr,
+        String toStr,
+        Boolean isPositive,
+        VipsLogicUser user
     ) {
         List<Observation> filteredObservations = this.getFilteredObservationsFromBackend(organizationId, observationTimeSeriesId, pestId, cropId, cropCategoryId, fromStr, toStr, isPositive);
 
@@ -889,7 +889,7 @@ public class ObservationService {
             Map<Integer, Observation> maskedObservations = new HashMap<>();
             registeredPolygonServicesInObservationList.keySet().forEach((pService) -> {
                 this.maskObservations(pService, registeredPolygonServicesInObservationList.get(pService))
-                        .forEach(o -> maskedObservations.put(o.getObservationId(), o));
+                    .forEach(o -> maskedObservations.put(o.getObservationId(), o));
             });
 
             // Adding the rest of the observations (the ones that don't need masking)
@@ -908,19 +908,19 @@ public class ObservationService {
         Client client = ClientBuilder.newClient();
         WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
         List<ReferencedPoint> points = observations.stream()
-                .filter(obs -> (obs.getGeoinfos() != null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
-                .map(obs -> {
-                    ReferencedPoint rp = new ReferencedPoint();
-                    rp.setId(String.valueOf(obs.getObservationId()));
-                    if (obs.getGeoinfos() != null) {
-                        rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
-                        rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
-                    } else {
-                        rp.setLon(obs.getLocation().getLongitude());
-                        rp.setLat(obs.getLocation().getLatitude());
-                    }
-                    return rp;
-                }).collect(Collectors.toList());
+            .filter(obs -> (obs.getGeoinfos() != null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
+            .map(obs -> {
+                ReferencedPoint rp = new ReferencedPoint();
+                rp.setId(String.valueOf(obs.getObservationId()));
+                if (obs.getGeoinfos() != null) {
+                    rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
+                    rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
+                } else {
+                    rp.setLon(obs.getLocation().getLongitude());
+                    rp.setLat(obs.getLocation().getLatitude());
+                }
+                return rp;
+            }).collect(Collectors.toList());
         /*System.out.println("maskobservations - target.request() about to be called");
         ObjectMapper oMapper = new ObjectMapper();
         try {
@@ -929,7 +929,7 @@ public class ObservationService {
             Logger.getLogger(ObservationService.class.getName()).log(Level.SEVERE, null, ex);
         }*/
         PointMappingResponse response = target.request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
+            .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
         // We need to loop through the observations and find corresponding featurecollections and replace those
         Map<Integer, Feature> indexedPolygons = new HashMap<>();
         for (Feature feature : response.getFeatureCollection().getFeatures()) {
@@ -965,7 +965,7 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation.class)
     public Response syncObservationFromApp(
-            String observationJson
+        String observationJson
     ) {
         LOGGER.info("In syncObservationFromApp");
 
@@ -1124,15 +1124,15 @@ public class ObservationService {
      */
     private List<Observation> sortObservationsByDateAndId(List<Observation> observations) {
         return observations.stream()
-                .sorted((o1, o2) -> {
-                    int timeCompare = o2.getTimeOfObservation().compareTo(o1.getTimeOfObservation());
-                    if (timeCompare != 0) {
-                        return timeCompare;
-                    } else {
-                        return Integer.compare(o2.getObservationId(), o1.getObservationId());
-                    }
-                })
-                .collect(Collectors.toList());
+            .sorted((o1, o2) -> {
+                int timeCompare = o2.getTimeOfObservation().compareTo(o1.getTimeOfObservation());
+                if (timeCompare != 0) {
+                    return timeCompare;
+                } else {
+                    return Integer.compare(o2.getObservationId(), o1.getObservationId());
+                }
+            })
+            .collect(Collectors.toList());
     }
 
     /**
