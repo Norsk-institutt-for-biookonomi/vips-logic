@@ -117,14 +117,7 @@ async function initMap() {
             const color = feature.get("cropOrganism") != null && feature.get("cropOrganism")["latinName"] != null ?
                 colors[feature.get("cropOrganism")["latinName"].toLowerCase()]
                 : colors["plantae"];
-            /*
-            if (feature.get("cropOrganism") != null && feature.get("cropOrganism")["latinName"] != null) {
-                retVal = styles[feature.get("cropOrganism")["latinName"].toLowerCase()];
-            } else {
-                retVal = styles["plantae"];
-            }*/
-            //console.info(retVal[0].getImage().getStroke().getWidth());
-            // If symptom has been registered, mark with inner black dot
+
 
             retVal = [
                 new ol.style.Style({
@@ -146,67 +139,7 @@ async function initMap() {
                     })
                 })
             ];
-            /*
-            if (observationData["funn"] == "[Ukjent]") {
-                retVal = [
-                    new ol.style.Style({
-                        image: new ol.style.Circle({
-                            fill: new ol.style.Fill({ color: [0, 0, 0, 1] }),
-                            stroke: new ol.style.Stroke({ width: 8, color: retVal[0].getImage().getFill().getColor() }),
-                            radius: iconRadius
-                        })
-                    })
-                ];
-            }
-            else {
-                retVal = [
-                    new ol.style.Style({
-                        image: new ol.style.Circle({
-                            fill: new ol.style.Fill({ color: [0, 0, 0, 1] }),
-                            stroke: new ol.style.Stroke({ width: 8, color: retVal[0].getImage().getFill().getColor() }),
-                            radius: iconRadius
-                        }),
-                        text: new ol.style.Text({
-                            text: observationData["provenummer"],
-                            fill: new ol.style.Fill({
-                                color: '#000'
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: '#fff',
-                                width: 2
-                            })
-                        })
-                    })
-                ];
-            }
-            /*
-                 ,
-                 text: new ol.style.Text({
-                     text: "23",
-                     fill: new ol.style.Fill({
-                         color: '#000'
-                     }),
-                     stroke: new ol.style.Stroke({
-                         color: '#fff',
-                         width: 2
-                     })
-                 })*/
-            /*console.info(observationData["provenummer"])
-            if (observationData["provenummer"] != null && observationData["provenummer"].trim() != "") {
-                retVal.push(new ol.style.Style({
-                    text: new ol.style.Text({
-                        text: observationData["provenummer"],
-                        fill: new ol.style.Fill({
-                            color: '#000'
-                        }),
-                        stroke: new ol.style.Stroke({
-                            color: '#fff',
-                            width: 2
-                        })
-                    })
-                }))
-            }*/
-            //console.info(retVal);
+
             return retVal;
         }
 
