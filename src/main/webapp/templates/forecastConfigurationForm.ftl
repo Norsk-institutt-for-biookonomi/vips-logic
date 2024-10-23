@@ -139,8 +139,9 @@
             })
             .then(response => response.json())
             .then(geoJson => {
-                const locationMapInstance = new MapModal('location-map', geoJson, '${currentLanguage}', true, callbackOnCloseLocationMap);
-                console.info("locationMapInstance", locationMapInstance)
+                const isPoiMap = true; // Map should operate on pois (not only coordinates)
+                const allowNewPoints = true; // User should be able to create new pois
+                const locationMapInstance = new MapModal('location-map', geoJson, '${currentLanguage}', isPoiMap, allowNewPoints, callbackOnCloseLocationMap);
                 const selectedPoiId = getSelectedPoiId(selectLocationElement);
                 locationMapInstance.openModal(selectedPoiId, ${user.organizationId.defaultMapCenter.y?c}, ${user.organizationId.defaultMapCenter.x?c}, ${user.organizationId.defaultMapZoom} + 1);
             })

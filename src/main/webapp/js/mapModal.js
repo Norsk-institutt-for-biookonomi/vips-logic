@@ -77,10 +77,11 @@ class MapModal {
      * @param mapModalId    The id of the HTML element in which the modal should be opened
      * @param geoJsonData   GeoJson containing all features which should be displayed on the map
      * @param language  The language in which texts should be displayed, either 'nb' or 'en'
+     * @param isPoiMap    True if the map operates on pois with an id, name and type, false if it operates on coordinates
      * @param allowNewPoints    Whether or not the user should be allowed to add new points
      * @param callbackOnClose   Callback function to call when closing the modal
      */
-    constructor(mapModalId, geoJsonData, language = 'nb', allowNewPoints = false, callbackOnClose = null) {
+    constructor(mapModalId, geoJsonData, language = 'nb', isPoiMap = true, allowNewPoints = false, callbackOnClose = null) {
         this.mapModalElement = document.getElementById(mapModalId);
         this.mapContainerId = mapModalId + "-container";
         this.mapContainerElement = this.addMapContainer(this.mapModalElement, this.mapContainerId);
@@ -90,12 +91,13 @@ class MapModal {
         this.includeTypeInformation = true;
 
         this.geoJsonData = geoJsonData;
-        if(language in MapModal.TRANSLATIONS) {
+        if (language in MapModal.TRANSLATIONS) {
             this.translations = MapModal.TRANSLATIONS[language];
         } else {
-            console.error("'"+ language +"' is not a supported language");
+            console.error("'" + language + "' is not a supported language");
             this.translations = MapModal.TRANSLATIONS['nb'];
         }
+        this.isPoiMap = isPoiMap;
         this.allowNewPoints = allowNewPoints;
         this.callbackOnClose = callbackOnClose;
 
@@ -111,7 +113,9 @@ class MapModal {
         });
         this.closeMapControl = new CloseMapControl({
             translations: this.translations,
-            onClose: () => {this.closeModal()}
+            onClose: () => {
+                this.closeModal()
+            }
         });
 
         // Colours for the available types of pois
@@ -162,7 +166,7 @@ class MapModal {
         }
     }
 
-    initMap(latitude= 65, longitude= 14, zoomLevel= 5) {
+    initMap(latitude = 65, longitude = 14, zoomLevel = 5) {
         if (this.isMapInitialized) {
             console.error("Map is already initialized");
             return;
@@ -177,23 +181,26 @@ class MapModal {
         this.map.addControl(this.zoomToLocationControl);
         this.map.addControl(this.closeMapControl);
 
-        // Add points to the map
-        geoJSON(this.geoJsonData, {
-            filter: (feature) => feature.geometry.type === "Point",
-            pointToLayer: (feature, latlng) => {
-                return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
-            },
-            onEachFeature: (feature, layer) => {
-                const typeId = feature.properties.pointOfInterestTypeId;
-                this.bindActionToPoint(layer);
-                if (!this.markersByType[typeId]) {
-                    this.markersByType[typeId] = [];
+        // Add points to the map if given
+        if (this.geoJsonData.features) {
+            geoJSON(this.geoJsonData, {
+                filter: (feature) => feature.geometry.type === "Point",
+                pointToLayer: (feature, latlng) => {
+                    return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
+                },
+                onEachFeature: (feature, layer) => {
+                    const typeId = feature.properties.pointOfInterestTypeId;
+                    this.bindActionToPoint(layer);
+                    if (!this.markersByType[typeId]) {
+                        this.markersByType[typeId] = [];
+                    }
+                    this.markersByType[typeId].push(layer);
                 }
-                this.markersByType[typeId].push(layer);
-            }
-        }).addTo(this.map);
+            }).addTo(this.map);
+        }
 
-        if(this.includeTypeInformation) {
+        // Poi type selection panel should only be included if map operates on pois
+        if (this.isPoiMap) {
             this.legendControl = new LegendControl({
                 typeColorMap: this.typeColorMap,
                 translations: this.translations,
@@ -213,7 +220,7 @@ class MapModal {
     // Function called when point is hidden (by deselecting its location type in legend box)
     // If point is already selected, the popup and info panel is removed.
     unbindActionToPoint(layer) {
-        if(this.selectedExistingPointMarker === layer) {
+        if (this.selectedExistingPointMarker === layer) {
             layer.closePopup();
             this.removeSelectedPointMarkerIfExists();
         }
@@ -304,6 +311,7 @@ class MapModal {
             const longitudeInput = newPointFormElement.querySelector('#map-poi-longitude');
             const typeInput = newPointFormElement.querySelector('#map-poi-type');
             const submitButton = newPointFormElement.querySelector('#map-poi-submit-button');
+
             const validateInputs = () => {
                 const isValidLat = !isNaN(parseFloat(latitudeInput.value)) && isFinite(latitudeInput.value);
                 const isValidLng = !isNaN(parseFloat(longitudeInput.value)) && isFinite(longitudeInput.value);
@@ -321,7 +329,9 @@ class MapModal {
             });
 
             submitButton.addEventListener('click', () => {
-                const feature = this.createFeatureForPoint(nameInput.value, parseInt(typeInput.value, 10), parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
+                const formName = nameInput ? nameInput.value : '';
+                const formType = typeInput ? parseInt(typeInput.value, 10) : '';
+                const feature = this.createFeatureForPoint(formName, formType, parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
                 this.confirmSelection(feature);
             });
         });
@@ -329,7 +339,6 @@ class MapModal {
 
     updateMarkerPosition(marker, lat, lng) {
         if (marker) {
-            console.info("Move marker to new position")
             marker.setLatLng([lat, lng]);
             this.map.setView([lat, lng], this.map.getZoom());
         }
@@ -337,7 +346,6 @@ class MapModal {
 
     removeNewPointMarkerIfExists() {
         if (this.selectedNewPointMarker) {
-            console.info("Remove selected new point marker", this.selectedNewPointMarker);
             this.map.removeLayer(this.selectedNewPointMarker);
         }
     }
@@ -372,6 +380,7 @@ class MapModal {
                 "coordinates": [longitude, latitude]
             },
             "properties": {
+                "pointOfInterestId": 0,
                 "pointOfInterestName": name,
                 "pointOfInterestTypeId": type
             }
@@ -409,7 +418,7 @@ class MapModal {
      */
     addHtmlElementNewPointForm(positionX, positionY, latitude, longitude) {
         const form = document.createElement("div");
-        form.id="new-point-form"
+        form.id = "new-point-form"
         form.classList.add("panel");
         form.classList.add("panel-default");
 
@@ -433,7 +442,7 @@ class MapModal {
                 <span id="map-poi-close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
             </div>
             <div class="panel-body">
-                <div class="form-group">
+                <div id="form-group-poi-name" class="form-group">
                     <label for="map-poi-name">${this.translations.name}:</label>
                     <input type="text" class="form-control" id="map-poi-name" name="name">
                 </div>
@@ -445,7 +454,7 @@ class MapModal {
                     <label for="map-poi-longitude">${this.translations.longitude}:</label>
                     <input type="text" class="form-control" id="map-poi-longitude" name="longitude" value="${longitude.toFixed(this.coordinatePrecision)}">
                 </div>
-                <div class="form-group">
+                <div id="form-group-poi-type" class="form-group">
                     <label for="map-poi-type">${this.translations.type}:</label>
                     <select class="form-control" id="map-poi-type" name="type">
                         <option value="2">${this.translations['poiType2']}</option>
@@ -457,6 +466,13 @@ class MapModal {
                     <button id="map-poi-submit-button" class="btn btn-primary">${this.translations.selectLocation}</button>
                 </div>                
             </div>`;
+
+        // If map does not operate on pois, the form should not include input fields for name and type
+        if (!this.isPoiMap) {
+            form.querySelector("#form-group-poi-name").remove()
+            form.querySelector("#form-group-poi-type").remove()
+        }
+
         this.mapContainerElement.appendChild(form);
         return form;
     }
@@ -553,10 +569,10 @@ const CloseMapControl = Control.extend({
         DomEvent
             .on(closeMapButton, 'click', DomEvent.stop)
             .on(closeMapButton, 'click', () => {
-                if(this.options.onClose) {
+                if (this.options.onClose) {
                     this.options.onClose();
                 }
-        });
+            });
         return container;
     }
 });
@@ -593,7 +609,7 @@ const LegendControl = Control.extend({
                 .on(itemDiv, 'click', () => {
                     this.toggleMarkers(type, markersByType[type], itemDiv);
                 });
-    }
+        }
         return legendDiv;
     },
 
