@@ -38,29 +38,77 @@
     <script type="module">
         import MapModal from '/js/mapModal.js';
         const selectLocationElement = document.querySelector('select[name="locationPointOfInterestId"]');
+        const selectWeatherstationElement = document.querySelector('select[name="weatherStationPointOfInterestId"]') != null ? document.querySelector('select[name="weatherStationPointOfInterestId"]') : document.querySelector('select[name="weatherStationPointOfInterestIdDisabled"]');
+        console.info(selectWeatherstationElement);
+        
+        window.selectedPoiId = <#if forecastConfiguration.locationPointOfInterestId??>${forecastConfiguration.locationPointOfInterestId.pointOfInterestId!"undefined"}<#else>undefined</#if>;
+        window.selectedWeatherstationId = <#if forecastConfiguration.weatherStationPointOfInterestId??>${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId!"undefined"}<#else>undefined</#if>;
 
         // Read the list of locations into javascript array, to be able to dynamically manipulate it
-        let locationList = [
+        window.locationList = [
             <#list locationPointOfInterests as poi>
             {
                 "pointOfInterestId": "${poi.pointOfInterestId}",
-                "name": "${poi.name?json_string}"
+                "name": "${poi.name?json_string}",
+                "pointOfInterestTypeId": ${poi.pointOfInterestTypeId}
             },
             </#list>
         ];
-        renderPoiSelect(selectLocationElement, locationList);
 
-        // Populate select list for point of interest -> NOT GENERAL! Default value is specific to location.
-        function renderPoiSelect(selectElement, elementList, selectedId) {
-            selectElement.innerHTML = '';
 
-            const createOption = (value, text, isSelected = false) => {
+        
+
+        const createOption = (value, text, isSelected = false) => {
                 const option = document.createElement('option');
                 option.value = value;
                 option.textContent = text;
                 if (isSelected) option.selected = true;
                 return option;
             };
+
+        renderPoiSelect(selectLocationElement, locationList, selectedPoiId);
+        renderWeatherstationSelect(selectWeatherstationElement, locationList, selectedWeatherstationId);
+        // Setting weather station select list state correct on page load
+        <#if isGridForecastSupported>
+        handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+        </#if>
+
+        function renderWeatherstationSelect(selectElement, elementList, selectedId)
+        {
+            selectElement.options.length = 0;
+
+            <#if isGridForecastSupported>
+            // Add default option
+            selectElement.appendChild(createOption(
+                "-2",
+                "${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}",
+                !selectedId
+            ));
+            </#if>
+
+            // Add default option
+            selectElement.appendChild(createOption(
+                "-1",
+                "${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}",
+                !selectedId
+            ));
+
+            // Add all locations that are weatherstations
+            elementList.forEach(poi => {
+                if(poi.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
+                {
+                    selectElement.appendChild(createOption(
+                    poi.pointOfInterestId,
+                    poi.name,
+                    selectedId && poi.pointOfInterestId == selectedId
+                ));
+                }
+            });
+        }
+
+        // Populate select list for point of interest -> NOT GENERAL! Default value is specific to location.
+        function renderPoiSelect(selectElement, elementList, selectedId) {
+            selectElement.innerHTML = '';
 
             // Add default option
             selectElement.appendChild(createOption(
@@ -79,7 +127,7 @@
             });
         }
 
-        function selectPoi(selectElement, selectedId) {
+        window.selectPoi = function(selectElement, selectedId) {
             if (selectedId) {
                 const optionIndex = Array.from(selectElement.options).findIndex(option => option.value == selectedId);
                 if (optionIndex !== -1) {
@@ -103,6 +151,7 @@
             } else {
                 selectPoi(selectLocationElement, poiData.pointOfInterestId);
             }
+            handleLocationChanged();
         }
 
         function persistNewLocation(poiData) {
@@ -119,6 +168,8 @@
                 .then(poi => {
                     locationList.push(poi);
                     renderPoiSelect(selectLocationElement, locationList, poi.pointOfInterestId);
+                    // Assuming that this is not a weather station, since weather stations cannot be created using the
+                    // map, the user must have created a .... MAYBE HANDLED AUTOMATICALLY?? by the change event??
                     console.info("Point of interest successfully persisted", poi);
                 })
                 .catch(error => {
@@ -152,6 +203,7 @@
 
     </script>
 	<script type="text/javascript">
+        const POI_TYPE_WEATHERSTATION = 1;
             $(document).ready(function() {
 		// Make sure that there is a date picker present for HTML5 
 		// date input fields
@@ -309,7 +361,7 @@
                             }
                     }
             };
-          var handleUseGridWeatherDataClicked = function(theCheckBox, weatherStationPointOfInterestId) {
+          window.handleUseGridWeatherDataClicked = function(theCheckBox, weatherStationPointOfInterestId) {
             weatherStationList = document.getElementById("weatherStationPointOfInterestId");
             weatherStationPointOfInterestIdHiddenField = document.getElementById("weatherStationPointOfInterestIdHidden");
             if(theCheckBox.checked)
@@ -347,18 +399,35 @@
             }
           };
 
-          // Setting weather station select list state correct on page load
-          <#if isGridForecastSupported>
-          handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
-          </#if>
+
 
           let handleLocationChanged = function(){
+            // Which location has been selected?
+            let selectedPoiId = document.getElementById("locationPointOfInterestId").options[document.getElementById("locationPointOfInterestId").selectedIndex].value;
+            if(selectedPoiId <= 0)
+            {
+                document.getElementById("weatherDatasourceFieldset").disabled = true;
+                weatherstationSelect.selectedIndex = 0;
+                return;
+            }
             // Enable the weather datasource fieldset
             document.getElementById("weatherDatasourceFieldset").disabled=false;
-            // Which location has been selected?
-            // If weather station -> Preselect weather station, set grid checkbox to false
-            // Else: Deselect weather station (if any), set grid checkbox to true
+            
+            
+            let selectedLocation = undefined;
+            for(let i=0; i<locationList.length;i++)
+            {
+                if(locationList[i].pointOfInterestId == selectedPoiId)
+                {
+                    selectedLocation = locationList[i];
+                }
+            }
 
+            <#if isGridForecastSupported>
+            let gridCheckBox = document.getElementById("useGridWeatherData");
+            gridCheckBox.checked = (selectedLocation.pointOfInterestTypeId != POI_TYPE_WEATHERSTATION);
+            handleUseGridWeatherDataClicked(gridCheckBox, (selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? selectedLocation.pointOfInterestId: undefined));
+            </#if>
           }
 	</script>
 </#macro>
@@ -451,22 +520,15 @@
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
-    <fieldset id="weatherDatasourceFieldset" disabled>
-    <legend>${i18nBundle.weatherDatasource}</legend>
-    <p>Velg sted ovenfor først, og velg deretter værdatakilde.</p>
+      <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værdatakilde. Du kan enten velge en av de tilgjengelige værstasjonene, 
+    eller at ditt valgte steds plassering brukes til å hente værdata fra en ekstern tjeneste. Hvis ditt sted ligger nær
+    en av værstasjonene, gir det som oftest den beste kvaliteten på værdata.</div>
+    <fieldset id="weatherDatasourceFieldset" <#if !forecastConfiguration.weatherStationPointOfInterestId?has_content>disabled</#if>>
+    <legend style="margin-bottom: 0px;">${i18nBundle.weatherDatasource}</legend>
       <div class="form-group">
         <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
               <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);}">
-                  <#if isGridForecastSupported>
-                <option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
-              </#if>
-              <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
-                  <#list weatherStationPointOfInterests?sort_by("name") as poi>
-                  <option value="${poi.pointOfInterestId}"<#if
-                forecastConfiguration.weatherStationPointOfInterestId?has_content
-                && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content
-                && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
-                  </#list>
+                 
               </select>
         <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
       </div>
