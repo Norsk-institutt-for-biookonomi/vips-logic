@@ -35,50 +35,59 @@ class MapModal {
     static TRANSLATIONS = {
         nb: {
             selectLocation: 'Velg sted',
-            saveLocation: 'Lagre nytt sted',
             createNewLocation: 'Opprett nytt sted',
             name: 'Navn',
             latitude: 'Breddegrad',
             longitude: 'Lengdegrad',
             type: 'Type',
-            submitLocation: 'OK',
             zoomToLocation: 'Zoom til meg',
             geolocationNotSupported: 'Geolokalisering støttes ikke av denne nettleseren',
             geolocationFailed: 'Fant ikke din posisjon',
-            closeMap: 'Lukk kart'
+            closeMap: 'Lukk kart',
+            poiType0: 'Uspesifisert',
+            poiType1: 'Værstasjon',
+            poiType2: 'Gård',
+            poiType3: 'Felt',
+            poiType5: 'Felle',
+            poiType6: 'Bigårdsplass',
+            poiType7: 'Planteskole',
         },
         en: {
             selectLocation: 'Select location',
-            saveLocation: 'Save new location',
             createNewLocation: 'Create New Location',
             name: 'Name',
             latitude: 'Latitude',
             longitude: 'Longitude',
             type: 'Type',
-            submitLocation: 'OK',
             zoomToLocation: 'Zoom to My Location',
             geolocationNotSupported: 'Geolocation is not supported by this browser',
             geolocationFailed: 'Unable to retrieve your location',
-            closeMap: 'Close Map'
+            closeMap: 'Close Map',
+            poiType0: 'Unspecified',
+            poiType1: 'Weather station',
+            poiType2: 'Farm',
+            poiType3: 'Field',
+            poiType5: 'Trap',
+            poiType6: 'Apiary site',
+            poiType7: 'Nursery',
         }
     };
 
     /**
      * @param mapModalId    The id of the HTML element in which the modal should be opened
-     * @param typeNameMap   A mapping from pointOfInterestTypeIds to their localized names - expects names for ids 0,1,2,3,5,6,7
      * @param geoJsonData   GeoJson containing all features which should be displayed on the map
      * @param language  The language in which texts should be displayed, either 'nb' or 'en'
      * @param allowNewPoints    Whether or not the user should be allowed to add new points
      * @param callbackOnClose   Callback function to call when closing the modal
      */
-    constructor(mapModalId, typeNameMap, geoJsonData, language = 'nb', allowNewPoints = false, callbackOnClose = null) {
+    constructor(mapModalId, geoJsonData, language = 'nb', allowNewPoints = false, callbackOnClose = null) {
         this.mapModalElement = document.getElementById(mapModalId);
         this.mapContainerId = mapModalId + "-container";
         this.mapContainerElement = this.addMapContainer(this.mapModalElement, this.mapContainerId);
 
-        this.typeNameMap = typeNameMap;
-        // Empty or invalid typeNameMap means that type information should not be displayed
-        this.includeTypeInformation = Object.keys(typeNameMap).length === 7;
+        // The variable below should instead be: this.selectPoi or this.selectCoordinates
+        // this.includeTypeInformation = Object.keys(typeNameMap).length === 7;
+        this.includeTypeInformation = true;
 
         this.geoJsonData = geoJsonData;
         if(language in MapModal.TRANSLATIONS) {
@@ -97,12 +106,6 @@ class MapModal {
         this.selectedExistingPointMarker = null;
         this.coordinatePrecision = 6;
 
-        this.displaySelectedFeatureInfoControl = new DisplaySelectedFeatureInfoControl({
-            translations: this.translations,
-            typeNameMap: this.typeNameMap,
-            onSubmit: (feature) => {this.confirmSelection(feature)},
-            coordinatePrecision: this.coordinatePrecision
-        });
         this.zoomToLocationControl = new ZoomToLocationControl({
             translations: this.translations
         });
@@ -169,9 +172,8 @@ class MapModal {
         tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19
         }).addTo(this.map);
-        console.info("Create map " + this.mapContainerId + " centered on (" + latitude + "," + longitude + ") with points", this.geoJsonData);
+        console.info("Create map " + this.mapContainerId + " centered on (" + latitude + "," + longitude + ") with points", this.geoJsonData ? this.geoJsonData.features : null);
 
-        this.map.addControl(this.displaySelectedFeatureInfoControl);
         this.map.addControl(this.zoomToLocationControl);
         this.map.addControl(this.closeMapControl);
 
@@ -194,7 +196,7 @@ class MapModal {
         if(this.includeTypeInformation) {
             this.legendControl = new LegendControl({
                 typeColorMap: this.typeColorMap,
-                typeNameMap: this.typeNameMap,
+                translations: this.translations,
                 markersByType: this.markersByType,
                 mapModalInstance: this
             });
@@ -214,7 +216,6 @@ class MapModal {
         if(this.selectedExistingPointMarker === layer) {
             layer.closePopup();
             this.removeSelectedPointMarkerIfExists();
-            this.displaySelectedFeatureInfoControl.updateInfoPanel();
         }
         layer.unbindPopup();
         layer.off('click');
@@ -224,7 +225,6 @@ class MapModal {
         layer.bindPopup(this.popupContent(layer.feature));
         layer.on('click', () => {
             this.displaySelectedPoint(layer.feature, layer, false);
-            this.displaySelectedFeatureInfoControl.updateInfoPanel(layer.feature)
         });
     }
 
@@ -233,7 +233,6 @@ class MapModal {
         const selectedLayer = this.getLayerById(pointOfInterestId);
         this.displaySelectedPoint(selectedFeature, selectedLayer, true);
         selectedLayer.openPopup();
-        this.displaySelectedFeatureInfoControl.updateInfoPanel(selectedFeature);
     }
 
     getFeatureById(pointOfInterestId) {
@@ -289,7 +288,6 @@ class MapModal {
             this.removeSelectedPointMarkerIfExists();
             this.removeNewPointMarkerIfExists();
             this.closeNewPointFormIfOpen();
-            this.displaySelectedFeatureInfoControl.updateInfoPanel(null);
 
             // Calculate the pixel position from the map's click event
             const containerPoint = this.map.latLngToContainerPoint(latlng);
@@ -306,22 +304,6 @@ class MapModal {
             const longitudeInput = newPointFormElement.querySelector('#map-poi-longitude');
             const typeInput = newPointFormElement.querySelector('#map-poi-type');
             const submitButton = newPointFormElement.querySelector('#map-poi-submit-button');
-
-            // Add options for the allowed types - or remove the select list altogether
-            if(this.includeTypeInformation) {
-                ["2", "3", "5"].forEach(value => {
-                    const option = document.createElement("option");
-                    option.value = value;
-                    option.text = this.typeNameMap[value];
-                    typeInput.appendChild(option);
-                })
-            } else {
-                const formGroup = typeInput.closest('.form-group');
-                if(formGroup){
-                    formGroup.remove()
-                }
-            }
-
             const validateInputs = () => {
                 const isValidLat = !isNaN(parseFloat(latitudeInput.value)) && isFinite(latitudeInput.value);
                 const isValidLng = !isNaN(parseFloat(longitudeInput.value)) && isFinite(longitudeInput.value);
@@ -340,8 +322,7 @@ class MapModal {
 
             submitButton.addEventListener('click', () => {
                 const feature = this.createFeatureForPoint(nameInput.value, parseInt(typeInput.value, 10), parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
-                this.displaySelectedFeatureInfoControl.updateInfoPanel(feature);
-                newPointFormElement.remove();
+                this.confirmSelection(feature);
             });
         });
     }
@@ -398,7 +379,23 @@ class MapModal {
     }
 
     popupContent(feature) {
-        return `<div id='poi-popup'>${feature.properties.pointOfInterestName}</div>`;
+        const popupElement = document.createElement("div");
+        popupElement.id = 'poi-popup';
+        const name = feature.properties.pointOfInterestName;
+        const type = this.translations['poiType' + feature.properties.pointOfInterestTypeId];
+        const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
+        const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
+        const buttonLabel = this.translations.selectLocation;
+        popupElement.innerHTML = `<h4>${name}</h4>
+        <b>${this.translations.latitude}</b> ${latitude}<br>
+        <b>${this.translations.longitude}</b> ${longitude}<br>
+        <b>${this.translations.type}</b> ${type}<br><br>
+        <button id="submit-button" class="btn btn-primary">${buttonLabel}</button>`
+        const buttonElement = popupElement.querySelector("#submit-button");
+        buttonElement.addEventListener('click', () => {
+            this.confirmSelection(feature);
+        });
+        return popupElement;
     }
 
     /**
@@ -451,10 +448,13 @@ class MapModal {
                 <div class="form-group">
                     <label for="map-poi-type">${this.translations.type}:</label>
                     <select class="form-control" id="map-poi-type" name="type">
+                        <option value="2">${this.translations['poiType2']}</option>
+                        <option value="3">${this.translations['poiType3']}</option>
+                        <option value="5">${this.translations['poiType5']}</option>  
                     </select>
                 </div>
                 <div class="form-group text-right">
-                    <button id="map-poi-submit-button" class="btn btn-primary">${this.translations.submitLocation}</button>
+                    <button id="map-poi-submit-button" class="btn btn-primary">${this.translations.selectLocation}</button>
                 </div>                
             </div>`;
         this.mapContainerElement.appendChild(form);
@@ -490,58 +490,6 @@ class MapModal {
     }
 
 }
-
-const DisplaySelectedFeatureInfoControl = Control.extend({
-    options: {
-        position: 'bottomleft',
-        onSubmit: undefined,
-        typeNameMap: {},
-        translations: {},
-        coordinatePrecision: 5
-    },
-
-    onAdd: function (map) {
-        const container = DomUtil.create('div', 'leaflet-bar leaflet-control hidden');
-        container.id = 'selected-point-info-panel';
-        const infoMessageDiv = DomUtil.create('div', 'info-message', container);
-        infoMessageDiv.id = 'info-message';
-        const button = DomUtil.create('button', 'btn btn-primary', container);
-        button.id = 'confirm-button';
-        return container;
-    },
-
-    updateInfoPanel: function (feature) {
-        const container = this._container;
-        const infoMessageDiv = container.querySelector('#info-message');
-        const confirmButton = container.querySelector('#confirm-button');
-
-        if (feature) {
-            const name = feature.properties.pointOfInterestName;
-            const type = this.options.typeNameMap[feature.properties.pointOfInterestTypeId];
-            const latitude = feature.geometry.coordinates[1].toFixed(this.options.coordinatePrecision);
-            const longitude = feature.geometry.coordinates[0].toFixed(this.options.coordinatePrecision);
-
-            infoMessageDiv.innerHTML = `
-            <h4>${name}</h4>
-            <b>${this.options.translations.latitude}</b> ${latitude}<br>
-            <b>${this.options.translations.longitude}</b> ${longitude}`;
-            if (type) {
-                infoMessageDiv.innerHTML += `<br><b>${this.options.translations.type}</b> ${type}`
-            }
-
-            confirmButton.innerHTML = feature.properties.pointOfInterestId
-                ? this.options.translations.selectLocation
-                : this.options.translations.saveLocation;
-
-            confirmButton.onclick = () => {
-                this.options.onSubmit(feature);
-            };
-            container.classList.remove('hidden');
-        } else {
-            container.classList.add('hidden');
-        }
-    }
-});
 
 const ZoomToLocationControl = Control.extend({
     options: {
@@ -617,14 +565,14 @@ const LegendControl = Control.extend({
     options: {
         position: 'bottomright',
         typeColorMap: {},
-        typeNameMap: {},
+        translations: {},
         markersByType: {},
         mapModalInstance: null,
     },
     onAdd: function (map) {
         const legendDiv = DomUtil.create('div', 'info legend');
         const typeColorMap = this.options.typeColorMap;
-        const typeNameMap = this.options.typeNameMap;
+        const translations = this.options.translations;
         const markersByType = this.options.markersByType;
 
         DomEvent.disableClickPropagation(legendDiv);
@@ -638,7 +586,7 @@ const LegendControl = Control.extend({
 
             const itemDiv = DomUtil.create('div', 'legend-item', legendDiv);
             itemDiv.innerHTML = `<i style="background:${color};"></i>
-                    <span>${typeNameMap[type]} (${count})</span>`;
+                    <span>${translations['poiType' + type]} (${count})</span>`;
 
             DomEvent
                 .on(itemDiv, 'click', DomEvent.stop)
@@ -673,8 +621,6 @@ const LegendControl = Control.extend({
         // Mark hidden with line-through
         itemDiv.style.textDecoration = isVisible ? "none" : "line-through solid black 2px";
     }
-
-
 
 });
 

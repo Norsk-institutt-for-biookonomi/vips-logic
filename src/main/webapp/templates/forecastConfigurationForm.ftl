@@ -126,16 +126,6 @@
                 });
         }
 
-        const typeNameMap = {
-            0: "${i18nBundle["pointOfInterestType_0"]}",
-            1: "${i18nBundle["pointOfInterestType_1"]}",
-            2: "${i18nBundle["pointOfInterestType_2"]}",
-            3: "${i18nBundle["pointOfInterestType_3"]}",
-            5: "${i18nBundle["pointOfInterestType_5"]}",
-            6: "${i18nBundle["pointOfInterestType_6"]}",
-            7: "${i18nBundle["pointOfInterestType_7"]}"
-        };
-
         // Make function globally available
         window.openLocationMap = () => {
             let poiIds = locationList.map(poi => poi.pointOfInterestId);
@@ -149,7 +139,8 @@
             })
             .then(response => response.json())
             .then(geoJson => {
-                const locationMapInstance = new MapModal('location-map', typeNameMap, geoJson, '${currentLanguage}', true, callbackOnCloseLocationMap);
+                const locationMapInstance = new MapModal('location-map', geoJson, '${currentLanguage}', true, callbackOnCloseLocationMap);
+                console.info("locationMapInstance", locationMapInstance)
                 const selectedPoiId = getSelectedPoiId(selectLocationElement);
                 locationMapInstance.openModal(selectedPoiId, ${user.organizationId.defaultMapCenter.y?c}, ${user.organizationId.defaultMapCenter.x?c}, ${user.organizationId.defaultMapZoom} + 1);
             })
