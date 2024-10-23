@@ -90,11 +90,10 @@ class MapModal {
         this.mapContainerId = mapModalId + "-container";
         this.mapContainerElement = this.addMapContainer(this.mapModalElement, this.mapContainerId);
 
-        // The variable below should instead be: this.selectPoi or this.selectCoordinates
-        // this.includeTypeInformation = Object.keys(typeNameMap).length === 7;
-        this.includeTypeInformation = true;
+        this.geoJsonData = geoJsonData && geoJsonData !== "{}" ? geoJsonData : { features: []};
+        // Filter out invalid features
+        this.geoJsonData.features = this.geoJsonData.features.filter(feature => feature.geometry.type === "Point" && !isNaN(feature.geometry.coordinates[0]) && !isNaN(feature.geometry.coordinates[1]));
 
-        this.geoJsonData = geoJsonData;
         if (language in MapModal.TRANSLATIONS) {
             this.translations = MapModal.TRANSLATIONS[language];
         } else {
@@ -188,7 +187,6 @@ class MapModal {
         // Add points to the map if given
         if (this.geoJsonData && this.geoJsonData.features) {
             geoJSON(this.geoJsonData, {
-                filter: (feature) => feature.geometry.type === "Point",
                 pointToLayer: (feature, latlng) => {
                     return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
                 },
@@ -242,6 +240,10 @@ class MapModal {
     selectPointById(pointOfInterestId) {
         const selectedFeature = this.getFeatureById(pointOfInterestId);
         const selectedLayer = this.getLayerById(pointOfInterestId);
+        if(!selectedFeature || !selectedLayer) {
+            console.error("Unable to display selected point " + pointOfInterestId, this.geoJsonData.features)
+            return
+        }
         this.displaySelectedPoint(selectedFeature, selectedLayer, true);
         selectedLayer.openPopup();
     }
