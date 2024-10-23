@@ -360,6 +360,14 @@
           handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
           </#if>
 
+          let handleLocationChanged = function(){
+            // Enable the weather datasource fieldset
+            document.getElementById("weatherDatasourceFieldset").disabled=false;
+            // Which location has been selected?
+            // If weather station -> Preselect weather station, set grid checkbox to false
+            // Else: Deselect weather station (if any), set grid checkbox to true
+
+          }
 	</script>
 </#macro>
 <#macro custom_css>
@@ -444,40 +452,44 @@
 	  <div class="form-group">
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
           <div class="select-container" style="flex: 1; display: flex; align-items: center;">
-            <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onblur="validateField(this);" style="width: calc(100% - 30px);">
+            <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onchange="handleLocationChanged();" onblur="validateField(this);" style="width: calc(100% - 30px);">
             </select>
             <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openLocationMap()"></i>
               <div id="location-map" class="map-modal"></div>
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
-	  <div class="form-group">
-	    <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
-            <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);}">
-                <#if isGridForecastSupported>
-              <option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
-            </#if>
-            <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
-                <#list weatherStationPointOfInterests?sort_by("name") as poi>
-                <option value="${poi.pointOfInterestId}"<#if
-              forecastConfiguration.weatherStationPointOfInterestId?has_content
-              && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content
-              && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
-                </#list>
-            </select>
-	    <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
-	  </div>
-    <#if isGridForecastSupported>
-      <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
+    <fieldset id="weatherDatasourceFieldset" disabled>
+    <legend>${i18nBundle.weatherDatasource}</legend>
+    <p>Velg sted ovenfor først, og velg deretter værdatakilde.</p>
       <div class="form-group">
-        <div class="checkbox">
-        <label>
-          <input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
-        </label>
-        ${i18nBundle.useGridWeatherData}
-        <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
+        <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
+              <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);}">
+                  <#if isGridForecastSupported>
+                <option value="-2">${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+              </#if>
+              <option value="-1"<#if !forecastConfiguration.weatherStationPointOfInterestId?has_content && !forecastConfiguration.useGridWeatherData> selected="selected"</#if>>${i18nBundle.pleaseSelect} ${i18nBundle.weatherStationPointOfInterestId?lower_case}</option>
+                  <#list weatherStationPointOfInterests?sort_by("name") as poi>
+                  <option value="${poi.pointOfInterestId}"<#if
+                forecastConfiguration.weatherStationPointOfInterestId?has_content
+                && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content
+                && poi.pointOfInterestId == forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId> selected="selected"</#if>>${poi.name}</option>
+                  </#list>
+              </select>
+        <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
       </div>
-    </#if>
+      <#if isGridForecastSupported>
+        <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
+        <div class="form-group">
+          <div class="checkbox">
+          <label>
+            <input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
+          </label>
+          ${i18nBundle.useGridWeatherData}
+          <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
+        </div>
+      </#if>
+    </fieldset>
 	  <#else>
 	  <input type="hidden" name="multipleNew" value="true"/>
 	  <div class="form-group">
