@@ -35,7 +35,9 @@ class MapModal {
     static TRANSLATIONS = {
         nb: {
             selectLocation: 'Velg sted',
+            selectCoordinates: 'Velg punkt',
             createNewLocation: 'Opprett nytt sted',
+            selectNewCoordinates: 'Velg nytt punkt',
             name: 'Navn',
             latitude: 'Breddegrad',
             longitude: 'Lengdegrad',
@@ -54,7 +56,9 @@ class MapModal {
         },
         en: {
             selectLocation: 'Select location',
+            selectCoordinates: 'Select point',
             createNewLocation: 'Create New Location',
+            selectNewCoordinates: 'Select new point',
             name: 'Name',
             latitude: 'Latitude',
             longitude: 'Longitude',
@@ -86,11 +90,10 @@ class MapModal {
         this.mapContainerId = mapModalId + "-container";
         this.mapContainerElement = this.addMapContainer(this.mapModalElement, this.mapContainerId);
 
-        // The variable below should instead be: this.selectPoi or this.selectCoordinates
-        // this.includeTypeInformation = Object.keys(typeNameMap).length === 7;
-        this.includeTypeInformation = true;
+        this.geoJsonData = geoJsonData && geoJsonData !== "{}" ? geoJsonData : { features: []};
+        // Filter out invalid features
+        this.geoJsonData.features = this.geoJsonData.features.filter(feature => feature.geometry.type === "Point" && !isNaN(feature.geometry.coordinates[0]) && !isNaN(feature.geometry.coordinates[1]));
 
-        this.geoJsonData = geoJsonData;
         if (language in MapModal.TRANSLATIONS) {
             this.translations = MapModal.TRANSLATIONS[language];
         } else {
@@ -182,9 +185,8 @@ class MapModal {
         this.map.addControl(this.closeMapControl);
 
         // Add points to the map if given
-        if (this.geoJsonData.features) {
+        if (this.geoJsonData && this.geoJsonData.features) {
             geoJSON(this.geoJsonData, {
-                filter: (feature) => feature.geometry.type === "Point",
                 pointToLayer: (feature, latlng) => {
                     return circleMarker(latlng, this.styleOfPointMarker(feature.properties.pointOfInterestTypeId));
                 },
@@ -218,7 +220,7 @@ class MapModal {
     }
 
     // Function called when point is hidden (by deselecting its location type in legend box)
-    // If point is already selected, the popup and info panel is removed.
+    // If point is already selected, the popup is removed.
     unbindActionToPoint(layer) {
         if (this.selectedExistingPointMarker === layer) {
             layer.closePopup();
@@ -238,6 +240,10 @@ class MapModal {
     selectPointById(pointOfInterestId) {
         const selectedFeature = this.getFeatureById(pointOfInterestId);
         const selectedLayer = this.getLayerById(pointOfInterestId);
+        if(!selectedFeature || !selectedLayer) {
+            console.error("Unable to display selected point " + pointOfInterestId, this.geoJsonData.features)
+            return
+        }
         this.displaySelectedPoint(selectedFeature, selectedLayer, true);
         selectedLayer.openPopup();
     }
@@ -394,12 +400,19 @@ class MapModal {
         const type = this.translations['poiType' + feature.properties.pointOfInterestTypeId];
         const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
         const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
-        const buttonLabel = this.translations.selectLocation;
-        popupElement.innerHTML = `<h4>${name}</h4>
-        <b>${this.translations.latitude}</b> ${latitude}<br>
-        <b>${this.translations.longitude}</b> ${longitude}<br>
-        <b>${this.translations.type}</b> ${type}<br><br>
-        <button id="submit-button" class="btn btn-primary">${buttonLabel}</button>`
+        const buttonLabel = this.isPoiMap ? this.translations.selectLocation : this.translations.selectCoordinates;
+
+        if(this.isPoiMap) {
+            popupElement.innerHTML = `<h4>${name}</h4>
+                <b>${this.translations.latitude}</b> ${latitude}<br>
+                <b>${this.translations.longitude}</b> ${longitude}<br>
+                <b>${this.translations.type}</b> ${type}<br><br>
+                <button id="submit-button" class="btn btn-primary">${buttonLabel}</button>`
+        } else {
+            popupElement.innerHTML = `<b>${this.translations.latitude}</b> ${latitude}<br>
+                <b>${this.translations.longitude}</b> ${longitude}<br><br>
+                <button id="submit-button" class="btn btn-primary">${buttonLabel}</button>`
+        }
         const buttonElement = popupElement.querySelector("#submit-button");
         buttonElement.addEventListener('click', () => {
             this.confirmSelection(feature);
@@ -438,7 +451,7 @@ class MapModal {
 
         form.innerHTML = `
             <div class="panel-heading">
-                <h4 class="panel-title">${this.translations.createNewLocation}</h4>
+                <h4 class="panel-title">${this.isPoiMap ? this.translations.createNewLocation : this.translations.selectNewCoordinates}</h4>
                 <span id="map-poi-close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
             </div>
             <div class="panel-body">
@@ -463,7 +476,7 @@ class MapModal {
                     </select>
                 </div>
                 <div class="form-group text-right">
-                    <button id="map-poi-submit-button" class="btn btn-primary">${this.translations.selectLocation}</button>
+                    <button id="map-poi-submit-button" class="btn btn-primary">${this.isPoiMap ? this.translations.selectLocation : this.translations.selectCoordinates}</button>
                 </div>                
             </div>`;
 
