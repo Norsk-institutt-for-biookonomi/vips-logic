@@ -336,8 +336,7 @@ class MapModal {
 
             submitButton.addEventListener('click', () => {
                 const feature = this.createFeatureForPoint(nameInput.value, parseInt(typeInput.value, 10), parseFloat(longitudeInput.value), parseFloat(latitudeInput.value));
-                this.displaySelectedFeatureInfoControl.updateInfoPanel(feature);
-                newPointFormElement.remove();
+                this.confirmSelection(feature);
             });
         });
     }
