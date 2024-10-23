@@ -182,7 +182,7 @@ class MapModal {
         this.map.addControl(this.closeMapControl);
 
         // Add points to the map if given
-        if (this.geoJsonData.features) {
+        if (this.geoJsonData && this.geoJsonData.features) {
             geoJSON(this.geoJsonData, {
                 filter: (feature) => feature.geometry.type === "Point",
                 pointToLayer: (feature, latlng) => {
@@ -218,7 +218,7 @@ class MapModal {
     }
 
     // Function called when point is hidden (by deselecting its location type in legend box)
-    // If point is already selected, the popup and info panel is removed.
+    // If point is already selected, the popup is removed.
     unbindActionToPoint(layer) {
         if (this.selectedExistingPointMarker === layer) {
             layer.closePopup();
@@ -395,11 +395,18 @@ class MapModal {
         const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
         const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
         const buttonLabel = this.translations.selectLocation;
-        popupElement.innerHTML = `<h4>${name}</h4>
-        <b>${this.translations.latitude}</b> ${latitude}<br>
-        <b>${this.translations.longitude}</b> ${longitude}<br>
-        <b>${this.translations.type}</b> ${type}<br><br>
-        <button id="submit-button" class="btn btn-primary">${buttonLabel}</button>`
+
+        if(this.isPoiMap) {
+            popupElement.innerHTML = `<h4>${name}</h4>
+                <b>${this.translations.latitude}</b> ${latitude}<br>
+                <b>${this.translations.longitude}</b> ${longitude}<br>
+                <b>${this.translations.type}</b> ${type}<br><br>
+                <button id="submit-button" class="btn btn-primary">${buttonLabel}</button>`
+        } else {
+            popupElement.innerHTML = `<b>${this.translations.latitude}</b> ${latitude}<br>
+                <b>${this.translations.longitude}</b> ${longitude}<br><br>
+                <button id="submit-button" class="btn btn-primary">${buttonLabel}</button>`
+        }
         const buttonElement = popupElement.querySelector("#submit-button");
         buttonElement.addEventListener('click', () => {
             this.confirmSelection(feature);
