@@ -37,6 +37,7 @@ class MapModal {
             selectLocation: 'Velg sted',
             selectCoordinates: 'Velg punkt',
             createNewLocation: 'Opprett nytt sted',
+            selectNewCoordinates: 'Velg nytt punkt',
             name: 'Navn',
             latitude: 'Breddegrad',
             longitude: 'Lengdegrad',
@@ -57,6 +58,7 @@ class MapModal {
             selectLocation: 'Select location',
             selectCoordinates: 'Select point',
             createNewLocation: 'Create New Location',
+            selectNewCoordinates: 'Select new point',
             name: 'Name',
             latitude: 'Latitude',
             longitude: 'Longitude',
@@ -447,7 +449,7 @@ class MapModal {
 
         form.innerHTML = `
             <div class="panel-heading">
-                <h4 class="panel-title">${this.translations.createNewLocation}</h4>
+                <h4 class="panel-title">${this.isPoiMap ? this.translations.createNewLocation : this.translations.selectNewCoordinates}</h4>
                 <span id="map-poi-close-button" style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;">&times;</span>
             </div>
             <div class="panel-body">
