@@ -35,6 +35,7 @@ class MapModal {
     static TRANSLATIONS = {
         nb: {
             selectLocation: 'Velg sted',
+            selectCoordinates: 'Velg punkt',
             createNewLocation: 'Opprett nytt sted',
             name: 'Navn',
             latitude: 'Breddegrad',
@@ -54,6 +55,7 @@ class MapModal {
         },
         en: {
             selectLocation: 'Select location',
+            selectCoordinates: 'Select point',
             createNewLocation: 'Create New Location',
             name: 'Name',
             latitude: 'Latitude',
@@ -394,7 +396,7 @@ class MapModal {
         const type = this.translations['poiType' + feature.properties.pointOfInterestTypeId];
         const latitude = feature.geometry.coordinates[1].toFixed(this.coordinatePrecision);
         const longitude = feature.geometry.coordinates[0].toFixed(this.coordinatePrecision);
-        const buttonLabel = this.translations.selectLocation;
+        const buttonLabel = this.isPoiMap ? this.translations.selectLocation : this.translations.selectCoordinates;
 
         if(this.isPoiMap) {
             popupElement.innerHTML = `<h4>${name}</h4>
@@ -470,7 +472,7 @@ class MapModal {
                     </select>
                 </div>
                 <div class="form-group text-right">
-                    <button id="map-poi-submit-button" class="btn btn-primary">${this.translations.selectLocation}</button>
+                    <button id="map-poi-submit-button" class="btn btn-primary">${this.isPoiMap ? this.translations.selectLocation : this.translations.selectCoordinates}</button>
                 </div>                
             </div>`;
 
