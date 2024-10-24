@@ -39,7 +39,7 @@
         import MapModal from '/js/mapModal.js';
         const selectLocationElement = document.querySelector('select[name="locationPointOfInterestId"]');
         const selectWeatherstationElement = document.querySelector('select[name="weatherStationPointOfInterestId"]') != null ? document.querySelector('select[name="weatherStationPointOfInterestId"]') : document.querySelector('select[name="weatherStationPointOfInterestIdDisabled"]');
-        console.info(selectWeatherstationElement);
+        //console.info(selectWeatherstationElement);
         
         window.selectedPoiId = <#if forecastConfiguration.locationPointOfInterestId??>${forecastConfiguration.locationPointOfInterestId.pointOfInterestId!"undefined"}<#else>undefined</#if>;
         window.selectedWeatherstationId = <#if forecastConfiguration.weatherStationPointOfInterestId??>${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId!"undefined"}<#else>undefined</#if>;
@@ -361,6 +361,7 @@
                             }
                     }
             };
+
           window.handleUseGridWeatherDataClicked = function(theCheckBox, weatherStationPointOfInterestId) {
             weatherStationList = document.getElementById("weatherStationPointOfInterestId");
             weatherStationPointOfInterestIdHiddenField = document.getElementById("weatherStationPointOfInterestIdHidden");
@@ -424,9 +425,23 @@
             }
 
             <#if isGridForecastSupported>
+
             let gridCheckBox = document.getElementById("useGridWeatherData");
             gridCheckBox.checked = (selectedLocation.pointOfInterestTypeId != POI_TYPE_WEATHERSTATION);
             handleUseGridWeatherDataClicked(gridCheckBox, (selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? selectedLocation.pointOfInterestId: undefined));
+            
+            <#else>
+            
+            weatherStationList = document.getElementById("weatherStationPointOfInterestId");
+            if(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
+            {
+                selectPoi(weatherStationList, selectedLocation.pointOfInterestId);
+            }
+            else
+            {
+                weatherStationList.selectedIndex = 0;
+            }
+            
             </#if>
           }
 	</script>
@@ -520,9 +535,13 @@
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
+      <#if isGridForecastSupported>
       <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værdatakilde. Du kan enten velge en av de tilgjengelige værstasjonene, 
     eller at ditt valgte steds plassering brukes til å hente værdata fra en ekstern tjeneste. Hvis ditt sted ligger nær
     en av værstasjonene, gir det som oftest den beste kvaliteten på værdata.</div>
+    <#else>
+    <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værdatakilde.</div>
+    </#if>
     <fieldset id="weatherDatasourceFieldset" <#if !forecastConfiguration.weatherStationPointOfInterestId?has_content>disabled</#if>>
     <legend style="margin-bottom: 0px;">${i18nBundle.weatherDatasource}</legend>
       <div class="form-group">
