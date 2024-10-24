@@ -50,7 +50,8 @@
             {
                 "pointOfInterestId": "${poi.pointOfInterestId}",
                 "name": "${poi.name?json_string}",
-                "pointOfInterestTypeId": ${poi.pointOfInterestTypeId}
+                "pointOfInterestTypeId": ${poi.pointOfInterestTypeId},
+                "location": <#if poi.longitude?? && poi.latitude??>[${poi.longitude?c}, ${poi.latitude?c}]<#else>null</#if>
             },
             </#list>
         ];
@@ -67,13 +68,19 @@
             };
 
         renderPoiSelect(selectLocationElement, locationList, selectedPoiId);
-        renderWeatherstationSelect(selectWeatherstationElement, locationList, selectedWeatherstationId);
+        
         // Setting weather station select list state correct on page load
         <#if isGridForecastSupported>
         handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
         </#if>
 
-        function renderWeatherstationSelect(selectElement, elementList, selectedId)
+        /**
+        * @param selectElement the select list to render to
+        * @param elementList the list of weather stations to list
+        * @param selectedId the id (optional) to be preselected
+        * @param coordinateToMatch [lon, lat] coordinate to match. Optional. If set:  The 3 closest weather stations are show at top of list, with distance to coordinate.
+        */
+        window.renderWeatherstationSelect = function(selectElement, elementList, selectedId, coordinateToMatch)
         {
             selectElement.options.length = 0;
 
@@ -94,16 +101,42 @@
             ));
 
             // Add all locations that are weatherstations
-            elementList.forEach(poi => {
-                if(poi.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
-                {
-                    selectElement.appendChild(createOption(
-                    poi.pointOfInterestId,
-                    poi.name,
-                    selectedId && poi.pointOfInterestId == selectedId
-                ));
-                }
-            });
+            if(coordinateToMatch != null)
+            {
+                let stations = [];
+                elementList.forEach(poi => {
+                    if(poi.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
+                    {
+                        poi.distance = calculateDistanceBetweenCoordinates(poi.location[1], poi.location[0], coordinateToMatch[1], coordinateToMatch[0]).toFixed(1);
+                        stations.push(poi);
+                    }
+                });
+                stations.sort(function(a,b){
+                    return a.distance - b.distance;
+                });
+                stations.forEach(poi => {
+                        selectElement.appendChild(createOption(
+                        poi.pointOfInterestId,
+                        poi.name + " (" + poi.distance +" km)",
+                        selectedId && poi.pointOfInterestId == selectedId
+                    ));
+                });
+                
+            }
+            else 
+            {
+                // Render all
+                elementList.forEach(poi => {
+                    if(poi.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
+                    {
+                        selectElement.appendChild(createOption(
+                        poi.pointOfInterestId,
+                        poi.name,
+                        selectedId && poi.pointOfInterestId == selectedId
+                    ));
+                    }
+                });
+            }
         }
 
         // Populate select list for point of interest -> NOT GENERAL! Default value is specific to location.
@@ -126,6 +159,8 @@
                 ));
             });
         }
+
+        renderWeatherstationSelect(selectWeatherstationElement, locationList, selectedWeatherstationId);
 
         window.selectPoi = function(selectElement, selectedId) {
             if (selectedId) {
@@ -403,6 +438,7 @@
 
 
           let handleLocationChanged = function(){
+            let weatherstationSelect = document.getElementById("weatherStationPointOfInterestId");
             // Which location has been selected?
             let selectedPoiId = document.getElementById("locationPointOfInterestId").options[document.getElementById("locationPointOfInterestId").selectedIndex].value;
             if(selectedPoiId <= 0)
@@ -414,7 +450,6 @@
             // Enable the weather datasource fieldset
             document.getElementById("weatherDatasourceFieldset").disabled=false;
             
-            
             let selectedLocation = undefined;
             for(let i=0; i<locationList.length;i++)
             {
@@ -424,24 +459,22 @@
                 }
             }
 
+            if(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
+            {
+                renderWeatherstationSelect(weatherstationSelect,locationList, selectedLocation.pointOfInterestId, null);
+            }
+            else
+            {
+                renderWeatherstationSelect(weatherstationSelect,locationList, null, selectedLocation.location);
+                weatherstationSelect.selectedIndex = 0;
+            }
+
             <#if isGridForecastSupported>
 
             let gridCheckBox = document.getElementById("useGridWeatherData");
             gridCheckBox.checked = (selectedLocation.pointOfInterestTypeId != POI_TYPE_WEATHERSTATION);
             handleUseGridWeatherDataClicked(gridCheckBox, (selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? selectedLocation.pointOfInterestId: undefined));
-            
-            <#else>
-            
-            weatherStationList = document.getElementById("weatherStationPointOfInterestId");
-            if(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
-            {
-                selectPoi(weatherStationList, selectedLocation.pointOfInterestId);
-            }
-            else
-            {
-                weatherStationList.selectedIndex = 0;
-            }
-            
+
             </#if>
           }
 	</script>
@@ -538,9 +571,9 @@
       <#if isGridForecastSupported>
       <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værdatakilde. Du kan enten velge en av de tilgjengelige værstasjonene, 
     eller at ditt valgte steds plassering brukes til å hente værdata fra en ekstern tjeneste. Hvis ditt sted ligger nær
-    en av værstasjonene, gir det som oftest den beste kvaliteten på værdata.</div>
+    en av værstasjonene, gir det som oftest den beste kvaliteten på værdata. Hvis stedet du har valgt ikke er en værstasjon, vil værstasjonslista sorteres etter avstand til ditt sted.</div>
     <#else>
-    <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værdatakilde.</div>
+    <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værstasjon. Hvis stedet du har valgt ikke er en værstasjon, vil værstasjonslista sorteres etter avstand til ditt sted.</div>
     </#if>
     <fieldset id="weatherDatasourceFieldset" <#if !forecastConfiguration.weatherStationPointOfInterestId?has_content>disabled</#if>>
     <legend style="margin-bottom: 0px;">${i18nBundle.weatherDatasource}</legend>
