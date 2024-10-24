@@ -44,6 +44,7 @@ import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
+import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -52,6 +53,8 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 @Path("rest/barleynetblotchmodel")
 @Facet("restricted")
 public class BarleyNetBlotchModelService {
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(BarleyNetBlotchModelService.class);
+
     private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
     
     @PersistenceContext(unitName="VIPSLogic-PU")
@@ -135,8 +138,8 @@ public class BarleyNetBlotchModelService {
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("timeZone") String timeZoneStr,
             @QueryParam("weatherdataType") String weatherdataType,
-            @QueryParam("latitude") Double latitude,
-            @QueryParam("longitude") Double longitude,
+            @QueryParam("latitude") String latitude,
+            @QueryParam("longitude") String longitude,
             @QueryParam("weatherStationId") Integer weatherStationId,
             @QueryParam("sowingDate") String sowingDateStr,
             @QueryParam("cropId") Integer cropOrganismId,
@@ -165,6 +168,8 @@ public class BarleyNetBlotchModelService {
         Date sprayingDate = parseUtil.parseISODate(sprayingDateStr, timeZone);
         Integer preparationId = parseUtil.parseInteger(preparationIdStr);
         Double preparationDose = parseUtil.parseDouble(preparationDoseStr);
+        Double latitudeDouble = parseUtil.parseDouble(latitude);
+        Double longitudeDouble = parseUtil.parseDouble(longitude);
         
         // Build model configuration
         ModelConfiguration config = new ModelConfiguration();
@@ -175,9 +180,11 @@ public class BarleyNetBlotchModelService {
         Date endDateForWeatherData = calculateEndDateForWeatherData(timeZone, sowingDate);
         List<WeatherObservation> observations;
 
-        if("weatherstation".equals(weatherdataType)) {
+
+        if (weatherdataType != null && "weatherstation".equals(weatherdataType.trim())) {
             PointOfInterestWeatherStation weatherStation =
                 em.find(PointOfInterestWeatherStation.class, weatherStationId);
+            LOGGER.info("Run model with weatherdata from weatherstation {}", weatherStation.getName());
             try {
                 observations = wsdUtil.getWeatherObservations(
                     weatherStation,
@@ -198,8 +205,9 @@ public class BarleyNetBlotchModelService {
             }
         } else {
             PointOfInterest coordinates = new PointOfInterest();
-            coordinates.setLatitude(latitude);
-            coordinates.setLongitude(longitude);
+            coordinates.setLatitude(latitudeDouble);
+            coordinates.setLongitude(longitudeDouble);
+            LOGGER.info("Run model with weatherdata for latitude={} and longitude={}", latitude, longitude);
             try {
                 observations = wsdUtil.getWeatherObservations(
                     "https://weather.vips.nibio.no/rest/grid/openmeteo/" + coordinates.getLongitude() + "_" + coordinates.getLatitude(),
