@@ -137,7 +137,7 @@ public class BarleyNetBlotchModelService {
     public Response runModel(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("timeZone") String timeZoneStr,
-            @QueryParam("weatherdataType") String weatherdataType,
+            @QueryParam("weatherDataSourceType") String weatherDataSourceType,
             @QueryParam("latitude") String latitude,
             @QueryParam("longitude") String longitude,
             @QueryParam("weatherStationId") Integer weatherStationId,
@@ -181,7 +181,7 @@ public class BarleyNetBlotchModelService {
         List<WeatherObservation> observations;
 
 
-        if (weatherdataType != null && "weatherstation".equals(weatherdataType.trim())) {
+        if (weatherDataSourceType != null && "weatherstation".equals(weatherDataSourceType.trim())) {
             PointOfInterestWeatherStation weatherStation =
                 em.find(PointOfInterestWeatherStation.class, weatherStationId);
             LOGGER.info("Run model with weatherdata from weatherstation {}", weatherStation.getName());
@@ -223,6 +223,7 @@ public class BarleyNetBlotchModelService {
                     new HashSet<>(Collections.singletonList(WeatherObservation.LOG_INTERVAL_ID_1H))
                 );
             } catch (WeatherDataSourceException ex) {
+                LOGGER.error("Exception while getting observations for latitude={} longitude={}", latitude, longitude, ex);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
             }
             if (observations == null || observations.isEmpty()) {

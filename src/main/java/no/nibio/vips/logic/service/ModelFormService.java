@@ -53,6 +53,8 @@ import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherUtil;
 import no.nibio.vips.util.XDate;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a collection of (one) service(s) for models run from forms (not as part of batch)
@@ -62,7 +64,9 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 @Path("rest/modelform")
 @Facet("restricted")
 public class ModelFormService {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelFormService.class);
+
+
     @EJB
     UserBean userBean;
     @EJB
@@ -196,14 +200,15 @@ public class ModelFormService {
 
             Integer VIPSCoreUserId = organization.getDefaultVipsCoreUserId();
 
-            List<Result>results = forecastBean.runForecast(mConf, VIPSCoreUserId);
+            List<Result> results = forecastBean.runForecast(mConf, VIPSCoreUserId);
 
             return Response.ok().entity(results).build();
         }
         catch(PreprocessorException |RunModelException ex)
         {
+            LOGGER.error("Exception occurred when attempting to run the septoria humidity model", ex);
             return Response.serverError().entity(ex.getMessage()).build();
-        } 
+        }
     }
     
     private ForecastModelConfiguration getForecastModelConfiguration(String modelId, String key, String value)
