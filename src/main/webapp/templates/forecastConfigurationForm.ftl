@@ -55,8 +55,6 @@
             },
             </#list>
         ];
-
-
         
 
         const createOption = (value, text, isSelected = false) => {
@@ -79,20 +77,11 @@
         * @param selectElement the select list to render to
         * @param elementList the list of weather stations to list
         * @param selectedId the id (optional) to be preselected
-        * @param coordinateToMatch [lon, lat] coordinate to match. Optional. If set:  The 3 closest weather stations are show at top of list, with distance to coordinate.
+        * @param coordinateToMatch [lon, lat] coordinate to match. Optional. If set:  The closest weather stations are show at top of list, with distance to coordinate.
         */
         window.renderWeatherstationSelect = function(selectElement, elementList, selectedId, coordinateToMatch)
         {
             selectElement.options.length = 0;
-
-            <#if isGridForecastSupported>
-            // Add default option
-            selectElement.appendChild(createOption(
-                "-2",
-                "${i18nBundle.doNotUse} ${i18nBundle.weatherStationPointOfInterestId?lower_case}",
-                !selectedId
-            ));
-            </#if>
 
             // Add default option
             selectElement.appendChild(createOption(
@@ -101,7 +90,7 @@
                 !selectedId
             ));
 
-            // Add all locations that are weatherstations
+            // Render all weather stations, order by distance to coordinate
             if(coordinateToMatch != null)
             {
                 let stations = [];
@@ -118,7 +107,7 @@
                 stations.forEach(poi => {
                         selectElement.appendChild(createOption(
                         poi.pointOfInterestId,
-                        poi.name + " (" + poi.distance +" km)",
+                        poi.name + (poi.distance > 0.0 ? " (" + poi.distance +" km)" : ""),
                         selectedId && poi.pointOfInterestId == selectedId
                     ));
                 });
@@ -126,7 +115,7 @@
             }
             else 
             {
-                // Render all
+                // Render all weather stations alphabetically
                 elementList.forEach(poi => {
                     if(poi.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
                     {
@@ -161,7 +150,9 @@
             });
         }
 
-        renderWeatherstationSelect(selectWeatherstationElement, locationList, selectedWeatherstationId);
+        renderWeatherstationSelect(selectWeatherstationElement, locationList, selectedWeatherstationId,
+        <#if forecastConfiguration.weatherStationPointOfInterestId??>[${forecastConfiguration.weatherStationPointOfInterestId.longitude?c},${forecastConfiguration.weatherStationPointOfInterestId.latitude?c}]<#else>null</#if>
+        );
 
         window.selectPoi = function(selectElement, selectedId) {
             if (selectedId) {
@@ -490,7 +481,7 @@
 
             if(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION)
             {
-                renderWeatherstationSelect(weatherstationSelect,locationList, selectedLocation.pointOfInterestId, null);
+                renderWeatherstationSelect(weatherstationSelect,locationList, selectedLocation.pointOfInterestId, selectedLocation.location);
             }
             else
             {
@@ -598,9 +589,9 @@
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
 	  </div>
       <#if isGridForecastSupported>
-      <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værdatakilde. Du kan enten velge en av de tilgjengelige værstasjonene, 
+      <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værdatakilde. Du kan enten velge en av de tilgjengelige værstasjonene (sortert etter avstand til stedet), 
     eller at ditt valgte steds plassering brukes til å hente værdata fra en ekstern tjeneste. Hvis ditt sted ligger nær
-    en av værstasjonene, gir det som oftest den beste kvaliteten på værdata. Hvis stedet du har valgt ikke er en værstasjon, vil værstasjonslista sorteres etter avstand til ditt sted.</div>
+    en av værstasjonene, gir det som oftest den beste kvaliteten på værdata.</div>
     <#else>
     <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værstasjon. Hvis stedet du har valgt ikke er en værstasjon, vil værstasjonslista sorteres etter avstand til ditt sted.</div>
     </#if>
