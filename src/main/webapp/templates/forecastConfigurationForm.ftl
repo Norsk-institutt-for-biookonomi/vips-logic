@@ -70,8 +70,9 @@
         renderPoiSelect(selectLocationElement, locationList, selectedPoiId);
         
         // Setting weather station select list state correct on page load
-        <#if isGridForecastSupported>
-        handleUseGridWeatherDataClicked(document.getElementById("useGridWeatherData")<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>,${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
+        <#if isGridForecastSupported && forecastConfiguration.forecastConfigurationId??>
+        setUseGridWeatherData(<#if forecastConfiguration.useGridWeatherData>"true"<#else>"false"</#if>)
+        handleWeatherDatasourceSelected(<#if forecastConfiguration.weatherStationPointOfInterestId?has_content && forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId?has_content>${forecastConfiguration.weatherStationPointOfInterestId.pointOfInterestId}</#if>);
         </#if>
 
         /**
@@ -397,22 +398,36 @@
                     }
             };
 
-          window.handleUseGridWeatherDataClicked = function(theCheckBox, weatherStationPointOfInterestId) {
-            weatherStationList = document.getElementById("weatherStationPointOfInterestId");
+          window.handleWeatherDatasourceSelected = function(weatherStationPointOfInterestId) {
+            let weatherStationList = document.getElementById("weatherStationPointOfInterestId");
+            let listContainer = document.getElementById("weatherstationListContainer");
             weatherStationPointOfInterestIdHiddenField = document.getElementById("weatherStationPointOfInterestIdHidden");
-            if(theCheckBox.checked)
+            // Which data source is selected?
+            let useGridWeatherData;
+            const radios = document.getElementsByName("useGridWeatherData");
+            for(const radio of radios)
+            {
+                if(radio.checked)
+                {
+                    useGridWeatherData = radio.value;
+                    break;
+                }
+            }
+            //console.info("useGridWeatherData=" + useGridWeatherData)
+            if(useGridWeatherData == "true")
             {
               // Select weatherStationId -2
               weatherStationList.selectedIndex = 0;
               // Disable the weatherstation select list
               weatherStationList.disabled=true;
+              listContainer.style.display="none";
               weatherStationList.name="weatherStationPointOfInterestIdDisabled";
 
               // Enable the hidden field
               weatherStationPointOfInterestIdHiddenField.disabled=false
               weatherStationPointOfInterestIdHiddenField.name="weatherStationPointOfInterestId";
             }
-            else
+            else if(useGridWeatherData == "false")
             {
               // Select weatherStationId -1 OR the optionally provided weatherStationPointOfInterestId
               if(weatherStationPointOfInterestId == undefined || weatherStationPointOfInterestId == null)
@@ -428,6 +443,8 @@
               }
               // Enable the weather station select list
               weatherStationList.disabled=false;
+              listContainer.style.display="block";
+
               weatherStationList.name="weatherStationPointOfInterestId";
               // Disable the hidden field
               weatherStationPointOfInterestIdHiddenField.disabled=true
@@ -435,20 +452,32 @@
             }
           };
 
+          window.setUseGridWeatherData = function(useGridWeatherData)
+          {
+            //console.info("setuseGridWeatherData, input value=" + useGridWeatherData);
+                const radios = document.getElementsByName("useGridWeatherData");
+                for(const radio of radios)
+                {
+                    //console.info("radio value=" + radio.value + ", so the radio should " + (radio.value == useGridWeatherData ? "": "NOT") + " be checked" );
+                    radio.checked = radio.value == useGridWeatherData;
+                }
+          }
 
 
-          let handleLocationChanged = function(){
+
+          window.handleLocationChanged = function(){
             let weatherstationSelect = document.getElementById("weatherStationPointOfInterestId");
+            let weatherDatasourceFieldset = document.getElementById("weatherDatasourceFieldset");
             // Which location has been selected?
             let selectedPoiId = document.getElementById("locationPointOfInterestId").options[document.getElementById("locationPointOfInterestId").selectedIndex].value;
             if(selectedPoiId <= 0)
             {
-                document.getElementById("weatherDatasourceFieldset").disabled = true;
+                if(weatherDatasourceFieldset != null) weatherDatasourceFieldset.disabled = true;
                 weatherstationSelect.selectedIndex = 0;
                 return;
             }
             // Enable the weather datasource fieldset
-            document.getElementById("weatherDatasourceFieldset").disabled=false;
+            if(weatherDatasourceFieldset != null) weatherDatasourceFieldset.disabled = false;
             
             let selectedLocation = undefined;
             for(let i=0; i<locationList.length;i++)
@@ -471,9 +500,8 @@
 
             <#if isGridForecastSupported>
 
-            let gridCheckBox = document.getElementById("useGridWeatherData");
-            gridCheckBox.checked = (selectedLocation.pointOfInterestTypeId != POI_TYPE_WEATHERSTATION);
-            handleUseGridWeatherDataClicked(gridCheckBox, (selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? selectedLocation.pointOfInterestId: undefined));
+            setUseGridWeatherData(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? "false" : "true");
+            handleWeatherDatasourceSelected(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? selectedLocation.pointOfInterestId: undefined);
 
             </#if>
           }
@@ -562,8 +590,9 @@
 	    <label for="locationPointOfInterestId">${i18nBundle.locationPointOfInterestId}</label>
           <div class="select-container" style="flex: 1; display: flex; align-items: center;">
             <select class="form-control" id="locationPointOfInterestId" name="locationPointOfInterestId" onchange="handleLocationChanged();" onblur="validateField(this);" style="width: calc(100% - 30px);">
-            </select>
-            <i id="open-map-modal-icon" class="fa fa-map-marker" onclick="openLocationMap()"></i>
+            </select>&nbsp;
+            <button type="button" class="btn btn-primary" onclick="openLocationMap()"><i class="fa fa-map-marker fa-lg"></i>&nbsp;&nbsp;Velg i kart</button>
+            
               <div id="location-map" class="map-modal"></div>
           </div>
 	    <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
@@ -575,27 +604,36 @@
     <#else>
     <div class="alert alert-info" role="alert">Velg sted ovenfor først, og velg deretter værstasjon. Hvis stedet du har valgt ikke er en værstasjon, vil værstasjonslista sorteres etter avstand til ditt sted.</div>
     </#if>
+    <#if isGridForecastSupported>
     <fieldset id="weatherDatasourceFieldset" <#if !forecastConfiguration.weatherStationPointOfInterestId?has_content>disabled</#if>>
     <legend style="margin-bottom: 0px;">${i18nBundle.weatherDatasource}</legend>
-      <div class="form-group">
-        <label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label>
-              <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(!document.getElementById('useGridWeatherData').checked) {validateField(this);}">
+     
+        <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
+        <div class="form-group">
+          <div class="radio">
+          <label>
+            <input type="radio" id="useGridWeatherData" value="true" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleWeatherDatasourceSelected();"/>
+          </label>
+          ${i18nBundle.useGridWeatherData}
+        </div>
+      </#if>
+    <#if isGridForecastSupported><div class="radio">
+    <label>
+        <input type="radio" name="useGridWeatherData" id="useWeatherstationRadio" value="false" onclick="handleWeatherDatasourceSelected();">
+        ${i18nBundle.useWeatherStation}
+    </label>
+    </#if>
+      <div class="form-group" id="weatherstationListContainer" style="display: <#if isGridForecastSupported>none<#else>block</#if>;">
+        <#if !isGridForecastSupported><label for="weatherStationPointOfInterestId">${i18nBundle.weatherStationPointOfInterestId}</label></#if>
+              <select class="form-control" id="weatherStationPointOfInterestId" name="weatherStationPointOfInterestId" onblur="if(document.getElementById('useWeatherstationRadio') == null || document.getElementById('useWeatherstationRadio').checked) {validateField(this);}">
                  
               </select>
         <span class="help-block" id="${formId}_weatherStationPointOfInterestId_validation"></span>
       </div>
-      <#if isGridForecastSupported>
-        <input type="hidden" id="weatherStationPointOfInterestIdHidden" name="weatherStationPointOfInterestIdDisabled" value="-2" disabled="disabled"/>
-        <div class="form-group">
-          <div class="checkbox">
-          <label>
-            <input type="checkbox" id="useGridWeatherData" name="useGridWeatherData"<#if forecastConfiguration.useGridWeatherData?has_content && forecastConfiguration.useGridWeatherData == true> checked="checked"</#if> onclick="handleUseGridWeatherDataClicked(this);"/>
-          </label>
-          ${i18nBundle.useGridWeatherData}
-          <span class="help-block" id="${formId}_useGridWeatherData_validation"></span>
-        </div>
-      </#if>
+    <#if isGridForecastSupported>
+    </div> 
     </fieldset>
+    </#if>
 	  <#else>
 	  <input type="hidden" name="multipleNew" value="true"/>
 	  <div class="form-group">
