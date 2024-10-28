@@ -747,8 +747,7 @@ public class ForecastBean {
         Response resp = this.getManagerResource(modelInformation).runModel(config.getModelId(), request);
 
         if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
-            List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>() {});
-            return results;
+            return resp.readEntity(new GenericType<>() {});
         } else {
             throw new RunModelException(resp.readEntity(String.class));
         }
