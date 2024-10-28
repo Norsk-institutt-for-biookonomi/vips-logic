@@ -177,7 +177,8 @@ class MapModal {
         // Initialize the map centered on Norway
         this.map = map(this.mapContainerId).setView([latitude, longitude], zoomLevel);
         tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
+            maxZoom: 19,
+            minZoom: 3
         }).addTo(this.map);
         console.info("Create map " + this.mapContainerId + " centered on (" + latitude + "," + longitude + ") with points", this.geoJsonData ? this.geoJsonData.features : null);
 
