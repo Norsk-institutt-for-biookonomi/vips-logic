@@ -73,6 +73,7 @@ public class WeatherDataSourceUtil {
      */
     public List<WeatherObservation> getWeatherObservations(PointOfInterestWeatherStation station, Integer logIntervalId, String[] elementMeasurementTypes, Date startTime, Date endTime, Boolean ignoreErrors, Set<Integer> toleratedLogIntervalIds) throws WeatherDataSourceException {
         // Get measured (and possibly forecasted, depending on the data source) observations
+        LOGGER.info("Get weather observations for {} with URL {}", station.getName(), station.getDataFetchUri());
         List<WeatherObservation> observations = this.getWeatherObservations(station.getDataFetchUri(), logIntervalId, elementMeasurementTypes, startTime, endTime, TimeZone.getTimeZone(station.getTimeZone()), ignoreErrors, toleratedLogIntervalIds);
         Collections.sort(observations);
         // Append forecasts, if available
