@@ -9,7 +9,8 @@ import {
     GeoJSON,
     DomEvent,
     Control,
-    DomUtil
+    DomUtil,
+    latLng
 } from '/js/3rdparty/leaflet-src.esm.js';
 
 /**
@@ -505,8 +506,25 @@ class MapModal {
         this.mapModalElement.style.alignItems = 'center';
         this.initMap(latitude, longitude, zoomLevel);
         if (selectedPointOfInterestId) {
-            this.selectPointById(selectedPointOfInterestId);
+            // Id -1 is used if the map should display the single given point as selected, with a form to enable lat/lng modification
+            if(selectedPointOfInterestId === -1) {
+                const layer = this.getLayerById(selectedPointOfInterestId)
+                const feature = this.getFeatureById(selectedPointOfInterestId)
+                this.map.removeLayer(layer);
+                this.simulateMapClick(this.map, feature.geometry.coordinates[1], feature.geometry.coordinates[0])
+            } else {
+                this.selectPointById(selectedPointOfInterestId);
+            }
         }
+    }
+
+    simulateMapClick(map, lat, lng) {
+        const clickEvent = {
+            latlng: latLng(lat, lng),
+            layerPoint: map.latLngToLayerPoint(latLng(lat, lng)),
+            containerPoint: map.latLngToContainerPoint(latLng(lat, lng))
+        };
+        map.fire('click', clickEvent);
     }
 
     /**
