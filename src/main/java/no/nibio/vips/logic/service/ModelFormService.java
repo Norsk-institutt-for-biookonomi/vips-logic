@@ -174,9 +174,7 @@ public class ModelFormService {
             } else if("grid".equals(weatherDataSourceType)) {
                 fConf.setUseGridWeatherData(true);
                 timezoneForWeatherData = timezoneStr;
-                //WeatherStationDataSource source = pointOfInterestBean.getWeatherStationDataSource("Open-Meteo");
                 ws = new PointOfInterestWeatherStation();
-                //ws.setWeatherStationDataSourceId(source);
                 ws.setLatitude(pUtil.parseDouble(latitudeStr));
                 ws.setLongitude(pUtil.parseDouble(longitudeStr));
                 ws.setTimeZone(timezoneForWeatherData);
