@@ -170,18 +170,24 @@ public class BarleyNetBlotchModelService {
         Double preparationDose = parseUtil.parseDouble(preparationDoseStr);
         Double latitudeDouble = parseUtil.parseDouble(latitude);
         Double longitudeDouble = parseUtil.parseDouble(longitude);
-        
+
+        if(weatherDataSourceType == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("WeatherDataSourceType (grid or weather station) is required").build();
+        }
+
+        // Must get the VIPSCore user id for this organization
+        Organization org = em.find(Organization.class, organizationId);
+        Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
+
         // Build model configuration
         ModelConfiguration config = new ModelConfiguration();
         config.setModelId("BARLEYNETB");
-        // Get weather data from weather station
 
         WeatherDataSourceUtil wsdUtil = new WeatherDataSourceUtil();
         Date endDateForWeatherData = calculateEndDateForWeatherData(timeZone, sowingDate);
-        List<WeatherObservation> observations;
 
-
-        if (weatherDataSourceType != null && "weatherstation".equals(weatherDataSourceType.trim())) {
+        List<WeatherObservation> observations = new ArrayList<>();
+        if ("weatherstation".equals(weatherDataSourceType.trim())) {
             PointOfInterestWeatherStation weatherStation =
                 em.find(PointOfInterestWeatherStation.class, weatherStationId);
             LOGGER.info("Run model with weatherdata from weatherstation {}", weatherStation.getName());
@@ -203,14 +209,12 @@ public class BarleyNetBlotchModelService {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Could not find weather data for weather station with id=" + weatherStationId).build();
             }
-        } else {
-            PointOfInterest coordinates = new PointOfInterest();
-            coordinates.setLatitude(latitudeDouble);
-            coordinates.setLongitude(longitudeDouble);
+        } else if("grid".equals(weatherDataSourceType.trim())) {
             LOGGER.info("Run model with weatherdata for latitude={} and longitude={}", latitude, longitude);
+            String datafetchUriExpression =
+                org.getDefaultGridWeatherStationDataSource().getDatafetchUriExpression();
             try {
-                observations = wsdUtil.getWeatherObservations(
-                    "https://weather.vips.nibio.no/rest/grid/openmeteo/" + coordinates.getLongitude() + "_" + coordinates.getLatitude(),
+                observations = wsdUtil.getWeatherObservations(String.format(datafetchUriExpression, longitude + "_" + latitude),
                     WeatherObservation.LOG_INTERVAL_ID_1H,
                     new String[] {
                         WeatherElements.TEMPERATURE_MEAN,
@@ -223,15 +227,15 @@ public class BarleyNetBlotchModelService {
                     new HashSet<>(Collections.singletonList(WeatherObservation.LOG_INTERVAL_ID_1H))
                 );
             } catch (WeatherDataSourceException ex) {
-                LOGGER.error("Exception while getting observations for latitude={} longitude={}", latitude, longitude, ex);
+                LOGGER.error("Exception while getting observations for lat={} lon={}", latitude, longitude, ex);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
             }
             if (observations == null || observations.isEmpty()) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Could not find weather data for weather station with id=" + weatherStationId).build();
+                    .entity(String.format("Could not find weather data for lat=%s lon=%s between %s and %s", latitude, longitude, sowingDate, endDateForWeatherData)).build();
             }
         }
-        
+
         // Mandatory parameters
         config.setConfigParameter("observations", observations);
         config.setConfigParameter("timeZone", timeZone.getID());
@@ -256,11 +260,6 @@ public class BarleyNetBlotchModelService {
             spraying.setSprayingEffectFactor(preparationEffectFactor.getFactorValue().doubleValue());
             config.setConfigParameter("spraying", spraying);
         }
-        
-        
-        // Must get the VIPSCore user id for this organization
-        Organization org = em.find(Organization.class, organizationId);
-        Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
         
         List<Result> results;
         try
