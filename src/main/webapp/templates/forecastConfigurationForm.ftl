@@ -504,10 +504,13 @@
 <#macro page_contents>
 <div class="singleBlockContainer">
 	<p><a href="/forecastConfiguration" class="btn btn-default back" role="button">${i18nBundle.back}</a></p>
-        <h1>${i18nBundle.viewForecastConfiguration}</h1>
-        <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
-		<#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
+    <h1>${i18nBundle.viewForecastConfiguration}</h1>
+    <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
+    <#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
 	</div>
+    <#if multipleNew>
+    <div class="alert alert-warning">${i18nBundle.multipleNewWarningMsg}</div>
+    </#if>
 	<#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
