@@ -287,6 +287,7 @@ public class ForecastConfigurationController extends HttpServlet {
                     request.setAttribute("modelInformations",
                             em.createNamedQuery("ModelInformation.findAll").getResultList());
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
+                    request.setAttribute("multipleNew", false);
                     request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
                 } else {
                     response.sendError(403, "Access not authorized");
