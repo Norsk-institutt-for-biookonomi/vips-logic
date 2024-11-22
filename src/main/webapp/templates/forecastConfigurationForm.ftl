@@ -174,14 +174,15 @@
 
         function callbackOnCloseLocationMap(poiData) {
             if(!poiData.pointOfInterestId) {
-                persistNewLocation(poiData);
+                persistNewLocation(poiData, handleLocationChanged);
             } else {
                 selectPoi(selectLocationElement, poiData.pointOfInterestId);
+                handleLocationChanged();
             }
-            handleLocationChanged();
+            
         }
 
-        function persistNewLocation(poiData) {
+        function persistNewLocation(poiData, callback) {
             fetch("/rest/poi", {
                 method: 'POST',
                 headers: {
@@ -197,7 +198,8 @@
                     renderPoiSelect(selectLocationElement, locationList, poi.pointOfInterestId);
                     // Assuming that this is not a weather station, since weather stations cannot be created using the
                     // map, the user must have created a .... MAYBE HANDLED AUTOMATICALLY?? by the change event??
-                    console.info("Point of interest successfully persisted", poi);
+                    //console.info("Point of interest successfully persisted", poi);
+                    callback();
                 })
                 .catch(error => {
                     console.error("Unable to persist new point of interest", error);
