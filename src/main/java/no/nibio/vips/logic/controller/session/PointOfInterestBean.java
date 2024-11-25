@@ -263,8 +263,52 @@ public class PointOfInterestBean {
         return kml;
     }
 
+    public WeatherStationDataSource getWeatherStationDataSource(Integer weatherStationDataSourceId)
+    {
+        return em.find(WeatherStationDataSource.class, weatherStationDataSourceId);
+    }
+
     public List<WeatherStationDataSource> getWeatherStationDataSources() {
         return em.createNamedQuery("WeatherStationDataSource.findAll").getResultList();
+    }
+
+    public List<WeatherStationDataSource> getGridWeatherStationDataSources() {
+        return em.createNamedQuery("WeatherStationDataSource.findGridSources").getResultList();
+    }
+
+    /**
+     * Checks if the weather station data source can be deleted from the system. Criteria:
+     * <ul>
+     * <li>Not referenced from public.point_of_interest_weather_station</li>
+     * <li>Not referenced from public.organization</li>
+     * </ul> 
+     * @param weatherStationDataSource
+     * @return
+     */
+    public Boolean isweatherStationDataSourceDeleteable(WeatherStationDataSource weatherStationDataSource)
+    {
+        Query poiRefQuery = em.createQuery("SELECT COUNT(*) FROM PointOfInterestWeatherStation poiws where poiws.weatherStationDataSourceId = :weatherStationDataSourceId");
+        Long weatherStationReferences = (Long) poiRefQuery.setParameter("weatherStationDataSourceId", weatherStationDataSource).getSingleResult();
+        if(weatherStationReferences > 0)
+        {
+            return false;
+        }
+
+        Query orgRefQuery = em.createQuery("SELECT COUNT(*) FROM Organization o where o.defaultGridWeatherStationDataSource = :weatherStationDataSourceId");
+        Long organizationReferences = (Long) orgRefQuery.setParameter("weatherStationDataSourceId", weatherStationDataSource).getSingleResult();
+        return organizationReferences == 0;
+    }
+
+    public void deleteWeatherStationDataSource(WeatherStationDataSource weatherStationDataSource)
+    {
+        WeatherStationDataSource sourceToDelete = em.find(WeatherStationDataSource.class, weatherStationDataSource.getWeatherStationDataSourceId());
+        em.remove(sourceToDelete);
+    }
+
+    public WeatherStationDataSource storeWeatherStationDataSource(WeatherStationDataSource weatherStationDataSource)
+    {
+        weatherStationDataSource = em.merge(weatherStationDataSource);
+        return weatherStationDataSource;
     }
 
     public PointOfInterestWeatherStation storeWeatherStation(PointOfInterestWeatherStation weatherStation) {

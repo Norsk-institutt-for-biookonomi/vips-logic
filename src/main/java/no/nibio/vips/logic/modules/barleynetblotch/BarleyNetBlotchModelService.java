@@ -19,11 +19,8 @@
 package no.nibio.vips.logic.modules.barleynetblotch;
 
 import com.webcohesion.enunciate.metadata.Facet;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+
+import java.util.*;
 import javax.ejb.EJB;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -38,10 +35,7 @@ import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ForecastBean;
-import no.nibio.vips.logic.entity.Organism;
-import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
-import no.nibio.vips.logic.entity.Preparation;
+import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.observation.ObservationImpl;
@@ -50,6 +44,7 @@ import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
+import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -58,6 +53,8 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 @Path("rest/barleynetblotchmodel")
 @Facet("restricted")
 public class BarleyNetBlotchModelService {
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(BarleyNetBlotchModelService.class);
+
     private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
     
     @PersistenceContext(unitName="VIPSLogic-PU")
@@ -140,6 +137,9 @@ public class BarleyNetBlotchModelService {
     public Response runModel(
             @PathParam("organizationId") Integer organizationId,
             @QueryParam("timeZone") String timeZoneStr,
+            @QueryParam("weatherDataSourceType") String weatherDataSourceType,
+            @QueryParam("latitude") String latitude,
+            @QueryParam("longitude") String longitude,
             @QueryParam("weatherStationId") Integer weatherStationId,
             @QueryParam("sowingDate") String sowingDateStr,
             @QueryParam("cropId") Integer cropOrganismId,
@@ -168,54 +168,74 @@ public class BarleyNetBlotchModelService {
         Date sprayingDate = parseUtil.parseISODate(sprayingDateStr, timeZone);
         Integer preparationId = parseUtil.parseInteger(preparationIdStr);
         Double preparationDose = parseUtil.parseDouble(preparationDoseStr);
-        
+        Double latitudeDouble = parseUtil.parseDouble(latitude);
+        Double longitudeDouble = parseUtil.parseDouble(longitude);
+
+        if(weatherDataSourceType == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("WeatherDataSourceType (grid or weather station) is required").build();
+        }
+
+        // Must get the VIPSCore user id for this organization
+        Organization org = em.find(Organization.class, organizationId);
+        Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
+
         // Build model configuration
         ModelConfiguration config = new ModelConfiguration();
         config.setModelId("BARLEYNETB");
-        // Get weather data from weather station
-        PointOfInterestWeatherStation weatherStation = em.find(PointOfInterestWeatherStation.class, weatherStationId);
-        WeatherDataSourceUtil wsdUtil = new WeatherDataSourceUtil();
-        
-        // End date for weather data depends on season
-        // We try to add 5 months to the sowing date. If thats in the future,
-        // We add 10 days to today
-        Date dateOfLastWeatherData;
-        Calendar cal = Calendar.getInstance(timeZone);
-        cal.setTime(sowingDate);
-        cal.add(Calendar.MONTH, 5);
-        Date fiveMonthsAfterSowingDate = cal.getTime();
-        if(fiveMonthsAfterSowingDate.after(SystemTime.getSystemTime()))
-        {
-            cal.setTime(SystemTime.getSystemTime());
-            cal.add(Calendar.DATE, 10);
-            dateOfLastWeatherData = cal.getTime();
-        }
-        else
-        {
-            dateOfLastWeatherData = fiveMonthsAfterSowingDate;
-        }
 
-        List<WeatherObservation> observations;
-        try {
-             observations = wsdUtil.getWeatherObservations(
+        WeatherDataSourceUtil wsdUtil = new WeatherDataSourceUtil();
+        Date endDateForWeatherData = calculateEndDateForWeatherData(timeZone, sowingDate);
+
+        List<WeatherObservation> observations = new ArrayList<>();
+        if ("weatherstation".equals(weatherDataSourceType.trim())) {
+            PointOfInterestWeatherStation weatherStation =
+                em.find(PointOfInterestWeatherStation.class, weatherStationId);
+            LOGGER.info("Run model with weatherdata from weatherstation {}", weatherStation.getName());
+            try {
+                observations = wsdUtil.getWeatherObservations(
                     weatherStation,
                     WeatherObservation.LOG_INTERVAL_ID_1H,
-                    new String[]{
+                    new String[] {
                         WeatherElements.TEMPERATURE_MEAN,
                         WeatherElements.PRECIPITATION
                     },
-                    sowingDate, 
-                    dateOfLastWeatherData
-            );
-        } catch (WeatherDataSourceException ex) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+                    sowingDate,
+                    endDateForWeatherData
+                );
+            } catch (WeatherDataSourceException ex) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+            }
+            if (observations == null || observations.isEmpty()) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Could not find weather data for weather station with id=" + weatherStationId).build();
+            }
+        } else if("grid".equals(weatherDataSourceType.trim())) {
+            LOGGER.info("Run model with weatherdata for latitude={} and longitude={}", latitude, longitude);
+            String datafetchUriExpression =
+                org.getDefaultGridWeatherStationDataSource().getDatafetchUriExpression();
+            try {
+                observations = wsdUtil.getWeatherObservations(String.format(datafetchUriExpression, longitude + "_" + latitude),
+                    WeatherObservation.LOG_INTERVAL_ID_1H,
+                    new String[] {
+                        WeatherElements.TEMPERATURE_MEAN,
+                        WeatherElements.PRECIPITATION
+                    },
+                    sowingDate,
+                    endDateForWeatherData,
+                    timeZone,
+                    Boolean.FALSE,
+                    new HashSet<>(Collections.singletonList(WeatherObservation.LOG_INTERVAL_ID_1H))
+                );
+            } catch (WeatherDataSourceException ex) {
+                LOGGER.error("Exception while getting observations for lat={} lon={}", latitude, longitude, ex);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
+            }
+            if (observations == null || observations.isEmpty()) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(String.format("Could not find weather data for lat=%s lon=%s between %s and %s", latitude, longitude, sowingDate, endDateForWeatherData)).build();
+            }
         }
-        
-        if(observations == null || observations.isEmpty())
-        {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Could not find weather data for weather station with id=" + weatherStationId).build();
-        }
-        
+
         // Mandatory parameters
         config.setConfigParameter("observations", observations);
         config.setConfigParameter("timeZone", timeZone.getID());
@@ -241,11 +261,6 @@ public class BarleyNetBlotchModelService {
             config.setConfigParameter("spraying", spraying);
         }
         
-        
-        // Must get the VIPSCore user id for this organization
-        Organization org = em.find(Organization.class, organizationId);
-        Integer VIPSCoreUserId = org.getDefaultVipsCoreUserId();
-        
         List<Result> results;
         try
         {
@@ -257,6 +272,32 @@ public class BarleyNetBlotchModelService {
         }
         return Response.ok().entity(results).build();
     }
-    
-    
+
+    /**
+     * End date for weather data depends on season. We try to add 5 months to the sowing date.
+     * If the resulting date is in the future, we add 10 days to today.
+     *
+     * @param timeZone  The current timezone
+     * @param sowingDate The sowing date
+     * @return The end date for weather data
+     */
+    private static Date calculateEndDateForWeatherData(TimeZone timeZone, Date sowingDate) {
+        Date dateOfLastWeatherData;
+        Calendar cal = Calendar.getInstance(timeZone);
+        cal.setTime(sowingDate);
+        cal.add(Calendar.MONTH, 5);
+        Date fiveMonthsAfterSowingDate = cal.getTime();
+        if(fiveMonthsAfterSowingDate.after(SystemTime.getSystemTime()))
+        {
+            cal.setTime(SystemTime.getSystemTime());
+            cal.add(Calendar.DATE, 10);
+            dateOfLastWeatherData = cal.getTime();
+        }
+        else
+        {
+            dateOfLastWeatherData = fiveMonthsAfterSowingDate;
+        }
+        return dateOfLastWeatherData;
+    }
+
 }

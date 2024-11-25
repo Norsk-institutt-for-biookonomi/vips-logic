@@ -19,25 +19,19 @@ package no.nibio.vips.logic.service;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
@@ -46,9 +40,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import java.util.Arrays;
+
 import java.util.stream.Collectors;
-import javax.ws.rs.QueryParam;
 
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.Country;
@@ -102,7 +95,68 @@ public class POIService {
         PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(pointOfInterestId);
         return Response.ok().entity(retVal).build();
     }
-    
+
+    @POST
+    @Consumes("application/json;charset=UTF-8")
+    @Produces("application/json;charset=UTF-8")
+    public Response postPoi(String poiJson) {
+        ObjectMapper oM = new ObjectMapper();
+        Map<Object, Object> poiMap;
+        try {
+            poiMap = oM.readValue(poiJson, new TypeReference<HashMap<Object, Object>>() {});
+        } catch (JsonProcessingException e) {
+            LOGGER.error(e.getMessage(), e);
+            return Response.status(Status.BAD_REQUEST).entity("Unable to parse input").build();
+        }
+
+        VipsLogicUser user = SessionControllerGetter.getUserBean().getUserFromUUID(httpServletRequest);
+        if (user == null) {
+            LOGGER.error("No user found for UUID in Authorization");
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+        LOGGER.error("Remember to check for roles as well, if necessary!");
+
+        PointOfInterestBean poiBean = SessionControllerGetter.getPointOfInterestBean();
+        Integer poiTypeId = poiMap.get("pointOfInterestTypeId") != null ? Integer.parseInt(poiMap.get("pointOfInterestTypeId").toString()) : null;
+        if(poiTypeId == null) {
+            return Response.status(Status.BAD_REQUEST).entity("pointOfInterestTypeId is required").build();
+        }
+        String poiName = poiMap.get("name") != null ? poiMap.get("name").toString() : null;
+        Double poiLongitude = poiMap.get("longitude") != null ? Double.valueOf(poiMap.get("longitude").toString()): null;
+        Double poiLatitude = poiMap.get("latitude") != null ? Double.valueOf(poiMap.get("latitude").toString()): null;
+        Double poiAltitude = 0.0;
+
+        PointOfInterest poiToSave = PointOfInterestFactory.getPointOfInterest(poiTypeId);
+        poiToSave.setName(poiName);
+        poiToSave.setLongitude(poiLongitude);
+        poiToSave.setLatitude(poiLatitude);
+        poiToSave.setAltitude(poiAltitude);
+        poiToSave.setLastEditedTime(new Date());
+        poiToSave.setUser(user);
+        poiToSave.setCountryCode(user.getOrganizationId().getCountryCode());
+        poiToSave.setTimeZone(user.getOrganizationId().getDefaultTimeZone());
+        poiToSave.setIsForecastLocation(Boolean.FALSE);
+        poiToSave.setIsPrivate(Boolean.TRUE);
+
+        if (poiLongitude != null && poiLatitude != null) {
+            GISUtil gisUtil = new GISUtil();
+            Coordinate coordinate = new Coordinate(poiLongitude, poiLatitude, poiAltitude);
+            Point p3d = gisUtil.createPointWGS84(coordinate);
+            poiToSave.setGisGeom(p3d);
+        }
+        poiToSave = poiBean.storePoi(poiToSave);
+
+        if (poiToSave != null) {
+            return Response.status(Response.Status.CREATED)
+                    .entity(poiToSave)
+                    .build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to create PointOfInterest " + poiName)
+                    .build();
+        }
+    }
+
     /**
      * @param organizationId Id of the organization in question
      * @param poiTypesStr Comma separated list of poiTypes
@@ -122,6 +176,19 @@ public class POIService {
         List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganizationAndOfTypes(organization, poiTypes); 
         
         return Response.ok().entity(SessionControllerGetter.getPointOfInterestBean().getPoisAsGeoJson(pois)).build();
+    }
+
+    @POST
+    @Path("geojson")
+    @Produces("application/json;charset=UTF-8")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getPoisGeoJson(Set<Integer> ids) {
+        // Retrieve POIs from data source
+        List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPois(ids);
+        if (pois == null || pois.isEmpty()) {
+            return Response.noContent().build();
+        }
+        return Response.ok(SessionControllerGetter.getPointOfInterestBean().getPoisAsGeoJson(pois)).build();
     }
 
     /**

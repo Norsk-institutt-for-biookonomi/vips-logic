@@ -27,6 +27,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -48,17 +52,13 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
-    
-    private final boolean DEBUG = false;
+    private static Logger LOGGER = LoggerFactory.getLogger(AppleScabModelPreprocessor.class);
     public final static String APPLESCABM_START_DATE_ASCOSPORE_MATURITY = "APPLESCABM_START_DATE_ASCOSPORE_MATURITY";
 
     @Override
     public ModelConfiguration getModelConfiguration(ForecastConfiguration configuration) throws PreprocessorException
     {
-        if(DEBUG)
-        {
-            System.out.println("getModelConfiguration");
-        }
+        LOGGER.debug("AppleScabModelPreprocessor.getModelConfiguration() called");
         //configuration.getDateStart();
         PointOfInterestWeatherStation weatherStation = (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
         // What timezone is the calculation for
@@ -92,10 +92,8 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         
         // Use Jackson to parse JSON from server
         // Weather data collections
-        if(DEBUG)
-        {
-            System.out.println("Getting weather data at " + new Date().toString());
-        }
+        LOGGER.debug("Getting weather data at " + new Date().toString());
+
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
         List<WeatherObservation> observations;
         try {
@@ -135,22 +133,17 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
             // We do nothing
         }
         
-        
-        if(DEBUG)
-        {
-            System.out.println("Finished getting weather data at " + new Date().toString());
-        }
+        LOGGER.debug("Finished getting weather data at " + new Date().toString());
+
         try {
             observations = validateAndSanitizeObservations(observations, startDateAscosporeMaturity);
         } catch (ConfigValidationException | WeatherObservationListException ex) {
             //ex.printStackTrace();
             throw new PreprocessorException(ex.getMessage());
         } 
-        if(DEBUG)
-        {        
-            System.out.println("Observations=" + observations.toString());
-        }
 
+        //LOGGER.debug("Observations=" + observations.toString());
+        
         
         // Create the complete model configuration object
         ModelConfiguration retVal = new ModelConfiguration();
@@ -176,11 +169,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
      * @throws WeatherObservationListException 
      */
     private List<WeatherObservation> validateAndSanitizeObservations(List<WeatherObservation> observations, Date firstTimeStamp) throws ConfigValidationException, WeatherObservationListException {
-        if(DEBUG)
-        {
-            System.out.println("validateAndSanitizeObservations");
-        }
-        
+
         WeatherUtil wUtil = new WeatherUtil();
         
         // First we remove all duplicates
@@ -241,14 +230,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
         
         // Problems with weather observations
         
-        // Holes in series
-        if(DEBUG)
-        {
-            System.out.println("checkForAndFixHourlyTimeSeriesHoles");
-            //System.out.println(wUtil.dumpWeatherObservationList(RR));
-        }
-
-        
+       
         
         // Unequal length of lists
         if  (        
@@ -257,6 +239,7 @@ public class AppleScabModelPreprocessor extends ModelRunPreprocessor{
                 || RR.size() != TM.size()
             )
         {
+            LOGGER.debug("Unequal lists lengt: RR=" + RR.size() + ", TM=" + TM.size() + ", BT=" + BT.size());
             UM = wUtil.fixHourlyValuesForParameters(
                     UM, 
                     new HashSet(Arrays.asList("UM")), 

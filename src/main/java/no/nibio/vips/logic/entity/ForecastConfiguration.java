@@ -50,7 +50,7 @@ import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
 /**
- * @copyright 2014-2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2014-2024 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Entity
@@ -123,7 +123,17 @@ public class ForecastConfiguration implements Serializable, Comparable {
     private Organism pestOrganismId;
     @Column(name = "is_private")
     private Boolean isPrivate;
+    @Column(name = "use_grid_weather_data")
+    private Boolean useGridWeatherData;
     
+    public Boolean getUseGridWeatherData() {
+        return useGridWeatherData != null ? useGridWeatherData : Boolean.FALSE;
+    }
+
+    public void setUseGridWeatherData(Boolean useGridWeatherData) {
+        this.useGridWeatherData = useGridWeatherData;
+    }
+
     @Type(type = "IntegerArray")
     @Column(name = "grid_weather_station_point_of_interest_ids")
     private Integer[] gridWeatherStationPointOfInterestIds;
@@ -247,6 +257,29 @@ public class ForecastConfiguration implements Serializable, Comparable {
      * @return the weatherStationPointOfInterestId
      */
     public PointOfInterest getWeatherStationPointOfInterestId() {
+        if( this.getUseGridWeatherData() && this.getVipsLogicUserId().getOrganizationId().getDefaultGridWeatherStationDataSource() != null)
+        {
+            // Create a "weather station" with coordinates from the location
+            // And the default grid weather data source for the current organization (get location owner's organization)
+            PointOfInterestWeatherStation gridStation = new PointOfInterestWeatherStation();
+            gridStation.setLatitude(this.getLocationPointOfInterestId().getLatitude());
+            gridStation.setLongitude(this.getLocationPointOfInterestId().getLongitude());
+            gridStation.setName("GRID-punkt for " + this.getLocationPointOfInterestId().getName()); // TODO Translate!!!
+            gridStation.setTimeZone(this.getLocationPointOfInterestId().getTimeZone());
+            gridStation.setWeatherStationDataSourceId(this.getVipsLogicUserId().getOrganizationId().getDefaultGridWeatherStationDataSource());
+            gridStation.setUser(this.getVipsLogicUserId());
+            gridStation.setWeatherForecastProviderId(null);
+            gridStation.setWeatherStationRemoteId(gridStation.getLongitude() + "_" + gridStation.getLatitude());
+            gridStation.setGisGeom(this.getLocationPointOfInterestId().getGisGeom());
+            gridStation.setAltitude(this.getLocationPointOfInterestId().getAltitude());
+            gridStation.setCountryCode(this.getLocationPointOfInterestId().getCountryCode());
+            gridStation.setIsForecastLocation(true);
+            gridStation.setPointOfInterestTypeId(PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
+            gridStation.setUser(this.getVipsLogicUserId());
+            gridStation.setProperties(this.getLocationPointOfInterestId().getProperties());
+            return gridStation;
+        }
+
         return weatherStationPointOfInterestId;
     }
 

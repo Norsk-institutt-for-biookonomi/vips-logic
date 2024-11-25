@@ -68,7 +68,7 @@
 			</form>
 		</div>
 	</div>
-	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1&multipleNew=true'">${i18nBundle.addMultipleNew}</button>
+	<button type="button" class="btn btn-default" onclick="window.location.href='/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=-1&multipleNew=true'">${i18nBundle.addNewForMultipleWeatherStations}</button>
         </#if>
         <h2>${i18nBundle.privateForecasts}</h2>
         <div class="table-responsive">

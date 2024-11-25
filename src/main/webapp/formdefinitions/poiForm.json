@@ -86,6 +86,11 @@
             "name" : "isForecastLocation",
             "dataType" : "STRING",
             "required" : false
+        },
+        {
+            "name" : "isPrivate",
+            "dataType" : "STRING",
+            "required" : false
         }
     ]
 }

@@ -81,6 +81,14 @@
 			    <input type="text" class="form-control" name="name" placeholder="${i18nBundle.name}" value="${(poi.name)!""}" onblur="validateField(this); checkPoiNameAvailability(this);"/>
 			    <span class="help-block" id="${formId}_name_validation"></span>
 			  </div>
+              <div class="form-group">
+			  	<div class="checkbox">
+					<label>
+						<input type="checkbox" name="isPrivate"<#if poi.isPrivate?has_content && poi.isPrivate == true> checked="checked"<#else></#if>/>
+					</label>
+					${i18nBundle.isPrivate}
+			  	</div>
+			  </div>
 			  <div class="form-group">
 			    <label for="pointOfInterestTypeId">${i18nBundle.pointOfInterestType}</label>
 			    <select class="form-control" name="pointOfInterestTypeId" onblur="validateField(this);">

@@ -72,6 +72,14 @@
 				  </div>
 			  </div>
 			  <div class="form-group">
+			  	<div class="checkbox">
+					<label>
+						<input type="checkbox" name="isPrivate"<#if weatherStation.isPrivate?has_content && weatherStation.isPrivate == true> checked="checked"<#else></#if>/>
+					</label>
+					${i18nBundle.isPrivate}
+			  	</div>
+			  </div>
+			  <div class="form-group">
 			    <label for="location">${i18nBundle.location} (<a href="http://en.wikipedia.org/wiki/World_Geodetic_System#A_new_World_Geodetic_System:_WGS_84" target="new">WGS84</a>: ${i18nBundle.longitude},${i18nBundle.latitude})</label>
 			    <input type="text" class="form-control" id="location" name="location" placeholder="${i18nBundle.location}" value="${(weatherStation.longitude?c)!""},${(weatherStation.latitude?c)!""}" onblur="validateField(this);" onchange="if(validateField(this)){updateMarkerPosition();}" />
 			    <span class="help-block" id="${formId}_location_validation"></span>

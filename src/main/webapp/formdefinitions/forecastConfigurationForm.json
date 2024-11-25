@@ -58,6 +58,11 @@
             "required" : false
         },
         {
+            "name" : "useGridWeatherData",
+            "dataType" : "STRING",
+            "required" : false
+        },
+        {
             "name" : "locationPointOfInterestId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

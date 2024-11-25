@@ -18,27 +18,32 @@
 
 package no.nibio.vips.logic.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.util.ULocale;
-import com.webcohesion.enunciate.metadata.Facet;
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-
 import java.io.IOException;
-import java.util.*;
-
-import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.persistence.NonUniqueResultException;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -46,12 +51,42 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.jboss.resteasy.annotations.GZIP;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.jboss.resteasy.spi.HttpRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.util.ULocale;
+import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import de.micromata.opengis.kml.v_2_2_0.Kml;
 import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
-import no.nibio.vips.logic.controller.servlet.UserController;
-import no.nibio.vips.logic.controller.session.*;
-import no.nibio.vips.logic.entity.*;
+import no.nibio.vips.logic.controller.session.DeleteUserException;
+import no.nibio.vips.logic.controller.session.ForecastBean;
+import no.nibio.vips.logic.controller.session.MessageBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.CropCategory;
+import no.nibio.vips.logic.entity.CropPest;
+import no.nibio.vips.logic.entity.ForecastConfiguration;
+import no.nibio.vips.logic.entity.ForecastModelConfiguration;
+import no.nibio.vips.logic.entity.ForecastResult;
+import no.nibio.vips.logic.entity.Message;
+import no.nibio.vips.logic.entity.MessageTag;
+import no.nibio.vips.logic.entity.ModelInformation;
+import no.nibio.vips.logic.entity.Organism;
+import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.PointOfInterest;
+import no.nibio.vips.logic.entity.PointOfInterestType;
+import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.entity.UserAuthentication;
+import no.nibio.vips.logic.entity.UserAuthenticationType;
+import no.nibio.vips.logic.entity.VipsLogicRole;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
@@ -60,11 +95,6 @@ import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
 import no.nibio.web.forms.FormValidationException;
-import org.jboss.resteasy.annotations.GZIP;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.spi.HttpRequest;
-
-import org.apache.commons.validator.routines.EmailValidator;
 
 /**
  * @copyright 2013-2023 <a href="http://www.nibio.no/">NIBIO</a>
@@ -1312,6 +1342,15 @@ public class LogicService {
     public Response getOrganizations()
     {
         return Response.ok().entity(userBean.getOrganizations()).build();
+    }
+
+    @GET
+    @Path("organization/{organizationId}")
+    @Produces("application/json;charset=UTF-8")
+    @TypeHint(Organization[].class)
+    public Response getOrganizations(@PathParam("organizationId") Integer organizationId)
+    {
+        return Response.ok().entity(userBean.getOrganization(organizationId)).build();
     }
     
     @GET
