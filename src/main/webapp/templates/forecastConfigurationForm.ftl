@@ -194,6 +194,7 @@
             })
                 .then(response => response.json())
                 .then(poi => {
+                    poi.location=[poi.longitude, poi.latitude];
                     locationList.push(poi);
                     renderPoiSelect(selectLocationElement, locationList, poi.pointOfInterestId);
                     // Assuming that this is not a weather station, since weather stations cannot be created using the
