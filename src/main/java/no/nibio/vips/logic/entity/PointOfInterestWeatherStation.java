@@ -47,7 +47,7 @@ import jakarta.persistence.Transient;
     @NamedQuery(name = "PointOfInterestWeatherStation.findAllByActivity", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByPointOfInterestId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.pointOfInterestId = :pointOfInterestId"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId.organizationId = :organizationId)"),
-    @NamedQuery(name = "PointOfInterestWeatherStation.findByActivityAndOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active AND p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId.organizationId = :organizationId)"),
+    @NamedQuery(name = "PointOfInterestWeatherStation.findByActivityAndOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active AND p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId = :organizationId)"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByUserId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.user = :userId"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByNames", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.name IN :names")
 })
