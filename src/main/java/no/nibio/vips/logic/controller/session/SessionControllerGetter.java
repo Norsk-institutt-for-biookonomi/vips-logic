@@ -26,7 +26,7 @@ import no.nibio.vips.logic.messaging.MessagingBean;
 
 /**
  * Thought this was oblivious because of @EJB, but it turns out this is necessary when invoking beans from outside managed beans!
- * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2013-2025 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 
@@ -34,7 +34,7 @@ public class SessionControllerGetter {
     
 	// This obviously has to be changed when changing the application name in Maven
 	// TODO: Refactor out to System properties (e.g. in standalone.xml in JBoss/WildFly)
-    public static final String JNDI_PATH = "java:global/VIPSLogic-2024.3/";
+    public static final String JNDI_PATH = "java:global/VIPSLogic-2025.1/";
 
     public static SchedulingBean getSchedulingBean()
     {
