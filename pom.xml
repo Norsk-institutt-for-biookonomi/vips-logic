@@ -1,5 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.nibio.vips.</groupId>
@@ -52,7 +53,7 @@
         </repository>
     </repositories>
     <dependencies>
-        
+
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -76,10 +77,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-        <groupId>jakarta.persistence</groupId>
-        <artifactId>jakarta.persistence-api</artifactId>
-        <version>3.2.0</version>
-        <scope>provided</scope>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.2.0</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -89,9 +90,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-        <groupId>com.sun.mail</groupId>
-        <artifactId>jakarta.mail</artifactId>
-        <version>2.0.1</version>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>2.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
@@ -195,8 +196,18 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.4</version>
-            <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>net.postgis</groupId>
+            <artifactId>postgis-jdbc</artifactId>
+            <version>2024.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.postgis</groupId>
+            <artifactId>postgis-geometry</artifactId>
+            <version>2024.1.0</version>
+        </dependency>
+
         <dependency>
             <groupId>io.hypersistence</groupId>
             <artifactId>hypersistence-utils-hibernate-63</artifactId>
@@ -347,13 +358,14 @@
                             <goal>docs</goal>
                         </goals>
                         <configuration>
-                            <docsDir>${project.build.directory}/${project.build.finalName}/public/RESTdocs</docsDir>
+                            <docsDir>
+                                ${project.build.directory}/${project.build.finalName}/public/RESTdocs</docsDir>
                         </configuration>
                     </execution>
                 </executions>
-    
+
             </plugin>
         </plugins>
     </build>
-  
+
 </project>
