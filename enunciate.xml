@@ -31,7 +31,7 @@
       <exclude pattern="uk.**"/>
       <exclude pattern="it.**"/>
       <exclude pattern="antlr.**"/>
-      <exclude pattern="javax.**"/>
+      <exclude pattern="jakarta.**"/>
   </api-classes>
   <facets>
         <exclude name="restricted"/>

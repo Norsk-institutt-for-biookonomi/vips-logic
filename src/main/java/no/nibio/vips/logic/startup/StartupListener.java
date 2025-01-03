@@ -18,9 +18,9 @@
 
 package no.nibio.vips.logic.startup;
 
-import javax.annotation.Resource;
-import javax.ejb.EJB;
-import javax.servlet.ServletContextEvent;
+import jakarta.annotation.Resource;
+import jakarta.ejb.EJB;
+import jakarta.servlet.ServletContextEvent;
 import javax.sql.DataSource;
 import no.nibio.vips.logic.controller.session.SchedulingBean;
 import org.flywaydb.core.Flyway;
@@ -32,7 +32,7 @@ import org.flywaydb.core.Flyway;
  * @copyright 2013-2022 {@link http://www.nibio.no NIBIO}
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class StartupListener implements javax.servlet.ServletContextListener{
+public class StartupListener implements jakarta.servlet.ServletContextListener{
 
     @Resource(lookup="java:/jboss/datasources/vipslogic")
     DataSource vipslogicDS;

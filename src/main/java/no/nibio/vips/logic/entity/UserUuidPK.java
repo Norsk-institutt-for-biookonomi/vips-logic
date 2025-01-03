@@ -20,10 +20,12 @@ package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
 import java.util.UUID;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.validation.constraints.NotNull;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -34,7 +36,7 @@ public class UserUuidPK implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "user_uuid")
-    @org.hibernate.annotations.Type(type="pg-uuid") // Ugly implementation specific hack
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID userUuid;
     @Basic(optional = false)
     @NotNull

@@ -18,7 +18,9 @@
 
 package no.nibio.web.forms;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import no.nibio.vips.logic.util.Globals;
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload2.core.FileItem;
 
 /**
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -46,9 +48,10 @@ public class FormUtil {
      * @return
      * @throws UnsupportedEncodingException 
      */
-    public static Map<String, String[]> getParameterMap(List<FileItem> items, String encoding) throws UnsupportedEncodingException
+    public static Map<String, String[]> getParameterMap(List<FileItem> items, String encoding) throws UnsupportedEncodingException, IOException
     {
         Map<String, String[]> retVal = new HashMap<>();
+        Charset charset = Charset.forName(encoding);
         for(FileItem item:items)
         {
             if(item.isFormField())
@@ -57,13 +60,13 @@ public class FormUtil {
                 if(retVal.containsKey(item.getFieldName()))
                 {
                     List<String> oldValue = new ArrayList(Arrays.asList(retVal.get(item.getFieldName())));
-                    oldValue.add(item.getString(encoding));
+                    oldValue.add(item.getString(charset));
                     String[] newValue = new String[oldValue.size()];
                     retVal.put(item.getFieldName(),oldValue.toArray(newValue));
                 }
                 else
                 {
-                    String[] value = {item.getString(encoding)};
+                    String[] value = {item.getString(charset)};
                     retVal.put(item.getFieldName(), value);
                 }
             }

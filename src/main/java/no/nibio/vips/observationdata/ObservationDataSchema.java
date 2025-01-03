@@ -19,17 +19,15 @@
 package no.nibio.vips.observationdata;
 
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
-import no.nibio.vips.logic.util.StringJsonUserType;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -38,7 +36,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "observation_data_schema")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "ObservationDataSchema.findAll", query = "SELECT o FROM ObservationDataSchema o"),
     @NamedQuery(name = "ObservationDataSchema.findByPK", query = "SELECT o FROM ObservationDataSchema o WHERE o.observationDataSchemaPK.organizationId = :organizationId AND o.observationDataSchemaPK.organismId = :organismId"),
@@ -49,10 +46,10 @@ public class ObservationDataSchema implements Serializable {
     private static final long serialVersionUID = 1L;
     @EmbeddedId
     protected ObservationDataSchemaPK observationDataSchemaPK;
-    @Type(type = "StringJsonObject")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "data_schema")
     private String dataSchema;
-    @Type(type = "StringJsonObject")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "data_model")
     private String dataModel;
 

@@ -65,8 +65,8 @@ RUN echo '<?xml version="1.0" encoding="UTF-8"?>\
         <resource-root path="postgis-jdbc-${POSTGIS_VERSION}.jar"/>\
     </resources>\
     <dependencies>\
-        <module name="javax.api"/>\
-        <module name="javax.transaction.api"/>\
+        <module name="jakarta.api"/>\
+        <module name="jakarta.transaction.api"/>\
     </dependencies>\
 </module>' > ${JBOSS_HOME}/modules/org/postgresql/main/module.xml
 RUN cp /root/.m2/repository/org/postgresql/postgresql/${POSTGRES_VERSION}/postgresql-${POSTGRES_VERSION}.jar ${JBOSS_HOME}/modules/org/postgresql/main

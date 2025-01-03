@@ -20,10 +20,10 @@ package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -44,8 +44,8 @@ public class HttpErrorServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         
-        request.setAttribute("message", request.getAttribute("javax.servlet.error.message"));
-        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+        request.setAttribute("message", request.getAttribute("jakarta.servlet.error.message"));
+        Integer statusCode = (Integer) request.getAttribute("jakarta.servlet.error.status_code");
         /**
         // Explore the attributes sent to error template
         for(Enumeration<String> e = request.getAttributeNames();e.hasMoreElements();)

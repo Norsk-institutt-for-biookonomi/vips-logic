@@ -33,13 +33,13 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.servlet.http.HttpServletRequest;
 
 import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -47,7 +47,7 @@ import no.nibio.vips.logic.util.SystemTime;
 import org.apache.commons.codec.binary.Base64;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import no.nibio.vips.observationdata.ObservationDataSchemaPK;
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -409,7 +409,7 @@ public class ObservationBean {
         }
 
         // Store file
-        item.write(illustration);
+        item.write(illustration.toPath());
 
         // Update MessageIllustrations
         observation = em.merge(observation);

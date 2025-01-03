@@ -20,14 +20,14 @@ package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -41,7 +41,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "ForecastSummary.findAll", query = "SELECT f FROM ForecastSummary f"),
     @NamedQuery(name = "ForecastSummary.findByForecastConfigurationId", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.forecastConfigurationId = :forecastConfigurationId"),
     @NamedQuery(name = "ForecastSummary.findByForecastConfigurationIds", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.forecastConfigurationId IN(:forecastConfigurationIds)"),
-    @NamedQuery(name = "ForecastSummary.findByOrganizationId", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.forecastConfigurationId IN(SELECT f1.forecastConfigurationId FROM ForecastConfiguration f1 WHERE f1.vipsLogicUserId IN (SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId=:organizationId))"),    
+    @NamedQuery(name = "ForecastSummary.findByOrganizationId", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.forecastConfigurationId IN(SELECT f1.forecastConfigurationId FROM ForecastConfiguration f1 WHERE f1.vipsLogicUserId.userId IN (SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId))"),    
     @NamedQuery(name = "ForecastSummary.findBySummaryForDate", query = "SELECT f FROM ForecastSummary f WHERE f.forecastSummaryPK.summaryForDate = :summaryForDate"),
     @NamedQuery(name = "ForecastSummary.findBySummaryCreatedTime", query = "SELECT f FROM ForecastSummary f WHERE f.summaryCreatedTime = :summaryCreatedTime"),
     @NamedQuery(name = "ForecastSummary.findByWarningStatus", query = "SELECT f FROM ForecastSummary f WHERE f.warningStatus = :warningStatus")})

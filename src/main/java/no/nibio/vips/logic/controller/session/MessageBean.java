@@ -26,11 +26,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageIllustration;
 import no.nibio.vips.logic.entity.MessageIllustrationCaptionLocale;
@@ -43,7 +43,7 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.web.forms.FormField;
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -186,7 +186,7 @@ public class MessageBean {
                 cropCategoryIds.add(Integer.valueOf(cropCategoryId));
             }
         }
-        message.setCropCategoryIds(cropCategoryIds.toArray(new Integer[cropCategoryIds.size()]));
+        message.setCropCategoryIds(cropCategoryIds);
        
         return message;
     }
@@ -224,7 +224,7 @@ public class MessageBean {
         }
 
         // Store file
-        item.write(illustration);
+        item.write(illustration.toPath());
         
         // Update MessageIllustrations
         message = em.merge(message);

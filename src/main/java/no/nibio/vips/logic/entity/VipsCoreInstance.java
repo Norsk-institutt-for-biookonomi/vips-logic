@@ -19,8 +19,8 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
-import javax.persistence.*;
-import javax.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**

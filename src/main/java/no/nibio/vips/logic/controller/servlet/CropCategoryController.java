@@ -22,11 +22,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ejb.EJB;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ejb.EJB;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.CropCategory;
@@ -101,7 +101,7 @@ public class CropCategoryController extends HttpServlet {
                     Integer cropCategoryId = formValidation.getFormField("cropCategoryId").getValueAsInteger();
                     List<Integer> cropCategoryCropOrganismIds = FormUtil.getIdsFromMultipleSelect(formValidation.getFormField("cropCategoryCropOrganismIds").getWebValues());
                     CropCategory cropCategory = organismBean.getCropCategory(cropCategoryId);
-                    cropCategory.setCropOrganismIds(cropCategoryCropOrganismIds.toArray(new Integer[cropCategoryCropOrganismIds.size()]));
+                    cropCategory.setCropOrganismIds(cropCategoryCropOrganismIds);
                     organismBean.storeCropCategory(cropCategory);
                     
                     response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append("/organism/cropcategory?messageKey=cropCategoryUpdated").toString());

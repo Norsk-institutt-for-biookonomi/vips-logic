@@ -21,8 +21,8 @@ package no.nibio.vips.logic.util;
 
 import java.util.Iterator;
 import java.util.List;
-import javax.mail.*;
-import javax.mail.internet.*;
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
 import java.util.Properties;
 
 
@@ -70,8 +70,8 @@ public class SimpleMailSender {
 
             Transport.send(message);
         }
-        catch(javax.mail.internet.AddressException ae){ae.printStackTrace();}
-        catch(javax.mail.MessagingException me) {me.printStackTrace();}
+        catch(jakarta.mail.internet.AddressException ae){ae.printStackTrace();}
+        catch(jakarta.mail.MessagingException me) {me.printStackTrace();}
     }
 
     /**
@@ -106,8 +106,8 @@ public class SimpleMailSender {
 
             Transport.send(message);
         }
-        catch(javax.mail.internet.AddressException ae){ae.printStackTrace();}
-        catch(javax.mail.MessagingException me) {me.printStackTrace();}
+        catch(jakarta.mail.internet.AddressException ae){ae.printStackTrace();}
+        catch(jakarta.mail.MessagingException me) {me.printStackTrace();}
     }
     
 }

@@ -19,19 +19,18 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import java.util.List;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
-import no.nibio.vips.logic.util.IntegerArrayUserType;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -39,7 +38,6 @@ import org.hibernate.annotations.TypeDefs;
  */
 @Entity
 @Table(name = "crop_pest")
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "CropPest.findAll", query = "SELECT c FROM CropPest c"),
@@ -55,9 +53,9 @@ public class CropPest implements Serializable {
     @NotNull
     @Column(name = "crop_organism_id")
     private Integer cropOrganismId;
-    @Type(type = "IntegerArray")
+    @Type(ListArrayType.class)
     @Column(name = "pest_organism_ids")
-    private Integer[] pestOrganismIds;
+    private List<Integer> pestOrganismIds;
     @Column(name = "include_all_child_crops")
     private Boolean includeAllChildCrops;
 
@@ -76,11 +74,11 @@ public class CropPest implements Serializable {
         this.cropOrganismId = cropOrganismId;
     }
 
-    public Integer[] getPestOrganismIds() {
+    public List<Integer> getPestOrganismIds() {
         return pestOrganismIds;
     }
 
-    public void setPestOrganismIds(Integer[] pestOrganismIds) {
+    public void setPestOrganismIds(List<Integer> pestOrganismIds) {
         this.pestOrganismIds = pestOrganismIds;
     }
 
