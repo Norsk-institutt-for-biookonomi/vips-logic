@@ -58,6 +58,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.service.ObservationTimeSeriesService.class);
         resources.add(no.nibio.vips.logic.service.ModelFormService.class);
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
+        resources.add(no.nibio.vips.logic.entity.helpers.KmlMessageBodyWriter.class);
         //resources.add(no.nibio.vips.logic.service.JSONBConfig.class);
         //resources.add(no.nibio.vips.coremanager.service.ManagerResourceImpl.class);
     }
