@@ -56,8 +56,8 @@
             <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
         </repository>
         <repository>
-        <id>gitlab-nibio</id>
-            <url>https://gitlab.nibio.no/api/v4/projects/VIPS/packages/maven</url>
+        <id>gitlab-maven</id>
+            <url>https://gitlab.nibio.no/api/v4/projects/401/packages/maven</url>
         </repository>
     </repositories>
     <dependencies>
