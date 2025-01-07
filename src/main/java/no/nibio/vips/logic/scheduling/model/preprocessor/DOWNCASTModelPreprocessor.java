@@ -24,6 +24,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.ibm.icu.util.Calendar;
+
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -38,7 +41,7 @@ import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
- * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2016-2024 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class DOWNCASTModelPreprocessor extends ModelRunPreprocessor{
@@ -49,6 +52,14 @@ public class DOWNCASTModelPreprocessor extends ModelRunPreprocessor{
         PointOfInterestWeatherStation weatherStation =  (PointOfInterestWeatherStation) configuration.getWeatherStationPointOfInterestId();
         WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
         WeatherUtil wUtil = new WeatherUtil();
+
+        // We use only short-time forecasts, as the model is very sensitive
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE,3);
+        if(cal.getTime().before(configuration.getDateEnd()))
+        {
+            configuration.setDateEnd(cal.getTime());
+        }
         
         List<WeatherObservation> observations;
         

@@ -19,9 +19,9 @@
 package no.nibio.vips.logic.messaging;
 
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>

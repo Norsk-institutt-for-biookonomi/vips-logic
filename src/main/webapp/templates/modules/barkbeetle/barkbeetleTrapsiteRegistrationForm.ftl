@@ -2,18 +2,18 @@
     Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  VIPSLogic is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 	
 --><#include "../../master.ftl">
 <#assign siteName= seasonTrapsite.countyName + "/" + seasonTrapsite.municipalityName + "/" + seasonTrapsite.ownerName>
@@ -127,7 +127,10 @@
 					</tr>
 					<#if seasonTrapsite.season gt 2021>
 					<tr>
-						<td>Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen? Beskriv hva som er observert (omfang, sted m.m.; <a href="/images/modules/barkbeetle/${FILENAME_KJENN_IGJEN_ANGREP}" target="new">instruksjon</a>)</td>
+						<td>Er det observert angrep av stor granbarkbille på stående gran i nærområdet/kommunen?
+		Beskriv omfang og symptomer. Symptomer tidlig i sesong: Boremel eller fjorårets drepte trær som har mistet litt bark og har grå kroner. 
+		Symptomer sent i sesong: Årets drepte trær, med røde kroner. Det er også mulig å rapportere skader på 
+		<a href="https://skogskader.nibio.no/skogskader2/meld-skade" target="new">skogskader.nibio.no</a></td>
 						<td colspan="8">
 							<textarea class="form-control" name="${reg.trapsiteRegistrationPK.week}_observedAttacksDescription"<#if tooEarly> disabled="disabled"</#if>>${reg.observedAttacksDescription!""}</textarea>
 						</td>

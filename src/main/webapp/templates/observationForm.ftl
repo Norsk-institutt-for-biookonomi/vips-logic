@@ -2,18 +2,18 @@
     Copyright (c) 2017 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  VIPSLogic is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+  This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
 <#macro page_head>
         <title><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if></title>
@@ -42,7 +42,7 @@
 	<script type="text/javascript" src="/js/poiFormMap.js"></script>
 	<script type="text/javascript">
 		var organizationId = ${user.organizationId.organizationId};
-        var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId}<#else>null</#if>;
+        var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId?c}<#else>null</#if>;
 
 
 		$(document).ready(function() {
@@ -230,38 +230,41 @@
 		
 		var allPois = [];
 		
-                /**
-                 * Fetches locations, farms, fields and weather stations, renders the list
-                 */
-		function refreshLocationPointOfInterests(pointOfInterestId)
+        /**
+         * Fetches locations, farms, fields, traps and weather stations, renders the list
+         */
+		function refreshLocationPointOfInterests(selectedPointOfInterestId)
 		{
-                    var poiTypes = ["${i18nBundle.genericPlaces}","${i18nBundle.weatherStations}","${i18nBundle.farms}","${i18nBundle.fields}"];
-                    $.getJSON("/rest/poi/user", function( json ) {
-                                    allPois = json;
-                                    var theList = document.getElementById("locationPointOfInterestId");
-                                    theList.options.length = 1;
-                                    // Locations first, weather stations next
-                                    for(var h=0;h<poiTypes.length;h++)
-                                    {
-                                        var option = new Option("-- " + poiTypes[h] + " --","-1");
-                                        theList.options[theList.options.length] = option;
-                                        for(var i=0;i< allPois.length;i++)
-                                        {
-                                            var poi = allPois[i];
-                                            if(poi.pointOfInterestTypeId == h)
-                                            {
-                                                var option = new Option(poi.name, poi.pointOfInterestId);
-                                                if(poi.pointOfInterestId == pointOfInterestId)
-                                                {
-                                                        option.selected=true;
-                                                }
-                                                theList.options[theList.options.length] = option;
-                                            }
-                                        }
-                                    }
-                                    showCorrectMap();
+            const poiTypes = {
+                0: "${i18nBundle.genericPlaces}",
+                1: "${i18nBundle.weatherStations}",
+                2: "${i18nBundle.farms}",
+                3: "${i18nBundle.fields}",
+                5: "${i18nBundle.traps}"
+            };
+            $.getJSON("/rest/poi/user", function(json) {
+                const allPois = json;
+                const poiListElement = document.getElementById("locationPointOfInterestId");
+                poiListElement.options.length = 1;
+                // Iterate through each point of interest type
+                for (const [typeId, typeName] of Object.entries(poiTypes)) {
+                    poiListElement.options[poiListElement.options.length] = new Option("-- " + typeName + " --", "-1");
+
+                    // Iterate through all POIs and add them to the list if they match the type
+                    for (let i = 0; i < allPois.length; i++) {
+                        const poi = allPois[i];
+
+                        if (poi.pointOfInterestTypeId == typeId) {
+                            const poiOption = new Option(poi.name, poi.pointOfInterestId);
+                            if (poi.pointOfInterestId === selectedPointOfInterestId) {
+                                poiOption.selected = true;
                             }
-                    );
+                            poiListElement.options[poiListElement.options.length] = poiOption;
+                        }
+                    }
+                }
+                showCorrectMap();
+            });
 		}
 		
 		
@@ -447,8 +450,9 @@
                 </#if>
                 var cropList = [
                     <#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
+                        {organismId: -10, displayName: "${i18nBundle.missingInDatabase}", hierarchyCategoryId: -1},
                         <#list allCrops as cropOrganism>
-                        {organismId: ${cropOrganism.organismId}, displayName: "${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}", hierarchyCategoryId: ${cropOrganism.hierarchyCategoryId}}<#sep>,
+                        {organismId: ${cropOrganism.organismId?c}, displayName: "${cropOrganism.getLocalName(currentLocale.language)!""} (${cropOrganism.latinName!""}) ${hierarchyCategories.getName(cropOrganism.hierarchyCategoryId)?upper_case}", hierarchyCategoryId: ${cropOrganism.hierarchyCategoryId!"-1"}}<#sep>,
                         </#list>
                     <#else>
                         <#list allCrops as cropOrganism>
@@ -514,7 +518,7 @@
 			  <input type="hidden" name="observationData" value=""/>
 			  <input type="hidden" name="observationId" value="${observation.observationId!"-1"}"/>
 			  <!--button type="button" onclick="var theForm=document.getElementById('observationForm');theForm['geoInfo'].value=getFeatures();try{mw.save();theForm['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(theForm) && validateGIS(theForm);}catch(e){console.log(e.message);console.log(e);return false;}">Test</button-->
-			  <#if observation.user?has_content>
+                <#if observation.user?has_content>
                           <div class="form-group">
                             <label>${i18nBundle.observer}: ${observation.user.firstName} ${observation.user.lastName}</label>
                           </div>

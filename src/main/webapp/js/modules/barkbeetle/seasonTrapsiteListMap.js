@@ -2,18 +2,18 @@
  * Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
+ * GNU Affero General Public License for more details.
  * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
  
@@ -27,16 +27,7 @@
  var poiDetails;
  
  function initMap(season){
- 	 // Background layer is OpenStreetMap
-    var backgroundLayer = new ol.layer.Tile({
-                    source: new ol.source.OSM({
-                        attributions: [
-                            new ol.Attribution({
-                              html: mapConstants.MAP_ATTRIBUTION
-                            })
-                          ]
-                    })
-    });
+ 	 
     
     // The trapsite layer
     var trapLayer = new ol.layer.Vector({
@@ -55,13 +46,13 @@
       element: document.getElementById("popover")
     });
     var parser = new ol.format.WMTSCapabilities();
-  fetch('https://opencache.statkart.no/gatekeeper/gk/gk.open_wmts?Version=1.0.0&service=wmts&request=getcapabilities').then(function(response) {
+  fetch('https://cache.kartverket.no/v1/wmts/1.0.0/WMTSCapabilities.xml').then(function(response) {
         return response.text();
       }).then(function(text) {
         var result = parser.read(text);
         var options = ol.source.WMTS.optionsFromCapabilities(result, {
-          layer: 'topo4',
-          matrixSet: 'EPSG:3857'
+          layer: 'topo',
+          matrixSet: 'webmercator'
         });
         var topo4 = 
           new ol.layer.Tile({
@@ -80,7 +71,7 @@
     // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
     // center to correct map projection)
     var view = new ol.View({
-            center: ol.proj.transform([10.0,63.0], 'EPSG:4326', map.getView().getProjection().getCode()),
+            center: ol.proj.transform([7.0,63.0], 'EPSG:4326', map.getView().getProjection().getCode()),
             zoom: 5
     });
     map.setView(view);

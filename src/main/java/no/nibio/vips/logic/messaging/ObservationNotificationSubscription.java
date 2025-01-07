@@ -20,15 +20,14 @@ package no.nibio.vips.logic.messaging;
 
 import java.io.Serializable;
 import java.util.List;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import no.nibio.vips.logic.util.IntegerArrayUserType;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
+
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -36,7 +35,6 @@ import org.hibernate.annotations.TypeDefs;
  */
 @Entity
 @Table(name = "observation_notification_subscription", schema = "messaging")
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 public class ObservationNotificationSubscription implements Serializable {
 
     @Id
@@ -47,9 +45,9 @@ public class ObservationNotificationSubscription implements Serializable {
     @Column(name = "universal_message_format_id")
     private Integer universalMessageFormatId;
     
-    @Type(type = "IntegerArray")
+    @Type(ListArrayType.class)
     @Column(name = "crop_category_ids")
-    private Integer[] cropCategoryIds;
+    private List<Integer> cropCategoryIds;
 
     public Integer getUserId() {
         return this.userId;
@@ -101,20 +99,17 @@ public class ObservationNotificationSubscription implements Serializable {
     /**
      * @return the cropCategoryIds
      */
-    public Integer[] getCropCategoryIds() {
+    public List<Integer> getCropCategoryIds() {
         return cropCategoryIds;
     }
 
     /**
      * @param cropCategoryIds the cropCategoryIds to set
      */
-    public void setCropCategoryIds(Integer[] cropCategoryIds) {
-        this.cropCategoryIds = cropCategoryIds;
-    }
     
     public void setCropCategoryIds(List<Integer> cropCategoryIds)
     {
-        this.cropCategoryIds = cropCategoryIds.toArray(new Integer[cropCategoryIds.size()]);
+        this.cropCategoryIds = cropCategoryIds;
     }
 
 }

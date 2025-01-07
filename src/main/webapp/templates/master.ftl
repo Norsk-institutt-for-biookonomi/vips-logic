@@ -2,18 +2,18 @@
     Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  VIPSLogic is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+  This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 <#macro page_head>
         <title>master title</title>
@@ -58,6 +58,9 @@
                           <li><a href="/organism/cropcategory">${i18nBundle.cropCategoryIds}</a></li>
 		  <#else>
 		  	<li><a href="/user?action=viewUser&userId=${user.userId}">${i18nBundle.myAccount}</a></li>
+		  </#if>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser()>
+		  	<li><a href="/weatherstationdatasource">${i18nBundle.weatherStationDataSources}</a></li>
 		  </#if>
 		  <li><a href="/poi">${i18nBundle.pois}</a></li>
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isMessageAuthor()>

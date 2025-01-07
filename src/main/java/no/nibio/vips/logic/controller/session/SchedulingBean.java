@@ -37,16 +37,16 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.ModelRunRequest;
@@ -217,9 +217,6 @@ public class SchedulingBean {
         
         sendForecastNotificationsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
         
-        // Run grid models
-        VIPSLogicTaskCollector runGridModelsCollector = new VIPSLogicTaskCollector(-1);
-        runGridModelsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_GRID_MODELS_TASK));
         
         List<TaskCollector> definedTasks = new ArrayList<>();
         definedTasks.add(modelRunCollector);
@@ -227,7 +224,6 @@ public class SchedulingBean {
         definedTasks.add(summariesCollector);
         definedTasks.add(deleteAllExpiredUserUuidsCollector);
         definedTasks.add(sendForecastNotificationsCollector);
-        definedTasks.add(runGridModelsCollector);
         return definedTasks;
     }
     

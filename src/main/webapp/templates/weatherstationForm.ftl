@@ -2,18 +2,18 @@
   Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  VIPSLogic is distributed in the hope that it will be useful,
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
 <#macro page_head>
         <title><#if weatherStation.pointOfInterestId?has_content>${i18nBundle.editWeatherStation}<#else>${i18nBundle.newWeatherStation}</#if></title>
@@ -70,6 +70,14 @@
 					    ${i18nBundle.active}
 					  </label>
 				  </div>
+			  </div>
+			  <div class="form-group">
+			  	<div class="checkbox">
+					<label>
+						<input type="checkbox" name="isPrivate"<#if weatherStation.isPrivate?has_content && weatherStation.isPrivate == true> checked="checked"<#else></#if>/>
+					</label>
+					${i18nBundle.isPrivate}
+			  	</div>
 			  </div>
 			  <div class="form-group">
 			    <label for="location">${i18nBundle.location} (<a href="http://en.wikipedia.org/wiki/World_Geodetic_System#A_new_World_Geodetic_System:_WGS_84" target="new">WGS84</a>: ${i18nBundle.longitude},${i18nBundle.latitude})</label>

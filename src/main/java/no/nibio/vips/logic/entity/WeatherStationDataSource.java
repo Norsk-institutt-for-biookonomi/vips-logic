@@ -19,16 +19,16 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.validation.constraints.Size;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -40,6 +40,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "WeatherStationDataSource.findAll", query = "SELECT w FROM WeatherStationDataSource w"),
+    @NamedQuery(name = "WeatherStationDataSource.findGridSources", query = "SELECT w FROM WeatherStationDataSource w WHERE w.isGrid IS TRUE"),
     @NamedQuery(name = "WeatherStationDataSource.findByWeatherStationDataSourceId", query = "SELECT w FROM WeatherStationDataSource w WHERE w.weatherStationDataSourceId = :weatherStationDataSourceId"),
     @NamedQuery(name = "WeatherStationDataSource.findByName", query = "SELECT w FROM WeatherStationDataSource w WHERE w.name = :name"),
     @NamedQuery(name = "WeatherStationDataSource.findByDefaultDescription", query = "SELECT w FROM WeatherStationDataSource w WHERE w.defaultDescription = :defaultDescription"),
@@ -68,6 +69,18 @@ public class WeatherStationDataSource implements Serializable {
     @Size(max = 1024)
     @Column(name = "info_uri_expression")
     private String infoUriExpression;
+    @Column(name = "is_grid")
+    private Boolean isGrid;
+
+   
+
+    public Boolean getIsGrid() {
+        return isGrid;
+    }
+
+    public void setIsGrid(Boolean isGrid) {
+        this.isGrid = isGrid;
+    }
 
     public WeatherStationDataSource() {
     }

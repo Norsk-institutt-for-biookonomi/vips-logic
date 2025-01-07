@@ -18,23 +18,25 @@
 
 package no.nibio.vips.logic.service;
 
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import org.locationtech.jts.geom.Coordinate;
-import com.webcohesion.enunciate.metadata.Facet;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
-import javax.ejb.EJB;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
+import org.locationtech.jts.geom.Coordinate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import jakarta.ejb.EJB;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
-import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
@@ -44,6 +46,7 @@ import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfigurationPK;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.scheduling.model.preprocessor.SeptoriaHumidityModelPreprocessor;
@@ -52,7 +55,6 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherUtil;
 import no.nibio.vips.util.XDate;
-import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 
 /**
  * This is a collection of (one) service(s) for models run from forms (not as part of batch)
@@ -62,7 +64,8 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
 @Path("rest/modelform")
 @Facet("restricted")
 public class ModelFormService {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelFormService.class);
+
     @EJB
     UserBean userBean;
     @EJB
@@ -100,6 +103,10 @@ public class ModelFormService {
     @TypeHint(Result.class)
     public Response runSeptoriaHumidityModel(
             @QueryParam("organizationId_countryCode") String organizationId_countryCode,
+            @QueryParam("weatherDataSourceType") String weatherDataSourceType,
+            @QueryParam("latitude") String latitudeStr,
+            @QueryParam("longitude") String longitudeStr,
+            @QueryParam("timezone") String timezoneStr,
             @QueryParam("weatherStationId") String weatherStationId, // Could be special ID from Danish system,
             @QueryParam("dateSpraying1") String dateSpraying1,
             @QueryParam("dateSpraying2") String dateSpraying2,
@@ -119,7 +126,9 @@ public class ModelFormService {
     ){
         try
         {
+            ParseRESTParamUtil pUtil = new ParseRESTParamUtil();
             ForecastConfiguration fConf = new ForecastConfiguration();
+
             fConf.setModelId("SEPTORIAHU");
             
             Set<ForecastModelConfiguration> fModelConf = new HashSet<>();
@@ -139,16 +148,57 @@ public class ModelFormService {
             fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"sprayingProtectionDays", String.valueOf(sprayingProtectionDays)));
             fModelConf.add(this.getForecastModelConfiguration(fConf.getModelId(),"leafLifeTime", String.valueOf(leafLifeTime)));
             fConf.setForecastModelConfigurationSet(fModelConf);
-            
-            // Data parsing
 
-            Integer organizationId = Integer.valueOf(organizationId_countryCode.split("_")[0]);
-            Organization organization = userBean.getOrganization(organizationId);
-            fConf.setTimeZone(organization.getDefaultTimeZone());
-            TimeZone timeZone =  TimeZone.getTimeZone(organization.getDefaultTimeZone());
-            ParseRESTParamUtil pUtil = new ParseRESTParamUtil();
+            PointOfInterestWeatherStation ws = null;
+
+            // Default organization is Norway
+            Organization organization = userBean.getOrganization(1);
+            VipsLogicUser vipsLogicUser = userBean.getVipsLogicUser(organization.getDefaultVipsCoreUserId());
+            String timezoneForWeatherData = organization.getDefaultTimeZone();
+
+            // If source of weather data is a weather station
+            if("weatherstation".equals(weatherDataSourceType)) {
+                String[] organizationIdCountryCode = organizationId_countryCode.split("_");
+                organization = userBean.getOrganization(Integer.parseInt(organizationIdCountryCode[0]));
+                String countryCode = organizationIdCountryCode[1];
+                timezoneForWeatherData = organization.getDefaultTimeZone();
+                if(countryCode.equalsIgnoreCase("dk")) {
+                    // Create a synthetic weather station to pass into the system
+                    // Weather station id is a UTM32N coordinate, e.g. E552700N6322400
+                    String[] parts = weatherStationId.split("N");
+                    int UTM32vE = Integer.parseInt(parts[0].substring(1));
+                    int UTM32vN = Integer.parseInt(parts[1]);
+                    GISUtil gisUtil = new GISUtil();
+                    Coordinate UTMc = new Coordinate(UTM32vE, UTM32vN);
+                    Coordinate coordinate = gisUtil.convertCoordinate(UTMc, "EPSG:32632", "EPSG:4326");
+                    WeatherStationDataSource wsds = pointOfInterestBean.getWeatherStationDataSource("DMI PointWeb");
+                    ws = new PointOfInterestWeatherStation();
+                    ws.setWeatherStationDataSourceId(wsds);
+                    ws.setWeatherStationRemoteId(
+                        coordinate.y + "," + coordinate.x);// For some reason, The transformation switches X/Y
+                    ws.setTimeZone(timezoneForWeatherData);
+                } else {
+                    // Weather station id maps to a regular weather station
+                    ws = (PointOfInterestWeatherStation) pointOfInterestBean.getPointOfInterest(Integer.valueOf(weatherStationId));
+                }
+            } else if("grid".equals(weatherDataSourceType)) {
+                fConf.setUseGridWeatherData(true);
+                timezoneForWeatherData = timezoneStr;
+                ws = new PointOfInterestWeatherStation();
+                ws.setLatitude(pUtil.parseDouble(latitudeStr));
+                ws.setLongitude(pUtil.parseDouble(longitudeStr));
+                ws.setTimeZone(timezoneForWeatherData);
+            }
+            else {
+                return Response.status(Status.BAD_REQUEST).entity("Please specify weatherDataSourceType (weatherstation|grid)").build();
+            }
+
+            fConf.setVipsCoreUserId(vipsLogicUser);
+            fConf.setTimeZone(timezoneForWeatherData);
+
+            TimeZone timeZone = TimeZone.getTimeZone(timezoneForWeatherData);
             // Start time is gs31, easy
-            Date gs31 = pUtil.parseISODate(dateGs31,timeZone);
+            Date gs31 = pUtil.parseISODate(dateGs31, timeZone);
             XDate startTime = new XDate(gs31);
             startTime.addDays(-1);
             // End time is whatever comes first of the day after tomorrow or Gs75
@@ -163,47 +213,22 @@ public class ModelFormService {
             fConf.setDateStart(startTime);
             fConf.setDateEnd(endTime);
 
-            String countryCode = organizationId_countryCode.split("_")[1];
-            List<WeatherObservation> observations;
-            WeatherDataSourceUtil wdsUtil = new WeatherDataSourceUtil();
-            PointOfInterestWeatherStation ws;
-            if(countryCode.toLowerCase().equals("dk")){
-                // Create a synthetic weather station to pass into the system
-                // Weather station id is a UTM32N coordinate, e.g. E552700N6322400
-                String[] parts = weatherStationId.split("N");
-                Integer UTM32vE = Integer.valueOf(parts[0].substring(1));
-                Integer UTM32vN = Integer.valueOf(parts[1]);
-                GISUtil gisUtil = new GISUtil();
-                Coordinate UTMc = new Coordinate(UTM32vE, UTM32vN); 
-                Coordinate coordinate = gisUtil.convertCoordinate(UTMc, "EPSG:32632", "EPSG:4326");
-                WeatherStationDataSource wsds = pointOfInterestBean.getWeatherStationDataSource("DMI PointWeb");
-                ws = new PointOfInterestWeatherStation();
-                ws.setWeatherStationDataSourceId(wsds);
-                ws.setWeatherStationRemoteId(coordinate.y + "," + coordinate.x);// For some reason, The transformation switches X/Y
-                ws.setTimeZone(organization.getDefaultTimeZone());
-                
-                //observations.stream().forEach(obs->System.out.println(obs.toString()));
-            }
-            else
-            {
-                // Weather station id maps to a regular weather station
-                ws = (PointOfInterestWeatherStation) pointOfInterestBean.getPointOfInterest(Integer.valueOf(weatherStationId));
-            }
-            fConf.setWeatherStationPointOfInterestId(ws);
             fConf.setLocationPointOfInterestId(ws);
-            
+            fConf.setWeatherStationPointOfInterestId(ws);
+
             ModelConfiguration mConf = new SeptoriaHumidityModelPreprocessor().getModelConfiguration(fConf);
 
             Integer VIPSCoreUserId = organization.getDefaultVipsCoreUserId();
 
-            List<Result>results = forecastBean.runForecast(mConf, VIPSCoreUserId);
+            List<Result> results = forecastBean.runForecast(mConf, VIPSCoreUserId);
 
             return Response.ok().entity(results).build();
         }
-        catch(PreprocessorException |RunModelException ex)
+        catch(PreprocessorException | RunModelException ex)
         {
+            LOGGER.error("Exception occurred when attempting to run the septoria humidity model", ex);
             return Response.serverError().entity(ex.getMessage()).build();
-        } 
+        }
     }
     
     private ForecastModelConfiguration getForecastModelConfiguration(String modelId, String key, String value)

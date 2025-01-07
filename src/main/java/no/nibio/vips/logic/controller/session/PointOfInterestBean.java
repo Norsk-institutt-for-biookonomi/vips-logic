@@ -33,13 +33,13 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.ejb.EJB;
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.ejb.EJB;
+import jakarta.ejb.LocalBean;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.ExternalResource;
 import no.nibio.vips.logic.entity.ExternalResourceType;
@@ -263,8 +263,52 @@ public class PointOfInterestBean {
         return kml;
     }
 
+    public WeatherStationDataSource getWeatherStationDataSource(Integer weatherStationDataSourceId)
+    {
+        return em.find(WeatherStationDataSource.class, weatherStationDataSourceId);
+    }
+
     public List<WeatherStationDataSource> getWeatherStationDataSources() {
         return em.createNamedQuery("WeatherStationDataSource.findAll").getResultList();
+    }
+
+    public List<WeatherStationDataSource> getGridWeatherStationDataSources() {
+        return em.createNamedQuery("WeatherStationDataSource.findGridSources").getResultList();
+    }
+
+    /**
+     * Checks if the weather station data source can be deleted from the system. Criteria:
+     * <ul>
+     * <li>Not referenced from public.point_of_interest_weather_station</li>
+     * <li>Not referenced from public.organization</li>
+     * </ul> 
+     * @param weatherStationDataSource
+     * @return
+     */
+    public Boolean isweatherStationDataSourceDeleteable(WeatherStationDataSource weatherStationDataSource)
+    {
+        Query poiRefQuery = em.createQuery("SELECT COUNT(*) FROM PointOfInterestWeatherStation poiws where poiws.weatherStationDataSourceId = :weatherStationDataSourceId");
+        Long weatherStationReferences = (Long) poiRefQuery.setParameter("weatherStationDataSourceId", weatherStationDataSource).getSingleResult();
+        if(weatherStationReferences > 0)
+        {
+            return false;
+        }
+
+        Query orgRefQuery = em.createQuery("SELECT COUNT(*) FROM Organization o where o.defaultGridWeatherStationDataSource = :weatherStationDataSourceId");
+        Long organizationReferences = (Long) orgRefQuery.setParameter("weatherStationDataSourceId", weatherStationDataSource).getSingleResult();
+        return organizationReferences == 0;
+    }
+
+    public void deleteWeatherStationDataSource(WeatherStationDataSource weatherStationDataSource)
+    {
+        WeatherStationDataSource sourceToDelete = em.find(WeatherStationDataSource.class, weatherStationDataSource.getWeatherStationDataSourceId());
+        em.remove(sourceToDelete);
+    }
+
+    public WeatherStationDataSource storeWeatherStationDataSource(WeatherStationDataSource weatherStationDataSource)
+    {
+        weatherStationDataSource = em.merge(weatherStationDataSource);
+        return weatherStationDataSource;
     }
 
     public PointOfInterestWeatherStation storeWeatherStation(PointOfInterestWeatherStation weatherStation) {

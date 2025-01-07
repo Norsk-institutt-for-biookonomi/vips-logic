@@ -22,13 +22,14 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
-import javax.ejb.EJB;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ejb.EJB;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.gis.LonLatStringFormatException;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
@@ -46,6 +47,9 @@ public class OrganizationController extends HttpServlet {
     
     @EJB
     UserBean userBean;
+
+    @EJB
+    PointOfInterestBean poiBean;
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -101,6 +105,7 @@ public class OrganizationController extends HttpServlet {
             request.setAttribute("countries", userBean.getCountries());
             request.setAttribute("timeZones", TimeZone.getAvailableIDs());
             request.setAttribute("organization", organization);
+            request.setAttribute("gridWeatherDataSources", poiBean.getGridWeatherStationDataSources());
             request.getRequestDispatcher("/organizationForm.ftl").forward(request, response);
         }
         else if(action.equals("organizationFormSubmit"))
@@ -142,6 +147,11 @@ public class OrganizationController extends HttpServlet {
                                     : new GISUtil().getJtsPointFromString(formValidation.getFormField("defaultMapCenter").getWebValue())
                     );
                     
+                    organization.setDefaultGridWeatherStationDataSource(
+                        formValidation.getFormField("defaultGridWeatherStationDataSourceId").getValueAsInteger() < 0 ?
+                        null
+                        : poiBean.getWeatherStationDataSource(formValidation.getFormField("defaultGridWeatherStationDataSourceId").getValueAsInteger())
+                    );
                     organization = userBean.storeOrganization(organization);
                     
                     response.sendRedirect(

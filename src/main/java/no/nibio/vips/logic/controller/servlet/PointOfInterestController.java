@@ -27,13 +27,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.ejb.EJB;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ejb.EJB;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
@@ -298,6 +298,8 @@ public class PointOfInterestController extends HttpServlet {
                             {
                                 weatherStation.setIsForecastLocation(Boolean.TRUE);
                             }
+                            
+                            weatherStation.setIsPrivate(formValidation.getFormField("isPrivate").getWebValue() != null);
 
                             Double altitude = 0.0;
                             Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();
@@ -657,6 +659,8 @@ public class PointOfInterestController extends HttpServlet {
                                 {
                                     poi.setIsForecastLocation(Boolean.FALSE);
                                 }
+
+                                poi.setIsPrivate(formValidation.getFormField("isPrivate").getWebValue() != null);
                                 
                                 Double altitude = 0.0;
                                 Point p2d = formValidation.getFormField("location").getValueAsPointWGS84();

@@ -2,18 +2,18 @@
   Copyright (c) 2015 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  NIBIO is distributed in the hope that it will be useful,
+ This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
 <#macro page_head>
         <title>${i18nBundle.deleteUser}</title>
@@ -35,7 +35,10 @@
 		<li>${i18nBundle.weatherStations}: ${userResources.pois?size}</li>
 		<li>${i18nBundle.messages}: ${userResources.messageLocales?size}</li>
 		<li>${i18nBundle.forecasts}: ${userResources.forecastConfigurations?size}</li>
-                <li>${i18nBundle.observations}: ${userResources.observations?size}</li>
+        <li>${i18nBundle.observations}: ${userResources.observations?size}</li>
+		<#if userBarkbeetleSeasonTrapsites?size gt 0 >
+			<li>Barkbillefellelokaliteter: ${userBarkbeetleSeasonTrapsites?size}</li>
+		</#if>
 	</ul>
 	<h2>${i18nBundle.transferResources}</h2>
 	<form action="/user?action=deleteUser" method="POST" onsubmit="return confirm('${i18nBundle.confirmDelete}');"/>
@@ -48,7 +51,7 @@
                         </#if>
 		<#list users as user>
 			<#if user.userId != viewUser.userId>
-			<option value="${user.userId}">${user.firstName!""} ${user.lastName}</option>
+			<option value="${user.userId}">${user.lastName}, ${user.firstName!""}</option>
 			</#if>
 		</#list>
 		</select>

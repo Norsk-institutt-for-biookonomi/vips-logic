@@ -26,15 +26,15 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import javax.ejb.EJB;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ejb.EJB;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.MessageBean;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Message;
@@ -51,10 +51,10 @@ import no.nibio.web.forms.FormUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 
 /**
  * @copyright 2014-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -226,7 +226,11 @@ public class MessageController extends HttpServlet {
                 request.setAttribute("allCropCategoryIds", em.createNamedQuery("CropCategory.findByOrganizationId").setParameter("organizationId",user.getOrganizationId().getOrganizationId()).getResultList());
                 request.getRequestDispatcher("/messageForm.ftl").forward(request, response);
             }
-            catch(NullPointerException | NumberFormatException | NoResultException ex)
+            catch(NoResultException ex)
+            {
+                response.sendError(404, "Message not found");
+            }
+            catch(NullPointerException | NumberFormatException ex)
             {
                 response.sendError(500, ExceptionUtil.getStackTrace(ex));
             }
@@ -269,18 +273,10 @@ public class MessageController extends HttpServlet {
             {
                 Map<String,String[]> parameterMap;
                 List<FileItem> items = null;
-                if(ServletFileUpload.isMultipartContent(request))
+                if(JakartaServletFileUpload.isMultipartContent(request))
                 {
-                    // Create a factory for disk-based file items
-                    DiskFileItemFactory factory = new DiskFileItemFactory();
-
-                    // Configure a repository (to ensure a secure temp location is used)
-                    ServletContext servletContext = this.getServletConfig().getServletContext();
-                    File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
-                    factory.setRepository(repository);
-
                     // Create a new file upload handler
-                    ServletFileUpload upload = new ServletFileUpload(factory);
+                    JakartaServletFileUpload upload = new JakartaServletFileUpload();
 
                     // Parse the request
                     items = upload.parseRequest(request);

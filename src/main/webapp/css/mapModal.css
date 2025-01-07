@@ -1,0 +1,78 @@
+.map-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    top: 50%;
+    width: 90%;
+    height: 90%;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.9);
+    transform: translate(-50%, -50%);
+    border: 2px solid #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+}
+
+.map-modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#selected-point-info-panel {
+    width: 160px;
+    background: white;
+    padding: 0 10px 10px 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 1100;
+}
+
+.map-button {
+    font-size: 24px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-item i {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+}
+
+.info.legend {
+    background-color: white;
+    padding: 10px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    cursor: default !important;
+}
+
+#confirm-button {
+    margin-top: 10px;
+}
+
+.leaflet-container {
+    cursor: default !important;
+    font-size: 12px;
+}
+
+#open-map-modal-icon {
+    font-size: 30px;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+#new-point-form {
+    z-index: 1200;
+    position: absolute;
+}

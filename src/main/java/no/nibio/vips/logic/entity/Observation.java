@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
+ * Copyright (c) 2014 NIBIO <http://www.nibio.no/>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,21 +19,8 @@ package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
@@ -41,18 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
-import no.nibio.vips.logic.util.StringJsonUserType;
 import no.nibio.vips.observationdata.ObservationDataSchema;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -61,22 +44,24 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "observation")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
+//@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
+
 @NamedQueries({
     @NamedQuery(name = "Observation.findAll", query = "SELECT o FROM Observation o"),
     @NamedQuery(name = "Observation.findByObservationId", query = "SELECT o FROM Observation o WHERE o.observationId = :observationId"),
     @NamedQuery(name = "Observation.findByUserId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByLastEditedBy", query = "SELECT o FROM Observation o WHERE o.lastEditedBy IN(:lastEditedBy)"),
     @NamedQuery(name = "Observation.findByLocationPointOfInterestId", query = "SELECT o FROM Observation o WHERE o.locationPointOfInterestId = :locationPointOfInterestId"),
+    @NamedQuery(name = "Observation.findByObservationTimeSeries", query = "SELECT o FROM Observation o WHERE o.observationTimeSeries = :observationTimeSeries"),
     @NamedQuery(name = "Observation.findByStatusChangedByUserId", query = "SELECT o FROM Observation o WHERE o.statusChangedByUserId IN(:statusChangedByUserId)"),
     @NamedQuery(name = "Observation.findByUserIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByUserIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId) AND o.statusTypeId= :statusTypeId"),
     @NamedQuery(name = "Observation.findByUserIdAndOrganism", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId) AND o.organism =  :organism"),
-    @NamedQuery(name = "Observation.findByOrganizationId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
+    @NamedQuery(name = "Observation.findByOrganizationId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId.organizationId = :organizationId))"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId.organizationId = :organizationId)) AND o.statusTypeId= :statusTypeId"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
     @NamedQuery(name = "Observation.findByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism"),
     @NamedQuery(name = "Observation.findFirstByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism AND o.timeOfObservation = (SELECT MIN(ob.timeOfObservation) FROM Observation ob WHERE ob.organism = :organism)"),
     @NamedQuery(name = "Observation.findByTimeOfObservation", query = "SELECT o FROM Observation o WHERE o.timeOfObservation = :timeOfObservation")
@@ -91,6 +76,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Integer userId;
     private Integer lastEditedBy;
     private List<Gis> geoinfo;
+    private ObservationTimeSeries observationTimeSeries;
     private Integer locationPointOfInterestId;
     //private Double observedValue;
     //private Integer denominator;
@@ -108,21 +94,30 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Boolean broadcastMessage;
     private Boolean locationIsPrivate;
     private PolygonService polygonService;
-    
+
     private ObservationDataSchema observationDataSchema;
-    
+
     private VipsLogicUser user; // Transient
     private VipsLogicUser lastEditedByUser; //
     private PointOfInterest location; // Transient
-    
+
     private Set<ObservationIllustration> observationIllustrationSet;
-    
+
     private GISEntityUtil GISEntityUtil;
     private GISUtil GISUtil;
 
+    // Should be defined as an enum (WEB/APP), but PostgreSQLEnumType and hibernate6 seems to be necessary
+    // https://stackoverflow.com/questions/50818649/hibernate-and-java-and-postgres-enumeratedvalue-enumtype-string-caused-by
+    private String source;
+
     public Observation() {
+        this("WEB");
+    }
+
+    public Observation(String source) {
         this.GISEntityUtil = new GISEntityUtil();
         this.GISUtil = new GISUtil();
+        this.source = source;
     }
 
     public Observation(Integer observationId) {
@@ -160,7 +155,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         this.timeOfObservation = timeOfObservation;
     }
 
-    
+
     // Using PostGIS + Hibernate-spatial + Java Topology Suite to make this work
     /*@JsonIgnore
     @Type(type = "org.hibernate.spatial.GeometryType")
@@ -172,12 +167,12 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setLocation(Point location) {
         this.location = location;
     }*/
-    
+
     public void setGeoinfos(List<Gis> geoinfo)
     {
         this.geoinfo = geoinfo;
     }
-    
+
     public void addGeoInfo(Gis geoinfo)
     {
         if(this.geoinfo == null)
@@ -186,20 +181,20 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         }
         this.geoinfo.add(geoinfo);
     }
-    
+
     @JsonIgnore
     @Transient
     public List<Gis> getGeoinfos()
     {
         return this.geoinfo;
     }
-    
-    
+
+
     public void setGeoinfo(String json)
     {
         this.setGeoinfos(this.GISEntityUtil.getGisFromGeoJSON(json));
     }
-    
+
     @Transient
     @Override
     public String getGeoinfo()
@@ -272,7 +267,38 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 
     @Override
     public String toString() {
-        return "no.nibio.vips.logic.entity.Observation[ observationId=" + observationId + " ]";
+        return "Observation{" +
+            "observationId=" + observationId +
+            ", timeOfObservation=" + timeOfObservation +
+            ", organism=" + organism +
+            ", cropOrganism=" + cropOrganism +
+            ", userId=" + userId +
+            ", lastEditedBy=" + lastEditedBy +
+            ", geoinfo=" + geoinfo +
+            ", observationTimeSeries=" + observationTimeSeries +
+            ", locationPointOfInterestId=" + locationPointOfInterestId +
+            ", observationHeading='" + observationHeading + '\'' +
+            ", observationText='" + observationText + '\'' +
+            ", statusTypeId=" + statusTypeId +
+            ", statusChangedByUserId=" + statusChangedByUserId +
+            ", statusChangedTime=" + statusChangedTime +
+            ", lastEditedTime=" + lastEditedTime +
+            ", statusRemarks='" + statusRemarks + '\'' +
+            ", observationData='" + observationData + '\'' +
+            ", isQuantified=" + isQuantified +
+            ", isPositive=" + isPositive +
+            ", broadcastMessage=" + broadcastMessage +
+            ", locationIsPrivate=" + locationIsPrivate +
+            ", polygonService=" + polygonService +
+            ", observationDataSchema=" + observationDataSchema +
+            ", user=" + user +
+            ", lastEditedByUser=" + lastEditedByUser +
+            ", location=" + location +
+            ", observationIllustrationSet=" + observationIllustrationSet +
+            ", GISEntityUtil=" + GISEntityUtil +
+            ", GISUtil=" + GISUtil +
+            ", source=" + source +
+            '}';
     }
 
     /**
@@ -311,13 +337,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setOrganism(Organism organism) {
         this.organism = organism;
     }
-    
+
     @JoinColumn(name = "polygon_service_id", referencedColumnName = "polygon_service_id")
     @ManyToOne
     public PolygonService getPolygonService(){
         return this.polygonService;
     }
-    
+
     public void setPolygonService(PolygonService polygonService)
     {
         this.polygonService = polygonService;
@@ -336,7 +362,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         return this.getLocationCoordinate().x;
     }
     */
-    
+
     @Override
     @Transient
     public String getName() {
@@ -440,11 +466,11 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     /**
      * @return the observationData
      */
-    @Type(type = "StringJsonObject")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "observation_data")
     @Override
     public String getObservationData() {
-        return observationData;
+        return this.observationData != null && this.observationData.replaceAll("\"", "").trim().length() > 0 ? this.observationData : null;
     }
 
     /**
@@ -453,13 +479,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setObservationData(String observationData) {
         this.observationData = observationData;
     }
-    
+
     @Transient
     public ObservationDataSchema getObservationDataSchema()
     {
         return this.observationDataSchema != null ? this.observationDataSchema : null;
     }
-    
+
     public void setObservationDataSchema(ObservationDataSchema observationDataSchema)
     {
         this.observationDataSchema = observationDataSchema;
@@ -495,7 +521,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public void setCropOrganism(Organism cropOrganism) {
         this.cropOrganism = cropOrganism;
     }
-    
+
     @Transient
     public Integer getCropOrganismId() {
         return this.getCropOrganism() != null ? this.getCropOrganism().getOrganismId() : null;
@@ -529,6 +555,27 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
      */
     public void setObservationIllustrationSet(Set<ObservationIllustration> observationIllustrationSet) {
         this.observationIllustrationSet = observationIllustrationSet;
+    }
+
+    @Transient
+    public Integer getObservationTimeSeriesId() {
+        return observationTimeSeries != null ? observationTimeSeries.getObservationTimeSeriesId() : null;
+    }
+
+    /**
+     * @return the observation time series
+     */
+    @JoinColumn(name = "observation_time_series_id", referencedColumnName = "observation_time_series_id")
+    @ManyToOne
+    public ObservationTimeSeries getObservationTimeSeries() {
+        return observationTimeSeries;
+    }
+
+    /**
+     * @param observationTimeSeries the observation time series to set
+     */
+    public void setObservationTimeSeries(ObservationTimeSeries observationTimeSeries) {
+        this.observationTimeSeries = observationTimeSeries;
     }
 
     /**
@@ -630,7 +677,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     /**
      * Simplifies the public JSON object
      * @param locale
-     * @return 
+     * @return
      */
     public ObservationListItem getListItem(String locale, ObservationDataSchema observationDataSchema)
     {
@@ -642,34 +689,41 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
             this.location.addProperty("timestamp", this.getTimeOfObservation().getTime());
         }
         return new ObservationListItem(
-                this.getObservationId(),
-                this.getTimeOfObservation(),
-                this.getOrganismId(),
-                ! this.getOrganism().getLocalName(locale).trim().isBlank() ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
-                this.getCropOrganismId(),
-                ! this.getCropOrganism().getLocalName(locale).trim().isBlank() ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
-                // Specific geoInfo trumps location. This is to be interpreted 
-                // as that the observation has been geographically masked by
-                // choice of the observer
-                this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
-                this.getObservationHeading(),
-                this.getBroadcastMessage(),
-                this.getLocationIsPrivate(),
-                this.getIsPositive(),
-                this.getObservationData(),
-                observationDataSchema
+            this.getObservationId(),
+            this.userId,
+            this.user != null ? this.user.getFullName() : null,
+            this.getObservationTimeSeriesId(),
+            this.getTimeOfObservation(),
+            this.getOrganismId(),
+            ! this.getOrganism().getLocalName(locale).trim().isBlank() ? this.getOrganism().getLocalName(locale) : this.getOrganism().getLatinName(),
+            this.getCropOrganismId(),
+            ! this.getCropOrganism().getLocalName(locale).trim().isBlank() ? this.getCropOrganism().getLocalName(locale) : this.getCropOrganism().getLatinName(),
+            this.observationTimeSeries != null ? this.observationTimeSeries.getLabel() : null,
+            // Specific geoInfo trumps location. This is to be interpreted
+            // as that the observation has been geographically masked by
+            // choice of the observer
+            this.location != null ? this.location.getPointOfInterestId() : null,
+            this.location != null ? this.location.getName() : null,
+            this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
+            this.getObservationHeading(),
+            this.getObservationText(),
+            this.getBroadcastMessage(),
+            this.getLocationIsPrivate(),
+            this.getIsPositive(),
+            this.getObservationData(),
+            observationDataSchema
         );
     }
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_edited_time")
-	public Date getLastEditedTime() {
-		return lastEditedTime; 
-	}
+    public Date getLastEditedTime() {
+        return lastEditedTime;
+    }
 
-	public void setLastEditedTime(Date lastEditedTime) {
-		this.lastEditedTime = lastEditedTime;
-	}
+    public void setLastEditedTime(Date lastEditedTime) {
+        this.lastEditedTime = lastEditedTime;
+    }
 
     @Column(name = "is_positive")
     public Boolean getIsPositive() {
@@ -678,5 +732,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 
     public void setIsPositive(Boolean positive) {
         isPositive = positive;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

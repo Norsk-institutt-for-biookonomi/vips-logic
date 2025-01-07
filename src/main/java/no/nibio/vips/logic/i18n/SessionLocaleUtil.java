@@ -20,7 +20,7 @@ package no.nibio.vips.logic.i18n;
 
 import com.ibm.icu.util.ULocale;
 import java.util.ResourceBundle;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Presents a uniform way of getting locale information

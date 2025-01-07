@@ -2,18 +2,18 @@
     Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  VIPSLogic is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+  This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 	
 --><#include "../../master.ftl">
 <#macro page_head>
@@ -85,6 +85,15 @@
 	<div class="col-md-4">
 		<div id="seasonTrapsiteListMap" class="map" style="border: 1px solid black; background-color: white;">
 				<div id="popover"></div>
+                                <div id="warningLegend" class="mapBoxPlacement_4"> 
+                                    <ul>
+                                        <li class="warning_5"><span>&gt; 15 000 biller/felle</span></li>
+                                        <li class="warning_4"><span>10 000 - 15 000 biller/felle</span></li>
+                                        <li class="warning_3"><span>5 000 - 10 000 biller/felle</span></li>
+                                        <li class="warning_2"><span>0 - 5 000 biller/felle</span></li>
+                                        <li class="warning_1"><span>Ikke registrert måling</span></li>
+                                    </ul>
+                                </div>
 		</div>
 	</div>
 </div>
@@ -148,7 +157,7 @@
 </#macro>
 <#macro custom_js>
 	<script type="text/javascript" src="/js/constants.js"></script>
-	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol_6_5_0.js"></script>
 	<script type="text/javascript" src="/js/modules/barkbeetle/seasonTrapsiteListMap.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
@@ -177,7 +186,7 @@ function filter(searchTxt){
 </script>
 </#macro>
 <#macro custom_css>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol_6_5_0.css"/ >
 	<style type="text/css">
 		td.status_1 {
 			background-color: #ffe066 !important;
@@ -196,6 +205,40 @@ function filter(searchTxt){
 		div.popover {
 			min-width: 250px !important;
 		}
+
+                #warningLegend {
+                    position: absolute;
+                    left: 10px;
+                    top: 70px;
+                }
+                #warningLegend ul li span {
+                            position: relative;
+                            top: -7px;
+                }
+                #warningLegend ul li.warning_2
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_2.png");
+                }
+                #warningLegend ul li.warning_3
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_3.png");
+                }
+                #warningLegend ul li.warning_4
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_4.png");
+                }
+                #warningLegend ul li.warning_5
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_5.png");
+                }
+                #warningLegend ul li.warning_0
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_0.png");
+                }
+                #warningLegend ul li.warning_1
+                {
+                    list-style-image: url("/images/modules/barkbeetle/station_icon_status_1.png");
+                }
 	</style>
 </#macro>
 <@page_html/>

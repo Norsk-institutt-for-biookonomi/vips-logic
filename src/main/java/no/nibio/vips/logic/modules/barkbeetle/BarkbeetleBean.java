@@ -39,14 +39,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
+import jakarta.ejb.LocalBean;
+import jakarta.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
@@ -117,6 +117,30 @@ public class BarkbeetleBean {
                 .getResultList();
     }
 
+    /**
+     * Get all trapsites belonging to a specific user
+     * @param user
+     * @return
+     */
+    public List<SeasonTrapsite> getSeasonTrapsites(VipsLogicUser user)
+    {
+        return em.createNamedQuery("SeasonTrapsite.findByUserId")
+            .setParameter("userId", user)
+            .getResultList();
+    }
+
+    /**
+     * Transferring ownership of all season trapsites for all seasons belonging to a user
+     * to another user
+     * @param fromUser the current owner of the sites
+     * @param toUser the new owner of the sites
+     */
+    public void transferSeasonTrapsites(VipsLogicUser fromUser, VipsLogicUser toUser){
+        em.createNativeQuery("UPDATE barkbeetle.season_trapsite SET user_id=:toUserId WHERE user_id=:fromUserId")
+        .setParameter("fromUserId", fromUser.getUserId())
+        .setParameter("toUserId", toUser.getUserId())
+        .executeUpdate();
+    }
     /**
      * Get the list of trapsites for the given season
      *
@@ -287,7 +311,9 @@ public class BarkbeetleBean {
         em.createNativeQuery("DELETE FROM barkbeetle.season_trapsite_bivolt WHERE season_trapsite_id = :seasonTrapsiteId")
                 .setParameter("seasonTrapsiteId", seasonTrapsiteId)
                 .executeUpdate();
-        em.remove(stToDelete);
+        em.createNativeQuery("DELETE FROM barkbeetle.season_trapsite WHERE season_trapsite_id = :seasonTrapsiteId")
+                .setParameter("seasonTrapsiteId", seasonTrapsiteId)
+                .executeUpdate();
         return true;
     }
 

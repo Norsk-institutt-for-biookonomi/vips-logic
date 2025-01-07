@@ -10,7 +10,7 @@
  <h1>ERROR 403 - Forbidden</h1>
   <p>${message}</p>
   
-  <#assign nextPage= Request["javax.servlet.forward.servlet_path"] + "?" + Request["javax.servlet.forward.query_string"]!"">
+  <#assign nextPage= Request["jakarta.servlet.forward.servlet_path"] + "?" + Request["jakarta.servlet.forward.query_string"]!"">
   <p><a href="/login?nextPage=${nextPage?url}">To login page</a></p>
 </#macro>
 <@page_html/>

@@ -21,7 +21,7 @@ package no.nibio.vips.logic.scheduling;
 import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.SchedulerListener;
 import it.sauronsoftware.cron4j.TaskExecutor;
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 import no.nibio.vips.logic.controller.session.SchedulingBean;
 
 /**

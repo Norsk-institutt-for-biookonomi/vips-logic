@@ -19,8 +19,8 @@
 package no.nibio.vips.logic;
 
 import java.util.Set;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
 
 /**
  * Responsible for adding REST resources
@@ -55,9 +55,10 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.messaging.sms.SMSHandlingService.class);
         resources.add(no.nibio.vips.logic.modules.applefruitmoth.AppleFruitMothService.class);
         resources.add(no.nibio.vips.logic.service.ObservationService.class);
+        resources.add(no.nibio.vips.logic.service.ObservationTimeSeriesService.class);
         resources.add(no.nibio.vips.logic.service.ModelFormService.class);
-        
         resources.add(no.nibio.vips.logic.service.JacksonConfig.class);
+        resources.add(no.nibio.vips.logic.entity.helpers.KmlMessageBodyWriter.class);
         //resources.add(no.nibio.vips.logic.service.JSONBConfig.class);
         //resources.add(no.nibio.vips.coremanager.service.ManagerResourceImpl.class);
     }

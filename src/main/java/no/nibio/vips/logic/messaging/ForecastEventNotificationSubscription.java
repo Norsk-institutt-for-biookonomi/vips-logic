@@ -19,15 +19,13 @@
 package no.nibio.vips.logic.messaging;
 
 import java.util.List;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import no.nibio.vips.logic.util.IntegerArrayUserType;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -35,7 +33,6 @@ import org.hibernate.annotations.TypeDefs;
  */
 @Entity
 @Table(name = "forecast_event_notification_subscription", schema = "messaging")
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 public class ForecastEventNotificationSubscription {
 
     @Id
@@ -46,13 +43,13 @@ public class ForecastEventNotificationSubscription {
     @Column(name = "universal_message_format_id")
     private Integer universalMessageFormatId;
     
-    @Type(type = "IntegerArray")
+    @Type(ListArrayType.class)
     @Column(name = "weather_station_ids")
-    private Integer[] weatherStationIds;
+    private List<Integer> weatherStationIds;
     
-    @Type(type = "IntegerArray")
+    @Type(ListArrayType.class)
     @Column(name = "crop_category_ids")
-    private Integer[] cropCategoryIds;
+    private List<Integer> cropCategoryIds;
 
     /**
      * @return the userId
@@ -85,42 +82,29 @@ public class ForecastEventNotificationSubscription {
     /**
      * @return the weatherStationIds
      */
-    public Integer[] getWeatherStationIds() {
+    public List<Integer> getWeatherStationIds() {
         return weatherStationIds;
     }
 
     /**
      * @param weatherStationIds the weatherStationIds to set
      */
-    public void setWeatherStationIds(Integer[] weatherStationIds) {
+    public void setWeatherStationIds(List<Integer> weatherStationIds) {
         this.weatherStationIds = weatherStationIds;
     }
     
-    /**
-     * Convenience method
-     * @param weatherStationIds 
-     */
-    public void setWeatherStationIds(List<Integer> weatherStationIds)
-    {
-        this.weatherStationIds = weatherStationIds.toArray(new Integer[weatherStationIds.size()]);
-    }
 
     /**
      * @return the cropCategoryIds
      */
-    public Integer[] getCropCategoryIds() {
+    public List<Integer> getCropCategoryIds() {
         return cropCategoryIds;
     }
 
     /**
      * @param cropCategoryIds the cropCategoryIds to set
      */
-    public void setCropCategoryIds(Integer[] cropCategoryIds) {
+    public void setCropCategoryIds(List<Integer> cropCategoryIds) {
         this.cropCategoryIds = cropCategoryIds;
-    }
-    
-    public void setCropCategoryIds(List<Integer> cropCategoryIds)
-    {
-        this.cropCategoryIds = cropCategoryIds.toArray(new Integer[cropCategoryIds.size()]);
     }
 }

@@ -130,9 +130,9 @@
 	    <span class="help-block" id="forecastConfigurationForm_locationPointOfInterestId_validation"></span>
 	  </div>
 	  <div class="form-group">
-	    <label for="weatherStationPointOfInterestId">Målestasjon</label>
+	    <label for="weatherStationPointOfInterestId">Værstasjon</label>
 	    <select class="form-control" name="weatherStationPointOfInterestId" onblur="validateField(this);">
-	    	<option value="-1">Vennligst velg målestasjon</option>
+	    	<option value="-1">Vennligst velg værstasjon</option>
 	    	<option value="54">Alvdal</option>
 	    	<option value="91" selected="selected">Apelsvoll</option>
 	    	<option value="30">Balestrand</option>

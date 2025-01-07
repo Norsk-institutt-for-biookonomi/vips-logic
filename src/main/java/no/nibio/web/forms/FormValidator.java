@@ -36,14 +36,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import javax.ejb.EJB;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.ejb.EJB;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.slf4j.LoggerFactory;
 
 /**
  * Uses form configuration set in JSON files in [WARFILE]/formdefinitions/, or 
@@ -57,6 +58,8 @@ import org.apache.commons.validator.routines.EmailValidator;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class FormValidator {
+
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(FormValidator.class);
     
     @EJB
     UserBean userBean;
@@ -340,6 +343,7 @@ public class FormValidator {
                 {
                     field.setValid(false);
                     field.setValidationMessage(resourceBundle.getString("fieldIsRequired"));
+                    LOGGER.debug(field.getName() + " with a value of " + field.getWebValue() + " is considered to be NULL");
                 }
             }
             

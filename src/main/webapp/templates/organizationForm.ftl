@@ -2,18 +2,18 @@
   Copyright (c) 2016 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  VIPSLogic is distributed in the hope that it will be useful,
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --><#include "master.ftl">
 <#macro page_head>
         <title><#if organization.organizationId?has_content>${i18nBundle.editOrganization} ${organization.organizationName}<#else>${i18nBundle.newOrganization}</#if></title>
@@ -119,7 +119,7 @@
 			    <input type="text" class="form-control" name="vipswebUrl" placeholder="${i18nBundle.vipswebUrl}" value="${(organization.vipswebUrl)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_vipswebUrl_validation"></span>
 			  </div>
-                          <div class="form-group">
+                <div class="form-group">
 			    <label for="archiveUserId">${i18nBundle.archiveUserId}</label>
 			    <select class="form-control" name="archiveUserId" onblur="validateField(this);">
 			    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.archiveUserId?lower_case}
@@ -131,20 +131,32 @@
 			     </select>
 			     <span class="help-block" id="${formId}_archiveUserId_validation"></span>
 			  </div>
-                          <div class="form-group">
+                <div class="form-group">
 			    <label for="defaultVipsCoreUserId">${i18nBundle.defaultVipsCoreUserId}</label>
 			    <input type="number" class="form-control" name="defaultVipsCoreUserId" placeholder="${i18nBundle.defaultVipsCoreUserId}" value="${(organization.defaultVipsCoreUserId)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_defaultVipsCoreUserId_validation"></span>
 			  </div>
-                           <div class="form-group">
+                <div class="form-group">
 			    <label for="defaultMapZoom">${i18nBundle.defaultMapZoom}</label>
 			    <input type="number" class="form-control" name="defaultMapZoom" placeholder="${i18nBundle.defaultMapZoom}" value="${(organization.defaultMapZoom)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_defaultMapZoom_validation"></span>
 			  </div>
-                          <div class="form-group">
+                <div class="form-group">
 			    <label for="defaultMapCenter">${i18nBundle.defaultMapCenter} (WGS84 longitude,latitude)</label>
 			    <input type="text" class="form-control" name="defaultMapCenter" placeholder="${i18nBundle.defaultMapCenter}" value="${(defaultMapCenterLon?c)!""},${(defaultMapCenterLat?c)!""}" onblur="validateField(this); "/>
 			    <span class="help-block" id="${formId}_defaultMapCenter_validation"></span>
+			  </div>
+			  <div class="form-group">
+			    <label for="defaultGridWeatherStationDataSourceId">${i18nBundle.defaultGridWeatherStationDataSource}</label>
+			    <select class="form-control" name="defaultGridWeatherStationDataSourceId" onblur="validateField(this);">
+			    	<option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.defaultGridWeatherStationDataSource?lower_case}
+				<#list gridWeatherDataSources as dSource>
+					<option value="${dSource.weatherStationDataSourceId}"
+						<#if organization.defaultGridWeatherStationDataSource?has_content && organization.defaultGridWeatherStationDataSource.weatherStationDataSourceId == dSource.weatherStationDataSourceId>selected="selected"</#if>
+					>${dSource.name}</option>
+				</#list>
+			     </select>
+			     <span class="help-block" id="${formId}_defaultGridWeatherStationDataSourceId_validation"></span>
 			  </div>
 			  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
 			  <#if organization.organizationId?has_content>

@@ -18,25 +18,24 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javax.ejb.EJB;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
+
+import jakarta.ejb.EJB;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
 import no.nibio.vips.logic.entity.UserUuid;
@@ -47,26 +46,27 @@ import no.nibio.vips.util.ServletUtil;
 
 /**
  * Logs a user in or out
+ * 
  * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class LoginController extends HttpServlet {
-    //private static final String CLOSE_AND_RELOAD_PARENT = "close_and_reload_parent";
-    
+    // private static final String CLOSE_AND_RELOAD_PARENT = "close_and_reload_parent";
+
     private static final String RETURN_UUID_PARAMETER_NAME = "returnUUID";
-    
+
     @EJB
     UserBean userBean;
-    
+
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
      * <code>POST</code> methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -75,146 +75,124 @@ public class LoginController extends HttpServlet {
         request.setAttribute("nextPage", nextPage);
         // We remove the session attribute, so it doesn't stick
         request.getSession().removeAttribute("nextPage");
-        
+
         Boolean returnUUID = getReturnUUID(request);
         request.setAttribute(LoginController.RETURN_UUID_PARAMETER_NAME, returnUUID);
         // We remove the session attribute, so it doesn't stick
         request.getSession().removeAttribute(LoginController.RETURN_UUID_PARAMETER_NAME);
-        
 
         // A log out request
-        if(request.getServletPath().contains("logout"))
-        {
+        if (request.getServletPath().contains("logout")) {
+            VipsLogicUser user = request.getSession().getAttribute("user") != null ? (VipsLogicUser) request.getSession().getAttribute("user") : null;
+            // Make sure we delete the current user and their UUID
+            userBean.deleteUserUuid(user.getUserUuid());
             request.getSession().removeAttribute("user");
+
+            // Check if we have a cookie to delete as well
             Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
-            if(rememberedUser != null)
-            {
+            if (rememberedUser != null) {
                 rememberedUser.setMaxAge(0);
                 response.addCookie(rememberedUser);
+                // This is likely duplication(?) - or are there cases where this makes sense?
                 userBean.deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
             }
-            request.setAttribute("messageKey","logoutsuccess");
+            request.setAttribute("messageKey", "logoutsuccess");
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
         // A login attempt
-        else if(request.getServletPath().contains("loginsubmit"))
-        {
+        else if (request.getServletPath().contains("loginsubmit")) {
             // Which login method?
             Integer userAuthenticationTypeId = -1;
-            try
-            {
+            try {
                 userAuthenticationTypeId = Integer.valueOf(request.getParameter("userAuthenticationTypeId"));
             }
             // No method found, redirect to form again
-            catch(NumberFormatException | NullPointerException ex)
-            {
+            catch (NumberFormatException | NullPointerException ex) {
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
                 return;
             }
-            
+
             // Standard username/password login
-            if(userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_PASSWORD))
-            {
+            if (userAuthenticationTypeId.equals(UserAuthenticationType.TYPE_PASSWORD)) {
                 String username = request.getParameter("username");
                 String password = request.getParameter("password");
                 try (PrintWriter out = response.getWriter()) {
-                    
-                    Map<String,String> creds = new HashMap();
+
+                    Map<String, String> creds = new HashMap<>();
                     creds.put("username", username);
                     creds.put("password", password);
 
+                    // Check user credentials
                     VipsLogicUser user = userBean.authenticateUser(creds);
 
-                    if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
-                    {
+                    if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED)) {
+                        UserUuid uUUID = userBean.createAndPersistUserUuid(user);
+                        user.setUserUuid(uUUID.getUserUuidPK().getUserUuid());
                         request.getSession().setAttribute("user", user);
-                        UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
-                        if(returnUUID)
-                        {
-                            nextPage += (nextPage.contains("?") ? "&": "?") + "returnUUID=" + uUUID.toString();
+                        this.handleRememberUser(request, response, user, returnUUID);
+                        if (returnUUID) {
+                            nextPage += (nextPage.contains("?") ? "&" : "?") + "returnUUID=" + uUUID.getUserUuidPK().getUserUuid().toString();
                         }
-                        if(nextPage.indexOf(Globals.PROTOCOL) == 0)
-                        {
-                            //System.out.println("nextPage=" + nextPage);
+                        if (nextPage.indexOf(Globals.PROTOCOL) == 0) {
+                            // System.out.println("nextPage=" + nextPage);
                             response.sendRedirect(nextPage);
-                        }
-                        else
-                        {
+                        } else {
                             response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://").append(ServletUtil.getServerName(request)).append(nextPage).toString());
                         }
-                    }
-                    else if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
-                    {
+                    } else if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION)) {
                         request.setAttribute("errorMessageKey", "emailNotVerified");
                         request.getRequestDispatcher("/login.ftl").forward(request, response);
-                    }
-                    else if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL))
-                    {
+                    } else if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL)) {
                         request.setAttribute("errorMessageKey", "pleaseAwaitApproval");
                         request.getRequestDispatcher("/login.ftl").forward(request, response);
-                    }
-                    else
-                    {
+                    } else {
                         request.setAttribute("errorMessageKey", "invalidcredentials");
                         request.getRequestDispatcher("/login.ftl").forward(request, response);
                     }
 
-
                 }
             }
             // Authentication method not recognized, redirect to standard form
-            else
-            {
+            else {
                 request.getRequestDispatcher("/login.ftl").forward(request, response);
             }
         }
-        // Login from a remote resource. Return UUID
-        else if(request.getServletPath().contains("remotelogin"))
-        {
+        // Login from a remote resource, e.g. an app. Return UUID
+        else if (request.getServletPath().contains("remotelogin")) {
             String username = request.getParameter("username");
             String password = request.getParameter("password");
-            
 
-            Map<String,String> creds = new HashMap();
+            Map<String, String> creds = new HashMap<>();
             creds.put("username", username);
             creds.put("password", password);
 
             VipsLogicUser user = userBean.authenticateUser(creds);
             PrintWriter out = response.getWriter();
-            if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED))
-            {
+            if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED)) {
                 request.getSession().setAttribute("user", user);
-                UUID uUUID = this.handleRememberUser(request, response, user, returnUUID);
+                UserUuid uUUID = userBean.createAndPersistUserUuid(user);
+                user.setUserUuid(uUUID.getUserUuidPK().getUserUuid());
+                this.handleRememberUser(request, response, user, returnUUID);
                 // All is well, return object
                 ObjectMapper mapper = new ObjectMapper();
-                user.setUserUuid(uUUID);
-                mapper.writeValue(out,user);
+                mapper.writeValue(out, user);
                 out.close();
-            }
-            else
-            {
+            } else {
                 response.setStatus(Response.Status.UNAUTHORIZED.getStatusCode());
-                
-                if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION))
-                {
+
+                if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_EMAIL_VERIFICATION)) {
                     out.print(SessionLocaleUtil.getI18nText(request, "emailNotVerified"));
-                }
-                else if(user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL))
-                {
+                } else if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL)) {
                     out.print(SessionLocaleUtil.getI18nText(request, "pleaseAwaitApproval"));
                     request.getRequestDispatcher("/login.ftl").forward(request, response);
-                }
-                else
-                {
+                } else {
                     out.print(SessionLocaleUtil.getI18nText(request, "invalidcredentials"));
                 }
             }
         }
         // No login attempt. Show form
-        else
-        {
-            if(request.getParameter("nextPage") != null)
-            {
+        else {
+            if (request.getParameter("nextPage") != null) {
                 request.setAttribute("checkRemember", request.getParameter("nextPage").indexOf(Globals.PROTOCOL) == 0);
             }
             request.setAttribute("messageKey", request.getParameter("messageKey"));
@@ -222,91 +200,81 @@ public class LoginController extends HttpServlet {
             request.getRequestDispatcher("/login.ftl").forward(request, response);
         }
     }
-    
+
     /**
      * Utility method (hiding noisy code)
+     * 
      * @param request
      * @return
-     * @throws UnsupportedEncodingException 
+     * @throws UnsupportedEncodingException
      */
-    private String getNextPage(HttpServletRequest request) throws UnsupportedEncodingException
-    {
-        String nextPage = request.getParameter("nextPage") != null ? 
-                request.getParameter("nextPage")
-                : request.getSession().getAttribute("nextPage") != null ?
-                    URLDecoder.decode((String)request.getSession().getAttribute("nextPage"),"UTF-8")
-                    :null;
-        if(nextPage == null)
-        {
-            nextPage="/";
+    private String getNextPage(HttpServletRequest request) throws UnsupportedEncodingException {
+        String nextPage = request.getParameter("nextPage") != null ? request.getParameter("nextPage")
+                : request.getSession().getAttribute("nextPage") != null ? URLDecoder.decode((String) request.getSession().getAttribute("nextPage"), "UTF-8")
+                        : null;
+        if (nextPage == null) {
+            nextPage = "/";
         }
-        
+
         return nextPage;
     }
-    
+
     /**
      * Should the generated UUID be returned to login client?
+     * 
      * @param request
-     * @return 
+     * @return
      */
-    private Boolean getReturnUUID(HttpServletRequest request)
-    {
-        return request.getParameter(LoginController.RETURN_UUID_PARAMETER_NAME) != null ?
-                request.getParameter(LoginController.RETURN_UUID_PARAMETER_NAME).equals("true")
-                : request.getSession().getAttribute(LoginController.RETURN_UUID_PARAMETER_NAME) != null ?
-                    (Boolean) request.getSession().getAttribute(LoginController.RETURN_UUID_PARAMETER_NAME)
-                : false;
+    private Boolean getReturnUUID(HttpServletRequest request) {
+        return request.getParameter(LoginController.RETURN_UUID_PARAMETER_NAME) != null ? request.getParameter(LoginController.RETURN_UUID_PARAMETER_NAME).equals("true")
+                : request.getSession().getAttribute(LoginController.RETURN_UUID_PARAMETER_NAME) != null ? (Boolean) request.getSession().getAttribute(LoginController.RETURN_UUID_PARAMETER_NAME)
+                        : false;
     }
-    
+
     /**
      * 
      * @param request
      * @param response
-     * @param user 
+     * @param user       the VIPS user
+     * @param returnUUID has a UUID been requested to be returned to the client?
+     * @return
      */
-    private UUID handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user, Boolean returnUUID)
-    {
-        
-        String rememberUser = request.getParameter("rememberUser") != null ? 
-                request.getParameter("rememberUser") 
+    private void handleRememberUser(HttpServletRequest request, HttpServletResponse response, VipsLogicUser user, Boolean returnUUID) {
+        // This is from the login form, the checkbox that you tick off to save your login
+        String rememberUser = request.getParameter("rememberUser") != null ? request.getParameter("rememberUser")
                 : (String) request.getSession().getAttribute("rememberUser");
         request.getSession().removeAttribute("rememberUser");
-        if(returnUUID || (rememberUser != null && rememberUser.equals("on")))
-        {
-            UserUuid uUUID = userBean.createAndPersistUserUuid(user);
-            if(rememberUser != null && rememberUser.equals("on"))
-            {
-                Cookie rememberedUser = new Cookie("rememberedUser", uUUID.getUserUuidPK().getUserUuid().toString());
+        if (returnUUID || (rememberUser != null && rememberUser.equals("on"))) {
+
+            if (rememberUser != null && rememberUser.equals("on")) {
+                Cookie rememberedUser = new Cookie("rememberedUser", user.getUserUuid().toString());
                 rememberedUser.setPath("/");
                 rememberedUser.setMaxAge(Globals.DEFAULT_UUID_VALIDITY_DURATION_DAYS * 24 * 60 * 60);
                 response.addCookie(rememberedUser);
             }
-            return uUUID.getUserUuidPK().getUserUuid();
+            // return uUUID.getUserUuidPK().getUserUuid();
         }
-        else
-        {
+        // Unremember the user both server side and browser side
+        else {
             Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
-            if(rememberedUser != null)
-            {
+            if (rememberedUser != null) {
                 rememberedUser.setMaxAge(0);
                 response.addCookie(rememberedUser);
                 userBean.deleteUserUuid(UUID.fromString(rememberedUser.getValue()));
             }
-            return null;
+            // return null;
         }
     }
-    
-    
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP
      * <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -318,10 +286,10 @@ public class LoginController extends HttpServlet {
      * Handles the HTTP
      * <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

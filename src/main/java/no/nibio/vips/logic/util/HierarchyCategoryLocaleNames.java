@@ -33,7 +33,7 @@ public class HierarchyCategoryLocaleNames {
     
     public String getName(Integer hierarchyCategoryId)
     {
-        return this.nameMap.get(hierarchyCategoryId);
+        return this.nameMap.get(hierarchyCategoryId) != null ? this.nameMap.get(hierarchyCategoryId) : "";
     }
     
     public List<Integer> getHierarchyCategoryIds()

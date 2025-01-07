@@ -22,7 +22,7 @@ import it.sauronsoftware.cron4j.TaskExecutionContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 import no.nibio.vips.i18n.I18nImpl;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;

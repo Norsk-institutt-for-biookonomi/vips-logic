@@ -2,18 +2,18 @@
     Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
   
   This file is part of VIPSLogic.
-  VIPSLogic is free software: you can redistribute it and/or modify
-  it under the terms of the NIBIO Open Source License as published by 
-  NIBIO, either version 1 of the License, or (at your option) any
-  later version.
-  
-  VIPSLogic is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  NIBIO Open Source License for more details.
-  
-  You should have received a copy of the NIBIO Open Source License
-  along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 	
 --><#include "../../master.ftl">
 <#macro page_head>
@@ -21,7 +21,7 @@
 </#macro>
 <#macro custom_js>
 	<script type="text/javascript" src="/js/constants.js"></script>
-	<script type="text/javascript" src="/js/3rdparty/ol.js"></script>
+	<script type="text/javascript" src="/js/3rdparty/ol_6_5_0.js"></script>
 	<script type="text/javascript" src="/js/modules/barkbeetle/seasonTrapsiteFormMap.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>
 	<script src="/js/validateForm.js"></script>
@@ -31,6 +31,7 @@
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
 	<script type="text/javascript">
 		var theForm = document.getElementById("${formId}"); 
+		const municipalityPolygonServiceUrl = "https://proxy03.nibio.no/municipality_cache_ws/kommuneListe/N5/4326";
 		$(document).ready(function() {
 			// Make sure that there is a date picker present for HTML5 
 			// date input fields
@@ -73,7 +74,7 @@
 					
 			});
 			// Get County and municipality
-			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/?lon=" + lon + "&lat=" + lat)
+			fetch("/corsproxy/" + municipalityPolygonServiceUrl + "?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())
 			.then(municInfo =>{
 					if(municInfo.length == 0)
@@ -97,7 +98,7 @@
 			.catch( error => console.info(error));
 			
 			// Get County and municipality from before 2018
-			fetch("/corsproxy/https://proxy1.nibio.no/municipality_cache_ws/kommuneListe/N2000/4326/2017?lon=" + lon + "&lat=" + lat)
+			fetch("/corsproxy//" + municipalityPolygonServiceUrl + "/2017?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())
 			.then(municInfo =>{
 					if(municInfo.length == 0)
@@ -167,7 +168,7 @@
 </#macro>
 <#macro custom_css>
 	<link href="//code.jquery.com/ui/1.10.3/themes/redmond/jquery-ui.css" rel="stylesheet" />
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css"/ >
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol_6_5_0.css"/ >
 	<style type="text/css">
 		#seasonTrapsiteFormMap {
 			height: 600px;	
@@ -271,7 +272,7 @@
 		  </div>
 		  <div class="form-group">
 			<label for="ownerName">Tlf til eier av lokalitet</label>
-			<input type="text" class="form-control" name="ownerPhone" placeholder="Tlf til eier av lokalitet" value="${(seasonTrapsite.ownerPhone)!""}" onblur="validateField(this);"/>
+			<input type="text" class="form-control" maxlength="31" name="ownerPhone" placeholder="Tlf til eier av lokalitet" value="${(seasonTrapsite.ownerPhone)!""}" onblur="validateField(this);"/>
 			<span class="help-block" id="${formId}_ownerPhone_validation"></span>
 		  </div>
 		  <#if userIsAdmin || userIsCountyAdmin>

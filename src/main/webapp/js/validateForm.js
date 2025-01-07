@@ -2,18 +2,18 @@
  * Copyright (c) 2014 NIBIO <http://www.nibio.no/>. 
  * 
  * This file is part of VIPSLogic.
- * VIPSLogic is free software: you can redistribute it and/or modify
- * it under the terms of the NIBIO Open Source License as published by 
- * NIBIO, either version 1 of the License, or (at your option) any
- * later version.
- * 
- * VIPSLogic is distributed in the hope that it will be useful,
+* This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * NIBIO Open Source License for more details.
+ * GNU Affero General Public License for more details.
  * 
- * You should have received a copy of the NIBIO Open Source License
- * along with VIPSLogic.  If not, see <http://www.nibio.no/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * 
  */
 /*
@@ -268,7 +268,8 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
     // Single select field - check for nullValue
     if(fieldDefinition.fieldType === fieldTypes.TYPE_SELECT_SINGLE)
     {
-        webValue = fieldEl.options[fieldEl.selectedIndex].value;
+        // Fallback if this is not a select list (could be a readonly list using a twin hidden field)
+        webValue = webValue = fieldEl.options != undefined ? fieldEl.options[fieldEl.selectedIndex].value : fieldEl.value;
         if(fieldDefinition.nullValue === webValue && fieldDefinition.required === true)
         {
             invalidizeField(fieldEl, theForm, getI18nMsg("fieldIsRequired",null));
@@ -471,7 +472,7 @@ function validateFieldActual(fieldEl, theForm, formDefinitionKey)
 }
 
 /**
- * Recursive function to travers upwards in tree until we find the form
+ * Recursive function to traverse upwards in tree until we find the form
  * for the given element
  * @param {DOMElement} fieldEl
  * @returns {DOMelement} the form

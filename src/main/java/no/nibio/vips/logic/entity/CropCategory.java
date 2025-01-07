@@ -19,27 +19,28 @@
 package no.nibio.vips.logic.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.util.stream.Collectors;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import no.nibio.vips.logic.util.IntegerArrayUserType;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -48,7 +49,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "crop_category")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "CropCategory.findAll", query = "SELECT c FROM CropCategory c"),
     @NamedQuery(name = "CropCategory.findByCropCategoryId", query = "SELECT c FROM CropCategory c WHERE c.cropCategoryId = :cropCategoryId"),
@@ -70,9 +70,9 @@ public class CropCategory implements Serializable {
     private String defaultName;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cropCategoryId", fetch = FetchType.EAGER)
     private Set<CropCategoryLocal> cropCategoryLocalSet;
-    @Type(type = "IntegerArray")
     @Column(name = "crop_organism_ids")
-    private Integer[] cropOrganismIds;
+    @Type(ListArrayType.class)
+    private List<Integer> cropOrganismIds;
     @Column(name = "organization_id")
     private Integer organizationId;
     @Column(name = "max_hierarchy_category_id")
@@ -101,11 +101,11 @@ public class CropCategory implements Serializable {
         this.defaultName = defaultName;
     }
 
-    public Integer[] getCropOrganismIds() {
+    public List<Integer> getCropOrganismIds() {
         return cropOrganismIds;
     }
 
-    public void setCropOrganismIds(Integer[] cropOrganismIds) {
+    public void setCropOrganismIds(List<Integer> cropOrganismIds) {
         this.cropOrganismIds = cropOrganismIds;
     }
 
@@ -203,18 +203,18 @@ public class CropCategory implements Serializable {
         }
         else
         {
-            cropSet = new HashSet<>(Arrays.asList(this.getCropOrganismIds()));
+            cropSet = new HashSet<>(this.getCropOrganismIds());
         }
         cropSet.add(organismId);
-        this.setCropOrganismIds(cropSet.toArray(new Integer[cropSet.size()]));
+        this.setCropOrganismIds(cropSet.stream().collect(Collectors.toList()));
     }
 
     public void removeCropOrganismId(Integer organismId) {
         if(this.getCropOrganismIds() != null)
         {
-            Set<Integer> cropSet = new HashSet<>(Arrays.asList(this.getCropOrganismIds()));
+            Set<Integer> cropSet = new HashSet<>(this.getCropOrganismIds());
             cropSet.remove(organismId);
-            this.setCropOrganismIds(cropSet.toArray(new Integer[cropSet.size()]));
+            this.setCropOrganismIds(cropSet.stream().collect(Collectors.toList()));
         }
     }
 

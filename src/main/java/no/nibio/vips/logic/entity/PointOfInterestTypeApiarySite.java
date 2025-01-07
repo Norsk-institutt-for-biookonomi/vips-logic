@@ -19,9 +19,9 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 /**
  * @copyright 2023 <a href="http://www.nibio.no/">NIBIO</a>

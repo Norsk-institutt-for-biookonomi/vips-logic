@@ -21,31 +21,31 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.validation.constraints.Size;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.locationtech.jts.geom.Geometry;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.DiscriminatorType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import no.nibio.vips.gis.GISUtil;
 import org.wololo.geojson.Feature;
 
@@ -63,9 +63,9 @@ import org.wololo.geojson.Feature;
     @NamedQuery(name = "PointOfInterest.findAll", query = "SELECT p FROM PointOfInterest p ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestId", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId = :pointOfInterestId"),
     @NamedQuery(name = "PointOfInterest.findByPointOfInterestIds", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestId IN :pointOfInterestIds"),
-    @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
-    @NamedQuery(name = "PointOfInterest.findByOrganizationIdAndPoiTypes", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestTypeId in :pointOfInterestTypes AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
-    @NamedQuery(name = "PointOfInterest.findForecastLocationsByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.isForecastLocation IS TRUE AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId OR u.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId = :organizationId OR u.organizationId.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findByOrganizationIdAndPoiTypes", query = "SELECT p FROM PointOfInterest p WHERE p.pointOfInterestTypeId in :pointOfInterestTypes AND p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId = :organizationId OR u.organizationId.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
+    @NamedQuery(name = "PointOfInterest.findForecastLocationsByOrganizationId", query = "SELECT p FROM PointOfInterest p WHERE p.isForecastLocation IS TRUE AND p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId = :organizationId OR u.organizationId.organizationId IN (SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))  ORDER BY p.name ASC"),
     @NamedQuery(name = "PointOfInterest.findByName", query = "SELECT p FROM PointOfInterest p WHERE p.name = :name"),
     @NamedQuery(name = "PointOfInterest.findByNameCaseInsensitive", query = "SELECT p FROM PointOfInterest p WHERE lower(p.name) = lower(:name)"),
     @NamedQuery(name = "PointOfInterest.findByUserId", query = "SELECT p FROM PointOfInterest p WHERE p.user = :userId ORDER BY p.name ASC")
@@ -91,8 +91,17 @@ public class PointOfInterest implements Serializable, Comparable {
     private Boolean isForecastLocation;
     private Integer pointOfInterestTypeId;
     private Date lastEditedTime;
+    private Boolean isPrivate;
    
-    
+    @Column(name = "is_private")
+    public Boolean getIsPrivate() {
+        return isPrivate;
+    }
+
+    public void setIsPrivate(Boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
+
     // For attaching ad-hoc properties
     // e.g. Worst warning for map
     private Map<String, Object> properties;
@@ -132,7 +141,7 @@ public class PointOfInterest implements Serializable, Comparable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @Column(name = "point_of_interest_id")
+    @Column(name = "point_of_interest_id", insertable = false, updatable = false)
     public Integer getPointOfInterestId() {
         return pointOfInterestId;
     }
@@ -275,6 +284,10 @@ public class PointOfInterest implements Serializable, Comparable {
         if(this.properties.get("pointOfInterestTypeId") == null)
         {
             this.properties.put("pointOfInterestTypeId", this.getPointOfInterestTypeId());
+        }
+        if(this.properties.get("pointOfInterestName") == null)
+        {
+            this.properties.put("pointOfInterestName", this.getName());
         }
         return this.properties;
     }

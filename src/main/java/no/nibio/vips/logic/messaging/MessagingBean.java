@@ -29,11 +29,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
@@ -165,7 +165,7 @@ public class MessagingBean {
                 "	SELECT mns.user_id FROM messaging.message_notification_subscription mns, public.vips_logic_user u \n" +
                 "	WHERE  mns.user_id = u.user_id \n" +
                 "       and u.organization_id = " + message.getOrganizationId() +
-                (message.getCropCategoryIds() != null && message.getCropCategoryIds().length != 0 ? "       AND mns.crop_category_ids && ARRAY" + Arrays.asList(message.getCropCategoryIds()).toString() + " \n" : "") +
+                (message.getCropCategoryIds() != null && message.getCropCategoryIds().size() != 0 ? "       AND mns.crop_category_ids && ARRAY" + Arrays.asList(message.getCropCategoryIds()).toString() + " \n" : "") +
                 (message.getMessageTagIds() != null && !message.getMessageTagIds().isEmpty() ? "       AND mns.message_tag_ids && ARRAY" + message.getMessageTagIds().toString() + " \n" : "" )+ // && is the array_overlaps operator
                 "       AND (mns.universal_message_format_id <> " + UniversalMessageFormat.FORMAT_SMS + " OR (mns.universal_message_format_id = " + UniversalMessageFormat.FORMAT_SMS + " AND u.approves_sms_billing IS TRUE))" + 
                 "); \n";
@@ -219,7 +219,7 @@ public class MessagingBean {
         Date in10Days = cal.getTime();
         List<ForecastConfiguration> forecastConfigurations = em.createNativeQuery(
                 "SELECT * FROM public.forecast_configuration f "
-                + "WHERE f.forecast_configuration_id IN ("
+                + "WHERE NOT f.is_private AND f.forecast_configuration_id IN ("
                 + "     SELECT forecast_configuration_id FROM forecast_result WHERE valid_time_start between :dateStart AND :dateEnd"
                 + ")",
                 ForecastConfiguration.class

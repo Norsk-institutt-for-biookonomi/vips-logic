@@ -18,17 +18,17 @@
 
 package no.nibio.vips.logic.modules.barkbeetle;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 
 import org.jboss.resteasy.annotations.GZIP;
 
@@ -38,7 +38,7 @@ import com.webcohesion.enunciate.metadata.Facet;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ServletUtil;
