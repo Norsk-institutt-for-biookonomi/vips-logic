@@ -24,29 +24,27 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
-import no.nibio.vips.logic.util.IntegerArrayUserType;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 
 /**
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -55,7 +53,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "message")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m"),
     @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId"),
@@ -75,7 +72,7 @@ public class Message implements Serializable {
     private Set<MessageIllustration> messageIllustrationSet;
     private Set<MessageLocale> messageLocaleSet;
     private Integer organizationId;
-    private Integer[] cropCategoryIds;
+    private List<Integer> cropCategoryIds;
 
     public Message() {
     }
@@ -276,16 +273,16 @@ public class Message implements Serializable {
     /**
      * @return the cropCategoryIds
      */
-    @Type(type = "IntegerArray")
+    @Type(ListArrayType.class)
     @Column(name="crop_category_ids")
-    public Integer[] getCropCategoryIds() {
+    public List<Integer> getCropCategoryIds() {
         return cropCategoryIds;
     }
 
     /**
      * @param cropCategoryIds the cropCategoryIds to set
      */
-    public void setCropCategoryIds(Integer[] cropCategoryIds) {
+    public void setCropCategoryIds(List<Integer> cropCategoryIds) {
         this.cropCategoryIds = cropCategoryIds;
     }
 

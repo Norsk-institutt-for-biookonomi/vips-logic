@@ -23,13 +23,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.ejb.EJB;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ejb.EJB;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.Organism;
@@ -377,8 +377,7 @@ public class OrganismController extends HttpServlet {
                 {
                     Integer cropOrganismId = formValidation.getFormField("cropOrganismId").getValueAsInteger();
                     boolean includeAllChildCrops = formValidation.getFormField("includeAllChildCrops").getWebValue() != null;
-                    List<Integer> poTemp = FormUtil.getIdsFromMultipleSelect(formValidation.getFormField("pestOrganismIds").getWebValues());
-                    Integer[] pestOrganismIds = poTemp.toArray(new Integer[poTemp.size()]);
+                    List<Integer> pestOrganismIds = FormUtil.getIdsFromMultipleSelect(formValidation.getFormField("pestOrganismIds").getWebValues());
                     CropPest cropPest = em.find(CropPest.class, cropOrganismId);
                     if(cropPest == null)
                     {

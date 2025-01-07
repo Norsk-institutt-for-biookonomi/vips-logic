@@ -19,19 +19,19 @@
 package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.validation.constraints.Size;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 /**
  * Extension of {@see PointOfInterest}, with additional info for weather stations
@@ -46,12 +46,12 @@ import javax.persistence.Transient;
     @NamedQuery(name = "PointOfInterestWeatherStation.findAll", query = "SELECT p FROM PointOfInterestWeatherStation p"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findAllByActivity", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByPointOfInterestId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.pointOfInterestId = :pointOfInterestId"),
-    @NamedQuery(name = "PointOfInterestWeatherStation.findByOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId)"),
-    @NamedQuery(name = "PointOfInterestWeatherStation.findByActivityAndOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active AND p.user IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId=:organizationId)"),
+    @NamedQuery(name = "PointOfInterestWeatherStation.findByOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId.organizationId = :organizationId)"),
+    @NamedQuery(name = "PointOfInterestWeatherStation.findByActivityAndOrganizationId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.active = :active AND p.user.userId IN(SELECT u.userId FROM VipsLogicUser u WHERE u.organizationId = :organizationId)"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByUserId", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.user = :userId"),
     @NamedQuery(name = "PointOfInterestWeatherStation.findByNames", query = "SELECT p FROM PointOfInterestWeatherStation p WHERE p.name IN :names")
 })
-public class PointOfInterestWeatherStation extends PointOfInterest implements Serializable {
+public class PointOfInterestWeatherStation extends PointOfInterest {
     @Size(max = 255)
     private String weatherStationRemoteId;
     private WeatherStationDataSource weatherStationDataSourceId;

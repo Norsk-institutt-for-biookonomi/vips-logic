@@ -32,14 +32,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
-import javax.ejb.EJB;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ejb.EJB;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
@@ -65,10 +65,10 @@ import no.nibio.web.forms.FormUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 
 /**
  * @copyright 2014-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -410,18 +410,11 @@ public class ObservationController extends HttpServlet {
                     {
                         Map<String,String[]> parameterMap;
                         List<FileItem> items = null;
-                        if(ServletFileUpload.isMultipartContent(request))
+                        if(JakartaServletFileUpload.isMultipartContent(request))
                         {
-                            // Create a factory for disk-based file items
-                            DiskFileItemFactory factory = new DiskFileItemFactory();
-
-                            // Configure a repository (to ensure a secure temp location is used)
-                            ServletContext servletContext = this.getServletConfig().getServletContext();
-                            File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
-                            factory.setRepository(repository);
-
+                           
                             // Create a new file upload handler
-                            ServletFileUpload upload = new ServletFileUpload(factory);
+                            JakartaServletFileUpload upload = new JakartaServletFileUpload();
 
                             // Parse the request
                             items = upload.parseRequest(request);

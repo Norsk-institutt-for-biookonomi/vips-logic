@@ -18,24 +18,36 @@
 
 package no.nibio.vips.logic.service;
 
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import no.nibio.vips.logic.entity.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 import org.locationtech.jts.geom.Coordinate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.webcohesion.enunciate.metadata.Facet;
-
-import java.util.*;
-import javax.ejb.EJB;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import jakarta.ejb.EJB;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.ForecastConfiguration;
+import no.nibio.vips.logic.entity.ForecastModelConfiguration;
+import no.nibio.vips.logic.entity.ForecastModelConfigurationPK;
+import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.scheduling.model.PreprocessorException;
 import no.nibio.vips.logic.scheduling.model.preprocessor.SeptoriaHumidityModelPreprocessor;
 import no.nibio.vips.logic.util.RunModelException;
@@ -43,8 +55,6 @@ import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherUtil;
 import no.nibio.vips.util.XDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This is a collection of (one) service(s) for models run from forms (not as part of batch)
@@ -178,6 +188,9 @@ public class ModelFormService {
                 ws.setLatitude(pUtil.parseDouble(latitudeStr));
                 ws.setLongitude(pUtil.parseDouble(longitudeStr));
                 ws.setTimeZone(timezoneForWeatherData);
+            }
+            else {
+                return Response.status(Status.BAD_REQUEST).entity("Please specify weatherDataSourceType (weatherstation|grid)").build();
             }
 
             fConf.setVipsCoreUserId(vipsLogicUser);

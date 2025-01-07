@@ -19,8 +19,8 @@
 package no.nibio.vips.logic.util;
 
 import java.sql.SQLException;
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.postgresql.util.PGobject;
 
 /**

@@ -20,34 +20,32 @@ package no.nibio.vips.logic.entity;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.validation.constraints.Size;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import java.util.List;
 import java.util.TimeZone;
-import javax.persistence.Transient;
-import no.nibio.vips.logic.util.IntegerArrayUserType;
+import jakarta.persistence.Transient;
 import no.nibio.vips.util.WeatherUtil;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 /**
  * @copyright 2014-2024 <a href="http://www.nibio.no/">NIBIO</a>
@@ -56,7 +54,6 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "forecast_configuration")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "IntegerArray", typeClass = IntegerArrayUserType.class)})
 @NamedQueries({
     @NamedQuery(name = "ForecastConfiguration.findAll", query = "SELECT f FROM ForecastConfiguration f WHERE f.isPrivate = FALSE"),
     @NamedQuery(name = "ForecastConfiguration.findByForecastConfigurationId", query = "SELECT f FROM ForecastConfiguration f WHERE f.forecastConfigurationId = :forecastConfigurationId"),
@@ -134,9 +131,9 @@ public class ForecastConfiguration implements Serializable, Comparable {
         this.useGridWeatherData = useGridWeatherData;
     }
 
-    @Type(type = "IntegerArray")
+    @Type(ListArrayType.class)
     @Column(name = "grid_weather_station_point_of_interest_ids")
-    private Integer[] gridWeatherStationPointOfInterestIds;
+    private List<Integer> gridWeatherStationPointOfInterestIds;
     
     @Transient
     private WeatherUtil weatherUtil;
@@ -439,14 +436,14 @@ public class ForecastConfiguration implements Serializable, Comparable {
     /**
      * @return the gridWeatherStationPointOfInterestIds
      */
-    public Integer[] getGridWeatherStationPointOfInterestIds() {
+    public List<Integer> getGridWeatherStationPointOfInterestIds() {
         return gridWeatherStationPointOfInterestIds;
     }
 
     /**
      * @param gridWeatherStationPointOfInterestIds the gridWeatherStationPointOfInterestIds to set
      */
-    public void setGridWeatherStationPointOfInterestIds(Integer[] gridWeatherStationPointOfInterestIds) {
+    public void setGridWeatherStationPointOfInterestIds(List<Integer> gridWeatherStationPointOfInterestIds) {
         this.gridWeatherStationPointOfInterestIds = gridWeatherStationPointOfInterestIds;
     }
 }

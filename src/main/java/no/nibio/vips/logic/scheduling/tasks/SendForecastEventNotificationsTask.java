@@ -19,7 +19,7 @@
 package no.nibio.vips.logic.scheduling.tasks;
 
 import it.sauronsoftware.cron4j.TaskExecutionContext;
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.messaging.MessagingBean;

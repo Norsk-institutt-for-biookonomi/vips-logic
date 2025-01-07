@@ -22,14 +22,14 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Properties;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeUtility;
 
-import com.sun.mail.smtp.SMTPTransport;
+import jakarta.mail.Transport;
 import no.nibio.vips.logic.messaging.distribution.entity.DistributionTypeEnum;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgReceiver;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgToSend;
@@ -65,7 +65,7 @@ public class MailMsgDeliveryHandler implements IDeliveryMsgHandler {
             throws MessagingException, UnsupportedEncodingException {
         boolean result = false;
 
-        SMTPTransport t = null;
+        Transport t = null;
         String message = "Failed to send message to " + mailaddress + " using server " + mailserver;
         try {
 
@@ -115,11 +115,12 @@ public class MailMsgDeliveryHandler implements IDeliveryMsgHandler {
 
             LOGGER.debug("Message ready to send : " + mailMessageBody);
             
-            t = (SMTPTransport) session.getTransport(ssl ? "smtps" : "smtp");
+            t = (Transport) session.getTransport(ssl ? "smtps" : "smtp");
             t.connect();
             t.sendMessage(msg, msg.getAllRecipients());
-            
-            LOGGER.debug("Mail was sent successfully. Response: " + t.getLastServerResponse());
+
+            // TODO: Replace with TransportListener  (After upgrading to Jakarta)       
+            //LOGGER.debug("Mail was sent successfully. Response: " + t.getLastServerResponse());
 
         } finally {
             try {

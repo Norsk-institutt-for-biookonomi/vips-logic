@@ -19,10 +19,10 @@
 package no.nibio.vips.logic.controller.session;
 
 import java.util.*;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import no.nibio.vips.logic.entity.ObservationTimeSeries;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.VipsLogicUser;

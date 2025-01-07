@@ -18,42 +18,62 @@
 
 package no.nibio.vips.logic.controller.session;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ibm.icu.util.ULocale;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.servlet.http.HttpServletRequest;
-
-import no.nibio.vips.logic.entity.*;
-import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.util.SystemTime;
 import org.apache.commons.codec.binary.Base64;
-import no.nibio.vips.observationdata.ObservationDataSchema;
-import no.nibio.vips.observationdata.ObservationDataSchemaPK;
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.FeatureCollection;
 import org.wololo.geojson.GeoJSONFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ibm.icu.util.ULocale;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.servlet.http.HttpServletRequest;
+import no.nibio.vips.logic.entity.CropCategory;
+import no.nibio.vips.logic.entity.Gis;
+import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.ObservationFormShortcut;
+import no.nibio.vips.logic.entity.ObservationIllustration;
+import no.nibio.vips.logic.entity.ObservationIllustrationPK;
+import no.nibio.vips.logic.entity.ObservationStatusType;
+import no.nibio.vips.logic.entity.ObservationTimeSeries;
+import no.nibio.vips.logic.entity.Organism;
+import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.PointOfInterest;
+import no.nibio.vips.logic.entity.PolygonService;
+import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.i18n.SessionLocaleUtil;
+import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.observationdata.ObservationDataSchema;
+import no.nibio.vips.observationdata.ObservationDataSchemaPK;
 
 /**
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
@@ -409,7 +429,7 @@ public class ObservationBean {
         }
 
         // Store file
-        item.write(illustration);
+        item.write(illustration.toPath());
 
         // Update MessageIllustrations
         observation = em.merge(observation);
@@ -603,10 +623,11 @@ public class ObservationBean {
             List<CropCategory> cropCategories = em.createNamedQuery("CropCategory.findByCropCategoryIds", CropCategory.class)
                     .setParameter("cropCategoryIds", cropCategoryId)
                     .getResultList();
-            List<Integer> cropIds = new ArrayList(cropCategories.stream().flatMap(cC -> Arrays.asList(cC.getCropOrganismIds()).stream()).collect(Collectors.toSet()));
+            List<Integer> cropIds = new ArrayList(cropCategories.stream().flatMap(cC -> cC.getCropOrganismIds().stream()).collect(Collectors.toSet()));
 
             sql += "AND crop_organism_id IN (:cropOrganismIds) \n";
             parameters.put("cropOrganismIds", cropIds);
+            //parameters.put("cropOrganismIds", List.of(5));
         }
         // Filter for dates
         if (from != null) {

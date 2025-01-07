@@ -19,8 +19,8 @@ package no.nibio.vips.logic.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
@@ -28,15 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.rest.ObservationListItem;
-import no.nibio.vips.logic.util.StringJsonUserType;
 import no.nibio.vips.observationdata.ObservationDataSchema;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -45,7 +44,7 @@ import org.hibernate.annotations.TypeDefs;
 @Entity
 @Table(name = "observation")
 @XmlRootElement
-@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
+//@TypeDefs( {@TypeDef( name= "StringJsonObject", typeClass = StringJsonUserType.class)})
 
 @NamedQueries({
     @NamedQuery(name = "Observation.findAll", query = "SELECT o FROM Observation o"),
@@ -58,11 +57,11 @@ import org.hibernate.annotations.TypeDefs;
     @NamedQuery(name = "Observation.findByUserIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(:userId)"),
     @NamedQuery(name = "Observation.findByUserIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId) AND o.statusTypeId= :statusTypeId"),
     @NamedQuery(name = "Observation.findByUserIdAndOrganism", query = "SELECT o FROM Observation o WHERE o.userId IN(:userId) AND o.organism =  :organism"),
-    @NamedQuery(name = "Observation.findByOrganizationId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
-    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
+    @NamedQuery(name = "Observation.findByOrganizationId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId.organizationId = :organizationId))"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId))"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeId", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId.organizationId = :organizationId)) AND o.statusTypeId= :statusTypeId"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessage", query = "SELECT o FROM Observation o WHERE o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
+    @NamedQuery(name = "Observation.findByOrganizationIdAndStatusTypeIdAndBroadcastMessageAndPeriod", query = "SELECT o FROM Observation o WHERE o.timeOfObservation BETWEEN :start AND :end AND o.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId = :organizationId)) AND o.statusTypeId= :statusTypeId AND o.broadcastMessage IS TRUE"),
     @NamedQuery(name = "Observation.findByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism"),
     @NamedQuery(name = "Observation.findFirstByOrganism", query = "SELECT o FROM Observation o WHERE o.organism =  :organism AND o.timeOfObservation = (SELECT MIN(ob.timeOfObservation) FROM Observation ob WHERE ob.organism = :organism)"),
     @NamedQuery(name = "Observation.findByTimeOfObservation", query = "SELECT o FROM Observation o WHERE o.timeOfObservation = :timeOfObservation")
@@ -467,7 +466,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     /**
      * @return the observationData
      */
-    @Type(type = "StringJsonObject")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "observation_data")
     @Override
     public String getObservationData() {

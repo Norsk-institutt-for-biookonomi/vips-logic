@@ -18,15 +18,15 @@
 
 package no.nibio.vips.logic.service;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-import javax.json.bind.annotation.JsonbDateFormat;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
+import jakarta.json.bind.annotation.JsonbDateFormat;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Provider;
 
 import java.util.logging.Level;  
 import java.util.logging.Logger; 
@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 //@Consumes(MediaType.APPLICATION_JSON)
-public class JSONBConfig implements ContextResolver<javax.json.bind.Jsonb>
+public class JSONBConfig implements ContextResolver<jakarta.json.bind.Jsonb>
 {
     //private final ObjectMapper objectMapper;
     private final Jsonb jsonB;  

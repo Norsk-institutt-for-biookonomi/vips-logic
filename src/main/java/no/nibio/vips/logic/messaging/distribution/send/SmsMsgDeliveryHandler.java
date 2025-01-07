@@ -27,7 +27,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgReceiver;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgToSend;
 import no.nibio.vips.logic.messaging.distribution.entity.VipsMessage;

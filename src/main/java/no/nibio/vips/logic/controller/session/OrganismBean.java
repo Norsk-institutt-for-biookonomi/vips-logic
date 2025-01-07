@@ -33,11 +33,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.DbUpdate;
@@ -419,7 +419,7 @@ public class OrganismBean {
         cropCategories.stream()
                 .filter((cc) -> (cc.getCropOrganismIds() != null))
                 .forEachOrdered((cc) -> {
-                    retVal.addAll(Arrays.asList(cc.getCropOrganismIds()));
+                    retVal.addAll(cc.getCropOrganismIds());
                 });
         
         return retVal;

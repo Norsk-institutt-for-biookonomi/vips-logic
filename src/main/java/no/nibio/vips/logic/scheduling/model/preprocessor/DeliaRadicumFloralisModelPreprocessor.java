@@ -24,7 +24,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.logic.controller.session.ObservationBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
