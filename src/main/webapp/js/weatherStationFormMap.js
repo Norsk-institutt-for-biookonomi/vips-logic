@@ -39,11 +39,7 @@ function initMap(center, zoomLevel, organizationId, currentWeatherStationId)
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
                     source: new ol.source.OSM({
-                        attributions: [
-                            new ol.Attribution({
-                              html: mapConstants.MAP_ATTRIBUTION
-                            })
-                          ]
+                        attributions: [mapConstants.MAP_ATTRIBUTION]
                     })
     });
     
@@ -61,27 +57,19 @@ function initMap(center, zoomLevel, organizationId, currentWeatherStationId)
     var popOverlay = new ol.Overlay({
       element: document.getElementById("popover")
     });
-    
+
     // Creating the map
     map = new ol.Map({
                     target: 'weatherStationFormMap',
                     layers: [backgroundLayer,weatherStationLayer],
                     overlays: [popOverlay],
-                    renderer: 'canvas'
+                    renderer: 'canvas',
+                    view: new ol.View({
+                        center: ol.proj.fromLonLat(center, 'EPSG:3857'),
+                        zoom: zoomLevel
+                    })
     });
 
-    var centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
-    
-    
-
-    // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
-    // center to correct map projection)
-    var view = new ol.View({
-            center: centerPosition,
-            zoom:zoomLevel
-    });
-    map.setView(view);
-    
     // Marker overlay
     stationMarker = new ol.Overlay({
       position: currentWeatherStationId !== null ? centerPosition : undefined,
@@ -94,7 +82,7 @@ function initMap(center, zoomLevel, organizationId, currentWeatherStationId)
     
     
     // Listening for single clicks, position observation pin and updating form element
-    map.on(['singleclick'], function(evt) {
+    map.on(['singleclick'], (evt) => {
         updateLocationPosition(evt.coordinate);
     });
    
@@ -132,8 +120,6 @@ function updateMarkerPosition()
    
    stationMarker.setPosition(centerPosition);
 
-   // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
-   // center to correct map projection)
    var view = new ol.View2D({
            center: centerPosition,
            zoom:10

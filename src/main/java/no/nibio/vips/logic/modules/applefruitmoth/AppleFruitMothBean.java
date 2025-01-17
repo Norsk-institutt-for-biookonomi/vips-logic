@@ -94,7 +94,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("warning_type_0")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_0.png");
@@ -102,7 +102,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("selected_warning_type_0")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "selectedstation_icon_status_0.png");
@@ -110,7 +110,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("warning_type_1")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_1.png");
@@ -118,7 +118,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("selected_warning_type_1")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "selectedstation_icon_status_1.png");
@@ -126,7 +126,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("warning_type_2")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_2.png");
@@ -134,7 +134,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("selected_warning_type_2")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "selectedstation_icon_status_2.png");
@@ -142,7 +142,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("warning_type_3")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_3.png");
@@ -150,7 +150,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("selected_warning_type_3")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "selectedstation_icon_status_3.png");
@@ -158,7 +158,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("warning_type_4")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_4.png");
@@ -166,7 +166,7 @@ public class AppleFruitMothBean {
         document.createAndAddStyle()
             .withId("selected_warning_type_4")
         .createAndSetIconStyle()
-                .withScale(1)
+                .withScale(0.5)
                 .withHotSpot(hotspot)
                 .createAndSetIcon()
                     .withHref(iconPath + "selectedstation_icon_status_4.png");
