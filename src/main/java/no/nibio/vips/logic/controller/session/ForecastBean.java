@@ -792,7 +792,7 @@ public class ForecastBean {
                     .withId("warning_type_" + i)
                     .withLabelStyle(noLabel)
                     .createAndSetIconStyle()
-                    .withScale(1)
+                    .withScale(0.5)
                     .withHotSpot(hotspot)
                     .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_" +

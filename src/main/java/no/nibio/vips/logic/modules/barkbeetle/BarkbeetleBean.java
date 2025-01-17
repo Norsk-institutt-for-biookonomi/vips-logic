@@ -276,7 +276,7 @@ public class BarkbeetleBean {
                     .withId("status_type_" + i)
                     .withLabelStyle(noLabel)
                     .createAndSetIconStyle()
-                    .withScale(1)
+                    .withScale(0.5)
                     .withHotSpot(hotspot)
                     .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_" + i + ".png");
