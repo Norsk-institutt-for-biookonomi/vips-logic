@@ -70,6 +70,8 @@ function initMap(center, zoomLevel, organizationId, currentWeatherStationId)
                     })
     });
 
+    const centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
+
     // Marker overlay
     stationMarker = new ol.Overlay({
       position: currentWeatherStationId !== null ? centerPosition : undefined,

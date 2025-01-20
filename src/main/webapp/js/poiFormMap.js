@@ -71,6 +71,8 @@ function initMap(center, zoomLevel, organizationId, currentPoiId, readOnly)
                     })
     });
 
+    const centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
+
     // Marker overlay
     stationMarker = new ol.Overlay({
       position: currentPoiId !== null ? centerPosition : undefined,
