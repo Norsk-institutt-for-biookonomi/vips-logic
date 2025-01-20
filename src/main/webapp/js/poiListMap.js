@@ -34,11 +34,7 @@ function initMap(center, zoomLevel, organizationId)
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
                     source: new ol.source.OSM({
-                        attributions: [
-                            new ol.Attribution({
-                              html: mapConstants.MAP_ATTRIBUTION
-                            })
-                          ]
+                        attributions: [mapConstants.MAP_ATTRIBUTION]
                     })
     });
     
@@ -55,30 +51,22 @@ function initMap(center, zoomLevel, organizationId)
     var popOverlay = new ol.Overlay({
       element: document.getElementById("popover")
     });
-    
+
     // Creating the map
-    var map = new ol.Map({
+    let map = new ol.Map({
                     target: 'poiListMap',
                     layers: [backgroundLayer,poiLayer],
                     overlays: [popOverlay],
-                    renderer: 'canvas'
+                    renderer: 'canvas',
+                    view: new ol.View({
+                        center: ol.proj.fromLonLat(center, 'EPSG:3857'),
+                        zoom: zoomLevel
+                    })
     });
-    
-    var centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
 
-    // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
-    // center to correct map projection)
-    var view = new ol.View({
-            center: centerPosition,
-            zoom:zoomLevel
-    });
-    map.setView(view);
-    
     // Using Bootstrap's popover plugin. See http://getbootstrap.com/javascript/#popovers
     var poiDetails = $("#popover");
-    
-    
-    
+
     // Displays popup with forecasts for a given station
     // (if there is a station where the click event is fired)
     var displayFeatureDetails = function(pixel, coordinate) {
@@ -113,7 +101,7 @@ function initMap(center, zoomLevel, organizationId)
     
 
     // On click, display forecasts in popup
-    map.on('singleclick', function(evt) {
+    map.on('singleclick', (evt) => {
             var pixel = map.getEventPixel(evt.originalEvent);
               displayFeatureDetails(pixel);
             });

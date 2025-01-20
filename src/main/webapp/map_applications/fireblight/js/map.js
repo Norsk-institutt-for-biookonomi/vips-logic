@@ -280,7 +280,7 @@ async function initMap()
         getAndRenderObservations(lastYear);
 
         // Handle user click on map
-        map.on('click', function (evt) {
+        map.on('click', (evt) => {
             //features = []
             var feature = map.forEachFeatureAtPixel(
                     evt.pixel, function (ft, l) {

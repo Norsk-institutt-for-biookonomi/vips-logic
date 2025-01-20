@@ -61,11 +61,7 @@ var initMap = function(
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
                     source: new ol.source.OSM({
-                        attributions: [
-                            new ol.Attribution({
-                              html: mapConstants.MAP_ATTRIBUTION
-                            })
-                          ]
+                        attributions: [mapConstants.MAP_ATTRIBUTION]
                     })
     });
     
@@ -73,25 +69,19 @@ var initMap = function(
     var popOverlay = new ol.Overlay({
       element: document.getElementById("popover")
     });
-    
+
     // Creating the map
     map = new ol.Map({
-                    target: 'observationMap',
-                    layers: [backgroundLayer],
-                    overlays: [popOverlay],
-                    renderer: 'canvas'
+        target: 'observationMap',
+        layers: [backgroundLayer],
+        overlays: [popOverlay],
+        renderer: 'canvas',
+        view: new ol.View({
+            center: ol.proj.fromLonLat(center, 'EPSG:3857'),
+            zoom: zoomLevel
+        })
     });
-    
-    var centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
-    
-    // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
-    // center to correct map projection)
-    var view = new ol.View({
-            center: centerPosition,
-            zoom:zoomLevel
-    });
-    map.setView(view);
-    
+
     // Need to build the query string
     var params = [];
     
@@ -222,7 +212,7 @@ var initMap = function(
         }
     };
     
-    map.on('singleclick', function(evt) {
+    map.on('singleclick', (evt) => {
             var pixel = map.getEventPixel(evt.originalEvent);
               displayFeatureDetails(pixel);
     });

@@ -250,7 +250,7 @@ legend {
     display: block;
 }
 
-#objectGISInfoMap, #weatherStationListMap, #weatherStationFormMap, #weatherStationViewMap {
+#objectGISInfoMap, #weatherStationListMap, #weatherStationFormMap, #weatherStationViewMap, #poiListMap, #poiFormMap {
     height: 400px;
     width: 100%;
 }

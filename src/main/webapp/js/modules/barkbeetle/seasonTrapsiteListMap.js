@@ -65,19 +65,15 @@
                     target: 'seasonTrapsiteListMap',
                     layers: [topo4, trapLayer],
                     overlays: [popOverlay],
-                    renderer: 'canvas'
+                    renderer: 'canvas',
+                    view: new ol.View({
+                        center: ol.proj.fromLonLat([7.0,63.0], 'EPSG:3857'),
+                        zoom: 5
+                    })
     });
-    
-    // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
-    // center to correct map projection)
-    var view = new ol.View({
-            center: ol.proj.transform([7.0,63.0], 'EPSG:4326', map.getView().getProjection().getCode()),
-            zoom: 5
-    });
-    map.setView(view);
-    
+
     // On click, display site details in popup
-    map.on('singleclick', function(evt) {
+    map.on('singleclick', (evt) => {
             var pixel = map.getEventPixel(evt.originalEvent);
               displayFeatureDetails(pixel);
             });
@@ -116,4 +112,3 @@
 
     };
     
- 

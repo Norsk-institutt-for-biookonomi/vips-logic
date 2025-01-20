@@ -22,7 +22,7 @@
         <link rel="stylesheet" href="/css/3rdparty/chosen.min.css"/>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/jquery.datetimepicker.css"/>
 	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol.css?t=20170623"/>
-	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol3-layerswitcher.css"/>
+	<link rel="stylesheet" type="text/css" href="/css/3rdparty/ol-layerswitcher.css"/>
 	<link rel="stylesheet" type="text/css" href="/css/map.css"/>
 </#macro>
 <#macro custom_js>
@@ -32,7 +32,7 @@
 	<script type="text/javascript" src="/js/3rdparty/moment.min.js"></script>
     <script type="text/javascript" src="/js/3rdparty/jsoneditor.js"></script>
 	<script type="text/javascript" src="/js/3rdparty/ol.js?t=20170623"></script>
-    <script type="text/javascript" src="js/3rdparty/ol3-layerswitcher.js"></script>
+    <script type="text/javascript" src="js/3rdparty/ol-layerswitcher.js"></script>
         
 	<script type="text/javascript" src="/js/constants.js"></script>
 	<script type="text/javascript" src="/js/resourcebundle.js"></script>

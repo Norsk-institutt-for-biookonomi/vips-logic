@@ -22,42 +22,33 @@ var initMap = function(container, mapAttribution)
 	// Creating background layer, Open Street Map is default
 	var backgroundLayer = new ol.layer.Tile({
    	 	source: new ol.source.OSM({
-   	 					attributions: [
-                           new ol.Attribution({
-                             html: mapAttribution
-                           })
-                         ]
-                   })
+			attributions: [mapConstants.MAP_ATTRIBUTION]
+			})
     });
-	
+
 	forecastLayer = new ol.layer.Vector({
 		source: new ol.source.Vector({
 			url: "/rest/applefruitmoth/observationsites/kml/?onlyPubliclyAvailable=false",
-			format: new ol.format.KML({"extractAttributes":true}),
-			projection: ol.proj.get('EPSG:3857')
+			format: new ol.format.KML()
 		})
 	});
+
 	// Layer for popup
-	var popOverlay = new ol.Overlay({
+	const popOverlay = new ol.Overlay({
 	  element: document.getElementById("popover")
 	});
-	
-	// Creating the map
+
 	map = new ol.Map({
-			target: container,
-			layers: [backgroundLayer, forecastLayer],
-			overlays: [popOverlay],
-			renderer: 'canvas'
+		target: container,
+		layers: [backgroundLayer, forecastLayer],
+		overlays: [popOverlay],
+		renderer: 'canvas',
+		view: new ol.View({
+			center: ol.proj.fromLonLat([9, 61], 'EPSG:3857'),
+			zoom: 6
+		})
 	});
-	
-	// Setting zoom and center for the map (need to do this after creating map. so that we can transform our
-	// center to correct map projection)
-	var view = new ol.View({
-		center: ol.proj.transform([9,61], 'EPSG:4326', map.getView().getProjection().getCode()),
-		zoom: 6
-	});
-	map.setView(view);
-	
+
 	// Using Bootstrap's popover plugin. See http://getbootstrap.com/javascript/#popovers
 	var poiDetails = $("#popover");
 	
@@ -94,7 +85,7 @@ var initMap = function(container, mapAttribution)
 	      }
 	 };
 	// On click, display forecasts in popup
-		map.on('singleclick', function(evt) {
+		map.on('singleclick', (evt) => {
 			var pixel = map.getEventPixel(evt.originalEvent);
 			  displayFeatureDetails(pixel);
 			});

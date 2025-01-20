@@ -105,7 +105,7 @@ ol.control.LayerSwitcher.prototype.setMap = function(map) {
     ol.control.Control.prototype.setMap.call(this, map);
     if (map) {
         var this_ = this;
-        this.mapListeners.push(map.on('pointerdown', function() {
+        this.mapListeners.push(map.on('pointerdown', (event) => {
             this_.hidePanel();
         }));
         this.renderPanel();
