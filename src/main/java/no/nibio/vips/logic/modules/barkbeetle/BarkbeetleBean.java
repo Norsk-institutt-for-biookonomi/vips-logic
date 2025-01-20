@@ -17,6 +17,29 @@
  */
 package no.nibio.vips.logic.modules.barkbeetle;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 import de.micromata.opengis.kml.v_2_2_0.Document;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
@@ -25,33 +48,11 @@ import de.micromata.opengis.kml.v_2_2_0.LabelStyle;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Units;
 import de.micromata.opengis.kml.v_2_2_0.Vec2;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import jakarta.ejb.EJB;
-
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
-
-
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
@@ -64,12 +65,6 @@ import no.nibio.vips.logic.messaging.UniversalMessageFormat;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SimpleMailSender;
-import org.geotools.api.referencing.FactoryException;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.api.referencing.operation.MathTransform;
-import org.geotools.api.referencing.operation.TransformException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -292,7 +287,7 @@ public class BarkbeetleBean {
                             + "<li>Eier: " + trap.getOwnerName() + (trap.getOwnerPhone() == null || trap.getOwnerPhone().isBlank() ? "" : ", tlf: " + trap.getOwnerPhone()) + "</li>"
                             + "<li>Registrant: <a href='mailto:" + trap.getUserId().getEmail() + "'>" + trap.getUserId().getFirstName() + " " + trap.getUserId().getLastName() + "</a>, tlf: " + trap.getUserId().getPhone() + "</li>"
                             + "</ul>")
-                    .withStyleUrl(styleUrl + trap.getWarningStatus())
+                    .withStyleUrl(styleUrl + trap.getWarningStatus(season))
                     .withId(trap.getSeasonTrapsiteId().toString());
 
             final de.micromata.opengis.kml.v_2_2_0.Point point = placemark.createAndSetPoint();

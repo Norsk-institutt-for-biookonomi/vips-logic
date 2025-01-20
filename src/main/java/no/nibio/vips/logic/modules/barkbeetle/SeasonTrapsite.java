@@ -18,9 +18,7 @@
 
 package no.nibio.vips.logic.modules.barkbeetle;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.WeekFields;
@@ -30,6 +28,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -39,7 +42,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
@@ -51,12 +53,8 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.util.SystemTime;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
 
 /**
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
@@ -446,11 +444,13 @@ public class SeasonTrapsite implements Serializable, Comparable {
     private final Integer THRESHOLD_HIGH_RISK = 15000;
     
     @Transient
-    public Integer getWarningStatus(){
-        // Are we before week 21? Return the "gray" status
+    public Integer getWarningStatus(Integer season){
+        // Are we before week 21 of current year? Return the "gray" status
         WeekFields weekFields = WeekFields.of(Locale.getDefault());
-        Integer systemTimeWeek = LocalDate.ofInstant(SystemTime.getSystemTime().toInstant(), ZoneId.of("Europe/Oslo")).get(weekFields.weekOfWeekBasedYear());
-        if(systemTimeWeek < this.getFirstPossibleRegistrationWeek())
+        LocalDate systemTime = LocalDate.ofInstant(SystemTime.getSystemTime().toInstant(), ZoneId.of("Europe/Oslo"));
+        Integer systemTimeWeek = systemTime.get(weekFields.weekOfWeekBasedYear());
+        Integer systemYear = systemTime.getYear();
+        if(systemYear <= season && systemTimeWeek < this.getFirstPossibleRegistrationWeek())
         {
             return SeasonTrapsite.WARNING_NOT_APPLICABLE;
         }
@@ -467,7 +467,7 @@ public class SeasonTrapsite implements Serializable, Comparable {
         Collections.sort(siteRegs);
         TrapsiteRegistration lastReg = siteRegs.get(siteRegs.size()-1);
         Integer lastWeekOfRegistration = lastReg.getTrapsiteRegistrationPK().getWeek();
-        if(lastWeekOfRegistration < this.getExpectedLastRegistrationWeek(systemTimeWeek))
+        if(systemYear <= season && lastWeekOfRegistration < this.getExpectedLastRegistrationWeek(systemTimeWeek))
         {
             return SeasonTrapsite.WARNING_MISSING_DATA;
         }
