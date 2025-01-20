@@ -204,6 +204,11 @@ var app = window.app;
   // Transform the center coordinates from EPSG:4326 to EPSG:3857
   const centerPosition = ol.proj.fromLonLat(center, 'EPSG:3857');
 
+  view = new ol.View({
+    center: centerPosition,
+    zoom: zoomLevel
+  })
+
   // Creating the map
   GISInfoMap = new ol.Map({
     target: olMapDivId, // Defined at the top of this file
@@ -216,10 +221,7 @@ var app = window.app;
     ]),
     layers: allLayers,
     renderer: 'canvas',
-    view: new ol.View({
-      center: centerPosition,
-      zoom: zoomLevel
-    })
+    view: view
   });
 
   // Marker overlay
