@@ -80,11 +80,6 @@ no.nibio.vips.logic.SYSTEM_TIME_EXACT_DATE=2021-08-01
 no.nibio.vips.logic.START_SCHEDULING_ON_BOOT=false
 # MD5 hash salt for passwords encryption
 no.nibio.vips.logic.MD5_SALT=XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-# Where to find the model running server. Could be VIPSCore (simpler for testing purposes) or VIPSCoreManager
-no.nibio.vips.logic.VIPSCOREMANAGER_URL=http://localhost:8080/VIPSCoreManager
-# If you're using VIPSCoreManager as the running server, you need valid credentials
-no.nibio.vips.logic.CORE_BATCH_USERNAME=foobar
-no.nibio.vips.logic.CORE_BATCH_PASSWORD=XXXXXXXX
 # Mail server hostname for sending mails to users (e.g. when registering a new user)
 no.nibio.vips.logic.SMTP_SERVER=mail4.foobar.com
 # Path to news message illustrations (served statically by Apache/Nginx)

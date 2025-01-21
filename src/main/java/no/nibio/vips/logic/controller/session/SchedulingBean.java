@@ -18,53 +18,38 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TimeZone;
+import java.util.TreeMap;
 import it.sauronsoftware.cron4j.Predictor;
 import it.sauronsoftware.cron4j.Scheduler;
 import it.sauronsoftware.cron4j.SchedulingPattern;
 import it.sauronsoftware.cron4j.TaskCollector;
 import it.sauronsoftware.cron4j.TaskExecutor;
 import it.sauronsoftware.cron4j.TaskTable;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TimeZone;
-import java.util.TreeMap;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.GenericType;
-import jakarta.ws.rs.core.Response;
-import no.nibio.vips.coremanager.service.ManagerResource;
-import no.nibio.vips.entity.ModelConfiguration;
-import no.nibio.vips.entity.ModelRunRequest;
-import no.nibio.vips.entity.Result;
-import no.nibio.vips.logic.scheduling.VIPSLogicTaskCollector;
-import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.TaskHistory;
 import no.nibio.vips.logic.entity.TaskHistoryStatus;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.scheduling.TaskLoggerSchedulerListener;
+import no.nibio.vips.logic.scheduling.VIPSLogicTaskCollector;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
 import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
-import no.nibio.vips.logic.scheduling.model.PreprocessorException;
-import no.nibio.vips.logic.scheduling.model.preprocessor.NaerstadModelPreprocessor;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
@@ -240,30 +225,6 @@ public class SchedulingBean {
         return runningTaskExecutors.toArray(new TaskExecutor[runningTaskExecutors.size()]);
     }
     
-    public List<Result> testPreprocessor() throws PreprocessorException
-    {
-            //AppleScabModelPreprocessor p = new AppleScabModelPreprocessor();
-            NaerstadModelPreprocessor p = new NaerstadModelPreprocessor();
-            ForecastConfiguration c = em.find(ForecastConfiguration.class, 7l);
-            ModelConfiguration config = p.getModelConfiguration(c);
-
-            ModelRunRequest request = new ModelRunRequest(config);
-            Map<String,String> loginInfo = new HashMap<>();
-            loginInfo.put("username","testuser");
-            loginInfo.put("password","testpass");
-            request.setLoginInfo(loginInfo);
-            
-            Response resp = this.getManagerResource().runModel(p.getModelId(), request);
-            List<Result> results = resp.readEntity(new GenericType<List<Result>>(){});
-            
-            // We delete all former results before we store the new ones
-            forecastBean.storeResults(c,results);
-            
-            
-            
-            return results;
-    }
-    
     /**
      * 
      * @return List of scheduled tasks, ordered chronologically by next predicted
@@ -366,16 +327,6 @@ public class SchedulingBean {
             return null;
         }
     }
-    
-    public ManagerResource getManagerResource()
-    {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL"));
-        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-        ManagerResource resource = rTarget.proxy(ManagerResource.class);
-        return resource;
-    }
-
     
     public void logTaskLaunching(TaskExecutor taskExecutor)
     {

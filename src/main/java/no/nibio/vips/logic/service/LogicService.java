@@ -33,6 +33,15 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.jboss.resteasy.annotations.GZIP;
+import org.jboss.resteasy.spi.HttpRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.util.ULocale;
+import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import de.micromata.opengis.kml.v_2_2_0.Kml;
 import jakarta.ejb.EJB;
 import jakarta.persistence.NonUniqueResultException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,24 +53,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import org.apache.commons.validator.routines.EmailValidator;
-import org.jboss.resteasy.annotations.GZIP;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.spi.HttpRequest;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.util.ULocale;
-import com.webcohesion.enunciate.metadata.Facet;
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import de.micromata.opengis.kml.v_2_2_0.Kml;
-import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.controller.session.DeleteUserException;
@@ -102,8 +97,7 @@ import no.nibio.web.forms.FormValidationException;
  */
 @Path("rest")
 public class LogicService {
-    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
-    
+        
     @Context
     private HttpRequest httpRequest;
     @Context
@@ -1543,20 +1537,5 @@ public class LogicService {
         }
 
     }
-    
-    /**
-     * Get the client to use for calling VIPSCoreManager REST services programmatically
-     * @return 
-     */
-    private ManagerResource getManagerResource()
-    {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(VIPSCOREMANAGER_URL);
-        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-        ManagerResource resource = rTarget.proxy(ManagerResource.class);
-        return resource;
-    }
-    
-    
     
 }

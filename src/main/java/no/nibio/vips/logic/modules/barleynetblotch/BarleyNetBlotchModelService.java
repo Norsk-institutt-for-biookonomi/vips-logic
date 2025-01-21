@@ -18,9 +18,15 @@
 
 package no.nibio.vips.logic.modules.barleynetblotch;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.TimeZone;
+import org.slf4j.LoggerFactory;
 import com.webcohesion.enunciate.metadata.Facet;
-
-import java.util.*;
 import jakarta.ejb.EJB;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -35,7 +41,10 @@ import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ForecastBean;
-import no.nibio.vips.logic.entity.*;
+import no.nibio.vips.logic.entity.Organism;
+import no.nibio.vips.logic.entity.Organization;
+import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.entity.Preparation;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.observation.ObservationImpl;
@@ -44,7 +53,6 @@ import no.nibio.vips.util.ParseRESTParamUtil;
 import no.nibio.vips.util.WeatherElements;
 import no.nibio.vips.util.weather.WeatherDataSourceException;
 import no.nibio.vips.util.weather.WeatherDataSourceUtil;
-import org.slf4j.LoggerFactory;
 
 /**
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
@@ -54,8 +62,6 @@ import org.slf4j.LoggerFactory;
 @Facet("restricted")
 public class BarleyNetBlotchModelService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(BarleyNetBlotchModelService.class);
-
-    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
     
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
