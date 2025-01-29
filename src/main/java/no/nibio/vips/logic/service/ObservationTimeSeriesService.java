@@ -33,9 +33,9 @@ import java.util.stream.Collectors;
 
 @Path("rest/observationtimeseries")
 public class ObservationTimeSeriesService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(ObservationTimeSeriesService.class);
 
     public static final String APPLICATION_JSON = "application/json;charset=UTF-8";
-    private final static Logger LOGGER = LoggerFactory.getLogger(ObservationTimeSeriesService.class);
     private static final String DELETED = "deleted";
     private static final String OBSERVATION_TIME_SERIES_ID = "observationTimeSeriesId";
     private static final String ORGANISM_ID = "organismId";
@@ -62,7 +62,6 @@ public class ObservationTimeSeriesService {
     @Produces(APPLICATION_JSON)
     @TypeHint(ObservationTimeSeries[].class)
     public Response getObservationsTimeSeriesForUser(@QueryParam("observationTimeSeriesIds") String otsIds) {
-        LOGGER.info("In getObservationsTimeSeriesForUser observationTimeSeriesIds=" + otsIds);
         try {
             VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
             if (user != null) {
@@ -112,9 +111,15 @@ public class ObservationTimeSeriesService {
         boolean requesterNotValidUser = requester == null;
         boolean requesterRegularUser = requester != null && !requester.isSuperUser() && !requester.isOrganizationAdmin();
         boolean requesterNotCreator = requester != null && !ots.getUserId().equals(requester.getUserId());
+
         if (requesterNotValidUser || requesterRegularUser) {
+            // Hide completely for all users except creator, super and orgadmin
+            if (ots.getLocationIsPrivate() && (requesterNotValidUser || requesterNotCreator)) {
+                ots.setGeoInfoList(new ArrayList<>());
+            }
             // Mask for all users except creator, super and orgadmin
-            if (!(ots.getLocationIsPrivate() && (requesterNotValidUser || requesterNotCreator)) && ots.getPolygonService() != null) {
+            else if (ots.getPolygonService() != null) {
+                observationTimeSeriesBean.enrichObservationTimeSeriesWithPointOfInterest(ots);
                 this.maskLocation(ots.getPolygonService(), ots);
             }
         }
@@ -141,16 +146,17 @@ public class ObservationTimeSeriesService {
         // We need to loop through the observations and find corresponding featurecollections and replace those
         Map<Integer, Feature> indexedPolygons = new HashMap<>();
         for (Feature feature : response.getFeatureCollection().getFeatures()) {
-            indexedPolygons.put((Integer) feature.getProperties().get(OBSERVATION_TIME_SERIES_ID), feature);
+            indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
         }
         GISEntityUtil gisEntityUtil = new GISEntityUtil();
         for (Map mapping : response.getMapping()) {
-            Integer observationTimeSeriesId = Integer.valueOf((String) mapping.get(OBSERVATION_TIME_SERIES_ID));
+            Integer observationTimeSeriesId = Integer.valueOf((String) mapping.get("id"));
             if (observationTimeSeries.getObservationTimeSeriesId().equals(observationTimeSeriesId)) {
                 Integer borderId = (Integer) mapping.get("borderid");
                 Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
                 List<Gis> gis = new ArrayList<>();
                 gis.add(polygon);
+                observationTimeSeries.setGeoInfoList(gis);
                 observationTimeSeries.setLocationPointOfInterest(null);
                 observationTimeSeries.setLocationPointOfInterestId(null);
             }

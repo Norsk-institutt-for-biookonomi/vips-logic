@@ -18,22 +18,22 @@
 package no.nibio.vips.logic.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import no.nibio.vips.logic.util.GISEntityUtil;
+
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
-import java.util.Date;
+import java.util.*;
 
 @Entity
 @Table(name = "observation_time_series")
 @XmlRootElement
 @NamedQueries({
-        @NamedQuery(name = "ObservationTimeSeries.findAll", query = "SELECT ots FROM ObservationTimeSeries ots"),
-        @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId = :id"),
-        @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesIds", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId IN :observationTimeSeriesIds"),
-        @NamedQuery(name = "ObservationTimeSeries.findByOrganizationId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(SELECT v.userId FROM VipsLogicUser v WHERE v.organizationId.organizationId = :organizationId OR  v.organizationId.organizationId IN(SELECT o.organizationId FROM Organization o WHERE o.parentOrganizationId.organizationId = :organizationId))"),
-        @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId)")
+    @NamedQuery(name = "ObservationTimeSeries.findAll", query = "SELECT ots FROM ObservationTimeSeries ots"),
+    @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId = :id"),
+    @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesIds", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId IN :observationTimeSeriesIds"),
+    @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId)")
 })
 public class ObservationTimeSeries implements Serializable {
 
@@ -53,10 +53,14 @@ public class ObservationTimeSeries implements Serializable {
     private VipsLogicUser lastModifiedByUser; // Transient
     private Integer locationPointOfInterestId;
     private PointOfInterest locationPointOfInterest;
+    private List<Gis> geoInfoList;
     private Boolean locationIsPrivate;
     private PolygonService polygonService;
 
+    private GISEntityUtil GISEntityUtil;
+
     public ObservationTimeSeries() {
+        this.GISEntityUtil = new GISEntityUtil();
     }
 
     public ObservationTimeSeries(String source) {
@@ -324,6 +328,17 @@ public class ObservationTimeSeries implements Serializable {
         this.locationPointOfInterest = locationPointOfInterest;
     }
 
+    public void setGeoInfoList(List<Gis> geoInfoList) {
+        this.geoInfoList = geoInfoList;
+    }
+
+    @Transient
+    public String getGeoInfo() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("observationTimeSeriesId", this.getObservationTimeSeriesId());
+        return this.GISEntityUtil.getGeoJSONFromGis(this.geoInfoList, properties);
+    }
+
     /**
      * @return the locationIsPrivate
      */
@@ -373,24 +388,25 @@ public class ObservationTimeSeries implements Serializable {
     @Override
     public String toString() {
         return "ObservationTimeSeries{" +
-                "observationTimeSeriesId=" + observationTimeSeriesId +
-                ", cropOrganism=" + cropOrganism +
-                ", organism=" + organism +
-                ", year=" + year +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", created=" + created +
-                ", userId=" + userId +
-                ", user=" + user +
-                ", source=" + source +
-                ", lastModified=" + lastModified +
-                ", lastModifiedBy=" + lastModifiedBy +
-                ", lastModifiedByUser=" + lastModifiedByUser +
-                ", locationPointOfInterestId=" + locationPointOfInterestId +
-                ", locationPointOfInterest=" + locationPointOfInterest +
-                ", locationIsPrivate=" + locationIsPrivate +
-                ", polygonService=" + polygonService +
-                '}';
+            "observationTimeSeriesId=" + observationTimeSeriesId +
+            ", cropOrganism=" + cropOrganism +
+            ", organism=" + organism +
+            ", year=" + year +
+            ", name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", created=" + created +
+            ", userId=" + userId +
+            ", user=" + user +
+            ", source=" + source +
+            ", lastModified=" + lastModified +
+            ", lastModifiedBy=" + lastModifiedBy +
+            ", lastModifiedByUser=" + lastModifiedByUser +
+            ", locationPointOfInterestId=" + locationPointOfInterestId +
+            ", locationPointOfInterest=" + locationPointOfInterest +
+            ", geoInfoList=" + geoInfoList +
+            ", locationIsPrivate=" + locationIsPrivate +
+            ", polygonService=" + polygonService +
+            '}';
     }
 
     public int compareTo(ObservationTimeSeries other) {
