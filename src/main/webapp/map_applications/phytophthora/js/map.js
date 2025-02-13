@@ -43,66 +43,31 @@ async function initMap() {
     var iconRadius = 16;
 
     const colors = {
-
+        'rhododendron': [153, 0, 153, 1], // Lilla 1
+        'vaccinium myrtillus': [204, 0, 204, 1], // Lilla 2
+        'pieris': [255, 0, 255, 1], // Lilla 3
+        'viburnum': [255, 51, 255, 1], // Lilla 4
+        'ericaceae': [255, 102, 255, 1], // Lilla 5
         'fagus sylvatica': [255, 0, 0, 1], // Bøk = rød
         'alnus incana': [239, 133, 19, 1], // Gråor = dyp oransje
         'quercus': [239, 236, 19, 1], // Eik = gul
         'acer': [0, 255, 0, 1], // Lønn = grønn
         'alnus glutinosa': [122, 175, 131, 1], // Svartor = grågrønn
+        
         'plantae': [0, 0, 255, 1]
     };
 
-    var styles = {
-        // Bøk = rød
-        'fagus sylvatica': [new ol.style.Style({
+    let styles = {};
+    Object.entries(colors).forEach(([hostName, color]) => {
+        styles[hostName] = [new ol.style.Style({
             image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [255, 0, 0, 1] }),
+                fill: new ol.style.Fill({ color: color }),
                 stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
                 radius: iconRadius
             })
-        })],
-        // Gråor = dyp oransje
-        'alnus incana': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [239, 133, 19, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Eik = gul
-        'quercus': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [239, 236, 19, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Lønn = grønn
-        'acer': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [0, 255, 0, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Svartor = grågrønn
-        'alnus glutinosa': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [122, 175, 131, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Planteriket = blå 
-        'plantae': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [0, 0, 255, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })
-        ]
-    };
+        })]
+    });
+
 
     // Initialize the layer for observations. Empty features array at first
     featureOverlay = new ol.layer.Vector({
@@ -429,6 +394,11 @@ var displayFeature = function (feature) {
 }
 
 var forekomsttypeLatinskeNavn = [
+    "Rhododendron",
+    "Vaccinium myrtillus", // Blåbær
+    "Pieris", // Pyramidelyng
+    "Viburnum", // Korsved
+    "Ericaceae", // Lyngfamilien
     "Fagus sylvatica", //"Bøk",
     "Alnus incana", //"Gråor",
     "Quercus", //"Eik", 
