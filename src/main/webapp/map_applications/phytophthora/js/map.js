@@ -380,6 +380,7 @@ var displayFeature = function (feature) {
         '<table>',
         '<tr><td>Plante</td><td>', getLocalizedOrganismName(feature.get("cropOrganism"), hardcodedLanguage), '</td></tr>',
         '<tr><td>Plante spes</td><td>', observationData["plantespes"], '</td></tr>',
+        '<tr><td>Uttakssted</td><td>', observationData["uttakssted"], '</td></tr>',
         '<tr><td>Symptom</td><td>', observationData["symptom"], '</td></tr>',
         '<tr><td>Sym spes</td><td>', observationData["symspes"], '</td></tr>',
         '<tr><td>Prøvetype</td><td>', observationData["provetype"], '</td></tr>',
@@ -434,9 +435,10 @@ var getCropOrganism = function (organismId) {
 }
 
 
-var symptoms = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
-var funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
-var provetypes = ["[Ikke prøve]", "Jord", "Vev", "Vann", "Blad", "Bait"];
+const symptomer = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
+const uttakssteder = ["Import", "Hagesentre", "Planteskole", "Grøntanlegg", "Naturområder"];
+const funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora ramorum", "Phytophthora syringae", "Phytophthora hedraiandra", "Negativ", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
+const provetyper = ["[Ikke prøve]", "Blad", "Skudd (og blad", "Jord", "Vev", "Vann", "Bait"];
 
 
 var editFeature = function (featureId) {
@@ -455,14 +457,17 @@ var editFeature = function (featureId) {
         '</td></tr>' +
         '<tr><td>Plante spes.</td><td>' +
         '<input type="text" id="plantespes" name="plantespes" size="15" value="' + (observationData["plantespes"] != null ? observationData["plantespes"] : "") + '"/></td></tr>' +
+        '<tr><td>Uttakssted</td><td>' +
+        generateSelect("uttakssted", uttakssteder, observationData["uttakssted"]) +
+        '</td></tr>' +
         '<tr><td>Symptom</td><td>' +
-        generateSelect("symptom", symptoms, observationData["symptom"]) +
+        generateSelect("symptom", symptomer, observationData["symptom"]) +
         '</td></tr>' +
         '<tr><td>Sym spes.</td><td>' +
         '<input type="text" id="symspes" name="symspes" size="15" value="' + (observationData["symspes"] != null ? observationData["symspes"] : "") + '"/></td></tr>' +
-
+        
         '<tr><td>Prøvetype</td><td>' +
-        generateSelect("provetype", provetypes, observationData["provetype"]) +
+        generateSelect("provetype", provetyper, observationData["provetype"]) +
         '</td></tr>' +
         '<tr><td>Prøvenummer</td><td>' +
         '<input type="text" id="provenummer" name="provenummer" size="15" value="' + (observationData["provenummer"] != null ? observationData["provenummer"] : "") + '"/></td></tr>' +
@@ -495,8 +500,9 @@ var storeFeature = function (featureId) {
     // Add the form data
     var cropOrganism = getCropOrganism(document.getElementById("forekomsttype").options[document.getElementById("forekomsttype").options.selectedIndex].value);
     //console.info(cropOrganism);
-    var plantespes = document.getElementById("plantespes").value;
-    var symptom = document.getElementById("symptom").options[document.getElementById("symptom").options.selectedIndex].value;
+    const plantespes = document.getElementById("plantespes").value;
+    const uttakssted = document.getElementById("uttakssted").options[document.getElementById("uttakssted").options.selectedIndex].value;
+    const symptom = document.getElementById("symptom").options[document.getElementById("symptom").options.selectedIndex].value;
     var symspes = document.getElementById("symspes").value;
     var provetype = document.getElementById("provetype").options[document.getElementById("provetype").options.selectedIndex].value;
     var provenummer = document.getElementById("provenummer").value;
@@ -515,7 +521,7 @@ var storeFeature = function (featureId) {
         organism: phytophthora,
         observationHeading: observationHeading,
         observationText: observationText,
-        observationData: "{\"plantespes\":\"" + plantespes + "\",\"symptom\":\"" + symptom + "\",\"symspes\":\"" + symspes + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
+        observationData: "{\"plantespes\":\"" + plantespes + "\",\"uttakssted\":\"" + uttakssted + "\",\"symspes\":\"" + symspes + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
         statusTypeId: 3,
         statusRemarks: "Registrert via phytophthora-overvåkningskartet",
         isQuantified: true,
