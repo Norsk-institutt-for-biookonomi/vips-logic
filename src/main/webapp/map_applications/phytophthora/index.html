@@ -244,7 +244,7 @@
       <div id="searchFieldContainer">
           <div id="searchFieldInnerContainer">
           
-          <input id="searchField" type="text" placeholder="S&oslash;k etter stedsnavn" onkeyup="showResults(this);"/>
+          <input id="searchField" type="text" placeholder="S&oslash;k etter stedsnavn" onkeyup="handleUserInput(this);"/>
           <div id="searchResults"></div>
           </div>
       </div>
@@ -291,14 +291,23 @@
             // Dette fordi vi må finne databaseId til pærebrann dynamisk først
             initPhytophthora(); 
         });
+
+        // Used to test if the input in the search field is a decimal degree coordinate on the format: "longitude, latitude"
+        const coordinateRegex = /^-?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*-?(180(\.0+)?|((1[0-7]\d)|(\d{1,2}))(\.\d+)?)$/;
         
-        function showResults(inputField)
+        function handleUserInput(inputField)
         {
             var phrase = inputField.value;
             if(phrase.trim().length > 2)
             {
-                //console.log(phrase);
-                //$.getJSON( "https://ws.geonorge.no/SKWS3Index/ssr/sok?navn=" + phrase + "*&maxAnt=5&tilSosiKoordSyst=4258&fylkeKommuneListe=&eksakteForst=true", renderResults);
+                // Is this a decimal degree coordinate on the format: "longitude, latitude" ? If so: Center on it
+                if(coordinateRegex.test(phrase))
+                {
+                    // Call map functionality to center on coordinate
+                    const lonLat = phrase.split(",");
+                    navigateTo([parseFloat(lonLat[0]), parseFloat(lonLat[1])]);
+                    return;
+                }
                 $.getJSON( "https://ws.geonorge.no/stedsnavn/v1/navn?sok=" + phrase + "*&utkoordsys=4326&treffPerSide=6&side=1&filtrer=navn.skrivem%C3%A5te%2Cnavn.navneobjekttype%2Cnavn.kommuner%2Cnavn.representasjonspunkt", renderResults);
             }
             else if(phrase.trim().length === 0)
