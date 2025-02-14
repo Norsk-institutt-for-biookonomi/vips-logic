@@ -647,11 +647,11 @@ var unFocusForm = function () {
     newFeatureOverlay.getSource().clear();
 }
 
-var navigateTo = function (center) {
+var navigateTo = function (center, preferredZoom) {
     var centerPosition = ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857');
     view = new ol.View({
         center: centerPosition,
-        zoom: 16
+        zoom: preferredZoom != undefined ? preferredZoom : 16
     });
 
     map.setView(view);

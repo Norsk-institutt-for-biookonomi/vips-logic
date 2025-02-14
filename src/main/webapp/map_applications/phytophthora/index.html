@@ -309,7 +309,7 @@
                     // If the first coordinate is > 32, it must be the latitude, since max longitude for Norway is 31-something
                     let longitude = parseFloat(lonLat[0]) > 32 ? lonLat[1] : lonLat[0];
                     let latitude = parseFloat(lonLat[0]) > 32 ? lonLat[0] : lonLat[1];
-                    navigateTo([parseFloat(longitude), parseFloat(latitude)]);
+                    navigateTo([parseFloat(longitude), parseFloat(latitude)], 18);
                     return;
                 }
                 $.getJSON( "https://ws.geonorge.no/stedsnavn/v1/navn?sok=" + phrase + "*&utkoordsys=4326&treffPerSide=6&side=1&filtrer=navn.skrivem%C3%A5te%2Cnavn.navneobjekttype%2Cnavn.kommuner%2Cnavn.representasjonspunkt", renderResults);
