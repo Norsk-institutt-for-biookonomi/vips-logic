@@ -47,7 +47,6 @@ async function initMap() {
         'vaccinium myrtillus': [204, 0, 204, 1], // Lilla 2
         'pieris': [255, 0, 255, 1], // Lilla 3
         'viburnum': [255, 51, 255, 1], // Lilla 4
-        'ericaceae': [255, 102, 255, 1], // Lilla 5
         'fagus sylvatica': [255, 0, 0, 1], // Bøk = rød
         'alnus incana': [239, 133, 19, 1], // Gråor = dyp oransje
         'quercus': [239, 236, 19, 1], // Eik = gul
@@ -399,7 +398,6 @@ var forekomsttypeLatinskeNavn = [
     "Vaccinium myrtillus", // Blåbær
     "Pieris", // Pyramidelyng
     "Viburnum", // Korsved
-    "Ericaceae", // Lyngfamilien
     "Fagus sylvatica", //"Bøk",
     "Alnus incana", //"Gråor",
     "Quercus", //"Eik", 
@@ -436,7 +434,7 @@ var getCropOrganism = function (organismId) {
 
 
 const symptomer = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
-const uttakssteder = ["Import", "Hagesentre", "Planteskole", "Grøntanlegg", "Naturområder"];
+const uttakssteder = ["Import", "Hagesentre", "Planteskole", "Grøntanlegg"];
 const funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora ramorum", "Phytophthora syringae", "Phytophthora hedraiandra", "Negativ", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
 const provetyper = ["[Ikke prøve]", "Blad", "Skudd (og blad", "Jord", "Vev", "Vann", "Bait"];
 
