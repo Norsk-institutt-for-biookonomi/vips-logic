@@ -436,7 +436,7 @@ var getCropOrganism = function (organismId) {
 const symptomer = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
 const uttakssteder = ["Import", "Hagesentre", "Planteskole", "Grøntanlegg"];
 const funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora ramorum", "Phytophthora syringae", "Phytophthora hedraiandra", "Negativ", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
-const provetyper = ["[Ikke prøve]", "Blad", "Skudd (og blad", "Jord", "Vev", "Vann", "Bait"];
+const provetyper = ["[Ikke prøve]", "Blad", "Kvist", "Jord", "Vev", "Vann", "Bait"];
 
 
 var editFeature = function (featureId) {
