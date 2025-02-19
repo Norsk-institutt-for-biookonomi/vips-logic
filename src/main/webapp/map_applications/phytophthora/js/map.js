@@ -435,7 +435,7 @@ var getCropOrganism = function (organismId) {
 
 const symptomer = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
 const uttakssteder = ["Import", "Hagesentre", "Planteskole", "Grøntanlegg"];
-const funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora ramorum", "Phytophthora syringae", "Phytophthora hedraiandra", "Negativ", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
+const funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora ramorum", "Phytophthora syringae", "Phytophthora hedraiandra", "Negativ", "Annet", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
 const provetyper = ["[Ikke prøve]", "Blad", "Kvist", "Jord", "Vev", "Vann", "Bait"];
 
 
@@ -519,7 +519,7 @@ var storeFeature = function (featureId) {
         organism: phytophthora,
         observationHeading: observationHeading,
         observationText: observationText,
-        observationData: "{\"plantespes\":\"" + plantespes + "\",\"uttakssted\":\"" + uttakssted + "\",\"symspes\":\"" + symspes + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
+        observationData: "{\"plantespes\":\"" + plantespes + "\",\"uttakssted\":\"" + uttakssted + "\",\"symptom\":\"" + symptom + "\",\"symspes\":\"" + symspes + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
         statusTypeId: 3,
         statusRemarks: "Registrert via phytophthora-overvåkningskartet",
         isQuantified: true,
@@ -530,7 +530,7 @@ var storeFeature = function (featureId) {
         featureProjection: map.getView().getProjection().getCode()
     });
 
-    //console.log(feature);
+    console.log(feature);
 
     $.ajax({
         type: "POST",
