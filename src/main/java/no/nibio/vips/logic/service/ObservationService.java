@@ -18,23 +18,23 @@
 
 package no.nibio.vips.logic.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.util.ULocale;
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import no.nibio.vips.gis.GISUtil;
-import no.nibio.vips.logic.controller.session.ObservationBean;
-import no.nibio.vips.logic.controller.session.ObservationTimeSeriesBean;
-import no.nibio.vips.logic.controller.session.OrganismBean;
-import no.nibio.vips.logic.controller.session.UserBean;
-import no.nibio.vips.logic.entity.*;
-import no.nibio.vips.logic.entity.rest.ObservationListItem;
-import no.nibio.vips.logic.entity.rest.PointMappingResponse;
-import no.nibio.vips.logic.entity.rest.ReferencedPoint;
-import no.nibio.vips.logic.messaging.MessagingBean;
-import no.nibio.vips.logic.util.ExcelFileGenerator;
-import no.nibio.vips.logic.util.GISEntityUtil;
-import no.nibio.vips.logic.util.Globals;
+import java.io.IOException;
+import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.jboss.resteasy.annotations.GZIP;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -43,10 +43,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.GeoJSON;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.util.ULocale;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import jakarta.ejb.EJB;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -55,15 +65,27 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.net.URI;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.ObservationTimeSeriesBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.Gis;
+import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.ObservationIllustrationPK;
+import no.nibio.vips.logic.entity.ObservationStatusType;
+import no.nibio.vips.logic.entity.ObservationSyncInfo;
+import no.nibio.vips.logic.entity.Organism;
+import no.nibio.vips.logic.entity.PolygonService;
+import no.nibio.vips.logic.entity.VipsLogicRole;
+import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.rest.ObservationListItem;
+import no.nibio.vips.logic.entity.rest.PointMappingResponse;
+import no.nibio.vips.logic.entity.rest.ReferencedPoint;
+import no.nibio.vips.logic.messaging.MessagingBean;
+import no.nibio.vips.logic.util.ExcelFileGenerator;
+import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.logic.util.Globals;
 
 /**
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
@@ -757,6 +779,11 @@ public class ObservationService {
             // Create the Observation
             Observation observation = observationBean.getObservationFromGeoJSON(geoJSON);
             VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+            // Allow for UUID login
+            if(user == null)
+            {
+                user = userBean.getUserFromUUID(httpServletRequest);
+            }
             // If no user, send error message back to client
             if (user == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
