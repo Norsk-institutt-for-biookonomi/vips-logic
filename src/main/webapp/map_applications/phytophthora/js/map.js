@@ -83,11 +83,13 @@ async function initMap() {
                 : colors["plantae"];
 
 
+            let ikkeFunn = observationData["funn"] == "[Ukjent]" || observationData["funn"] == "Negativ";
+
             retVal = [
                 new ol.style.Style({
                     image: new ol.style.Circle({
-                        fill: new ol.style.Fill({ color: (observationData["funn"] == "[Ukjent]" ? color : observationData["funn"] == "Sanns. Phyt." ? [204, 204, 204, 1] : [0, 0, 0, 1]) }),
-                        stroke: new ol.style.Stroke({ width: (observationData["funn"] == "[Ukjent]" ? 0 : 4), color: (observationData["funn"] == "[Ukjent]" ? [0, 0, 0, 1] : color) }),
+                        fill: new ol.style.Fill({ color: (ikkeFunn ? color : observationData["funn"] == "Sanns. Phyt." ? [204, 204, 204, 1] : [0, 0, 0, 1]) }),
+                        stroke: new ol.style.Stroke({ width: (ikkeFunn ? 0 : 4), color: (ikkeFunn ? [0, 0, 0, 1] : color) }),
                         radius: iconRadius
                     }),
                     text: new ol.style.Text({
