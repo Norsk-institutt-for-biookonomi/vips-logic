@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.locationtech.jts.geom.Point;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -51,7 +52,6 @@ import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.locationtech.jts.geom.Point;
 
 /**
  * @copyright 2022 <a href="http://www.bioforsk.no/">Bioforsk</a>
@@ -60,8 +60,8 @@ import org.locationtech.jts.geom.Point;
 public class BarkbeetleController extends HttpServlet {
     
 	// Due to version controls of PDF files, we keep the file names globally updated here
-	public final static String FILENAME_INSTRUKS_REGISTRANTER = "Instruks_registranter_i_Barkbilleovervakingen_2024-04-03.pdf";
-	public final static String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2024-03-04.pdf";
+	public final static String FILENAME_INSTRUKS_REGISTRANTER = "Instruks_registranter_i_Barkbilleovervakingen_2025-02-19.pdf";
+	public final static String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2025-02-19.pdf";
 	public final static String FILENAME_KJENN_IGJEN_ANGREP = "Kjenn_igjen_angrep_stor_granbarkbille_2022-04-25.pdf";
         
     @EJB
