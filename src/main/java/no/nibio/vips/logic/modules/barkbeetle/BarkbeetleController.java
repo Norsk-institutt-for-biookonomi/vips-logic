@@ -54,8 +54,8 @@ import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
 
 /**
- * @copyright 2022 <a href="http://www.bioforsk.no/">Bioforsk</a>
- * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
+ * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
+ * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class BarkbeetleController extends HttpServlet {
     
