@@ -274,7 +274,6 @@ public class MessageController extends HttpServlet {
                 if(JakartaServletFileUpload.isMultipartContent(request))
                 {
                     // Create a new file upload handler
-                    
                     DiskFileItemFactory dfif = DiskFileItemFactory.builder().get();
                     JakartaServletFileUpload upload = new JakartaServletFileUpload(dfif);
 

@@ -18,7 +18,6 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,10 +31,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import jakarta.ejb.EJB;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,10 +67,6 @@ import no.nibio.web.forms.FormUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.apache.commons.fileupload2.core.FileItem;
-import org.apache.commons.fileupload2.core.FileUploadException;
-import org.apache.commons.fileupload2.core.DiskFileItemFactory;
-import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 
 /**
  * @copyright 2014-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -414,7 +412,8 @@ public class ObservationController extends HttpServlet {
                         {
                            
                             // Create a new file upload handler
-                            JakartaServletFileUpload upload = new JakartaServletFileUpload();
+                            DiskFileItemFactory dfif = DiskFileItemFactory.builder().get();
+                            JakartaServletFileUpload upload = new JakartaServletFileUpload(dfif);
 
                             // Parse the request
                             items = upload.parseRequest(request);
