@@ -18,6 +18,15 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.wololo.geojson.Feature;
+import org.wololo.geojson.GeoJSON;
+import org.wololo.jts2geojson.GeoJSONWriter;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 import de.micromata.opengis.kml.v_2_2_0.Data;
 import de.micromata.opengis.kml.v_2_2_0.Document;
@@ -26,13 +35,6 @@ import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Point;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.stream.Collectors;
 import jakarta.ejb.EJB;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
@@ -53,11 +55,6 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
-import org.wololo.geojson.Feature;
-import org.wololo.geojson.FeatureCollection;
-import org.wololo.geojson.GeoJSON;
-import org.wololo.geojson.GeoJSONFactory;
-import org.wololo.jts2geojson.GeoJSONWriter;
 
 
 /**
@@ -174,7 +171,7 @@ public class PointOfInterestBean {
             {
                 if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
                 {
-                    pois.addAll(this.getWeatherstationsForOrganization(organization,true));
+                    pois.addAll(this.getWeatherstationsForOrganization(organization,true, false));
                 }
                 else
                 {
@@ -186,7 +183,7 @@ public class PointOfInterestBean {
         {
             if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
             {
-                pois.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),true));
+                pois.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),true, false));
             }
             else
             {
@@ -320,9 +317,9 @@ public class PointOfInterestBean {
      * 
      * @param organization
      * @param active
-     * @return 
+     * @return public weather stations for an organization
      */
-    public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization, Boolean active) {
+    public List<PointOfInterestWeatherStation> getWeatherstationsForOrganization(Organization organization, Boolean active, Boolean includePrivate) {
         
         if(organization == null)
         {
@@ -342,7 +339,9 @@ public class PointOfInterestBean {
                                 .getResultList()
             );
         }
-        return retVal;
+
+        // Only public weather stations in this list UNLESS explicitly stated otherwise     
+        return (includePrivate != null && includePrivate) ? retVal: retVal.stream().filter(poi-> ! poi.getIsPrivate()).collect(Collectors.toList());
     }
 
     public List<ExternalResource> getUnusedExternalResourcesForPointOfInterest(PointOfInterest weatherStation) {
@@ -522,7 +521,7 @@ public class PointOfInterestBean {
             catch(NoResultException ex) {}
             // Getting all weather stations for user's organization. Need to avoid
             // double catching of privately owned weather station
-            retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE)
+            retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE, Boolean.FALSE)
                     .stream()
                     .filter(weatherStation -> ! weatherStation.getUser().getUserId().equals(user.getUserId()))
                     .collect(Collectors.toList())

@@ -18,16 +18,12 @@
 
 package no.nibio.vips.logic.scheduling.tasks;
 
-import it.sauronsoftware.cron4j.TaskExecutionContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import jakarta.ejb.EJB;
+import it.sauronsoftware.cron4j.TaskExecutionContext;
 import no.nibio.vips.i18n.I18nImpl;
-import no.nibio.vips.logic.controller.session.ForecastBean;
-import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
-import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.PointOfInterest;
@@ -134,7 +130,7 @@ public class RunAllForecastConfigurationsForOrganizationTask extends RunAllForec
                     .append("\",\"selected\":")
                     .append("false")
                     .append("}\n");
-        List<PointOfInterestWeatherStation> stations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(this.getOrganization(), Boolean.TRUE);
+        List<PointOfInterestWeatherStation> stations = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(this.getOrganization(), Boolean.TRUE, Boolean.TRUE);
         Collections.sort(stations);
         for(PointOfInterest station:stations)
         {

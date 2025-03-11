@@ -810,7 +810,7 @@ public class LogicService {
     public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId)
     {
         Organization organization = userBean.getOrganization(organizationId);
-        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getWeatherstationsForOrganization(organization, Boolean.TRUE);
+        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getWeatherstationsForOrganization(organization, Boolean.TRUE, Boolean.FALSE);
         return Response.ok().entity(retVal).build();
     }
     

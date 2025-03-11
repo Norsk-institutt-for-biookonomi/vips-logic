@@ -18,40 +18,46 @@
 package no.nibio.vips.logic.service;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.jboss.resteasy.spi.HttpRequest;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import no.nibio.vips.logic.controller.session.PointOfInterestBean;
-import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
-import org.jboss.resteasy.spi.HttpRequest;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Point;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.webcohesion.enunciate.metadata.Facet;
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-
-import java.util.stream.Collectors;
-
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.controller.session.SessionControllerGetter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
 
 /**
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -78,7 +84,7 @@ public class POIService {
     @TypeHint(PointOfInterestWeatherStation[].class)
     public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId) {
         Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
-        List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE);
+        List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE, Boolean.FALSE);
         return Response.ok().entity(retVal).build();
     }
 

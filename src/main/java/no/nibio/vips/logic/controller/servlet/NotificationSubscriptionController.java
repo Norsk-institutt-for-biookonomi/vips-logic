@@ -17,11 +17,11 @@
  */
 package no.nibio.vips.logic.controller.servlet;
 
-import freemarker.core.ParseException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
+import freemarker.core.ParseException;
 import jakarta.ejb.EJB;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -127,7 +127,7 @@ public class NotificationSubscriptionController extends HttpServlet {
                         );
                 request.setAttribute("allCropCategories", allCropCategories);
                 request.setAttribute("messageTagSet", em.createNamedQuery("MessageTag.findAll").getResultList());
-                request.setAttribute("weatherStationIds", pointOfInterestBean.getWeatherstationsForOrganization(viewUser.getOrganizationId(), true));
+                request.setAttribute("weatherStationIds", pointOfInterestBean.getWeatherstationsForOrganization(viewUser.getOrganizationId(), true, Boolean.TRUE));
                 request.setAttribute("universalMessageFormats", messagingBean.getAllUniversalMessageFormats());
                 request.setAttribute("messageKey", request.getParameter("messageKey"));
                 request.getRequestDispatcher("/notificationSubscriptionForm.ftl").forward(request, response);
