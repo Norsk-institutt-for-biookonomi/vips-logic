@@ -54,7 +54,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import no.nibio.vips.entity.WeatherObservation;
@@ -75,9 +74,7 @@ import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestType;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.UserAuthentication;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
 import no.nibio.vips.logic.entity.VipsLogicRole;
@@ -796,76 +793,6 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
-
-    
-    /**
-     * Get a list of locations (pois) for a given organization
-     * @param organizationId
-     * @return 
-     */
-    @GET
-    @Path("poi/organization/{organizationId}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(PointOfInterestWeatherStation[].class)
-    public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId)
-    {
-        Organization organization = userBean.getOrganization(organizationId);
-        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getWeatherstationsForOrganization(organization, Boolean.TRUE, Boolean.FALSE);
-        return Response.ok().entity(retVal).build();
-    }
-    
-    /**
-     * 
-     * @param pointOfInterestId
-     * @return a particular POI (Point of interest)
-     */
-    @GET
-    @Path("poi/{pointOfInterestId}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(PointOfInterest.class)
-    public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId)
-    {
-        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(pointOfInterestId);
-        return Response.ok().entity(retVal).build();
-    }
-    
-    /**
-     * Find a POI (Point of interest) by name
-     * @param poiName
-     * @return 
-     */
-    @GET
-    @Path("poi/name/{poiName}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(PointOfInterest.class)
-    public Response getPoiByName(@PathParam("poiName") String poiName)
-    {
-        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(poiName);
-        return retVal != null ? Response.ok().entity(retVal).build() : Response.noContent().build();
-    }
-    
-    /**
-     * If used outside of VIPSLogic: Requires a valid UUID to be provided in the Authorization header
-     * @return a list of POIs for the user logged in in this session
-     */
-    @GET
-    @Path("poi/user")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(PointOfInterest[].class)
-    public Response getPoisForCurrentUser()
-    {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        // Could be the VIPS obs app or some other client using UUID
-        if(user == null)
-        {
-        	String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-    		UUID uuid = UUID.fromString(uuidStr);
-    		user = userBean.findVipsLogicUser(uuid);
-        }
-        List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
-        return Response.ok().entity(retVal).build();
-    }
     
     /**
      * 

@@ -36,6 +36,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import jakarta.ejb.EJB;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -72,8 +73,11 @@ public class POIService {
     @Context
     private HttpServletRequest httpServletRequest;
 
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+
     /**
-     * Get a list of locations (pois) for a given organization
+     * Get a list of weather stations for a given organization
      *
      * @param organizationId Database id for the organization
      * @return List of weather stations for the organization
@@ -82,7 +86,7 @@ public class POIService {
     @Path("organization/{organizationId}")
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterestWeatherStation[].class)
-    public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId) {
+    public Response getWeatherstationsForOrganization(@PathParam("organizationId") Integer organizationId) {
         Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
         List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE, Boolean.FALSE);
         return Response.ok().entity(retVal).build();
