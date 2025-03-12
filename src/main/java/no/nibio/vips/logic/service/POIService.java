@@ -53,6 +53,7 @@ import jakarta.ws.rs.core.Response.Status;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
@@ -76,6 +77,9 @@ public class POIService {
     @EJB
     PointOfInterestBean pointOfInterestBean;
 
+    @EJB
+    UserBean userBean;
+
     /**
      * Get a list of weather stations for a given organization
      *
@@ -87,8 +91,8 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterestWeatherStation[].class)
     public Response getWeatherstationsForOrganization(@PathParam("organizationId") Integer organizationId) {
-        Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
-        List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE, Boolean.FALSE);
+        Organization organization = userBean.getOrganization(organizationId);
+        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getWeatherstationsForOrganization(organization, Boolean.TRUE, Boolean.FALSE);
         return Response.ok().entity(retVal).build();
     }
 
@@ -102,7 +106,7 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterest.class)
     public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId) {
-        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(pointOfInterestId);
+        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(pointOfInterestId);
         return Response.ok().entity(retVal).build();
     }
 
@@ -119,14 +123,13 @@ public class POIService {
             return Response.status(Status.BAD_REQUEST).entity("Unable to parse input").build();
         }
 
-        VipsLogicUser user = SessionControllerGetter.getUserBean().getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user == null) {
             LOGGER.error("No user found for UUID in Authorization");
             return Response.status(Status.UNAUTHORIZED).build();
         }
         LOGGER.error("Remember to check for roles as well, if necessary!");
 
-        PointOfInterestBean poiBean = SessionControllerGetter.getPointOfInterestBean();
         Integer poiTypeId = poiMap.get("pointOfInterestTypeId") != null ? Integer.parseInt(poiMap.get("pointOfInterestTypeId").toString()) : null;
         if(poiTypeId == null) {
             return Response.status(Status.BAD_REQUEST).entity("pointOfInterestTypeId is required").build();
@@ -154,7 +157,7 @@ public class POIService {
             Point p3d = gisUtil.createPointWGS84(coordinate);
             poiToSave.setGisGeom(p3d);
         }
-        poiToSave = poiBean.storePoi(poiToSave);
+        poiToSave = pointOfInterestBean.storePoi(poiToSave);
 
         if (poiToSave != null) {
             return Response.status(Response.Status.CREATED)
@@ -182,10 +185,10 @@ public class POIService {
     )
     {
         List<Integer> poiTypes = Arrays.asList(poiTypesStr.split(",")).stream().map(str->Integer.valueOf(str)).collect(Collectors.toList());
-        Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
-        List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganizationAndOfTypes(organization, poiTypes); 
+        Organization organization = userBean.getOrganization(organizationId);
+        List<PointOfInterest> pois = pointOfInterestBean.getPoisForOrganizationAndOfTypes(organization, poiTypes); 
         
-        return Response.ok().entity(SessionControllerGetter.getPointOfInterestBean().getPoisAsGeoJson(pois)).build();
+        return Response.ok().entity(pointOfInterestBean.getPoisAsGeoJson(pois)).build();
     }
 
     @POST
@@ -194,11 +197,11 @@ public class POIService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getPoisGeoJson(Set<Integer> ids) {
         // Retrieve POIs from data source
-        List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPois(ids);
+        List<PointOfInterest> pois = pointOfInterestBean.getPois(ids);
         if (pois == null || pois.isEmpty()) {
             return Response.noContent().build();
         }
-        return Response.ok(SessionControllerGetter.getPointOfInterestBean().getPoisAsGeoJson(pois)).build();
+        return Response.ok(pointOfInterestBean.getPoisAsGeoJson(pois)).build();
     }
 
     /**
@@ -212,7 +215,7 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterest.class)
     public Response getPoiByName(@PathParam("poiName") String poiName) {
-        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(poiName);
+        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(poiName);
         return retVal != null ? Response.ok().entity(retVal).build() : Response.noContent().build();
     }
 
@@ -233,12 +236,12 @@ public class POIService {
         if (user == null) {
             String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
             UUID uuid = UUID.fromString(uuidStr);
-            user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+            user = userBean.findVipsLogicUser(uuid);
             if (user == null) {
                 return Response.status(Status.UNAUTHORIZED).build();
             }
         }
-        List<PointOfInterest> retVal = SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user);
+        List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
         return Response.ok().entity(retVal).build();
     }
     
@@ -266,7 +269,6 @@ public class POIService {
             Map<Object, Object> mapFromApp = oM.readValue(poiJson, new TypeReference<HashMap<Object, Object>>() {
             });
             Integer pointOfInterestId = (Integer) mapFromApp.get("pointOfInterestId");
-            PointOfInterestBean pointOfInterestBean = SessionControllerGetter.getPointOfInterestBean();
             // Check if it is marked as deleted or not
             if (mapFromApp.get("deleted") != null && (mapFromApp.get("deleted").equals(true))) {
                 if (pointOfInterestBean.getPointOfInterest(pointOfInterestId) != null) {
