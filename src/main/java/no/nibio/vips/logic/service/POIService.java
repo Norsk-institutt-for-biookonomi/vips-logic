@@ -244,6 +244,34 @@ public class POIService {
         List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
         return Response.ok().entity(retVal).build();
     }
+
+    /**
+     * If used outside of VIPSLogic: Requires a valid UUID to be provided in the
+     * Authorization header
+     *
+     * @return a list of weather stations, including the ones belonging to the user's organization and any private stations belonging to the user
+     */
+    @GET
+    @Path("weatherstation/user")
+    @Produces("application/json;charset=UTF-8")
+    @Facet("restricted")
+    @TypeHint(PointOfInterest[].class)
+    public Response getWeatherStationsForCurrentUser() {
+        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        // Could be the VIPS obs app or some other client using UUID
+        if (user == null) {
+            String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+            UUID uuid = UUID.fromString(uuidStr);
+            user = userBean.findVipsLogicUser(uuid);
+            if (user == null) {
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+        }
+        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user).stream()
+            .filter(poi->poi instanceof PointOfInterestWeatherStation)
+            .map(poi->(PointOfInterestWeatherStation) poi).collect(Collectors.toList());
+        return Response.ok().entity(retVal).build();
+    }
     
     /**
      * This service is used by the VIPS Field observation app to sync data stored locally on the smartphone with the
