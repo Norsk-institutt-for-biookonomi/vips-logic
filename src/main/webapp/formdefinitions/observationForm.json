@@ -99,7 +99,7 @@
         {
             "name" : "observationText",
             "dataType" : "STRING",
-            "required" : true
+            "required" : false
         },
         {
             "name" : "deleteIllustration",
