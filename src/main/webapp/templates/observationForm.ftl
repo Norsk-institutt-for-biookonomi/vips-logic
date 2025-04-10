@@ -47,7 +47,6 @@
 
         $(document).ready(function () {
 
-
             // Make sure that there is a datetime picker present for HTML5
             // date input fields
 
@@ -67,7 +66,7 @@
             // Otherwise, center and zoom to organizations's default
             <#if observation.location?has_content>
             initGisInfoMap([${(observation.location.x?c)!""}, ${(observation.location.y?c)!""}], 10, true);
-            <#else>
+            <#elseif !observation.observationTimeSeries?has_content>
             var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>
             {
             }
@@ -85,6 +84,10 @@
             <#elseif observation.organism?has_content>
             // Setting
             initObservationData(${observation.organism.organismId}, organizationId);
+            </#if>
+
+            <#if observation.observationTimeSeries?has_content>
+            displayObservationTimeSeriesInfo()
             </#if>
 
             // Activating file selection
@@ -134,6 +137,20 @@
                 observationData = json;
                 getDataSchema(organismId, organizationId);
             });
+        }
+
+        /**
+         * Crop, pest and location should not be editable for observations belonging to time series. We avoid displaying
+         * form elements in these cases, and rather display the values statically.
+         */
+        function displayObservationTimeSeriesInfo() {
+            document.getElementById("cropDisplayName").innerHTML = nameForCropOrganismId("${observation.cropOrganismId}");
+            document.getElementById("pestDisplayName").innerHTML = nameForOrganismId("${observation.organismId}");
+            fetchPOIs(function (allPois) {
+                const locationName = nameForLocationPointOfInterestId("${observation.locationPointOfInterestId}", allPois);
+                document.getElementById("locationDisplayName").innerHTML = locationName || null;
+            });
+            initLocationMap("${observation.locationPointOfInterestId}")
         }
 
         function getDataSchema(organismId, organizationId) {
@@ -223,6 +240,32 @@
 
         var allPois = [];
 
+
+        function fetchPOIs(callback) {
+            $.getJSON("/rest/poi/user", function (json) {
+                callback(json);
+            });
+        }
+
+        function buildPOIList(poiListElement, allPois, poiTypes, selectedPointOfInterestId) {
+            poiListElement.options.length = 1;
+            for (const [typeId, typeName] of Object.entries(poiTypes)) {
+                poiListElement.options[poiListElement.options.length] = new Option("-- " + typeName + " --", "-1");
+
+                for (let i = 0; i < allPois.length; i++) {
+                    const poi = allPois[i];
+
+                    if (poi.pointOfInterestTypeId == typeId) {
+                        const poiOption = new Option(poi.name, poi.pointOfInterestId);
+                        if (poi.pointOfInterestId === selectedPointOfInterestId) {
+                            poiOption.selected = true;
+                        }
+                        poiListElement.options[poiListElement.options.length] = poiOption;
+                    }
+                }
+            }
+        }
+
         /**
          * Fetches locations, farms, fields, traps and weather stations, renders the list
          */
@@ -234,31 +277,16 @@
                 3: "${i18nBundle.fields}",
                 5: "${i18nBundle.traps}"
             };
-            $.getJSON("/rest/poi/user", function (json) {
-                const allPois = json;
-                const poiListElement = document.getElementById("locationPointOfInterestId");
-                poiListElement.options.length = 1;
-                // Iterate through each point of interest type
-                for (const [typeId, typeName] of Object.entries(poiTypes)) {
-                    poiListElement.options[poiListElement.options.length] = new Option("-- " + typeName + " --", "-1");
+            const poiListElement = document.getElementById("locationPointOfInterestId");
+            if (!poiListElement) {
+                return;
+            }
 
-                    // Iterate through all POIs and add them to the list if they match the type
-                    for (let i = 0; i < allPois.length; i++) {
-                        const poi = allPois[i];
-
-                        if (poi.pointOfInterestTypeId == typeId) {
-                            const poiOption = new Option(poi.name, poi.pointOfInterestId);
-                            if (poi.pointOfInterestId === selectedPointOfInterestId) {
-                                poiOption.selected = true;
-                            }
-                            poiListElement.options[poiListElement.options.length] = poiOption;
-                        }
-                    }
-                }
+            fetchPOIs(function (allPois) {
+                buildPOIList(poiListElement, allPois, poiTypes, selectedPointOfInterestId);
                 showCorrectMap();
             });
         }
-
 
         // If locationPointOfInterestId is selected OR observation drawing map is deliberately disabled,
         // show map for locations
@@ -268,14 +296,17 @@
         function showCorrectMap() {
             var locationList = document.getElementById("locationPointOfInterestId");
             if (hideObservationFormMap && locationList.options[locationList.options.selectedIndex].value == "-1") {
+
                 document.getElementById("observationFormMap").style.display = "none";
                 document.getElementById("poiFormMap").style.display = "block";
                 initLocationMap(null);
             } else if (locationList.options[locationList.options.selectedIndex].value != "-1") {
+
                 document.getElementById("observationFormMap").style.display = "none";
                 document.getElementById("poiFormMap").style.display = "block";
                 initLocationMap(locationList.options[locationList.options.selectedIndex].value);
             } else {
+
                 document.getElementById("observationFormMap").style.display = "block";
                 document.getElementById("poiFormMap").style.display = "none";
             }
@@ -337,6 +368,24 @@
             }
         }
 
+        // Return name for given cropOrganismId
+        function nameForCropOrganismId(cropOrganismId) {
+            const crop = cropList.find(crop => crop.organismId == cropOrganismId);
+            return crop ? crop.displayName : null;
+        }
+
+        // Return name for given organismId
+        function nameForOrganismId(organismId) {
+            const pest = organismList.find(pest => pest.organismId == organismId);
+            return pest ? pest.displayName : null;
+        }
+
+        // Return name for given point of interest id
+        function nameForLocationPointOfInterestId(pointOfInterestId, allPois) {
+            const location = allPois.find(loc => loc.pointOfInterestId == pointOfInterestId);
+            return location ? location.name : null;
+        }
+
         /**
          * Based on the selected crop category: Put the related crops
          * on top of the crops list
@@ -386,6 +435,10 @@
 
         function renderCropList(matchingCropOrganismOptions, theRest) {
             var cropOrganismIdList = document.getElementById("cropOrganismIdList");
+            if (!cropOrganismIdList) {
+                // HTML element does not exist for observations in time series
+                return;
+            }
             cropOrganismIdList.options.length = 1;
             for (var i in matchingCropOrganismOptions) {
                 cropOrganismIdList.options[cropOrganismIdList.options.length] = matchingCropOrganismOptions[i];
@@ -430,6 +483,15 @@
             </#if>
             </#list>
             </#if>
+        ];
+
+        var organismList = [
+            <#list allPests as organism>
+            {
+                organismId: ${organism.organismId},
+                displayName: "${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""})"
+            },
+            </#list>
         ];
 
         /**
@@ -497,102 +559,128 @@
                                 : ${observation.lastEditedByUser.firstName} ${observation.lastEditedByUser.lastName}</label>
                         </div>
                     </#if>
-                    <#if ! observation.organism?has_content>
+                    <#if observation.observationTimeSeries?has_content>
                         <div class="form-group">
-                            <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
-                            <select class="form-control" id="cropCategoryIdList" name="cropCategoryId"
-                                    onchange="filterCrops(this.options[this.options.selectedIndex].value);">
-                                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
-                                <!-- Options added by JavaScript function renderCropCategories() -->
-                            </select>
+                            <label>Tidsserie: ${observation.observationTimeSeries.name}</label><br>
+                            <i>Tidsserier opprettes via appen VIPS feltobservasjoner. Kultur, organisme og sted er
+                                felles for alle observasjoner innenfor en tidsserie, og kan derfor ikke redigeres per
+                                observasjon.</i>
                         </div>
-                    </#if>
-                    <div class="form-group">
-                        <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-                        <select class="form-control" id="cropOrganismIdList" name="cropOrganismId"
-                                <#if observation.observationId?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
-                            <#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
-                                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
-                                <option value="-10"
-                                        <#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-                            </#if>
-                        </select>
-                        <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="organismId">${i18nBundle.organism}</label>
-                        <select class="form-control" name="organismId"
-                                <#if observation.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly"
-                                <#else>onchange="<#if noBroadcast>updateHeadingAndText(this.options[this.options.selectedIndex].text);</#if>initObservationData(this.options[this.options.selectedIndex].value,organizationId);"
-                                onblur="validateField(this);"</#if>>
-                            <#if ! observation.organism?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
-                                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
-                                <option value="-10"
-                                        <#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
-                                <#list allPests as organism>
-                                    <option value="${organism.organismId}"
-                                            <#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
-                                    >${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}
-                                        ) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
-                                </#list>
-                            <#else>
-                                <#list allPests as organism>
-                                    <#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>
-                                        <option value="${organism.organismId}"
-                                                selected="selected">${organism.getLocalName(currentLocale.language)!""}
-                                            (${organism.latinName!""}
-                                            ) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
-                                    </#if>
-                                </#list>
-                            </#if>
-                        </select>
-                        <span class="help-block" id="${formId}_organismId_validation"></span>
-
-                    </div>
-                    <div class="form-group">
-                        <label for="locationPointOfInterestId">${i18nBundle.location}&nbsp;&nbsp;<button role="button"
-                                                                                                         type="button"
-                                                                                                         onclick="addNewLocationPopup();">${i18nBundle.addNew}</button>
-                        </label>
-                        <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId"
-                                onchange="showCorrectMap();" <#if editAccess!="W">readonly="readonly"</#if>>
-                            <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
-                        </select>
-                        <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
-                    </div>
-                    <#if editAccess!="W" && observation.locationIsPrivate?has_content && observation.locationIsPrivate == true>
-                        <input type="hidden" name="locationVisibility" value="private"/>
-                    <#else>
                         <div class="form-group">
-                            <div class="radio">
-                                <label>
-                                    <input type="radio" name="locationVisibility" value="public"
-                                           <#if locationVisibilityFormValue == "public">checked="checked"</#if>
-                                    />
-                                </label>
-                                ${i18nBundle.locationIsPublic}
+                            <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
+                            <span id="cropDisplayName"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="organismId">${i18nBundle.organism}</label>
+                            <span id="pestDisplayName"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="locationPointOfInterestId">${i18nBundle.location}</label>
+                            <span id="locationDisplayName"></span>
+                        </div>
+                        <input type="hidden" name="cropOrganismId" value="${observation.cropOrganism.organismId}">
+                        <input type="hidden" name="organismId" value="${observation.organism.organismId}">
+                        <input type="hidden" name="locationPointOfInterestId"
+                               value="${observation.locationPointOfInterestId}">
+                        <input type="hidden" name="locationVisibility" value="${locationVisibilityFormValue}">
+                    <#else>
+                        <#if ! observation.organism?has_content>
+                            <div class="form-group">
+                                <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
+                                <select class="form-control" id="cropCategoryIdList" name="cropCategoryId"
+                                        onchange="filterCrops(this.options[this.options.selectedIndex].value);">
+                                    <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
+                                    <!-- Options added by JavaScript function renderCropCategories() -->
+                                </select>
                             </div>
-                            <div class="radio">
+                        </#if>
+                        <div class="form-group">
+                            <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
+                            <select class="form-control" id="cropOrganismIdList" name="cropOrganismId"
+                                    <#if observation.observationId?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
+                                <#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
+                                    <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
+                                    <option value="-10"
+                                            <#if (observation.cropOrganism?has_content && observation.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
+                                </#if>
+                            </select>
+                            <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="organismId">${i18nBundle.organism}</label>
+                            <select class="form-control" name="organismId"
+                                    <#if observation.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly"
+                                    <#else>onchange="<#if noBroadcast>updateHeadingAndText(this.options[this.options.selectedIndex].text);</#if>initObservationData(this.options[this.options.selectedIndex].value,organizationId);"
+                                    onblur="validateField(this);"</#if>>
+                                <#if !observation.organism?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
+                                    <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
+                                    <option value="-10"
+                                            <#if (observation.organism?has_content && observation.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
+                                    <#list allPests as organism>
+                                        <option value="${organism.organismId}"
+                                                <#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>selected="selected"</#if>
+                                        >${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}
+                                            ) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
+                                    </#list>
+                                <#else>
+                                    <#list allPests as organism>
+                                        <#if (observation.organism?has_content && observation.organism.organismId == organism.organismId)>
+                                            <option value="${organism.organismId}"
+                                                    selected="selected">${organism.getLocalName(currentLocale.language)!""}
+                                                (${organism.latinName!""}
+                                                ) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
+                                        </#if>
+                                    </#list>
+                                </#if>
+                            </select>
+                            <span class="help-block" id="${formId}_organismId_validation"></span>
 
-                                <label>
-                                    <input type="radio" name="locationVisibility" value="private"
-                                           <#if locationVisibilityFormValue == "private">checked="checked"</#if>
-                                    />
-                                </label>
-                                ${i18nBundle.locationIsPrivate}
-                            </div>
-                            <#list polygonServices as polygonService>
+                        </div>
+                        <div class="form-group">
+                            <label for="locationPointOfInterestId">${i18nBundle.location}&nbsp;&nbsp;<button
+                                        role="button" type="button"
+                                        onclick="addNewLocationPopup();">${i18nBundle.addNew}</button>
+                            </label>
+                            <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId"
+                                    onchange="showCorrectMap();" <#if editAccess!="W">readonly="readonly"</#if>>
+                                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
+                            </select>
+                            <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
+                        </div>
+                        <#if editAccess!="W" && observation.locationIsPrivate?has_content && observation.locationIsPrivate == true>
+                            <input type="hidden" name="locationVisibility" value="private"/>
+                        <#else>
+                            <div class="form-group">
                                 <div class="radio">
                                     <label>
-                                        <input type="radio" name="locationVisibility"
-                                               value="mask_${polygonService.polygonServiceId}"
-                                               <#if locationVisibilityFormValue == "mask_" + polygonService.polygonServiceId>checked="checked"</#if>
+                                        <input type="radio" name="locationVisibility" value="public"
+                                               <#if locationVisibilityFormValue == "public">checked="checked"</#if>
                                         />
-                                        ${i18nBundle.maskObservationWith} ${polygonService.polygonServiceName}
                                     </label>
+                                    ${i18nBundle.locationIsPublic}
                                 </div>
-                            </#list>
-                        </div>
+                                <div class="radio">
+
+                                    <label>
+                                        <input type="radio" name="locationVisibility" value="private"
+                                               <#if locationVisibilityFormValue == "private">checked="checked"</#if>
+                                        />
+                                    </label>
+                                    ${i18nBundle.locationIsPrivate}
+                                </div>
+                                <#list polygonServices as polygonService>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="locationVisibility"
+                                                   value="mask_${polygonService.polygonServiceId}"
+                                                   <#if locationVisibilityFormValue == "mask_" + polygonService.polygonServiceId>checked="checked"</#if>
+                                            />
+                                            ${i18nBundle.maskObservationWith} ${polygonService.polygonServiceName}
+                                        </label>
+                                    </div>
+                                </#list>
+                            </div>
+                        </#if>
                     </#if>
                     <div class="form-group">
                         <label for="organizationGroupId">${i18nBundle.availableFor} ${i18nBundle.organizationGroupList?lower_case}</label>
