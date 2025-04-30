@@ -561,10 +561,8 @@
                     </#if>
                     <#if observation.observationTimeSeries?has_content>
                         <div class="form-group">
-                            <label>Tidsserie: ${observation.observationTimeSeries.name}</label><br>
-                            <i>Tidsserier opprettes via appen VIPS feltobservasjoner. Kultur, organisme og sted er
-                                felles for alle observasjoner innenfor en tidsserie, og kan derfor ikke redigeres per
-                                observasjon.</i>
+                            <label>${i18nBundle.timeSeries}: ${observation.observationTimeSeries.name}</label><br>
+                            <i>${i18nBundle.timeSeriesNonEditable}</i>
                         </div>
                         <div class="form-group">
                             <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
