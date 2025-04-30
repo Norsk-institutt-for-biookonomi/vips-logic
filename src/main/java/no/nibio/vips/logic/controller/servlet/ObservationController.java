@@ -222,8 +222,8 @@ public class ObservationController extends HttpServlet {
                     SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                 request.setAttribute("hierarchyCategories",
                     organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
-                request.setAttribute("timeOfObservationFrom", userDefinedFrom ? timeOfObservationFrom : null);
-                request.setAttribute("timeOfObservationTo", userDefinedTo ? timeOfObservationTo : null);
+                request.setAttribute("timeOfObservationFrom", timeOfObservationFrom);
+                request.setAttribute("timeOfObservationTo", timeOfObservationTo);
                 request.setAttribute("selectedPestOrganismId", pestOrganismId);
                 request.setAttribute("selectedStatusTypeId", statusTypeId);
                 request.setAttribute("viewOthersObservations", viewOthersObservations);
