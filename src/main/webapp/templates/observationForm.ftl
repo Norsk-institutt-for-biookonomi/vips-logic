@@ -87,7 +87,7 @@
             </#if>
 
             <#if observation.observationTimeSeries?has_content>
-            displayObservationTimeSeriesInfo()
+                displayObservationTimeSeriesInfo("${observation.cropOrganismId}", "${observation.organismId}", "${observation.locationPointOfInterestId}")
             </#if>
 
             // Activating file selection
@@ -143,14 +143,14 @@
          * Crop, pest and location should not be editable for observations belonging to time series. We avoid displaying
          * form elements in these cases, and rather display the values statically.
          */
-        function displayObservationTimeSeriesInfo() {
-            document.getElementById("cropDisplayName").innerHTML = nameForCropOrganismId("${observation.cropOrganismId}");
-            document.getElementById("pestDisplayName").innerHTML = nameForOrganismId("${observation.organismId}");
+        function displayObservationTimeSeriesInfo(cropOrganismId, organismId, locationPointOfInterestId) {
+            document.getElementById("cropDisplayName").innerHTML = nameForCropOrganismId(cropOrganismId);
+            document.getElementById("pestDisplayName").innerHTML = nameForOrganismId(organismId);
             fetchPOIs(function (allPois) {
-                const locationName = nameForLocationPointOfInterestId("${observation.locationPointOfInterestId}", allPois);
+                const locationName = nameForLocationPointOfInterestId(locationPointOfInterestId, allPois);
                 document.getElementById("locationDisplayName").innerHTML = locationName || null;
             });
-            initLocationMap("${observation.locationPointOfInterestId}")
+            initLocationMap(locationPointOfInterestId)
         }
 
         function getDataSchema(organismId, organizationId) {
