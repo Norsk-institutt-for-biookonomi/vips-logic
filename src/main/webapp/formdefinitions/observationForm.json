@@ -40,9 +40,7 @@
         },
         {
             "name" : "timeOfObservation",
-            "dataType" : "TIMESTAMP",
-            "timestampFormat" : "yyyy-MM-dd HH:mmZ",
-            "timestampFormatMomentJS" : "YYYY-MM-DD HH:mmZ",
+            "dataType" : "DATE",
             "required" : true
         },
         {

@@ -411,7 +411,7 @@ public class ObservationController extends HttpServlet {
                                     formValidation.getFormField("cropOrganismId").getValueAsInteger()));
                             }
                             observation.setTimeOfObservation(
-                                formValidation.getFormField("timeOfObservation").getValueAsTimestamp());
+                                formValidation.getFormField("timeOfObservation").getValueAsDate());
                             if (observationId <= 0) {
                                 observation.setUserId(user.getUserId());
                             } else {
