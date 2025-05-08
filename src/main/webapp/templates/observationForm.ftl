@@ -64,19 +64,18 @@
             initGisInfoMap("observationFormMap", [${defaultMapCenter.x?c}, ${defaultMapCenter.y?c}], ${defaultMapZoom}, false, geoInfo, chooseFromMapLayers);
             </#if>
             <#if editAccess!="W">
-            GISInfoMap.removeInteraction(draw);
-            document.getElementById("drawOptions").innerHTML = "";
+                GISInfoMap.removeInteraction(draw);
+                document.getElementById("drawOptions").innerHTML = "";
             </#if>
             <#if observation.observationData?has_content>
-            observationData = ${observation.observationData};
-            getDataSchema(${observation.organism.organismId}, organizationId);
+                observationData = ${observation.observationData};
+                getDataSchema(${observation.organism.organismId}, organizationId);
             <#elseif observation.organism?has_content>
-            // Setting
-            initObservationData(${observation.organism.organismId}, organizationId);
+                // Setting
+                initObservationData(${observation.organism.organismId}, organizationId);
             </#if>
-
             <#if observation.observationTimeSeries?has_content>
-                displayObservationTimeSeriesInfo("${observation.cropOrganismId}", "${observation.organismId}", "${observation.locationPointOfInterestId}")
+                displayObservationTimeSeriesInfo("${observation.observationTimeSeries.cropOrganismId}", "${observation.observationTimeSeries.organismId}", "${observation.observationTimeSeries.locationPointOfInterestId}")
             </#if>
 
             // Activating file selection
@@ -518,7 +517,7 @@
               role="button">${i18nBundle.back}</a><#if observation.observationId?has_content><a
                     href="/observation?action=newObservationForm" class="btn btn-default"
                     role="button">${i18nBundle.addNew}</a></#if></p>
-        <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
+        <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if><#if observation.observationTimeSeriesId?has_content> ${i18nBundle.forTimeSeries}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
             <#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
         </div>
@@ -550,7 +549,7 @@
                     </#if>
                     <#if observation.observationTimeSeries?has_content>
                         <div class="form-group">
-                            <label>${i18nBundle.timeSeries}: ${observation.observationTimeSeries.name}</label><br>
+                            <label>${i18nBundle.timeSeries}: ${observation.observationTimeSeries.name} (${observation.observationTimeSeries.year})</label><br>
                             <i>${i18nBundle.timeSeriesNonEditable}</i>
                         </div>
                         <div class="form-group">
@@ -565,10 +564,26 @@
                             <label for="locationPointOfInterestId">${i18nBundle.location}</label>
                             <span id="locationDisplayName"></span>
                         </div>
-                        <input type="hidden" name="cropOrganismId" value="${observation.cropOrganism.organismId}">
-                        <input type="hidden" name="organismId" value="${observation.organism.organismId}">
-                        <input type="hidden" name="locationPointOfInterestId"
-                               value="${observation.locationPointOfInterestId}">
+                        <div class="form-group">
+                            <label for="locationVisibility">Synlighet</label>
+                            <span id="locationVisibility">
+                                <#if locationVisibilityFormValue == 'public'>
+                                    ${i18nBundle.locationIsPublic}
+                                <#elseif locationVisibilityFormValue == 'private'>
+                                    ${i18nBundle.locationIsPrivate}
+                                <#else>
+                                    <#list polygonServices as polygonService>
+                                        <#if locationVisibilityFormValue == "mask_" + polygonService.polygonServiceId>
+                                            ${i18nBundle.maskObservationWith} ${polygonService.polygonServiceName}
+                                        </#if>
+                                    </#list>
+                                </#if>
+                            </span>
+                        </div>
+                        <input type="hidden" name="observationTimeSeriesId" value="${observation.observationTimeSeries.observationTimeSeriesId}">
+                        <input type="hidden" name="cropOrganismId" value="${observation.observationTimeSeries.cropOrganism.organismId}">
+                        <input type="hidden" name="organismId" value="${observation.observationTimeSeries.organism.organismId}">
+                        <input type="hidden" name="locationPointOfInterestId" value="${observation.observationTimeSeries.locationPointOfInterestId}">
                         <input type="hidden" name="locationVisibility" value="${locationVisibilityFormValue}">
                     <#else>
                         <#if ! observation.organism?has_content>
@@ -681,7 +696,7 @@
                     <#setting time_zone=user.organizationId.defaultTimeZone!"UTC">
                     <div class="form-group">
                         <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
-                        <input type="date" class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${observation.timeOfObservation?string("yyyy-MM-dd")!""}" onblur="validateField(this);" <#if editAccess!="W">readonly="readonly"</#if>/>
+                        <input type="date" <#if observation.observationTimeSeries?has_content>min="${minTimeOfObservation?string("yyyy-MM-dd")}" max="${maxTimeOfObservation?string("yyyy-MM-dd")}"</#if> class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${observation.timeOfObservation?string("yyyy-MM-dd")}" onblur="validateField(this);" <#if editAccess!="W">readonly="readonly"</#if>/>
                         <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
                     </div>
                     <div class="form-group">

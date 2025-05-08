@@ -38,14 +38,13 @@ import no.nibio.vips.util.DateUtil;
 import no.nibio.vips.util.DateUtilException;
 import no.nibio.vips.util.ExceptionUtil;
 import no.nibio.vips.util.ServletUtil;
-import no.nibio.web.forms.FormUtil;
-import no.nibio.web.forms.FormValidation;
-import no.nibio.web.forms.FormValidationException;
-import no.nibio.web.forms.FormValidator;
+import no.nibio.web.forms.*;
 import org.apache.commons.fileupload2.core.DiskFileItemFactory;
 import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.fileupload2.core.FileUploadException;
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -58,6 +57,8 @@ import java.util.stream.Collectors;
  * @copyright 2014-2022 <a href="http://www.nibio.no/">NIBIO</a>
  */
 public class ObservationController extends HttpServlet {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ObservationController.class);
+
     @PersistenceContext(unitName = "VIPSLogic-PU")
     EntityManager em;
 
@@ -246,12 +247,24 @@ public class ObservationController extends HttpServlet {
                 if (userBean.authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.OBSERVATION_AUTHORITY,
                     VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)) {
                     try {
-
                         Observation observation = new Observation();
+                        observation.setTimeOfObservation(new Date());
                         // See if there are presets on the URL string
                         if (request.getParameter("cropOrganismId") != null) {
                             observation.setCropOrganism(
                                 em.find(Organism.class, Integer.valueOf(request.getParameter("cropOrganismId"))));
+                        }
+                        if (request.getParameter("observationTimeSeriesId") != null) {
+                            ObservationTimeSeries observationTimeSeries = em.find(ObservationTimeSeries.class,
+                                Integer.valueOf(request.getParameter("observationTimeSeriesId")));
+                            observation.setObservationTimeSeries(observationTimeSeries);
+                            Calendar cal = Calendar.getInstance();
+                            cal.set(Calendar.YEAR, observationTimeSeries.getYear());
+                            cal.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
+                            cal.set(Calendar.DAY_OF_MONTH, Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+                            observation.setTimeOfObservation(cal.getTime());
+                            request.setAttribute("minTimeOfObservation", getMinDate(observationTimeSeries.getYear()));
+                            request.setAttribute("maxTimeOfObservation", getMaxDate(observationTimeSeries.getYear()));
                         }
 
                         List<Organism> allCrops;
@@ -327,6 +340,13 @@ public class ObservationController extends HttpServlet {
                         request.setAttribute("locationVisibilityFormValue",
                             this.getLocationVisibilityFormValue(observation));
                         request.setAttribute("observation", observation);
+
+                        ObservationTimeSeries observationTimeSeries = observation.getObservationTimeSeries();
+                        if(observationTimeSeries != null) {
+                            request.setAttribute("minTimeOfObservation", getMinDate(observationTimeSeries.getYear()));
+                            request.setAttribute("maxTimeOfObservation", getMaxDate(observationTimeSeries.getYear()));
+                        }
+
                         request.setAttribute("polygonServices", polygonServices);
                         request.setAttribute("noBroadcast", request.getParameter("noBroadcast") != null);
                         request.setAttribute("mapLayers", userBean.getMapLayerJSONForUser(user));
@@ -382,7 +402,6 @@ public class ObservationController extends HttpServlet {
                         Map<String, String[]> parameterMap;
                         List<FileItem> items = null;
                         if (JakartaServletFileUpload.isMultipartContent(request)) {
-
                             // Create a new file upload handler
                             DiskFileItemFactory dfif = DiskFileItemFactory.builder().get();
                             JakartaServletFileUpload upload = new JakartaServletFileUpload(dfif);
@@ -399,16 +418,12 @@ public class ObservationController extends HttpServlet {
                         Observation observation =
                             observationId > 0 ? em.find(Observation.class, observationId) : new Observation();
 
-
-
                         if (formValidation.isValid()) {
                             // Storing observation
                             // Only new observations can set the organism
                             if (observationId <= 0 || user.isSuperUser() || user.isOrganizationAdmin()) {
-                                observation.setOrganism(em.find(Organism.class,
-                                    formValidation.getFormField("organismId").getValueAsInteger()));
-                                observation.setCropOrganism(em.find(Organism.class,
-                                    formValidation.getFormField("cropOrganismId").getValueAsInteger()));
+                                observation.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
+                                observation.setCropOrganism(em.find(Organism.class, formValidation.getFormField("cropOrganismId").getValueAsInteger()));
                             }
                             observation.setTimeOfObservation(
                                 formValidation.getFormField("timeOfObservation").getValueAsDate());
@@ -417,11 +432,16 @@ public class ObservationController extends HttpServlet {
                             } else {
                                 observation.setLastEditedBy(user.getUserId());
                             }
+                            FormField observationTimeSeriesField = formValidation.getFormField("observationTimeSeriesId");
+                            if(observationTimeSeriesField != null && !observationTimeSeriesField.isEmpty()) {
+                                Integer otsIdInt = observationTimeSeriesField.getValueAsInteger();
+                                observation.setObservationTimeSeries(em.find(ObservationTimeSeries.class, otsIdInt));
+                            }
                             observation.setLastEditedTime(new Date());
                             observation.setObservationHeading(
                                 formValidation.getFormField("observationHeading").getWebValue());
                             observation.setObservationText(
-                                formValidation.getFormField("observationText").getWebValue());
+                                formValidation.getFormField("observationText").getWebValue().isEmpty() ? null : formValidation.getFormField("observationText").getWebValue());
                             observation.setObservationData(
                                 formValidation.getFormField("observationData").getWebValue().isEmpty() ?
                                     null
@@ -528,11 +548,8 @@ public class ObservationController extends HttpServlet {
                             request.getRequestDispatcher("/observationForm.ftl").forward(request, response);
                         }
 
-                    } catch (NullPointerException | NumberFormatException | FormValidationException |
-                        FileUploadException ex) {
-                        response.sendError(500, ExceptionUtil.getStackTrace(ex));
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        LOGGER.error("Exception occurred while saving observation", ex);
                         response.sendError(500, ExceptionUtil.getStackTrace(ex));
                     }
                 } else {
@@ -633,6 +650,22 @@ public class ObservationController extends HttpServlet {
                 response.sendError(403, "Access not authorized"); // HTTP Forbidden
             }
         }
+    }
+
+    private Date getMinDate(int year) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, Calendar.JANUARY);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        return cal.getTime();
+    }
+
+    private Date getMaxDate(int year) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, Calendar.DECEMBER);
+        cal.set(Calendar.DAY_OF_MONTH, 31);
+        return cal.getTime();
     }
 
     public static final String LOCATION_VISIBILITY_FORM_VALUE_PRIVATE = "private";

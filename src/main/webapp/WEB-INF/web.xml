@@ -60,6 +60,10 @@
         <servlet-class>no.nibio.vips.logic.controller.servlet.MessageController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>ObservationTimeSeriesServlet</servlet-name>
+        <servlet-class>no.nibio.vips.logic.controller.servlet.ObservationTimeSeriesController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ObservationServlet</servlet-name>
         <servlet-class>no.nibio.vips.logic.controller.servlet.ObservationController</servlet-class>
     </servlet>
@@ -138,6 +142,10 @@
     <servlet-mapping>
         <servlet-name>MessageController</servlet-name>
         <url-pattern>/message</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ObservationTimeSeriesServlet</servlet-name>
+        <url-pattern>/observationTimeSeries</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ObservationServlet</servlet-name>

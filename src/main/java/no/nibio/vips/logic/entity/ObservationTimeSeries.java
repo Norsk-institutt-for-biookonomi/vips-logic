@@ -61,9 +61,12 @@ public class ObservationTimeSeries implements Serializable {
 
     public ObservationTimeSeries() {
         this.GISEntityUtil = new GISEntityUtil();
+        this.source = "WEB";
+        this.created = new Date();
     }
 
     public ObservationTimeSeries(String source) {
+        this();
         this.source = source;
     }
 

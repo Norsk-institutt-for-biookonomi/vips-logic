@@ -23,9 +23,7 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import no.nibio.vips.logic.entity.ObservationTimeSeries;
-import no.nibio.vips.logic.entity.PointOfInterest;
-import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.*;
 
 @Stateless
 public class ObservationTimeSeriesBean {
