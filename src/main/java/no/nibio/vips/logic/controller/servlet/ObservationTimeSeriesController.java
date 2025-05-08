@@ -193,8 +193,21 @@ public class ObservationTimeSeriesController extends HttpServlet {
                     response.sendError(500, ExceptionUtil.getStackTrace(e));
                 }
             } else if (action.equals("deleteObservationTimeSeries")) {
-                Integer observationTimeSeriesId = Integer.valueOf(request.getParameter("observationTimeSeriesId"));
-                LOGGER.info("Delete observationTimeSeries {}", observationTimeSeriesId);
+                try {
+                    Integer observationTimeSeriesId = Integer.valueOf(request.getParameter("observationTimeSeriesId"));
+                    LOGGER.info("Delete observationTimeSeries {}", observationTimeSeriesId);
+                    observationTimeSeriesBean.deleteObservationTimeSeries(observationTimeSeriesId);
+
+                    // Redirect to list
+                    response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
+                        .append(ServletUtil.getServerName(request))
+                        .append("/observationTimeSeries")
+                        .append("?messageKey=").append("observationTimeSeriesDeleted").toString()
+                    );
+                } catch (NullPointerException | NumberFormatException ex) {
+                    response.sendError(500, ExceptionUtil.getStackTrace(ex));
+                }
+
             }
         }
     }

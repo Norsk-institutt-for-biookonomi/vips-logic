@@ -525,7 +525,7 @@
                     <span class="help-block" id="${formId}_description_validation"></span>
                 </div>
                 <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
-                <#if observationTimeSeries.observationTimeSeriesId?has_content>
+                <#if observationTimeSeries.observationTimeSeriesId?has_content && isEditable>
                     <button type="button" class="btn btn-danger"
                             onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observationTimeSeries?action=deleteObservationTimeSeries&observationTimeSeriesId=${observationTimeSeries.observationTimeSeriesId}';}">${i18nBundle.delete}</button>
                 </#if>
