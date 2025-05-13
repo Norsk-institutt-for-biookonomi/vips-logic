@@ -82,6 +82,7 @@ public class ObservationTimeSeriesController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
+        request.setAttribute("messageKey", request.getParameter("messageKey"));
         List<ObservationTimeSeries> observationTimeSeriesList = observationTimeSeriesBean.getObservationTimeSeriesListForUser(user);
 
         if (request.getServletPath().endsWith("/observationTimeSeries")) {

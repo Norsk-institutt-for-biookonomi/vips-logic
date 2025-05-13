@@ -50,7 +50,6 @@
     }
 
     function refreshLocationPointOfInterests(selectedPointOfInterestId) {
-        console.log("Refresh POIs!", selectedPointOfInterestId)
         const poiTypes = {
             0: "${i18nBundle.genericPlaces}",
             2: "${i18nBundle.farms}",
@@ -71,7 +70,9 @@
     function buildPOIList(poiListElement, allPois, poiTypes, selectedPointOfInterestId) {
         poiListElement.options.length = 1;
         for (const [typeId, typeName] of Object.entries(poiTypes)) {
-            poiListElement.options[poiListElement.options.length] = new Option("-- " + typeName + " --", "-1");
+            let poiTypeOption = new Option("-- " + typeName + " --", "-1");
+            poiTypeOption.disabled = true;
+            poiListElement.options[poiListElement.options.length] = poiTypeOption;
 
             for (let i = 0; i < allPois.length; i++) {
                 const poi = allPois[i];
@@ -351,9 +352,8 @@
 
 <#macro page_contents>
 <div class="singleBlockContainer">
-    <p><a href="/observationTimeSeries" class="btn btn-default back" role="button">${i18nBundle.back}</a><#if observationTimeSeries.observationTimeSeriesId?has_content><a href="/observation?action=newObservationForm&observationTimeSeriesId=${observationTimeSeries.observationTimeSeriesId}" class="btn btn-default" role="button">${i18nBundle.addNewObservationInTimeSeries}</a></#if></p>
+    <p><a href="/observationTimeSeries" class="btn btn-default back" role="button">${i18nBundle.back}</a><#if observationTimeSeries.observationTimeSeriesId?has_content><a href="/observation?action=newObservationForm&observationTimeSeriesId=${observationTimeSeries.observationTimeSeriesId}&returnTo=timeseries" class="btn btn-default" role="button">${i18nBundle.addNewObservationInTimeSeries}</a></#if></p>
     <h1><#if observationTimeSeries.observationTimeSeriesId?has_content>${i18nBundle.editObservationTimeSeries}<#else>${i18nBundle.newObservationTimeSeries}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
-    <p><i>Kultur, organisme, år og sted kan ikke redigeres for tidsserier som inneholder observasjoner.</i></p>
     <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
         <#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
     </div>
@@ -379,6 +379,9 @@
                     </div>
                 </#if>
                 <#if isEditable?has_content && !isEditable>
+                    <div class="alert alert-info">
+                        <i>Kultur, organisme, år og sted kan ikke redigeres for tidsserier som inneholder observasjoner.</i>
+                    </div>
                     <div class="form-group">
                         <label for="cropDisplayName">${i18nBundle.cropOrganismId}</label>
                         <span id="cropDisplayName"></span>
@@ -472,7 +475,7 @@
                                     onclick="addNewLocationPopup();">${i18nBundle.addNew}</button>
                         </label>
                         <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId" onchange="showCorrectMap();">
-                            <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
+                            <option value="" disabled selected>${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
                         </select>
                         <span class="help-block" id="${formId}_locationPointOfInterestId_validation"></span>
                     </div>
@@ -558,7 +561,7 @@
                             <td><#if observation.user?has_content>${observation.user.firstName!""} ${observation.user.lastName!""}</#if></td>
                             <td>${observation.observationHeading}</td>
                             <td><#switch observation.statusTypeId><#case 1>${i18nBundle.pending}<#break><#case 2>${i18nBundle.rejected}<#break><#case 3>${i18nBundle.approved}</#switch></td>
-                            <td><#if user.isSuperUser() || user.isOrganizationAdmin() || userIsObservationAuthority || observation.userId == user.userId><a href="/observation?action=editObservationForm&observationId=${observation.observationId}" class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
+                            <td><#if observation.userId == user.userId><a href="/observation?action=editObservationForm&observationId=${observation.observationId}&returnTo=timeseries" class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
                         </tr>
                     </#list>
                     </tbody>

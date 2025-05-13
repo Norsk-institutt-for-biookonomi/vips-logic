@@ -16,7 +16,7 @@
         <#if messageKey?has_content>
             <div class="alert alert-success">${i18nBundle(messageKey)}</div>
         </#if>
-        <a href="/observationTimeSeries?action=newObservationTimeSeriesForm" class="btn btn-default" role="button">${i18nBundle.addNew}</a>
+        <a href="/observationTimeSeries?action=newObservationTimeSeriesForm" class="btn btn-default" role="button">${i18nBundle.addNewTimeSeries}</a>
 
         <div class="table-responsive">
             <table class="table table-striped">

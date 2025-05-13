@@ -513,8 +513,8 @@
 </#macro>
 <#macro page_contents>
     <div class="singleBlockContainer">
-        <p><a href="/observation" class="btn btn-default back"
-              role="button">${i18nBundle.back}</a><#if observation.observationId?has_content><a
+        <p><a href="${returnPath}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
+            <#if observation.observationId?has_content><a
                     href="/observation?action=newObservationForm" class="btn btn-default"
                     role="button">${i18nBundle.addNew}</a></#if></p>
         <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if><#if observation.observationTimeSeriesId?has_content> ${i18nBundle.forTimeSeries}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
@@ -527,7 +527,7 @@
         <div class="row">
             <div class="col-md-6">
                 <#assign formId = "observationForm">
-                <form id="${formId}" role="form" action="/observation?action=observationFormSubmit"
+                <form id="${formId}" role="form" action="/observation?action=observationFormSubmit&returnTo=${returnTo}"
                       enctype="multipart/form-data" method="POST" onsubmit="return prepareFormSubmit(this);">
                     <!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
                     <!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
@@ -548,24 +548,27 @@
                         </div>
                     </#if>
                     <#if observation.observationTimeSeries?has_content>
-                        <div class="form-group">
-                            <label>${i18nBundle.timeSeries}: ${observation.observationTimeSeries.name} (${observation.observationTimeSeries.year})</label><br>
+                        <div class="alert alert-info">
                             <i>${i18nBundle.timeSeriesNonEditable}</i>
                         </div>
                         <div class="form-group">
-                            <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
+                            <label for="timeSeriesName">${i18nBundle.timeSeries}:</label>
+                            <span id="timeSeriesName"><a href="/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=${observation.observationTimeSeries.observationTimeSeriesId}">${observation.observationTimeSeries.name} (${observation.observationTimeSeries.year})</a></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="cropOrganismId">${i18nBundle.cropOrganismId}:</label>
                             <span id="cropDisplayName"></span>
                         </div>
                         <div class="form-group">
-                            <label for="organismId">${i18nBundle.organism}</label>
+                            <label for="organismId">${i18nBundle.organism}:</label>
                             <span id="pestDisplayName"></span>
                         </div>
                         <div class="form-group">
-                            <label for="locationPointOfInterestId">${i18nBundle.location}</label>
+                            <label for="locationPointOfInterestId">${i18nBundle.location}:</label>
                             <span id="locationDisplayName"></span>
                         </div>
                         <div class="form-group">
-                            <label for="locationVisibility">Synlighet</label>
+                            <label for="locationVisibility">Synlighet:</label>
                             <span id="locationVisibility">
                                 <#if locationVisibilityFormValue == 'public'>
                                     ${i18nBundle.locationIsPublic}
@@ -804,7 +807,7 @@
                     <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
                     <#if observation.observationId?has_content && editAccess == "W">
                         <button type="button" class="btn btn-danger"
-                                onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observation?action=deleteObservation&observationId=${observation.observationId}';}">${i18nBundle.delete}</button>
+                                onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observation?action=deleteObservation&observationId=${observation.observationId}&returnTo=${returnTo}';}">${i18nBundle.delete}</button>
                     </#if>
                 </form>
             </div>

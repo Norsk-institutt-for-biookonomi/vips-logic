@@ -41,7 +41,6 @@ import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.*;
 import org.apache.commons.fileupload2.core.DiskFileItemFactory;
 import org.apache.commons.fileupload2.core.FileItem;
-import org.apache.commons.fileupload2.core.FileUploadException;
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +84,8 @@ public class ObservationController extends HttpServlet {
         throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
+        String returnTo = request.getParameter("returnTo");
+        boolean returnToTimeSeries = returnTo != null && returnTo.equals("timeseries");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
         // Get the organization groups for the current user
         List<OrganizationGroup> organizationGroups = null;
@@ -254,18 +255,6 @@ public class ObservationController extends HttpServlet {
                             observation.setCropOrganism(
                                 em.find(Organism.class, Integer.valueOf(request.getParameter("cropOrganismId"))));
                         }
-                        if (request.getParameter("observationTimeSeriesId") != null) {
-                            ObservationTimeSeries observationTimeSeries = em.find(ObservationTimeSeries.class,
-                                Integer.valueOf(request.getParameter("observationTimeSeriesId")));
-                            observation.setObservationTimeSeries(observationTimeSeries);
-                            Calendar cal = Calendar.getInstance();
-                            cal.set(Calendar.YEAR, observationTimeSeries.getYear());
-                            cal.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
-                            cal.set(Calendar.DAY_OF_MONTH, Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-                            observation.setTimeOfObservation(cal.getTime());
-                            request.setAttribute("minTimeOfObservation", getMinDate(observationTimeSeries.getYear()));
-                            request.setAttribute("maxTimeOfObservation", getMaxDate(observationTimeSeries.getYear()));
-                        }
 
                         List<Organism> allCrops;
                         if (request.getParameter("organismId") != null) {
@@ -277,14 +266,31 @@ public class ObservationController extends HttpServlet {
                             allCrops = em.createNamedQuery("Organism.findAllCrops").getResultList();
                         }
 
+                        request.setAttribute("observation", observation);
+
                         // Get the polygonServices
                         List<PolygonService> polygonServices =
                             observationBean.getPolygonServicesForOrganization(user.getOrganization_id());
-
-                        request.setAttribute("observation", observation);
                         request.setAttribute("polygonServices", polygonServices);
-                        request.setAttribute("locationVisibilityFormValue",
-                            ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PUBLIC);
+
+                        if (request.getParameter("observationTimeSeriesId") != null) {
+                            ObservationTimeSeries observationTimeSeries = em.find(ObservationTimeSeries.class,
+                                Integer.valueOf(request.getParameter("observationTimeSeriesId")));
+                            observation.setObservationTimeSeries(observationTimeSeries);
+                            Calendar cal = Calendar.getInstance();
+                            cal.set(Calendar.YEAR, observationTimeSeries.getYear());
+                            cal.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
+                            cal.set(Calendar.DAY_OF_MONTH, Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+                            observation.setTimeOfObservation(cal.getTime());
+                            request.setAttribute("minTimeOfObservation", getMinDate(observationTimeSeries.getYear()));
+                            request.setAttribute("maxTimeOfObservation", getMaxDate(observationTimeSeries.getYear()));
+                            request.setAttribute("locationVisibilityFormValue", getLocationVisibilityFormValue(
+                                observationTimeSeries.getPolygonService(), observationTimeSeries.getLocationIsPrivate()));
+                        } else {
+                            request.setAttribute("locationVisibilityFormValue",
+                                ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PUBLIC);
+                        }
+
                         request.setAttribute("shortcut", request.getParameter("observationFormShortcutId") != null ?
                             em.find(ObservationFormShortcut.class,
                                 Integer.valueOf(request.getParameter("observationFormShortcutId")))
@@ -312,6 +318,8 @@ public class ObservationController extends HttpServlet {
                         request.setAttribute("observationMethods",
                             em.createNamedQuery("ObservationMethod.findAll", ObservationMethod.class).getResultList());
                         request.setAttribute("organizationGroups", organizationGroups);
+                        request.setAttribute("returnTo", returnTo);
+                        request.setAttribute("returnPath", returnToTimeSeries ? "/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=" + observation.getObservationTimeSeriesId() : "/observation");
                         request.setAttribute("editAccess", "W"); // User always has edit access to new observation
                         if (userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY,
                             VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)) {
@@ -338,7 +346,7 @@ public class ObservationController extends HttpServlet {
                         List<PolygonService> polygonServices =
                             observationBean.getPolygonServicesForOrganization(user.getOrganization_id());
                         request.setAttribute("locationVisibilityFormValue",
-                            this.getLocationVisibilityFormValue(observation));
+                            this.getLocationVisibilityFormValue(observation.getPolygonService(), observation.getLocationIsPrivate()));
                         request.setAttribute("observation", observation);
 
                         ObservationTimeSeries observationTimeSeries = observation.getObservationTimeSeries();
@@ -372,6 +380,8 @@ public class ObservationController extends HttpServlet {
                             request.setAttribute("statusTypeIds",
                                 em.createNamedQuery("ObservationStatusType.findAll").getResultList());
                         }
+                        request.setAttribute("returnTo", returnTo);
+                        request.setAttribute("returnPath", returnToTimeSeries ? "/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=" + observation.getObservationTimeSeriesId() : "/observation");
                         if (request.getParameter("messageKey") != null) {
                             request.setAttribute("messageKey", request.getParameter("messageKey"));
                         }
@@ -526,11 +536,12 @@ public class ObservationController extends HttpServlet {
                             }
 
                             // Redirect to form
-                            response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
-                                .append(ServletUtil.getServerName(request))
-                                .append("/observation?action=editObservationForm&observationId=")
-                                .append(observation.getObservationId())
-                                .append("&messageKey=").append("observationStored").toString()
+                            response.sendRedirect(Globals.PROTOCOL + "://" +
+                                ServletUtil.getServerName(request) +
+                                "/observation?action=editObservationForm&observationId=" +
+                                observation.getObservationId() +
+                                "&returnTo=" + returnTo +
+                                "&messageKey=" + "observationStored"
 
                             );
                         } else {
@@ -562,13 +573,18 @@ public class ObservationController extends HttpServlet {
                     VipsLogicRole.SUPERUSER)) {
                     try {
                         Integer observationId = Integer.valueOf(request.getParameter("observationId"));
+                        Observation observation = observationId > 0 ? em.find(Observation.class, observationId) : new Observation();
+                        Integer observationTimeSeriesId = observation.getObservationTimeSeriesId();
+
                         observationBean.deleteObservation(observationId);
 
+                        String redirectTo = returnToTimeSeries ? "/observationTimeSeries?observationTimeSeries=" + observationTimeSeriesId + "&": "/observation?";
+
                         // Redirect to list
-                        response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
-                            .append(ServletUtil.getServerName(request))
-                            .append("/observation")
-                            .append("?messageKey=").append("observationDeleted").toString()
+                        response.sendRedirect(Globals.PROTOCOL + "://" +
+                            ServletUtil.getServerName(request) +
+                            redirectTo +
+                            "messageKey=observationDeleted"
                         );
                     } catch (NullPointerException | NumberFormatException ex) {
                         response.sendError(500, ExceptionUtil.getStackTrace(ex));
@@ -672,17 +688,17 @@ public class ObservationController extends HttpServlet {
     public static final String LOCATION_VISIBILITY_FORM_VALUE_PUBLIC = "public";
     public static final String LOCATION_VISIBILITY_FORM_VALUE_MASK_PREFIX = "mask_";
 
-    private String getLocationVisibilityFormValue(Observation observation) {
+    private String getLocationVisibilityFormValue(PolygonService polygonService, Boolean locationIsPrivate) {
         // Private is private, no matter what
-        if (observation.getLocationIsPrivate()) {
+        if (locationIsPrivate) {
             return ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PRIVATE;
         }
         // Public can either be completely public or masked by a polygon layer
         // e.g. county borders
-        if (observation.getPolygonService() == null) {
+        if (polygonService == null) {
             return ObservationController.LOCATION_VISIBILITY_FORM_VALUE_PUBLIC;
         }
-        return ObservationController.LOCATION_VISIBILITY_FORM_VALUE_MASK_PREFIX + observation.getPolygonService()
+        return ObservationController.LOCATION_VISIBILITY_FORM_VALUE_MASK_PREFIX + polygonService
             .getPolygonServiceId();
     }
 
