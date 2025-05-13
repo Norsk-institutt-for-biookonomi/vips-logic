@@ -527,7 +527,7 @@
         <div class="row">
             <div class="col-md-6">
                 <#assign formId = "observationForm">
-                <form id="${formId}" role="form" action="/observation?action=observationFormSubmit&returnTo=${returnTo}"
+                <form id="${formId}" role="form" action="/observation?action=observationFormSubmit<#if returnTo?has_content>&returnTo=${returnTo}</#if>"
                       enctype="multipart/form-data" method="POST" onsubmit="return prepareFormSubmit(this);">
                     <!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
                     <!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
@@ -807,7 +807,7 @@
                     <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
                     <#if observation.observationId?has_content && editAccess == "W">
                         <button type="button" class="btn btn-danger"
-                                onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observation?action=deleteObservation&observationId=${observation.observationId}&returnTo=${returnTo}';}">${i18nBundle.delete}</button>
+                                onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observation?action=deleteObservation&observationId=${observation.observationId}<#if returnTo?has_content>&returnTo=${returnTo}</#if>';}">${i18nBundle.delete}</button>
                     </#if>
                 </form>
             </div>
