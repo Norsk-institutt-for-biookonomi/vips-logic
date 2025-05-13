@@ -97,6 +97,9 @@ public class ObservationTimeSeriesController extends HttpServlet {
                         .setParameter("observationTimeSeries", observationTimeSeries).getSingleResult();
                     observationCounts.put(String.valueOf(observationTimeSeries.getObservationTimeSeriesId()), count);
                 }
+                request.setAttribute("userIsObservationAuthority",
+                    userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY,
+                        VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
                 request.setAttribute("observationCounts", observationCounts);
                 request.getRequestDispatcher("/observationTimeSeriesList.ftl").forward(request, response);
                 return;
@@ -118,6 +121,9 @@ public class ObservationTimeSeriesController extends HttpServlet {
 
                 request.setAttribute("observationTimeSeries", observationTimeSeries);
                 request.setAttribute("isEditable", observationCount == 0);
+                request.setAttribute("userIsObservationAuthority",
+                    userBean.authorizeUser(user, VipsLogicRole.OBSERVATION_AUTHORITY,
+                        VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER));
                 buildFormRequest(request, user, observationTimeSeries);
                 request.setAttribute("observations",
                     observationBean.getObservationsForTimeSeries(observationTimeSeries));

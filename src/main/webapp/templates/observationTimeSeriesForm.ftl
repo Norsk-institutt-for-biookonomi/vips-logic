@@ -418,7 +418,7 @@
                     <input type="hidden" name="locationVisibility" value="${locationVisibilityFormValue}">
                 <#else>
                     <div class="form-group">
-                        <label for="cropCategoryId">${i18nBundle.listSelectedCropCategoryOnTop}</label>
+                        <label for="cropCategoryIdList">${i18nBundle.listSelectedCropCategoryOnTop}</label>
                         <select class="form-control" id="cropCategoryIdList" name="cropCategoryId"
                                 onchange="filterCrops(this.options[this.options.selectedIndex].value);">
                             <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
@@ -426,26 +426,21 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
-                        <select class="form-control" id="cropOrganismIdList" name="cropOrganismId"
-                                <#if observationTimeSeries.observationTimeSeriesId?has_content && !user.isSuperUser() && !user.isOrganizationAdmin()>readonly="readonly" <#else> onblur="validateField(this);" onchange="updateCropPests();"</#if>>
-                            <#if !observationTimeSeries.observationTimeSeriesId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
+                        <label for="cropOrganismIdList">${i18nBundle.cropOrganismId}</label>
+                        <select class="form-control" id="cropOrganismIdList" name="cropOrganismId" onblur="validateField(this);" onchange="updateCropPests();">
+                            <#if !observationTimeSeries.observationTimeSeriesId?has_content>
                                 <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropOrganismId?lower_case}</option>
-                                <option value="-10"
-                                        <#if (observationTimeSeries.cropOrganism?has_content && observationTimeSeries.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
+                                <option value="-10" <#if (observationTimeSeries.cropOrganism?has_content && observationTimeSeries.cropOrganism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
                             </#if>
                         </select>
                         <span class="help-block" id="${formId}_cropOrganismId_validation"></span>
                     </div>
                     <div class="form-group">
                         <label for="organismId">${i18nBundle.organism}</label>
-                        <select class="form-control" id="organismId" name="organismId"
-                                <#if observationTimeSeries.organism?has_content && ! user.isSuperUser() && ! user.isOrganizationAdmin()>readonly="readonly"
-                                onblur="validateField(this);"</#if>>
+                        <select class="form-control" id="organismId" name="organismId" onblur="validateField(this);">
                             <#if !observationTimeSeries.organism?has_content>
                                 <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.organism?lower_case}</option>
-                                <option value="-10"
-                                        <#if (observationTimeSeries.organism?has_content && observationTimeSeries.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
+                                <option value="-10" <#if (observationTimeSeries.organism?has_content && observationTimeSeries.organism.organismId == -10)>selected="selected"</#if>>${i18nBundle.missingInDatabase}</option>
                                 <#list allPests as organism>
                                     <option value="${organism.organismId}">${organism.getLocalName(currentLocale.language)!""} (${organism.latinName!""}) ${hierarchyCategories.getName(organism.hierarchyCategoryId)?upper_case}</option>
                                 </#list>

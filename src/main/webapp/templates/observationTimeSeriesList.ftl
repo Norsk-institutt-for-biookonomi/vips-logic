@@ -42,7 +42,7 @@
                         <td><#if timeSeries.locationPointOfInterest?has_content>${timeSeries.locationPointOfInterest.name!""}</#if></td>
                         <td><#if timeSeries.user?has_content>${timeSeries.user.firstName!""} ${timeSeries.user.lastName!""}</#if></td>
                         <td>${observationCounts[timeSeries.observationTimeSeriesId?string]}</td>
-                        <td><#if user.isSuperUser() || user.isOrganizationAdmin() || userIsObservationAuthority || observation.userId == user.userId>
+                        <td><#if userIsObservationAuthority || timeSeries.userId == user.userId>
                                 <a
                                 href="/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=${timeSeries.observationTimeSeriesId}"
                                 class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
