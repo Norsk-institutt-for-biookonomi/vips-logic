@@ -21,14 +21,17 @@
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
-                <th>Tittel</th>
-                <th>År</th>
-                <th>${i18nBundle.cropOrganismId}</th>
-                <th>${i18nBundle.organism}</th>
-                <th>${i18nBundle.location}</th>
-                <th>${i18nBundle.observer}</th>
-                <th>${i18nBundle.observationCount}</th>
-                <th></th>
+                    <tr>
+                        <th>Tittel</th>
+                        <th>År</th>
+                        <th>${i18nBundle.cropOrganismId}</th>
+                        <th>${i18nBundle.organism}</th>
+                        <th>${i18nBundle.location}</th>
+                        <th>${i18nBundle.observer}</th>
+                        <th>${i18nBundle.observationCount}</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                 <#list observationTimeSeriesList as timeSeries>
@@ -42,10 +45,18 @@
                         <td><#if timeSeries.locationPointOfInterest?has_content>${timeSeries.locationPointOfInterest.name!""}</#if></td>
                         <td><#if timeSeries.user?has_content>${timeSeries.user.firstName!""} ${timeSeries.user.lastName!""}</#if></td>
                         <td>${observationCounts[timeSeries.observationTimeSeriesId?string]}</td>
-                        <td><#if userIsObservationAuthority || timeSeries.userId == user.userId>
+                        <td>
+                            <#if userIsObservationAuthority || timeSeries.userId == user.userId>
                                 <a
                                 href="/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=${timeSeries.observationTimeSeriesId}"
-                                class="btn btn-default" role="button">${i18nBundle.edit}</a></#if></td>
+                                class="btn btn-default" role="button">${i18nBundle.edit}</a>
+                            </#if>
+                        </td>
+                        <td>
+                            <#if userIsObservationAuthority || timeSeries.userId == user.userId>
+                                <a href="/observation?action=newObservationForm&observationTimeSeriesId=${timeSeries.observationTimeSeriesId}&returnTo=timeseries" class="btn btn-default" role="button">Legg til observasjon</a>
+                            </#if>
+                        </td>
                     </tr>
                 </#list>
                 </tbody>
