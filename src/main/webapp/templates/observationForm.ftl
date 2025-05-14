@@ -138,7 +138,8 @@
                 const locationName = nameForLocationPointOfInterestId(locationPointOfInterestId, allPois);
                 document.getElementById("locationDisplayName").innerHTML = locationName || null;
             });
-            initLocationMap(locationPointOfInterestId)
+            initLocationMap(locationPointOfInterestId);
+            initObservationData(organismId, organizationId);
         }
 
         function getDataSchema(organismId, organizationId) {
