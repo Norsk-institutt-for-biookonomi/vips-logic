@@ -420,14 +420,16 @@
                     <input type="hidden" name="locationPointOfInterestId" value="${observationTimeSeries.locationPointOfInterestId}">
                     <input type="hidden" name="locationVisibility" value="${locationVisibilityFormValue}">
                 <#else>
-                    <div class="form-group">
-                        <label for="cropCategoryIdList">${i18nBundle.listSelectedCropCategoryOnTop}</label>
-                        <select class="form-control" id="cropCategoryIdList" name="cropCategoryId"
-                                onchange="filterCrops(this.options[this.options.selectedIndex].value);">
-                            <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
-                            <!-- Options added by JavaScript function renderCropCategories() -->
-                        </select>
-                    </div>
+                    <#if ! observationTimeSeries.organism?has_content>
+                        <div class="form-group">
+                            <label for="cropCategoryIdList">${i18nBundle.listSelectedCropCategoryOnTop}</label>
+                            <select class="form-control" id="cropCategoryIdList" name="cropCategoryId"
+                                    onchange="filterCrops(this.options[this.options.selectedIndex].value);">
+                                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.cropCategory?lower_case}</option>
+                                <!-- Options added by JavaScript function renderCropCategories() -->
+                            </select>
+                        </div>
+                    </#if>
                     <div class="form-group">
                         <label for="cropOrganismIdList">${i18nBundle.cropOrganismId}</label>
                         <select class="form-control" id="cropOrganismIdList" name="cropOrganismId" onblur="validateField(this);" onchange="updateCropPests();">
