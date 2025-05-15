@@ -93,8 +93,8 @@
             });
 
             refreshLocationPointOfInterests(<#if observation.locationPointOfInterestId?has_content>${observation.locationPointOfInterestId}<#else>null</#if>);
-            <#if ! observation.organism?has_content>
-            initCropCategories();
+            <#if !observation.organism?has_content>
+                initCropCategories();
             </#if>
             // Activating chosen plugin
             $(".chosen-select").chosen();
@@ -341,18 +341,21 @@
         }
 
         function renderCropCategories() {
-            var cropCategoryIdList = document.getElementById("cropCategoryIdList");
-            for (var i in cropCategories) {
-                var cropCategory = cropCategories[i];
+            let cropCategoryIdList = document.getElementById("cropCategoryIdList");
+            if(!cropCategoryIdList) {
+                return;
+            }
+            for (let i in cropCategories) {
+                let cropCategory = cropCategories[i];
                 // Best effort getting name for crop category
-                var catName = cropCategory.defaultName;
-                for (var j in cropCategory.cropCategoryLocalSet) {
-                    var cLocal = cropCategory.cropCategoryLocalSet[j];
+                let catName = cropCategory.defaultName;
+                for (let j in cropCategory.cropCategoryLocalSet) {
+                    let cLocal = cropCategory.cropCategoryLocalSet[j];
                     if (cLocal.cropCategoryLocalPK.locale == "${currentLocale}") {
                         catName = cLocal.localName;
                     }
                 }
-                var cOption = new Option(catName, cropCategory.cropCategoryId);
+                let cOption = new Option(catName, cropCategory.cropCategoryId);
                 cropCategoryIdList.options[cropCategoryIdList.options.length] = cOption;
             }
         }
