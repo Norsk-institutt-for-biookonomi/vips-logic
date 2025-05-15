@@ -44,7 +44,6 @@
         var organizationId = ${user.organizationId.organizationId};
         var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId?c}<#else>null</#if>;
 
-
         $(document).ready(function () {
 
             // Load main form definition (for validation)
@@ -54,11 +53,9 @@
             // If observation already registered center on location
             // Otherwise, center and zoom to organizations's default
             <#if observation.location?has_content>
-            initGisInfoMap([${(observation.location.x?c)!""}, ${(observation.location.y?c)!""}], 10, true);
+                initGisInfoMap([${(observation.location.x?c)!""}, ${(observation.location.y?c)!""}], 10, true);
             <#elseif !observation.observationTimeSeries?has_content>
-            var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>
-            {
-            }
+                var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}
             </#if>;
             var chooseFromMapLayers = {"chooseFromMapLayers": <#if mapLayers?has_content>${mapLayers}<#else>[]</#if>};
             initGisInfoMap("observationFormMap", [${defaultMapCenter.x?c}, ${defaultMapCenter.y?c}], ${defaultMapZoom}, false, geoInfo, chooseFromMapLayers);
@@ -71,8 +68,9 @@
                 observationData = ${observation.observationData};
                 getDataSchema(${observation.organism.organismId}, organizationId);
             <#elseif observation.organism?has_content>
-                // Setting
                 initObservationData(${observation.organism.organismId}, organizationId);
+            <#elseif observation.observationTimeSeries?has_content>
+                initObservationData(${observation.observationTimeSeries.organismId}, organizationId);
             </#if>
             <#if observation.observationTimeSeries?has_content>
                 displayObservationTimeSeriesInfo("${observation.observationTimeSeries.cropOrganismId}", "${observation.observationTimeSeries.organismId}", "${observation.observationTimeSeries.locationPointOfInterestId}")
@@ -139,7 +137,6 @@
                 document.getElementById("locationDisplayName").innerHTML = locationName || null;
             });
             initLocationMap(locationPointOfInterestId);
-            initObservationData(organismId, organizationId);
         }
 
         function getDataSchema(organismId, organizationId) {
@@ -490,8 +487,6 @@
          * Does all the ifs and buts before form can potentially be submitted
          */
         function prepareFormSubmit(theForm) {
-            // Extract GIS info from OpenLayers
-            theForm['geoInfo'].value = getFeatures();
             try {
                 // If the form is quantified: Inspect the fields and write
                 // JSON string to the generic form field "observationData";
@@ -503,10 +498,15 @@
                     }
                     theForm['observationData'].value = JSON.stringify(editor.getValue());
                 }
-                validateGIS(theForm);
+                // Extract GIS info from OpenLayers
+                let theFeatures = getFeatures();
+                if (theFeatures) {
+                    theForm['geoInfo'].value = theFeatures;
+                    return validateForm(theForm) && validateGIS(theForm);
+                }
+                return validateForm(theForm);
                 //console.info('validateGIS = ' + (validateGIS(this)));
                 //return false; // DEBUG setting
-                return validateForm(theForm) && validateGIS(theForm); // PROD setting
             } catch (e) {
                 console.log(e.message);
                 console.log(e);
@@ -519,7 +519,7 @@
     <div class="singleBlockContainer">
         <p><a href="${returnPath}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
             <#if observation.observationId?has_content><a
-                    href="/observation?action=newObservationForm" class="btn btn-default"
+                    href="/observation?action=newObservationForm<#if observation.observationTimeSeriesId?has_content>&observationTimeSeriesId=${observation.observationTimeSeriesId}</#if>" class="btn btn-default"
                     role="button">${i18nBundle.addNew}</a></#if></p>
         <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if><#if observation.observationTimeSeriesId?has_content> ${i18nBundle.forTimeSeries}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>

@@ -662,6 +662,9 @@ var app = window.app;
  * @return {GEOJson} returns all features currently on the map in GEOJson format
  */
 function getFeatures() {
+  if(!featureOverlay){
+    return null;
+  }
   var features = featureOverlay.getSource().getFeatures();
   var format = new ol.format.GeoJSON();
   // write features to GeoJSON format using projection EPSG:4326
