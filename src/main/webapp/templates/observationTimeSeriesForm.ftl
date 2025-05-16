@@ -321,31 +321,6 @@
             }
         }
     };
-
-    function prepareFormSubmit(theForm) {
-        // Extract GIS info from OpenLayers
-        theForm['geoInfo'].value = getFeatures();
-        try {
-            // If the form is quantified: Inspect the fields and write
-            // JSON string to the generic form field "observationData";
-            if (theForm.isQuantified.checked) {
-                const errors = editor.validate();
-                if (errors.length) {
-                    alert(errors);
-                    return false;
-                }
-                theForm['observationData'].value = JSON.stringify(editor.getValue());
-            }
-            validateGIS(theForm);
-            //console.info('validateGIS = ' + (validateGIS(this)));
-            //return false; // DEBUG setting
-            return validateForm(theForm) && validateGIS(theForm); // PROD setting
-        } catch (e) {
-            console.log(e.message);
-            console.log(e);
-            return false;
-        }
-    }
 </script>
 
 </#macro>
@@ -363,7 +338,7 @@
     <div class="row">
         <div class="col-md-6">
             <#assign formId = "observationTimeSeriesForm">
-            <form id="${formId}" role="form" action="/observationTimeSeries?action=observationTimeSeriesFormSubmit" enctype="multipart/form-data" method="POST" onsubmit="return prepareFormSubmit(this);">
+            <form id="${formId}" role="form" action="/observationTimeSeries?action=observationTimeSeriesFormSubmit" enctype="multipart/form-data" method="POST">
                 <input type="hidden" name="geoInfo" value=""/>
                 <input type="hidden" name="observationTimeSeriesId" value="${observationTimeSeries.observationTimeSeriesId!"-1"}"/>
                 <#if observationTimeSeries.user?has_content>
