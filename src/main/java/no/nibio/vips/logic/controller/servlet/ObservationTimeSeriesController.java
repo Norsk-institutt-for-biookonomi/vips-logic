@@ -156,20 +156,21 @@ public class ObservationTimeSeriesController extends HttpServlet {
                         SessionLocaleUtil.getI18nBundle(request),
                         getServletContext()
                     );
-                    Integer observationTimeSeriesId =
-                        formValidation.getFormField("observationTimeSeriesId").getValueAsInteger();
-                    if (observationTimeSeriesId > 0) {
-                        observationTimeSeries = em.find(ObservationTimeSeries.class, observationTimeSeriesId);
-                    }
                     if (formValidation.isValid()) {
+                        observationTimeSeries.setUserId(user.getUserId()); // Should only be set for new time series
                         Long observationCount = 0L;
-                        observationTimeSeries.setUserId(user.getUserId());
-                        if(observationTimeSeriesId >= 0) {
-                            observationTimeSeries.setLastModifiedBy(user.getUserId());
-                            observationTimeSeries.setLastModified(new Date());
+
+                        Integer observationTimeSeriesId =
+                            formValidation.getFormField("observationTimeSeriesId").getValueAsInteger();
+                        if (observationTimeSeriesId > 0) {
+                            // Fetch existing time series if id > 0
+                            observationTimeSeries = em.find(ObservationTimeSeries.class, observationTimeSeriesId);
                             observationCount = em.createNamedQuery("Observation.findCountByObservationTimeSeries", Long.class)
                                 .setParameter("observationTimeSeries", observationTimeSeries).getSingleResult();
                         }
+                        observationTimeSeries.setLastModifiedBy(user.getUserId());
+                        observationTimeSeries.setLastModified(new Date());
+
                         // Only observation time series without observations can set the crop, pest and location
                         if (observationCount == 0) {
                             observationTimeSeries.setOrganism(em.find(Organism.class, formValidation.getFormField("organismId").getValueAsInteger()));
