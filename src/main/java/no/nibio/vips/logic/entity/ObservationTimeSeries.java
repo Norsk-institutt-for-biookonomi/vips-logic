@@ -33,7 +33,7 @@ import java.util.*;
     @NamedQuery(name = "ObservationTimeSeries.findAll", query = "SELECT ots FROM ObservationTimeSeries ots"),
     @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId = :id"),
     @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesIds", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId IN :observationTimeSeriesIds"),
-    @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId)")
+    @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId) order by ots.year desc, ots.created desc")
 })
 public class ObservationTimeSeries implements Serializable {
 
