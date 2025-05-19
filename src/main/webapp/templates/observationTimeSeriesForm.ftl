@@ -108,7 +108,7 @@
 
     function showCorrectMap() {
         let locationList = document.getElementById("locationPointOfInterestId");
-        if (locationList.options[locationList.options.selectedIndex].value == "-1") {
+        if (locationList.options[locationList.options.selectedIndex].value === "-1") {
             document.getElementById("poiFormMap").style.display = "block";
             initLocationMap(null);
         } else {
@@ -122,7 +122,6 @@
      * form elements in these cases, and rather display the values statically.
      */
     function displayObservationTimeSeriesInfo(cropOrganismId, organismId, locationPointOfInterestId) {
-        console.log("Display info!")
         document.getElementById("cropDisplayName").innerHTML = nameForCropOrganismId(cropOrganismId);
         document.getElementById("pestDisplayName").innerHTML = nameForOrganismId(organismId);
         fetchPOIs(function (allPois) {
@@ -162,7 +161,6 @@
 
     function renderCropCategories() {
         let cropCategoryIdList = document.getElementById("cropCategoryIdList");
-        console.info("renderCropCategories", cropCategories)
         for (let i in cropCategories) {
             let cropCategory = cropCategories[i];
             // Best effort getting name for crop category
@@ -173,8 +171,7 @@
                     catName = cLocal.localName;
                 }
             }
-            let cOption = new Option(catName, cropCategory.cropCategoryId);
-            cropCategoryIdList.options[cropCategoryIdList.options.length] = cOption;
+            cropCategoryIdList.options[cropCategoryIdList.options.length] = new Option(catName, cropCategory.cropCategoryId);
         }
     }
 
@@ -222,22 +219,18 @@
     }
 
     function renderCropList(matchingCropOrganismOptions, theRest) {
-        var cropOrganismIdList = document.getElementById("cropOrganismIdList");
+        let cropOrganismIdList = document.getElementById("cropOrganismIdList");
         if (!cropOrganismIdList) {
             // HTML element does not exist for observations in time series
             return;
         }
         cropOrganismIdList.options.length = 1;
-        for (var i in matchingCropOrganismOptions) {
+        for (let i in matchingCropOrganismOptions) {
             cropOrganismIdList.options[cropOrganismIdList.options.length] = matchingCropOrganismOptions[i];
-        }
-        cropOrganismIdList.options[cropOrganismIdList.options.length] = new Option("----", -1);
-        for (var i in theRest) {
-            cropOrganismIdList.options[cropOrganismIdList.options.length] = theRest[i];
         }
     }
 
-    var cropList = [
+    let cropList = [
         <#if ! observationTimeSeries.observationTimeSeriesId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
         {organismId: -10, displayName: "${i18nBundle.missingInDatabase}", hierarchyCategoryId: -1},
         <#list allCrops as cropOrganism>
@@ -260,7 +253,7 @@
         </#if>
     ];
 
-    var organismList = [
+    let organismList = [
         <#list allPests as organism>
         {
             organismId: ${organism.organismId},
@@ -268,12 +261,13 @@
         },
         </#list>
     ];
+    let updateCropPests = function () {
+        let theForm = document.getElementById('observationTimeSeriesForm');
+        theForm["organismId"].options.selectedIndex = -1;
 
-    var updateCropPests = function () {
-        var theForm = document.getElementById('observationTimeSeriesForm');
-        var selectedCropId = theForm["cropOrganismId"].options[theForm["cropOrganismId"].options.selectedIndex].value;
+        let selectedCropId = theForm["cropOrganismId"].options[theForm["cropOrganismId"].options.selectedIndex].value;
         // If this is not a new observation, or the selected crop is not in the database, we keep calm
-        if (theForm["observationTimeSeriesId"].value !== "-1" || selectedCropId == "-10") {
+        if (theForm["observationTimeSeriesId"].value !== "-1" || selectedCropId === "-10") {
             return;
         }
         $.getJSON("/rest/organism/croppest/" + selectedCropId, function (json) {
@@ -284,40 +278,29 @@
             });
     };
 
-    var updateCropPestsCallback = function (cropPest) {
-        var pestList = document.getElementById('observationTimeSeriesForm')["organismId"];
+    let updateCropPestsCallback = function (cropPest) {
+        let pestList = document.getElementById('observationTimeSeriesForm')["organismId"];
         if (cropPest == null) {
             // Need to reorganize pests back to default
-            var allPests = [];
-            for (var i = 2; i < pestList.options.length; i++) {
+            let allPests = [];
+            for (let i = 2; i < pestList.options.length; i++) {
                 allPests.push(pestList.options[i]);
             }
             allPests.sort(compareSelectListOptions);
             pestList.options.length = 2; // Keeping the top two
-            for (var i = 0; i < allPests.length; i++) {
+            for (let i = 0; i < allPests.length; i++) {
                 pestList.options[pestList.options.length] = allPests[i];
             }
         } else {
-            var prioritatedPests = [];
-            var unprioritatedPests = []
-            for (var i = 2; i < pestList.options.length; i++) {
+            let prioritizedPests = [];
+            for (let i = 2; i < pestList.options.length; i++) {
                 if (cropPest.pestOrganismIds.indexOf(parseInt(pestList.options[i].value)) >= 0) {
-                    //console.log(pestList.options[i].value + " is prioritated");
-                    prioritatedPests.push(pestList.options[i]);
-                } else if (pestList.options[i].value != "-1") // Avoiding the "---" option
-                {
-                    //console.log(pestList.options[i].value + " is unprioritated");
-                    unprioritatedPests.push(pestList.options[i]);
+                    prioritizedPests.push(pestList.options[i]);
                 }
-
             }
             pestList.options.length = 2; // Keeping the top two
-            for (var i = 0; i < prioritatedPests.length; i++) {
-                pestList.options[pestList.options.length] = prioritatedPests[i];
-            }
-            pestList.options[pestList.options.length] = new Option("---", "-1");
-            for (var i = 0; i < unprioritatedPests.length; i++) {
-                pestList.options[pestList.options.length] = unprioritatedPests[i];
+            for (let i = 0; i < prioritizedPests.length; i++) {
+                pestList.options[pestList.options.length] = prioritizedPests[i];
             }
         }
     };
@@ -439,7 +422,7 @@
                         <label for="yearList">${i18nBundle.year}</label>
                         <select class="form-control" id="yearList" name="year">
                             <#if !observationTimeSeries.observationTimeSeriesId?has_content>
-                                <option value="-1">${i18nBundle.pleaseSelect} ${i18nBundle.year?lower_case}</option>
+                                <option value="" disabled selected>${i18nBundle.pleaseSelect} ${i18nBundle.year?lower_case}</option>
                             </#if>
                             <#list years as year>
                                 <option value="${year}" <#if observationTimeSeries.observationTimeSeriesId?has_content && observationTimeSeries.year == year>selected</#if>>${year}</option>
