@@ -88,9 +88,8 @@ public class ObservationTimeSeriesController extends HttpServlet {
         if (request.getServletPath().endsWith("/observationTimeSeries")) {
             LOGGER.info("Action is {}", action);
             if (action == null) {
-                LOGGER.info("Display list of observationTimeSeries");
                 request.setAttribute("observationTimeSeriesList", observationTimeSeriesList);
-                LOGGER.info("Found {} observationTimeSeries", observationTimeSeriesList.size());
+                LOGGER.info("Display list of {} observationTimeSeries", observationTimeSeriesList.size());
 
                 Map<String, Long> observationCounts = new HashMap<>();
                 for (ObservationTimeSeries observationTimeSeries : observationTimeSeriesList) {
