@@ -225,8 +225,7 @@ public class ObservationTimeSeriesController extends HttpServlet {
         request.setAttribute("mapLayers", userBean.getMapLayerJSONForUser(user));
         request.setAttribute("defaultMapCenter", user.getOrganizationId().getDefaultMapCenter());
         request.setAttribute("defaultMapZoom", user.getOrganizationId().getDefaultMapZoom());
-        request.setAttribute("locationPointOfInterests",
-            pointOfInterestBean.getRelevantPointOfInterestsForUser(user));
+        request.setAttribute("locationPointOfInterests", pointOfInterestBean.getPoisForUser(user));
         request.setAttribute("locationVisibilityFormValue",
             getLocationVisibilityFormValue(observationTimeSeries));
         List<PolygonService> polygonServices =

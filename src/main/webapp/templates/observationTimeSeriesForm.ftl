@@ -62,28 +62,32 @@
         }
 
         fetchPOIs(function (allPois) {
-            buildPOIList(poiListElement, allPois, poiTypes, selectedPointOfInterestId);
+            buildPOIList(poiListElement, allPois, poiTypes, selectedPointOfInterestId, ${user.userId});
             showCorrectMap();
         });
     }
 
-    function buildPOIList(poiListElement, allPois, poiTypes, selectedPointOfInterestId) {
+    function buildPOIList(poiListElement, allPois, poiTypes, selectedPointOfInterestId, userId) {
         poiListElement.options.length = 1;
+        const userPois = allPois.filter(poi => String(poi.userId) === String(userId));
+        if(userPois.length === 0) {
+            document.getElementById("noAvailablePoi").style.display = "block";
+        } else {
+            document.getElementById("noAvailablePoi").style.display = "none";
+        }
         for (const [typeId, typeName] of Object.entries(poiTypes)) {
-            let poiTypeOption = new Option("-- " + typeName + " --", "-1");
+            const poisOfType = userPois.filter(poi => String(poi.pointOfInterestTypeId) === String(typeId));
+            if (poisOfType.length === 0) continue;
+            const poiTypeOption = new Option("-- " + typeName + " --", "");
             poiTypeOption.disabled = true;
             poiListElement.options[poiListElement.options.length] = poiTypeOption;
 
-            for (let i = 0; i < allPois.length; i++) {
-                const poi = allPois[i];
-
-                if (poi.pointOfInterestTypeId == typeId) {
-                    const poiOption = new Option(poi.name, poi.pointOfInterestId);
-                    if (poi.pointOfInterestId === selectedPointOfInterestId) {
-                        poiOption.selected = true;
-                    }
-                    poiListElement.options[poiListElement.options.length] = poiOption;
+            for (const poi of poisOfType) {
+                const poiOption = new Option(poi.name, poi.pointOfInterestId);
+                if (poi.pointOfInterestId === selectedPointOfInterestId) {
+                    poiOption.selected = true;
                 }
+                poiListElement.options[poiListElement.options.length] = poiOption;
             }
         }
     }
@@ -315,6 +319,7 @@
     <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
         <#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
     </div>
+    <div id="noAvailablePoi" class="alert alert-danger" style="display: none">Du må opprette et nytt sted før du kan registrere tidsserie</div>
     <#if messageKey?has_content>
         <div class="alert alert-success">${i18nBundle(messageKey)}</div>
     </#if>
@@ -430,10 +435,11 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="locationPointOfInterestId">${i18nBundle.location}&nbsp;&nbsp;<button
-                                    role="button" type="button"
-                                    onclick="addNewLocationPopup();">${i18nBundle.addNew}</button>
-                        </label>
+                        <label for="locationPointOfInterestId">${i18nBundle.location}</label>&nbsp;
+                        <button
+                        role="button" type="button"
+                        onclick="addNewLocationPopup();">${i18nBundle.addNew}</button>
+
                         <select class="form-control" name="locationPointOfInterestId" id="locationPointOfInterestId" onchange="showCorrectMap();">
                             <option value="" disabled selected>${i18nBundle.pleaseSelect} ${i18nBundle.location?lower_case}</option>
                         </select>
