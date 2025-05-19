@@ -72,6 +72,8 @@ public class PointOfInterestBean {
     ForecastBean forecastBean;
     @EJB
     ObservationBean observationBean;
+    @EJB
+    ObservationTimeSeriesBean observationTimeSeriesBean;
     
     public List<PointOfInterest> getWeatherstations(String countryCode)
     {
@@ -467,6 +469,7 @@ public class PointOfInterestBean {
         PointOfInterest poi = em.find(PointOfInterest.class, pointOfInterestId);
         forecastBean.deleteForecastConfigurationsForLocation(poi);
         observationBean.deleteObservationsForLocation(poi);
+        observationTimeSeriesBean.deleteObservationTimeSeriesForLocation(poi);
         em.remove(poi);
     }
 

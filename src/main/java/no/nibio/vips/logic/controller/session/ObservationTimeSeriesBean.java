@@ -37,6 +37,12 @@ public class ObservationTimeSeriesBean {
     @EJB
     ObservationBean observationBean;
 
+    /**
+     * Get list of observation time series registered by given user
+     *
+     * @param user The user
+     * @return a list of observation time series
+     */
     public List<ObservationTimeSeries> getObservationTimeSeriesListForUser(VipsLogicUser user) {
         List<ObservationTimeSeries> resultList = em.createNamedQuery("ObservationTimeSeries.findByUserId", ObservationTimeSeries.class)
                 .setParameter("userId", user.getUserId())
@@ -44,6 +50,18 @@ public class ObservationTimeSeriesBean {
         this.enrichObservationTimeSeriesListWithPointOfInterest(resultList);
         this.enrichObservationTimeSeriesListWithObservers(resultList);
         return resultList;
+    }
+
+    /**
+     * Get list of observation time series registered for given poi
+     *
+     * @param poi The point of interest
+     * @return a list of observation time series
+     */
+    public List<ObservationTimeSeries> getObservationTimeSeriesListForLocation(PointOfInterest poi) {
+        return em.createNamedQuery("ObservationTimeSeries.findByLocationPointOfInterestId", ObservationTimeSeries.class)
+            .setParameter("locationPointOfInterestId", poi.getPointOfInterestId())
+            .getResultList();
     }
 
     /**
@@ -141,5 +159,18 @@ public class ObservationTimeSeriesBean {
         otsList.stream().filter((o) -> (o.getUserId() != null)).forEach((o) -> {
             o.setUser(mappedUsers.get(o.getUserId()));
         });
+    }
+
+    /**
+     * Delete all observation time series registered for the given point of interest
+     *
+     * @param poi The point of interest
+     */
+    public void deleteObservationTimeSeriesForLocation(PointOfInterest poi) {
+        em.createNamedQuery("ObservationTimeSeries.findByLocationPointOfInterestId", ObservationTimeSeries.class)
+            .setParameter("locationPointOfInterestId", poi.getPointOfInterestId())
+            .getResultList().stream()
+            .forEach(ots -> em.remove(ots));
+
     }
 }
