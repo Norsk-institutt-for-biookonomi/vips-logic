@@ -439,7 +439,6 @@
         }
 
         <#if noBroadcast>
-
         /**
          * In the unlikely event that the user in a pre-filled form decides to
          * change the organism, we'll update the observationText and heading
@@ -449,7 +448,6 @@
             document.getElementById("observationHeading").value = registrationOfText;
             document.getElementById("observationText").value = registrationOfText;
         }
-
         </#if>
         var cropList = [
             <#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
@@ -738,10 +736,10 @@
                         <div class="form-group">
                             <div class="checkbox">
                                 <#if editAccess!="W" && observation.broadcastMessage?has_content && observation.broadcastMessage ==true>
-                                    <input type="hidden" name="isQuantified" value="true"/></#if>
+                                    <input type="hidden" name="broadcastMessage" value="true"/></#if>
                                 <label>
                                     <input type="checkbox" name="broadcastMessage"
-                                           <#if (observation.broadcastMessage?has_content && observation.broadcastMessage == false) || noBroadcast><#else>checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
+                                           <#if (!observation.observationId?has_content && observation.observationTimeSeries?has_content) || (observation.broadcastMessage?has_content && observation.broadcastMessage == false) || noBroadcast><#else>checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
                                 </label>
                                 ${i18nBundle.broadcastMessage}
                             </div>
