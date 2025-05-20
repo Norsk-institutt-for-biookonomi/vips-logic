@@ -78,7 +78,6 @@ public class ObservationTimeSeriesController extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
-        LOGGER.info("Process request in ObservationTimeSeriesController");
         response.setContentType("text/html;charset=UTF-8");
         String action = request.getParameter("action");
         VipsLogicUser user = (VipsLogicUser) request.getSession().getAttribute("user");
@@ -86,7 +85,6 @@ public class ObservationTimeSeriesController extends HttpServlet {
         List<ObservationTimeSeries> observationTimeSeriesList = observationTimeSeriesBean.getObservationTimeSeriesListForUser(user);
 
         if (request.getServletPath().endsWith("/observationTimeSeries")) {
-            LOGGER.info("Action is {}", action);
             if (action == null) {
                 request.setAttribute("observationTimeSeriesList", observationTimeSeriesList);
                 LOGGER.info("Display list of {} observationTimeSeries", observationTimeSeriesList.size());
@@ -108,12 +106,11 @@ public class ObservationTimeSeriesController extends HttpServlet {
                 userBean.authorizeUser(user, VipsLogicRole.OBSERVER, VipsLogicRole.ORGANIZATION_ADMINISTRATOR,
                     VipsLogicRole.SUPERUSER);
             if (!authorized) {
-                LOGGER.info("User {} not authorized", user.getUserId());
+                LOGGER.error("User {} not authorized", user.getUserId());
                 response.sendError(403, "Access not authorized");
             }
             if (action.equals("editObservationTimeSeriesForm")) {
                 Integer observationTimeSeriesId = Integer.valueOf(request.getParameter("observationTimeSeriesId"));
-                LOGGER.info("Display form for editing observationTimeSeries {}", observationTimeSeriesId);
                 ObservationTimeSeries observationTimeSeries =
                     observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId);
                 Long observationCount = em.createNamedQuery("Observation.findCountByObservationTimeSeries", Long.class)
@@ -129,14 +126,12 @@ public class ObservationTimeSeriesController extends HttpServlet {
                     observationBean.getObservationsForTimeSeries(observationTimeSeries));
                 request.getRequestDispatcher("/observationTimeSeriesForm.ftl").forward(request, response);
             } else if (action.equals("newObservationTimeSeriesForm")) {
-                LOGGER.info("Create new observationTimeSeries");
                 ObservationTimeSeries observationTimeSeries = new ObservationTimeSeries();
                 request.setAttribute("observationTimeSeries", observationTimeSeries);
                 buildFormRequest(request, user, observationTimeSeries);
                 request.setAttribute("isEditable", true);
                 request.getRequestDispatcher("/observationTimeSeriesForm.ftl").forward(request, response);
             } else if (action.equals("observationTimeSeriesFormSubmit")) {
-                LOGGER.info("Submit changes for observationTimeSeries");
                 Map<String, String[]> parameterMap;
                 List<FileItem> items;
                 if (JakartaServletFileUpload.isMultipartContent(request)) {
@@ -182,7 +177,8 @@ public class ObservationTimeSeriesController extends HttpServlet {
                         observationTimeSeries.setName(formValidation.getFormField("name").getWebValue());
                         observationTimeSeries.setDescription(formValidation.getFormField("description").getWebValue());
                         observationTimeSeries = observationTimeSeriesBean.storeObservationTimeSeries(observationTimeSeries);
-                        LOGGER.info("Redirect to edit form with observationTimeSeriesId={}", observationTimeSeries.getObservationTimeSeriesId());
+                        LOGGER.info("Submit changes for observationTimeSeries {}", observationTimeSeries.getName());
+
                         response.sendRedirect(Globals.PROTOCOL + "://" +
                             ServletUtil.getServerName(request) +
                             "/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=" +
