@@ -196,7 +196,6 @@ public class BarleyNetBlotchModelService {
         if ("weatherstation".equals(weatherDataSourceType.trim())) {
             PointOfInterestWeatherStation weatherStation =
                 em.find(PointOfInterestWeatherStation.class, weatherStationId);
-            LOGGER.info("Run model with weatherdata from weatherstation {}", weatherStation.getName());
             try {
                 observations = wsdUtil.getWeatherObservations(
                     weatherStation,

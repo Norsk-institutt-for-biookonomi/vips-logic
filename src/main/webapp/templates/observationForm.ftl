@@ -44,7 +44,6 @@
         var organizationId = ${user.organizationId.organizationId};
         var selectedCropId = <#if observation.cropOrganism?has_content>${observation.cropOrganism.organismId?c}<#else>null</#if>;
 
-
         $(document).ready(function () {
 
             // Load main form definition (for validation)
@@ -54,29 +53,27 @@
             // If observation already registered center on location
             // Otherwise, center and zoom to organizations's default
             <#if observation.location?has_content>
-            initGisInfoMap([${(observation.location.x?c)!""}, ${(observation.location.y?c)!""}], 10, true);
+                initGisInfoMap([${(observation.location.x?c)!""}, ${(observation.location.y?c)!""}], 10, true);
             <#elseif !observation.observationTimeSeries?has_content>
-            var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>
-            {
-            }
+                var geoInfo = <#if observation.geoinfo?has_content>${observation.geoinfo}<#else>{}
             </#if>;
             var chooseFromMapLayers = {"chooseFromMapLayers": <#if mapLayers?has_content>${mapLayers}<#else>[]</#if>};
             initGisInfoMap("observationFormMap", [${defaultMapCenter.x?c}, ${defaultMapCenter.y?c}], ${defaultMapZoom}, false, geoInfo, chooseFromMapLayers);
             </#if>
             <#if editAccess!="W">
-            GISInfoMap.removeInteraction(draw);
-            document.getElementById("drawOptions").innerHTML = "";
+                GISInfoMap.removeInteraction(draw);
+                document.getElementById("drawOptions").innerHTML = "";
             </#if>
             <#if observation.observationData?has_content>
-            observationData = ${observation.observationData};
-            getDataSchema(${observation.organism.organismId}, organizationId);
+                observationData = ${observation.observationData};
+                getDataSchema(${observation.organism.organismId}, organizationId);
             <#elseif observation.organism?has_content>
-            // Setting
-            initObservationData(${observation.organism.organismId}, organizationId);
+                initObservationData(${observation.organism.organismId}, organizationId);
+            <#elseif observation.observationTimeSeries?has_content>
+                initObservationData(${observation.observationTimeSeries.organismId}, organizationId);
             </#if>
-
             <#if observation.observationTimeSeries?has_content>
-                displayObservationTimeSeriesInfo("${observation.cropOrganismId}", "${observation.organismId}", "${observation.locationPointOfInterestId}")
+                displayObservationTimeSeriesInfo("${observation.observationTimeSeries.cropOrganismId}", "${observation.observationTimeSeries.organismId}", "${observation.observationTimeSeries.locationPointOfInterestId}")
             </#if>
 
             // Activating file selection
@@ -94,8 +91,8 @@
             });
 
             refreshLocationPointOfInterests(<#if observation.locationPointOfInterestId?has_content>${observation.locationPointOfInterestId}<#else>null</#if>);
-            <#if ! observation.organism?has_content>
-            initCropCategories();
+            <#if !observation.organism?has_content>
+                initCropCategories();
             </#if>
             // Activating chosen plugin
             $(".chosen-select").chosen();
@@ -139,7 +136,7 @@
                 const locationName = nameForLocationPointOfInterestId(locationPointOfInterestId, allPois);
                 document.getElementById("locationDisplayName").innerHTML = locationName || null;
             });
-            initLocationMap(locationPointOfInterestId)
+            initLocationMap(locationPointOfInterestId);
         }
 
         function getDataSchema(organismId, organizationId) {
@@ -341,18 +338,21 @@
         }
 
         function renderCropCategories() {
-            var cropCategoryIdList = document.getElementById("cropCategoryIdList");
-            for (var i in cropCategories) {
-                var cropCategory = cropCategories[i];
+            let cropCategoryIdList = document.getElementById("cropCategoryIdList");
+            if(!cropCategoryIdList) {
+                return;
+            }
+            for (let i in cropCategories) {
+                let cropCategory = cropCategories[i];
                 // Best effort getting name for crop category
-                var catName = cropCategory.defaultName;
-                for (var j in cropCategory.cropCategoryLocalSet) {
-                    var cLocal = cropCategory.cropCategoryLocalSet[j];
+                let catName = cropCategory.defaultName;
+                for (let j in cropCategory.cropCategoryLocalSet) {
+                    let cLocal = cropCategory.cropCategoryLocalSet[j];
                     if (cLocal.cropCategoryLocalPK.locale == "${currentLocale}") {
                         catName = cLocal.localName;
                     }
                 }
-                var cOption = new Option(catName, cropCategory.cropCategoryId);
+                let cOption = new Option(catName, cropCategory.cropCategoryId);
                 cropCategoryIdList.options[cropCategoryIdList.options.length] = cOption;
             }
         }
@@ -439,7 +439,6 @@
         }
 
         <#if noBroadcast>
-
         /**
          * In the unlikely event that the user in a pre-filled form decides to
          * change the organism, we'll update the observationText and heading
@@ -449,7 +448,6 @@
             document.getElementById("observationHeading").value = registrationOfText;
             document.getElementById("observationText").value = registrationOfText;
         }
-
         </#if>
         var cropList = [
             <#if ! observation.observationId?has_content || user.isSuperUser() || user.isOrganizationAdmin()>
@@ -487,8 +485,6 @@
          * Does all the ifs and buts before form can potentially be submitted
          */
         function prepareFormSubmit(theForm) {
-            // Extract GIS info from OpenLayers
-            theForm['geoInfo'].value = getFeatures();
             try {
                 // If the form is quantified: Inspect the fields and write
                 // JSON string to the generic form field "observationData";
@@ -500,10 +496,15 @@
                     }
                     theForm['observationData'].value = JSON.stringify(editor.getValue());
                 }
-                validateGIS(theForm);
+                // Extract GIS info from OpenLayers
+                let theFeatures = getFeatures();
+                if (theFeatures) {
+                    theForm['geoInfo'].value = theFeatures;
+                    return validateForm(theForm) && validateGIS(theForm);
+                }
+                return validateForm(theForm);
                 //console.info('validateGIS = ' + (validateGIS(this)));
                 //return false; // DEBUG setting
-                return validateForm(theForm) && validateGIS(theForm); // PROD setting
             } catch (e) {
                 console.log(e.message);
                 console.log(e);
@@ -514,11 +515,11 @@
 </#macro>
 <#macro page_contents>
     <div class="singleBlockContainer">
-        <p><a href="/observation" class="btn btn-default back"
-              role="button">${i18nBundle.back}</a><#if observation.observationId?has_content><a
-                    href="/observation?action=newObservationForm" class="btn btn-default"
+        <p><a href="${returnPath}" class="btn btn-default back" role="button">${i18nBundle.back}</a>
+            <#if observation.observationId?has_content><a
+                    href="/observation?action=newObservationForm<#if observation.observationTimeSeriesId?has_content>&observationTimeSeriesId=${observation.observationTimeSeriesId}</#if>" class="btn btn-default"
                     role="button">${i18nBundle.addNew}</a></#if></p>
-        <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
+        <h1><#if observation.observationId?has_content>${i18nBundle.editObservation}<#else>${i18nBundle.newObservation}</#if><#if observation.observationTimeSeriesId?has_content> ${i18nBundle.forTimeSeries}</#if><#if shortcut?has_content> - ${shortcut.getLocalLabel(currentLocale.language)?lower_case}</#if></h1>
         <div id="errorMsgEl" class="alert alert-danger" <#if !formValidation?has_content> style="display:none;"</#if>>
             <#if formValidation?has_content>${formValidation.validationMessages?replace("\n", "<br>")}</#if>
         </div>
@@ -528,7 +529,7 @@
         <div class="row">
             <div class="col-md-6">
                 <#assign formId = "observationForm">
-                <form id="${formId}" role="form" action="/observation?action=observationFormSubmit"
+                <form id="${formId}" role="form" action="/observation?action=observationFormSubmit<#if returnTo?has_content>&returnTo=${returnTo}</#if>"
                       enctype="multipart/form-data" method="POST" onsubmit="return prepareFormSubmit(this);">
                     <!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);return validateForm(this);"-->
                     <!--form id="${formId}" role="form" action="/observation?action=observationFormSubmit" method="POST" onsubmit="this['geoInfo'].value=getFeatures();mw.save();console.log(this['observationData']);this['observationData'].value=JSON.stringify(mw.toInspect);validateForm(this);return false;"-->
@@ -549,26 +550,45 @@
                         </div>
                     </#if>
                     <#if observation.observationTimeSeries?has_content>
-                        <div class="form-group">
-                            <label>${i18nBundle.timeSeries}: ${observation.observationTimeSeries.name}</label><br>
+                        <div class="alert alert-info">
                             <i>${i18nBundle.timeSeriesNonEditable}</i>
                         </div>
                         <div class="form-group">
-                            <label for="cropOrganismId">${i18nBundle.cropOrganismId}</label>
+                            <label for="timeSeriesName">${i18nBundle.timeSeries}:</label>
+                            <span id="timeSeriesName"><a href="/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=${observation.observationTimeSeries.observationTimeSeriesId}">${observation.observationTimeSeries.name} (${observation.observationTimeSeries.year})</a></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="cropOrganismId">${i18nBundle.cropOrganismId}:</label>
                             <span id="cropDisplayName"></span>
                         </div>
                         <div class="form-group">
-                            <label for="organismId">${i18nBundle.organism}</label>
+                            <label for="organismId">${i18nBundle.organism}:</label>
                             <span id="pestDisplayName"></span>
                         </div>
                         <div class="form-group">
-                            <label for="locationPointOfInterestId">${i18nBundle.location}</label>
+                            <label for="locationPointOfInterestId">${i18nBundle.location}:</label>
                             <span id="locationDisplayName"></span>
                         </div>
-                        <input type="hidden" name="cropOrganismId" value="${observation.cropOrganism.organismId}">
-                        <input type="hidden" name="organismId" value="${observation.organism.organismId}">
-                        <input type="hidden" name="locationPointOfInterestId"
-                               value="${observation.locationPointOfInterestId}">
+                        <div class="form-group">
+                            <label for="locationVisibility">Synlighet:</label>
+                            <span id="locationVisibility">
+                                <#if locationVisibilityFormValue == 'public'>
+                                    ${i18nBundle.locationIsPublic}
+                                <#elseif locationVisibilityFormValue == 'private'>
+                                    ${i18nBundle.locationIsPrivate}
+                                <#else>
+                                    <#list polygonServices as polygonService>
+                                        <#if locationVisibilityFormValue == "mask_" + polygonService.polygonServiceId>
+                                            ${i18nBundle.maskObservationWith} ${polygonService.polygonServiceName}
+                                        </#if>
+                                    </#list>
+                                </#if>
+                            </span>
+                        </div>
+                        <input type="hidden" name="observationTimeSeriesId" value="${observation.observationTimeSeries.observationTimeSeriesId}">
+                        <input type="hidden" name="cropOrganismId" value="${observation.observationTimeSeries.cropOrganism.organismId}">
+                        <input type="hidden" name="organismId" value="${observation.observationTimeSeries.organism.organismId}">
+                        <input type="hidden" name="locationPointOfInterestId" value="${observation.observationTimeSeries.locationPointOfInterestId}">
                         <input type="hidden" name="locationVisibility" value="${locationVisibilityFormValue}">
                     <#else>
                         <#if ! observation.organism?has_content>
@@ -681,7 +701,7 @@
                     <#setting time_zone=user.organizationId.defaultTimeZone!"UTC">
                     <div class="form-group">
                         <label for="timeOfObservation">${i18nBundle.timeOfObservation}</label>
-                        <input type="date" class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${observation.timeOfObservation?string("yyyy-MM-dd")!""}" onblur="validateField(this);" <#if editAccess!="W">readonly="readonly"</#if>/>
+                        <input type="date" <#if observation.observationTimeSeries?has_content>min="${minTimeOfObservation?string("yyyy-MM-dd")}" max="${maxTimeOfObservation?string("yyyy-MM-dd")}"</#if> class="form-control" id="timeOfObservation" name="timeOfObservation" placeholder="${i18nBundle.timeOfObservation}" value="${observation.timeOfObservation?string("yyyy-MM-dd")}" onblur="validateField(this);" <#if editAccess!="W">readonly="readonly"</#if>/>
                         <span class="help-block" id="${formId}_timeOfObservation_validation"></span>
                     </div>
                     <div class="form-group">
@@ -716,10 +736,10 @@
                         <div class="form-group">
                             <div class="checkbox">
                                 <#if editAccess!="W" && observation.broadcastMessage?has_content && observation.broadcastMessage ==true>
-                                    <input type="hidden" name="isQuantified" value="true"/></#if>
+                                    <input type="hidden" name="broadcastMessage" value="true"/></#if>
                                 <label>
                                     <input type="checkbox" name="broadcastMessage"
-                                           <#if (observation.broadcastMessage?has_content && observation.broadcastMessage == false) || noBroadcast><#else>checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
+                                           <#if (!observation.observationId?has_content && observation.observationTimeSeries?has_content) || (observation.broadcastMessage?has_content && observation.broadcastMessage == false) || noBroadcast><#else>checked="checked"</#if> <#if editAccess!="W">disabled="disabled"</#if>/>
                                 </label>
                                 ${i18nBundle.broadcastMessage}
                             </div>
@@ -789,7 +809,7 @@
                     <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
                     <#if observation.observationId?has_content && editAccess == "W">
                         <button type="button" class="btn btn-danger"
-                                onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observation?action=deleteObservation&observationId=${observation.observationId}';}">${i18nBundle.delete}</button>
+                                onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/observation?action=deleteObservation&observationId=${observation.observationId}<#if returnTo?has_content>&returnTo=${returnTo}</#if>';}">${i18nBundle.delete}</button>
                     </#if>
                 </form>
             </div>

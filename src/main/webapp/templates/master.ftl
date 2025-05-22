@@ -66,9 +66,12 @@
 		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isMessageAuthor()>
 		  	<li><a href="/message">${i18nBundle.messages}</a></li>
 		  </#if>
-                  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator() || user.hasRole(3?int) || user.hasRole(4?int)>
-                    <li><a href="/observation">${i18nBundle.observations}</a></li>
-                  </#if>
+			<#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator() || user.hasRole(3?int) || user.hasRole(4?int)>
+				<li><a href="/observationTimeSeries">${i18nBundle.timeSeriesList}</a></li>
+			</#if>
+		  <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isAppleFruitMothAdministrator() || user.hasRole(3?int) || user.hasRole(4?int)>
+			<li><a href="/observation">${i18nBundle.observations}</a></li>
+		  </#if>
 		  <li><a href="/forecastConfiguration">${i18nBundle.forecasts}</a></li>
                   <#if user.isOrganizationAdmin() || user.isSuperUser() || user.isOrganismEditor()>
 		  	 <li><a href="/organism">${i18nBundle.organisms}</a></li>

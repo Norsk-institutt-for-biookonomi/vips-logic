@@ -38,51 +38,85 @@
 	</#if>
 	<p>${i18nBundle.deletePoiPreviewExplanation}</p>
 	<h2>${i18nBundle.forecasts}</h2>
-	<table class="table table-striped">
-		<thead>
+	<#if forecastConfigurations?has_content>
+		<table class="table table-striped">
+			<thead>
 			<th>${i18nBundle.modelId}</th>
 			<th>${i18nBundle.dateStart}</th>
 			<th>${i18nBundle.dateEnd}</th>
 			<th></th>
-		</thead>
-		<tbody>
+			</thead>
+			<tbody>
 			<#list forecastConfigurations as forecastConfiguration>
-			<tr>
-				<td>
-				<#if i18nBundle.containsKey(forecastConfiguration.modelId)>
-					${i18nBundle[forecastConfiguration.modelId]}
-				<#else>
-					${modelInformation[forecastConfiguration.modelId].defaultName}
-				</#if>
-				</td>
-				<td>${forecastConfiguration.dateStart}</td>
-				<td>${forecastConfiguration.dateEnd}</td>
-				<td><a href="/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}" target="new">${i18nBundle.edit}</a></td>
-			</tr>
+				<tr>
+					<td>
+						<#if i18nBundle.containsKey(forecastConfiguration.modelId)>
+							${i18nBundle[forecastConfiguration.modelId]}
+						<#else>
+							${modelInformation[forecastConfiguration.modelId].defaultName}
+						</#if>
+					</td>
+					<td>${forecastConfiguration.dateStart}</td>
+					<td>${forecastConfiguration.dateEnd}</td>
+					<td><a href="/forecastConfiguration?action=viewForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}" target="new">${i18nBundle.edit}</a></td>
+				</tr>
 			</#list>
-		</tbody>
-	</table>
-        <h2>${i18nBundle.observations}</h2>
-	<table class="table table-striped">
-		<thead>
-                        <th>${i18nBundle.timeOfObservation}</th>
+			</tbody>
+		</table>
+	<#else>
+		<p>${i18nBundle.noForecasts}</p>
+	</#if>
+	<h2>${i18nBundle.timeSeriesList}</h2>
+	<#if observationTimeSeries?has_content>
+		<table class="table table-striped">
+			<thead>
+			<th>${i18nBundle.observationTimeSeriesName}</th>
+			<th>${i18nBundle.year}</th>
+			<th>${i18nBundle.cropOrganismId}</th>
+			<th>${i18nBundle.organism}</th>
+			<th></th>
+			</thead>
+			<tbody>
+			<#list observationTimeSeries as ots>
+				<tr>
+					<td>${ots.name}</td>
+					<td>${ots.year}</td>
+					<td>${ots.cropOrganism.latinName}</td>
+					<td>${ots.organism.latinName}</td>
+					<td><a href="/observationTimeSeries?action=editObservationTimeSeriesForm&observationTimeSeriesId=${ots.observationTimeSeriesId}" target="new">${i18nBundle.edit}</a></td>
+				</tr>
+			</#list>
+			</tbody>
+		</table>
+	<#else>
+		<p>${i18nBundle.noTimeSeries}</p>
+	</#if>
+    <h2>${i18nBundle.observations}</h2>
+	<#if observations?has_content>
+		<table class="table table-striped">
+			<thead>
+			<th>${i18nBundle.timeOfObservation}</th>
 			<th>${i18nBundle.cropOrganismId}</th>
 			<th>${i18nBundle.pestOrganismId}</th>
 			<th>${i18nBundle.observationHeading}</th>
 			<th></th>
-		</thead>
-		<tbody>
+			</thead>
+			<tbody>
 			<#list observations as observation>
-			<tr>
-				<td>${observation.timeOfObservation}</td>
-				<td>${observation.cropOrganism.latinName}</td>
-				<td>${observation.organism.latinName}</td>
-                                <td>${observation.observationHeading}</td>
-				<td><a href="/observation?action=editObservationForm&observationId=${observation.observationId}" target="new">${i18nBundle.edit}</a></td>
-			</tr>
+				<tr>
+					<td>${observation.timeOfObservation}</td>
+					<td>${observation.cropOrganism.latinName}</td>
+					<td>${observation.organism.latinName}</td>
+					<td>${observation.observationHeading}</td>
+					<td><a href="/observation?action=editObservationForm&observationId=${observation.observationId}" target="new">${i18nBundle.edit}</a></td>
+				</tr>
 			</#list>
-		</tbody>
-	</table>
+			</tbody>
+		</table>
+	<#else>
+		<p>${i18nBundle.noObservations}</p>
+	</#if>
+
 	<p>
 		<a href="${returnURL}" class="btn btn-default cancel" role="button">${i18nBundle.cancel}</a>
 		<button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/poi?action=deletePoi&pointOfInterestId=${poi.pointOfInterestId}';}">${i18nBundle.deletePoi}</button>

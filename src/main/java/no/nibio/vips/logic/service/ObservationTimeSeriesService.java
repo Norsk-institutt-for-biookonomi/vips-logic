@@ -176,7 +176,6 @@ public class ObservationTimeSeriesService {
     @Produces(APPLICATION_JSON)
     @TypeHint(ObservationTimeSeries.class)
     public Response syncObservationTimeSeriesFromApp(String jsonOts) {
-        LOGGER.info("In syncObservationTimeSeriesFromApp");
         LOGGER.info(jsonOts);
         VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user == null) {
@@ -241,7 +240,6 @@ public class ObservationTimeSeriesService {
                 LOGGER.error("The observation time series is missing location data");
                 return Response.status(Response.Status.BAD_REQUEST).entity("The observation time series is missing location data").build();
             }
-            LOGGER.info("otsToSave before storing: " + otsToSave);
             otsToSave = observationTimeSeriesBean.storeObservationTimeSeries(otsToSave);
             return Response.ok().entity(otsToSave).build();
         } catch (IOException e) {

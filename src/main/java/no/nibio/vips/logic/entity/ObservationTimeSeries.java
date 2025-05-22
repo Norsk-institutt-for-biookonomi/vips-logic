@@ -33,7 +33,8 @@ import java.util.*;
     @NamedQuery(name = "ObservationTimeSeries.findAll", query = "SELECT ots FROM ObservationTimeSeries ots"),
     @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId = :id"),
     @NamedQuery(name = "ObservationTimeSeries.findByObservationTimeSeriesIds", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.observationTimeSeriesId IN :observationTimeSeriesIds"),
-    @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId)")
+    @NamedQuery(name = "ObservationTimeSeries.findByUserId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.userId IN(:userId) order by ots.year desc, ots.created desc"),
+    @NamedQuery(name = "ObservationTimeSeries.findByLocationPointOfInterestId", query = "SELECT ots FROM ObservationTimeSeries ots WHERE ots.locationPointOfInterestId = :locationPointOfInterestId")
 })
 public class ObservationTimeSeries implements Serializable {
 
@@ -61,9 +62,12 @@ public class ObservationTimeSeries implements Serializable {
 
     public ObservationTimeSeries() {
         this.GISEntityUtil = new GISEntityUtil();
+        this.source = "WEB";
+        this.created = new Date();
     }
 
     public ObservationTimeSeries(String source) {
+        this();
         this.source = source;
     }
 

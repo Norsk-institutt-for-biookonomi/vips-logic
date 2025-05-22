@@ -25,6 +25,11 @@
             "required" : true
         },
         {
+            "name" : "observationTimeSeriesId",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
             "name" : "organismId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",

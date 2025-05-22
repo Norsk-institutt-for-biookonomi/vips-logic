@@ -578,13 +578,10 @@ public class ObservationService {
     public Response getObservationsForUser(
         @QueryParam("observationIds") String observationIds
     ) {
-        LOGGER.info("getObservationsForUser for observationIds={}", observationIds);
         try {
             VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
             if (user != null) {
-                LOGGER.info("Get observations for user={}", user.getUserId());
                 List<Observation> allObs = observationBean.getObservationsForUser(user);
-                LOGGER.info("Found {} observations for user {}", allObs.size(), user.getUserId());
                 if (observationIds != null) {
                     Set<Integer> observationIdSet = Arrays.asList(observationIds.split(",")).stream()
                         .map(s -> Integer.valueOf(s))
@@ -991,8 +988,6 @@ public class ObservationService {
     public Response syncObservationFromApp(
         String observationJson
     ) {
-        LOGGER.info("In syncObservationFromApp");
-
         try {
             VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
             if (user == null) {
@@ -1119,8 +1114,8 @@ public class ObservationService {
                     String disableMessagingSystemProperty = System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM");
                     boolean messagingSystemDisabled = disableMessagingSystemProperty != null && disableMessagingSystemProperty.equals("true");
 
-                    LOGGER.info("Send notification? " + sendNotification);
-                    LOGGER.info("Messaging system enabled? " + !messagingSystemDisabled);
+                    LOGGER.info("Send notification? {}", sendNotification);
+                    LOGGER.info("Messaging system enabled? {}", !messagingSystemDisabled);
 
                     // All transactions finished, we can send notifications
                     // if conditions are met
