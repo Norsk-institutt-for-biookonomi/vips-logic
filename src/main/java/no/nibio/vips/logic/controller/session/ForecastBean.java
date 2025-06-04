@@ -1112,7 +1112,7 @@ public class ForecastBean {
             // System.out.println(poi.getName() + " SQL=" + sql);
             Query q = em.createNativeQuery(sql);
             if (user != null) {
-                q.setParameter("vipsLogicUserId", user);
+                q.setParameter("vipsLogicUserId", user.getUserId());
             }
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
             q.setParameter("midnight", midnight);
