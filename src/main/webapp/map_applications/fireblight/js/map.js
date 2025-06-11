@@ -209,7 +209,8 @@ async function initMap()
         // Get the zone map, produced by geomatikkseksjonen from information from Mattilsynet
         let zoneSource = new ol.source.ImageWMS({
             url: 'https://wms.nibio.no/cgi-bin/parebrann',
-            params: {"LAYERS": "parebrann"},
+            //params: {"LAYERS": "parebrann"},
+            params: {"LAYERS": "Parebrann_2025"},
             ratio: 1,
             projection: ol.proj.get("EPSG:25833")
         });
