@@ -248,7 +248,7 @@ public class SeasonTrapsite implements Serializable, Comparable {
     		}
     		if(!foundWeek)
     		{
-    			System.out.println("Adding week " + week);
+    			//System.out.println("Adding week " + week);
     			TrapsiteRegistration blank = new TrapsiteRegistration(this.getSeasonTrapsiteId(),week);
     			retVal.add(blank);
     		}
