@@ -65,7 +65,10 @@
                 return option;
             };
 
+        // Only on single forecast configuration form
+        <#if ! multipleNew>
         renderPoiSelect(selectLocationElement, locationList, selectedPoiId);
+        </#if>
         
         // Setting weather station select list state correct on page load
         <#if isGridForecastSupported && forecastConfiguration.forecastConfigurationId??>
@@ -150,9 +153,11 @@
             });
         }
 
+        <#if !multipleNew>
         renderWeatherstationSelect(selectWeatherstationElement, locationList, selectedWeatherstationId,
         <#if forecastConfiguration.weatherStationPointOfInterestId??>[${forecastConfiguration.weatherStationPointOfInterestId.longitude?c},${forecastConfiguration.weatherStationPointOfInterestId.latitude?c}]<#else>null</#if>
         );
+        </#if>
 
         window.selectPoi = function(selectElement, selectedId) {
             if (selectedId) {
@@ -462,7 +467,7 @@
            */
           validateFormIntercept = function(theForm, formDefinitionKey)
           {
-            <#if isGridForecastSupported>
+            <#if isGridForecastSupported && ! multipleNew>
                 let weatherDatasourceFieldset = document.getElementById("weatherDatasourceFieldset");
                 // Which location has been selected?
                 let selectedPoiId = document.getElementById("locationPointOfInterestId").options[document.getElementById("locationPointOfInterestId").selectedIndex].value;
@@ -726,7 +731,7 @@
 	  	
 	  </fieldset>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
-	  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');validateForm(theForm);validateForm(theForm, theForm.modelId.options[theForm.modelId.selectedIndex].value); ">Test</button-->
+      <!--button type="button" onclick="validateFormIntercept(this) && validateFormIntercept(this, this.modelId.options[this.modelId.selectedIndex].value)">Test</button-->
 	  <button type="button" class="btn btn-warning" onclick="if(confirm('${i18nBundle.confirmLeaveForm}')){window.location.href='/forecastConfiguration';}">${i18nBundle.leaveForm}</button>
 	  <#if forecastConfiguration.forecastConfigurationId?has_content>
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/forecastConfiguration?action=deleteForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';}">${i18nBundle.delete}</button>
