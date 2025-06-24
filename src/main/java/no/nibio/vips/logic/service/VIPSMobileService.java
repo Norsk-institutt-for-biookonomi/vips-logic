@@ -215,12 +215,18 @@ public class VIPSMobileService {
         cropCategories.stream().forEach(
                 cc -> {
                     List<Organism> ccCropList = new ArrayList<>();
-                    Arrays.asList(cc.getCropOrganismIds()).stream().forEach(
+                    cc.getCropOrganismIds().stream().forEach(
                             cropId -> {
-                                ccCropList.add(allCrops.get(cropId));
+                                if(allCrops.get(cropId) != null)
+                                {
+                                    ccCropList.add(allCrops.get(cropId));
+                                }
                             }
                     );
-                    retVal.add(new VIPSMobileCropCategory(cc, ccCropList, "nb"));
+                    if(!ccCropList.isEmpty())
+                    {
+                        retVal.add(new VIPSMobileCropCategory(cc, ccCropList, "nb"));
+                    }
                 }
         );
         
