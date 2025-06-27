@@ -150,6 +150,7 @@
                 border-radius: 50%;
                 border: 1px solid black;
             }
+
             
             #legend ul li.bulk:before { background-color: rgb(255,0,0); }
             #legend ul li.sprik:before { background-color: rgb(239,133,19); }
@@ -169,12 +170,14 @@
             #legend ul li.utenforSone:before { background-color: rgb(255,255,0); opacity: 0.65; }
                         
             /* Screen size adjustments */
-            @media (max-width: 500px)
+            @media (max-width: 500px) and (orientation: portrait) 
             {
                 #legend {
                     display: none;
                 }
-                
+                #legendToggler {
+                    display: block;
+                }   
                
             }
             
@@ -194,12 +197,6 @@
                 }
             }
             
-            @media (max-height: 500px)
-            {
-                #legend {
-                    display: none;
-                }
-            }
             
             ul.resultList
             {
@@ -277,6 +274,10 @@
           </select>
           
       </div>
+      <div id="legendContainer">
+        <div id="legendToggler" style="display:none;">
+            <button type="button" onclick="toggleLegendVisibility();">Toggle legend visibility</button>
+        </div>
       <div id="legend">
           <h3>Registreringer</h3>
             <ul>
@@ -299,6 +300,8 @@
               <li class="forebyggendeSone">Forebyggende sone</li>
               <li class="utenforSone">Ingen tiltak</li>
           </ul>
+        </div>
+        
       </div>
       
     
@@ -324,6 +327,17 @@
             // Dette fordi vi må finne databaseId til pærebrann dynamisk først
             initPaerebrann(); 
         });
+
+        function toggleLegendVisibility(){
+            const legendDiv = document.getElementById("legend");
+            if(legendDiv.style.display=="block")
+            {
+                legendDiv.style.display="none";        
+            }
+            else{
+                legendDiv.style.display="block";
+            }
+        }
         
         function showResults(inputField)
         {
