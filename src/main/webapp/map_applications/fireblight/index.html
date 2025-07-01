@@ -201,10 +201,6 @@
                 #legend {
                     display: none;
                 }
-                #legendToggler {
-                    display: block;
-                }   
-               
             }
             
             /* For finger pointing aka touch screen */
@@ -300,11 +296,7 @@
           </select>
           
       </div>
-      <div id="legendContainer">
-        <div id="legendToggler" style="display:none;">
-            <button type="button" onclick="toggleLegendVisibility();">Toggle legend visibility</button>
-        </div>
-      <div id="legend">
+        <div id="legend">
           <h3>Registreringer</h3>
             <ul>
                 <li class="bulk">Bulkemispel</li>
@@ -337,8 +329,6 @@
               <li class="utenforSone">Ingen tiltak</li>
           </ul>
         </div>
-        
-      </div>
       
     
     <!-- Bootstrap core JavaScript
@@ -363,18 +353,7 @@
             // Dette fordi vi må finne databaseId til pærebrann dynamisk først
             initPaerebrann(); 
         });
-
-        function toggleLegendVisibility(){
-            const legendDiv = document.getElementById("legend");
-            if(legendDiv.style.display=="block")
-            {
-                legendDiv.style.display="none";        
-            }
-            else{
-                legendDiv.style.display="block";
-            }
-        }
-        
+ 
         function showResults(inputField)
         {
             var phrase = inputField.value;
