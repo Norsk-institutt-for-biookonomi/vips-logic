@@ -42,57 +42,79 @@ async function initMap()
 
     // Icon styling for the observations layer
     var iconRadius = 10;
+    
     var styles = {
         // Bulkemispel = rød
-        'cotoneaster bullatus': [new ol.style.Style({
-                image: new ol.style.Circle({
+        'cotoneaster bullatus': {
                     fill: new ol.style.Fill({color: [255, 0, 0, 1]}),
                     stroke: new ol.style.Stroke({width: 1, color: [0, 0, 0, 1]}),
                     radius: iconRadius
-                })
-            })],
+                },
         // Sprikemispel = dyp oransje
-        'cotoneaster divaricata': [new ol.style.Style({
-                image: new ol.style.Circle({
+        'cotoneaster divaricata':{
                     fill: new ol.style.Fill({color: [239, 133, 19, 1]}),
                     stroke: new ol.style.Stroke({width: 1, color: [0, 0, 0, 1]}),
                     radius: iconRadius
-                })
-            })],
+                },
         // Pilemispel = gul
-        'cotoneaster salicifolia': [new ol.style.Style({
-                image: new ol.style.Circle({
+        'cotoneaster salicifolia':{
                     fill: new ol.style.Fill({color: [239, 236, 19, 1]}),
                     stroke: new ol.style.Stroke({width: 1, color: [0, 0, 0, 1]}),
                     radius: iconRadius
-                })
-            })],
+                },
         // Eple = grønn
-        'malus domestica': [new ol.style.Style({
-                image: new ol.style.Circle({
+        'malus domestica': {
                     fill: new ol.style.Fill({color: [0, 255, 0, 1]}),
                     stroke: new ol.style.Stroke({width: 1, color: [0, 0, 0, 1]}),
                     radius: iconRadius
-                })
-            })],
+                },
         // Pære = grågrønn
-        'pyrus communis': [new ol.style.Style({
-                image: new ol.style.Circle({
+        'pyrus communis': {
                     fill: new ol.style.Fill({color: [122, 175, 131, 1]}),
                     stroke: new ol.style.Stroke({width: 1, color: [0, 0, 0, 1]}),
                     radius: iconRadius
-                })
-            })],
+                },
         // Planteriket = blå 
-        'plantae': [new ol.style.Style({
-                image: new ol.style.Circle({
+        'plantae': {
                     fill: new ol.style.Fill({color: [0, 0, 255, 1]}),
                     stroke: new ol.style.Stroke({width: 1, color: [0, 0, 0, 1]}),
                     radius: iconRadius
-                })
-            })
-        ]
+                }
+        
     };
+
+    // Change icon shape based on the quantity of the observation
+    const getShape = function(observationData, styleProps){
+        if(observationData["forekomststorrelse"] == "100 planter"){
+            return new ol.style.Style({
+                image: new ol.style.RegularShape({
+                    points: 4,
+                    fill: styleProps.fill,
+                    stroke: styleProps.stroke,
+                    radius: styleProps.radius
+                })
+            });
+        }
+        if(observationData["forekomststorrelse"] == "Mer enn 100 planter"){
+            return new ol.style.Style({
+                image: new ol.style.RegularShape({
+                    points: 3,
+                    fill: styleProps.fill,
+                    stroke: styleProps.stroke,
+                    radius: styleProps.radius
+                })
+            });
+        }
+        return new ol.style.Style({
+                image: new ol.style.Circle({
+                    fill: styleProps.fill,
+                    stroke: styleProps.stroke,
+                    radius: styleProps.radius
+                })
+            });
+    }
+
+   
 
     // Initialize the layer for observations. Empty features array at first
     featureOverlay = new ol.layer.Vector({
@@ -125,10 +147,10 @@ async function initMap()
             var retVal = null;
             if (feature.get("cropOrganism") != null && feature.get("cropOrganism")["latinName"] != null)
             {
-                retVal = styles[feature.get("cropOrganism")["latinName"].toLowerCase()];
+                retVal = [getShape(observationData,styles[feature.get("cropOrganism")["latinName"].toLowerCase()])];
             } else
             {
-                retVal = styles["plantae"];
+                retVal = [getShape(observationData,styles["plantae"])];
             }
             //console.info(retVal[0].getImage().getStroke().getWidth());
             // If symptom has been registered, mark with inner black dot
