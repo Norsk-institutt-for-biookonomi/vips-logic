@@ -119,6 +119,31 @@
                 left: 10px;
                 z-index: 1999;
             }
+
+            #quantity100minus li, #quantity100 li, #quantity100plus li{
+                margin-left: 28px;
+            }
+
+            #quantity100minus {
+                list-style-image: url('icons/circle.png') !important;
+            }
+
+            #quantity100 {
+                list-style-image: url('icons/diamond.png') !important;
+            }
+
+            #quantity100plus {
+                list-style-image: url('icons/triangle.png') !important;
+            }
+
+            #quantity100minus li::before, #quantity100 li::before, #quantity100plus li::before {
+                content: none !important;       /* Removes any generated content */
+                display: inline !important;     /* Resets display if it was changed */
+                margin: 0 !important;
+                padding: 0 !important;
+                background: none !important;
+                color: inherit !important;
+            }
             
             #legend {
                 position: absolute;
@@ -140,7 +165,7 @@
                 margin:0;
             }
             
-            #legend ul li:before {
+            #legend ul li::before {
                 content: "";
                 line-height: 2em;
                 width: 0.75em;
@@ -151,22 +176,23 @@
                 border: 1px solid black;
             }
             
-            #legend ul li.bulk:before { background-color: rgb(255,0,0); }
-            #legend ul li.sprik:before { background-color: rgb(239,133,19); }
-            #legend ul li.pil:before { background-color: rgb(239,236,19); }
-            #legend ul li.eple:before { background-color: rgb(0,255,0); }
-            #legend ul li.paere:before { background-color: rgb(122,175,131); }
-            #legend ul li.plante:before { background-color: rgb(0,0,255); }
+            #legend ul li.bulk::before { background-color: rgb(255,0,0); }
+            #legend ul li.sprik::before { background-color: rgb(239,133,19); }
+            #legend ul li.pil::before { background-color: rgb(239,236,19); }
+            #legend ul li.eple::before { background-color: rgb(0,255,0); }
+            #legend ul li.paere::before { background-color: rgb(122,175,131); }
+            #legend ul li.plante::before { background-color: rgb(0,0,255); }
             
-            #legend ul li.apiary:before { line-height: 1em; width: .7em; height: .7em; }
-            #legend ul li.apiary:before { background-color: #ffe05e; }
-            #legend ul li.nursery:before { line-height: 1em; width: .5em; height: .5em;border: 3px dotted black; background-color: rgb(255, 127,127);}
+            #legend ul li.apiary::before { line-height: 1em; width: .7em; height: .7em; }
+            #legend ul li.apiary::before { background-color: #ffe05e; }
+            #legend ul li.nursery::before { line-height: 1em; width: .5em; height: .5em;border: 3px dotted black; background-color: rgb(255, 127,127);}
             
             /* The opacity of these background colors must equal that of the zoneLayer in OpenLayers (see map.js) */
-            #legend ul li.bekjempelsesSone:before { background-color: rgb(255,120,0); opacity: 0.65; }
-            #legend ul li.paerebrannSone:before { background-color: rgb(255,0,0); opacity: 0.65; }
-            #legend ul li.forebyggendeSone:before { background-color: rgb(0,225,0); opacity: 0.65; }
-            #legend ul li.utenforSone:before { background-color: rgb(255,255,0); opacity: 0.65; }
+            #legend ul li.bekjempelsesSone::before { background-color: rgb(255,120,0); opacity: 0.65; }
+            #legend ul li.paerebrannSone::before { background-color: rgb(255,0,0); opacity: 0.65; }
+            #legend ul li.forebyggendeSone::before { background-color: rgb(0,225,0); opacity: 0.65; }
+            #legend ul li.utenforSone::before { background-color: rgb(255,255,0); opacity: 0.65; }
+
                         
             /* Screen size adjustments */
             @media (max-width: 500px)
@@ -286,6 +312,16 @@
                 <li class="eple">Eple</li>
                 <li class="paere">Pære</li>
                 <li class="plante">Annet</li>
+            </ul>
+            <h5>Forekomststørrelse</h3>
+            <ul id="quantity100minus">
+                <li>Mindre enn 100 planter</li>
+            </ul>
+            <ul id="quantity100">
+                <li>100 planter</li>
+            </ul>
+            <ul id="quantity100plus">
+                <li>Mer enn 100 planter</li>
             </ul>
           <h3>Kilder til spredning</h3>
             <ul>
