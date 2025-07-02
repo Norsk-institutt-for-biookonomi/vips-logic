@@ -706,20 +706,21 @@ public class ForecastBean {
              * catch(JsonProcessingException ex) { ex.printStackTrace(); }
              */
 
-            Response resp = this.getManagerResource(modelInformation).runModel(config.getModelId(), request);
-            if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
-                // System.out.println(resp.readEntity(String.class));
-                List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>() {});
-                // System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ",
-                // resultsize=" + results.size());
-                // We delete all former results before we store the new ones
-                forecastBean.storeResults(forecastConfiguration, results);
-            } else {
-                throw new RunModelException(resp.readEntity(String.class));
+            try(Response resp = this.getManagerResource(modelInformation).runModel(config.getModelId(), request)) {
+            
+                if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
+                    // System.out.println(resp.readEntity(String.class));
+                    List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>() {});
+                    // System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ",
+                    // resultsize=" + results.size());
+                    // We delete all former results before we store the new ones
+                    forecastBean.storeResults(forecastConfiguration, results);
+                } else {
+                    throw new RunModelException(resp.readEntity(String.class));
+                }
+                // System.out.println("Finished runModel for wsId" +
+                // forecastConfiguration.getWeatherStationPointOfInterestId());
             }
-            // System.out.println("Finished runModel for wsId" +
-            // forecastConfiguration.getWeatherStationPointOfInterestId());
-
         } else {
             throw new PreprocessorException(
                     "Could not find model with id=|" + forecastConfiguration.getModelId() + "|");
