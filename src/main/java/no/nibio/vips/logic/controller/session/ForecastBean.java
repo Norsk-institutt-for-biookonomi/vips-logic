@@ -446,8 +446,7 @@ public class ForecastBean {
         Integer instancesCompleted = 0;
         for (VipsCoreInstance vipsCoreInstance : vipsCoreInstances) {
             LOGGER.debug("Attempting to connect to " + vipsCoreInstance.getUri());
-            try {
-                Client client = ClientBuilder.newClient();
+            try (Client client = ClientBuilder.newClient()){
                 WebTarget target = client.target(vipsCoreInstance.getUri());
                 ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
                 ManagerResource resource = rTarget.proxy(ManagerResource.class);
@@ -759,11 +758,12 @@ public class ForecastBean {
      * @return
      */
     private ManagerResource getManagerResource(ModelInformation modelInformation) {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(modelInformation.getVipsCoreInstanceId().getUri());
-        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-        ManagerResource resource = rTarget.proxy(ManagerResource.class);
-        return resource;
+        try(Client client = ClientBuilder.newClient()){
+            WebTarget target = client.target(modelInformation.getVipsCoreInstanceId().getUri());
+            ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
+            ManagerResource resource = rTarget.proxy(ManagerResource.class);
+            return resource;
+        }
     }
 
     public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate,

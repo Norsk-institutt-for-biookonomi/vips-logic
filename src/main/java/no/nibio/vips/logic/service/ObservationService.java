@@ -925,52 +925,55 @@ public class ObservationService {
      * @return The list of observations, with the locations masked with the selected polygon service
      */
     private List<Observation> maskObservations(PolygonService polygonService, List<Observation> observations) {
-        //observations.forEach(o->System.out.println(o.getObservationId()));
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
-        List<ReferencedPoint> points = observations.stream()
-            .filter(obs -> (obs.getGeoinfos() != null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
-            .map(obs -> {
-                ReferencedPoint rp = new ReferencedPoint();
-                rp.setId(String.valueOf(obs.getObservationId()));
-                if (obs.getGeoinfos() != null) {
-                    rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
-                    rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
-                } else {
-                    rp.setLon(obs.getLocation().getLongitude());
-                    rp.setLat(obs.getLocation().getLatitude());
-                }
-                return rp;
-            }).collect(Collectors.toList());
-        /*System.out.println("maskobservations - target.request() about to be called");
-        ObjectMapper oMapper = new ObjectMapper();
-        try {
-            System.out.println(oMapper.writeValueAsString(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON)));
-        } catch (JsonProcessingException ex) {
-            Logger.getLogger(ObservationService.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
-        PointMappingResponse response = target.request(MediaType.APPLICATION_JSON)
-            .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
-        // We need to loop through the observations and find corresponding featurecollections and replace those
-        Map<Integer, Feature> indexedPolygons = new HashMap<>();
-        for (Feature feature : response.getFeatureCollection().getFeatures()) {
-            indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
-        }
-        GISEntityUtil gisEntityUtil = new GISEntityUtil();
-        for (Map mapping : response.getMapping()) {
-            Integer observationId = Integer.valueOf((String) mapping.get("id"));
-            Integer borderId = (Integer) mapping.get("borderid");
-            observations.stream().filter((o) -> (o.getObservationId().equals(observationId))).forEachOrdered((o) -> {
-                Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
-                List<Gis> gis = new ArrayList<>();
-                gis.add(polygon);
-                o.setGeoinfos(gis);
-                o.setLocation(null);
-                o.setLocationPointOfInterestId(null);
-            });
-        }
+        try(Client client = ClientBuilder.newClient())
+        {
+            //observations.forEach(o->System.out.println(o.getObservationId()));
+            
+            WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
+            List<ReferencedPoint> points = observations.stream()
+                .filter(obs -> (obs.getGeoinfos() != null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
+                .map(obs -> {
+                    ReferencedPoint rp = new ReferencedPoint();
+                    rp.setId(String.valueOf(obs.getObservationId()));
+                    if (obs.getGeoinfos() != null) {
+                        rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
+                        rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
+                    } else {
+                        rp.setLon(obs.getLocation().getLongitude());
+                        rp.setLat(obs.getLocation().getLatitude());
+                    }
+                    return rp;
+                }).collect(Collectors.toList());
+            /*System.out.println("maskobservations - target.request() about to be called");
+            ObjectMapper oMapper = new ObjectMapper();
+            try {
+                System.out.println(oMapper.writeValueAsString(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON)));
+            } catch (JsonProcessingException ex) {
+                Logger.getLogger(ObservationService.class.getName()).log(Level.SEVERE, null, ex);
+            }*/
+            PointMappingResponse response = target.request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
+            // We need to loop through the observations and find corresponding featurecollections and replace those
+            Map<Integer, Feature> indexedPolygons = new HashMap<>();
+            for (Feature feature : response.getFeatureCollection().getFeatures()) {
+                indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
+            }
+            GISEntityUtil gisEntityUtil = new GISEntityUtil();
+            for (Map mapping : response.getMapping()) {
+                Integer observationId = Integer.valueOf((String) mapping.get("id"));
+                Integer borderId = (Integer) mapping.get("borderid");
+                observations.stream().filter((o) -> (o.getObservationId().equals(observationId))).forEachOrdered((o) -> {
+                    Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
+                    List<Gis> gis = new ArrayList<>();
+                    gis.add(polygon);
+                    o.setGeoinfos(gis);
+                    o.setLocation(null);
+                    o.setLocationPointOfInterestId(null);
+                });
+            }
 
-        return observations;
+            return observations;
+        }
     }
 
     /**

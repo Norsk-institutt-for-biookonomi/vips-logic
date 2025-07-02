@@ -134,31 +134,32 @@ public class ObservationTimeSeriesService {
      * @return The observation time series, with location masked with the provided polygon service
      */
     private void maskLocation(PolygonService polygonService, ObservationTimeSeries observationTimeSeries) {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
-        ReferencedPoint rp = new ReferencedPoint();
-        rp.setId(String.valueOf(observationTimeSeries.getObservationTimeSeriesId()));
-        rp.setLon(observationTimeSeries.getLocationPointOfInterest().getLongitude());
-        rp.setLat(observationTimeSeries.getLocationPointOfInterest().getLatitude());
+        try(Client client = ClientBuilder.newClient()){
+            WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
+            ReferencedPoint rp = new ReferencedPoint();
+            rp.setId(String.valueOf(observationTimeSeries.getObservationTimeSeriesId()));
+            rp.setLon(observationTimeSeries.getLocationPointOfInterest().getLongitude());
+            rp.setLat(observationTimeSeries.getLocationPointOfInterest().getLatitude());
 
-        ReferencedPoint[] pointArray = {rp};
-        PointMappingResponse response = target.request(MediaType.APPLICATION_JSON).post(Entity.entity(pointArray, MediaType.APPLICATION_JSON), PointMappingResponse.class);
-        // We need to loop through the observations and find corresponding featurecollections and replace those
-        Map<Integer, Feature> indexedPolygons = new HashMap<>();
-        for (Feature feature : response.getFeatureCollection().getFeatures()) {
-            indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
-        }
-        GISEntityUtil gisEntityUtil = new GISEntityUtil();
-        for (Map mapping : response.getMapping()) {
-            Integer observationTimeSeriesId = Integer.valueOf((String) mapping.get("id"));
-            if (observationTimeSeries.getObservationTimeSeriesId().equals(observationTimeSeriesId)) {
-                Integer borderId = (Integer) mapping.get("borderid");
-                Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
-                List<Gis> gis = new ArrayList<>();
-                gis.add(polygon);
-                observationTimeSeries.setGeoInfoList(gis);
-                observationTimeSeries.setLocationPointOfInterest(null);
-                observationTimeSeries.setLocationPointOfInterestId(null);
+            ReferencedPoint[] pointArray = {rp};
+            PointMappingResponse response = target.request(MediaType.APPLICATION_JSON).post(Entity.entity(pointArray, MediaType.APPLICATION_JSON), PointMappingResponse.class);
+            // We need to loop through the observations and find corresponding featurecollections and replace those
+            Map<Integer, Feature> indexedPolygons = new HashMap<>();
+            for (Feature feature : response.getFeatureCollection().getFeatures()) {
+                indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
+            }
+            GISEntityUtil gisEntityUtil = new GISEntityUtil();
+            for (Map mapping : response.getMapping()) {
+                Integer observationTimeSeriesId = Integer.valueOf((String) mapping.get("id"));
+                if (observationTimeSeries.getObservationTimeSeriesId().equals(observationTimeSeriesId)) {
+                    Integer borderId = (Integer) mapping.get("borderid");
+                    Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
+                    List<Gis> gis = new ArrayList<>();
+                    gis.add(polygon);
+                    observationTimeSeries.setGeoInfoList(gis);
+                    observationTimeSeries.setLocationPointOfInterest(null);
+                    observationTimeSeries.setLocationPointOfInterestId(null);
+                }
             }
         }
     }

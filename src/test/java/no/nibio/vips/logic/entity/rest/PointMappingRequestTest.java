@@ -102,16 +102,16 @@ public class PointMappingRequestTest {
         
         ReferencedPoint[] instance = points.toArray(new ReferencedPoint[points.size()]);
         
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target("https://proxy1.nibio.no/municipality_cache_ws/pointmapping/1/4326");
+        try(Client client = ClientBuilder.newClient()) {
+            WebTarget target = client.target("https://proxy1.nibio.no/municipality_cache_ws/pointmapping/1/4326");
 
-        //PointMappingResponse response = 
-        PointMappingResponse response =    target.request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(instance, MediaType.APPLICATION_JSON), PointMappingResponse.class);//.toString();
-        client.close();
-        //System.out.println(((Polygon)response.getFeatureCollection().getFeatures()[0].getGeometry()).getCoordinates()[0].length);
-        
-        assertNotNull(response);
+            //PointMappingResponse response = 
+            PointMappingResponse response =    target.request(MediaType.APPLICATION_JSON)
+                    .post(Entity.entity(instance, MediaType.APPLICATION_JSON), PointMappingResponse.class);//.toString();
+            //System.out.println(((Polygon)response.getFeatureCollection().getFeatures()[0].getGeometry()).getCoordinates()[0].length);
+            
+            assertNotNull(response);
+        }
         //System.out.println(Entity.entity(instance, MediaType.APPLICATION_JSON));
         
         //System.out.println(target.request(MediaType.APPLICATION_JSON)
