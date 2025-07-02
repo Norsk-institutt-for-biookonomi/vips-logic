@@ -758,12 +758,11 @@ public class ForecastBean {
      * @return
      */
     private ManagerResource getManagerResource(ModelInformation modelInformation) {
-        try(Client client = ClientBuilder.newClient()){
+        Client client = ClientBuilder.newClient();
             WebTarget target = client.target(modelInformation.getVipsCoreInstanceId().getUri());
             ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
             ManagerResource resource = rTarget.proxy(ManagerResource.class);
             return resource;
-        }
     }
 
     public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate,
