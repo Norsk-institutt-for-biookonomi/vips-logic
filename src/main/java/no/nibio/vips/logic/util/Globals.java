@@ -43,7 +43,6 @@ public class Globals {
         "/404",
         "/400",
         "/rest",
-        "/user",
         "/test/testlogin.jsp",
         "/test/testloginsuccess.jsp",
         "/test/mock.kml",
