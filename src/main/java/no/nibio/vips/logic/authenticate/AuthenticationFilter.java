@@ -80,6 +80,15 @@ public class AuthenticationFilter implements Filter {
                     clientRemembered = true;
                 }
             }
+            // Then for UUID provided in URL
+            else if(httpRequest.getParameter("UUID") != null && !httpRequest.getParameter("UUID").isBlank())
+            {
+                VipsLogicUser user = userBean.findVipsLogicUser(UUID.fromString(httpRequest.getParameter("UUID")));
+                if (user != null) {
+                    httpRequest.getSession().setAttribute("user", user);
+                    clientAuthenticated = true;
+                }
+            }
 
             if (!clientAuthenticated && !clientRemembered) {
                 String nextPageDirective = "";
