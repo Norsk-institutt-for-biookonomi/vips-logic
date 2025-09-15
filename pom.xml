@@ -136,7 +136,6 @@
             <artifactId>httpclient5</artifactId>
             <version>5.4.1</version>
             <type>jar</type>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
