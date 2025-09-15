@@ -269,11 +269,6 @@
             <version>76.1</version>
         </dependency>
         <dependency>
-            <groupId>javax.measure</groupId>
-            <artifactId>unit-api</artifactId>
-            <version>2.2</version>
-        </dependency>
-        <dependency>
             <groupId>com.webcohesion.enunciate</groupId>
             <artifactId>enunciate-core-annotations</artifactId>
             <version>2.18.1</version>
