@@ -18,23 +18,23 @@
 
 package no.nibio.vips.logic.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.util.ULocale;
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import no.nibio.vips.gis.GISUtil;
-import no.nibio.vips.logic.controller.session.ObservationBean;
-import no.nibio.vips.logic.controller.session.ObservationTimeSeriesBean;
-import no.nibio.vips.logic.controller.session.OrganismBean;
-import no.nibio.vips.logic.controller.session.UserBean;
-import no.nibio.vips.logic.entity.*;
-import no.nibio.vips.logic.entity.rest.ObservationListItem;
-import no.nibio.vips.logic.entity.rest.PointMappingResponse;
-import no.nibio.vips.logic.entity.rest.ReferencedPoint;
-import no.nibio.vips.logic.messaging.MessagingBean;
-import no.nibio.vips.logic.util.ExcelFileGenerator;
-import no.nibio.vips.logic.util.GISEntityUtil;
-import no.nibio.vips.logic.util.Globals;
+import java.io.IOException;
+import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.jboss.resteasy.annotations.GZIP;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -43,10 +43,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.GeoJSON;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.util.ULocale;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import jakarta.ejb.EJB;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -55,15 +65,27 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.net.URI;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.controller.session.ObservationBean;
+import no.nibio.vips.logic.controller.session.ObservationTimeSeriesBean;
+import no.nibio.vips.logic.controller.session.OrganismBean;
+import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.entity.Gis;
+import no.nibio.vips.logic.entity.Observation;
+import no.nibio.vips.logic.entity.ObservationIllustrationPK;
+import no.nibio.vips.logic.entity.ObservationStatusType;
+import no.nibio.vips.logic.entity.ObservationSyncInfo;
+import no.nibio.vips.logic.entity.Organism;
+import no.nibio.vips.logic.entity.PolygonService;
+import no.nibio.vips.logic.entity.VipsLogicRole;
+import no.nibio.vips.logic.entity.VipsLogicUser;
+import no.nibio.vips.logic.entity.rest.ObservationListItem;
+import no.nibio.vips.logic.entity.rest.PointMappingResponse;
+import no.nibio.vips.logic.entity.rest.ReferencedPoint;
+import no.nibio.vips.logic.messaging.MessagingBean;
+import no.nibio.vips.logic.util.ExcelFileGenerator;
+import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.logic.util.Globals;
 
 /**
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
@@ -228,7 +250,6 @@ public class ObservationService {
             user != null ? user.getOrganizationId().getDefaultLocale() :
                 userBean.getOrganization(organizationId).getDefaultLocale());
 
-        LOGGER.info("Get filtered observations for user {}", user != null ? user.getUserId() : "<no user>");
         List<ObservationListItem> observations = getFilteredObservationsFromBackend(
             organizationId,
             observationTimeSeriesId,
@@ -557,13 +578,10 @@ public class ObservationService {
     public Response getObservationsForUser(
         @QueryParam("observationIds") String observationIds
     ) {
-        LOGGER.info("getObservationsForUser for observationIds={}", observationIds);
         try {
             VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
             if (user != null) {
-                LOGGER.info("Get observations for user={}", user.getUserId());
                 List<Observation> allObs = observationBean.getObservationsForUser(user);
-                LOGGER.info("Found {} observations for user {}", allObs.size(), user.getUserId());
                 if (observationIds != null) {
                     Set<Integer> observationIdSet = Arrays.asList(observationIds.split(",")).stream()
                         .map(s -> Integer.valueOf(s))
@@ -757,6 +775,11 @@ public class ObservationService {
             // Create the Observation
             Observation observation = observationBean.getObservationFromGeoJSON(geoJSON);
             VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+            // Allow for UUID login
+            if(user == null)
+            {
+                user = userBean.getUserFromUUID(httpServletRequest);
+            }
             // If no user, send error message back to client
             if (user == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -850,14 +873,12 @@ public class ObservationService {
         //retVal.forEach(o->System.out.println(o.getObservationId()));
         // If user is not logged in, return only the publicly available observations
         if (user == null) {
-            LOGGER.info("Return {} masked public observations for unregistered user", retVal.size());
             return sortObservationsByDateAndId(retVal);
         }
         // Else: This is a registered user without special privileges. Show public observations + user's own
         // Making sure we don't add duplicates
         Set<Integer> obsIds = retVal.stream().map(o -> o.getObservationId()).collect(Collectors.toSet());
         retVal.addAll(observationBean.getObservationsForUser(user).stream().filter(o -> !obsIds.contains(o.getObservationId())).collect(Collectors.toList()));
-        LOGGER.info("Return {} masked public observations and user's own observations for registered user {}", retVal.size(), user.getUserId());
         return sortObservationsByDateAndId(retVal);
     }
 
@@ -904,52 +925,55 @@ public class ObservationService {
      * @return The list of observations, with the locations masked with the selected polygon service
      */
     private List<Observation> maskObservations(PolygonService polygonService, List<Observation> observations) {
-        //observations.forEach(o->System.out.println(o.getObservationId()));
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
-        List<ReferencedPoint> points = observations.stream()
-            .filter(obs -> (obs.getGeoinfos() != null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
-            .map(obs -> {
-                ReferencedPoint rp = new ReferencedPoint();
-                rp.setId(String.valueOf(obs.getObservationId()));
-                if (obs.getGeoinfos() != null) {
-                    rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
-                    rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
-                } else {
-                    rp.setLon(obs.getLocation().getLongitude());
-                    rp.setLat(obs.getLocation().getLatitude());
-                }
-                return rp;
-            }).collect(Collectors.toList());
-        /*System.out.println("maskobservations - target.request() about to be called");
-        ObjectMapper oMapper = new ObjectMapper();
-        try {
-            System.out.println(oMapper.writeValueAsString(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON)));
-        } catch (JsonProcessingException ex) {
-            Logger.getLogger(ObservationService.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
-        PointMappingResponse response = target.request(MediaType.APPLICATION_JSON)
-            .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
-        // We need to loop through the observations and find corresponding featurecollections and replace those
-        Map<Integer, Feature> indexedPolygons = new HashMap<>();
-        for (Feature feature : response.getFeatureCollection().getFeatures()) {
-            indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
-        }
-        GISEntityUtil gisEntityUtil = new GISEntityUtil();
-        for (Map mapping : response.getMapping()) {
-            Integer observationId = Integer.valueOf((String) mapping.get("id"));
-            Integer borderId = (Integer) mapping.get("borderid");
-            observations.stream().filter((o) -> (o.getObservationId().equals(observationId))).forEachOrdered((o) -> {
-                Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
-                List<Gis> gis = new ArrayList<>();
-                gis.add(polygon);
-                o.setGeoinfos(gis);
-                o.setLocation(null);
-                o.setLocationPointOfInterestId(null);
-            });
-        }
+        try(Client client = ClientBuilder.newClient())
+        {
+            //observations.forEach(o->System.out.println(o.getObservationId()));
+            
+            WebTarget target = client.target(polygonService.getGisSearchUrlTemplate());
+            List<ReferencedPoint> points = observations.stream()
+                .filter(obs -> (obs.getGeoinfos() != null && !obs.getGeoinfos().isEmpty()) || obs.getLocation() != null)
+                .map(obs -> {
+                    ReferencedPoint rp = new ReferencedPoint();
+                    rp.setId(String.valueOf(obs.getObservationId()));
+                    if (obs.getGeoinfos() != null) {
+                        rp.setLon(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().x);
+                        rp.setLat(obs.getGeoinfos().get(0).getGisGeom().getCoordinate().y);
+                    } else {
+                        rp.setLon(obs.getLocation().getLongitude());
+                        rp.setLat(obs.getLocation().getLatitude());
+                    }
+                    return rp;
+                }).collect(Collectors.toList());
+            /*System.out.println("maskobservations - target.request() about to be called");
+            ObjectMapper oMapper = new ObjectMapper();
+            try {
+                System.out.println(oMapper.writeValueAsString(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON)));
+            } catch (JsonProcessingException ex) {
+                Logger.getLogger(ObservationService.class.getName()).log(Level.SEVERE, null, ex);
+            }*/
+            PointMappingResponse response = target.request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(points.toArray(new ReferencedPoint[points.size()]), MediaType.APPLICATION_JSON), PointMappingResponse.class);
+            // We need to loop through the observations and find corresponding featurecollections and replace those
+            Map<Integer, Feature> indexedPolygons = new HashMap<>();
+            for (Feature feature : response.getFeatureCollection().getFeatures()) {
+                indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
+            }
+            GISEntityUtil gisEntityUtil = new GISEntityUtil();
+            for (Map mapping : response.getMapping()) {
+                Integer observationId = Integer.valueOf((String) mapping.get("id"));
+                Integer borderId = (Integer) mapping.get("borderid");
+                observations.stream().filter((o) -> (o.getObservationId().equals(observationId))).forEachOrdered((o) -> {
+                    Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
+                    List<Gis> gis = new ArrayList<>();
+                    gis.add(polygon);
+                    o.setGeoinfos(gis);
+                    o.setLocation(null);
+                    o.setLocationPointOfInterestId(null);
+                });
+            }
 
-        return observations;
+            return observations;
+        }
     }
 
     /**
@@ -967,8 +991,6 @@ public class ObservationService {
     public Response syncObservationFromApp(
         String observationJson
     ) {
-        LOGGER.info("In syncObservationFromApp");
-
         try {
             VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
             if (user == null) {
@@ -1095,8 +1117,8 @@ public class ObservationService {
                     String disableMessagingSystemProperty = System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM");
                     boolean messagingSystemDisabled = disableMessagingSystemProperty != null && disableMessagingSystemProperty.equals("true");
 
-                    LOGGER.info("Send notification? " + sendNotification);
-                    LOGGER.info("Messaging system enabled? " + !messagingSystemDisabled);
+                    LOGGER.info("Send notification? {}", sendNotification);
+                    LOGGER.info("Messaging system enabled? {}", !messagingSystemDisabled);
 
                     // All transactions finished, we can send notifications
                     // if conditions are met

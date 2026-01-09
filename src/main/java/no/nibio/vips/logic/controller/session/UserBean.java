@@ -39,8 +39,6 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jakarta.ejb.EJB;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
@@ -51,6 +49,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.HttpHeaders;
 
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
+import no.nibio.vips.logic.controller.servlet.ForecastConfigurationController;
 import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
@@ -73,6 +72,8 @@ import org.passay.Rule;
 import org.passay.RuleResult;
 import org.passay.WhitespaceRule;
 import org.postgresql.util.PSQLException;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * Handles user stuff, credentials
@@ -82,6 +83,8 @@ import org.postgresql.util.PSQLException;
 @LocalBean
 @Stateless
 public class UserBean {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserBean.class);
     
     
     @PersistenceContext(unitName="VIPSLogic-PU")
@@ -191,6 +194,7 @@ public class UserBean {
         String subject = i18nBundle.getString("userRegistrationEmailVerificationMessageSubject");
         String body = getUserEmailVerificationBody(i18nBundle, serverName, user.getEmailVerificationCode() );
         
+        LOGGER.debug(subject + "\n" + body);
        
         // Send email
         String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
@@ -201,7 +205,7 @@ public class UserBean {
     
     public String getUserEmailVerificationBody(ResourceBundle i18nBundle, String serverName, String verificationCode)
     {
-        String verificationURL = Globals.PROTOCOL + "://" + serverName + "/user?action=confirmEmail&verificationCode=" + verificationCode;
+        String verificationURL = Globals.PROTOCOL + "://" + serverName + "/public/user?action=confirmEmail&verificationCode=" + verificationCode;
         String body = MessageFormat.format(i18nBundle.getString("userRegistrationEmailVerificationMessageBody"), serverName,verificationURL);
         return body;
     }
@@ -744,8 +748,10 @@ public class UserBean {
         String subject = i18nBundle.getString("createPasswordResetCodeAndSendToUserSubject");
         String body = MessageFormat.format(i18nBundle.getString("createPasswordResetCodeAndSendToUserBody"), 
                 this.getUserName(resetPasswordUser, UserAuthenticationType.TYPE_PASSWORD),
-                Globals.PROTOCOL + "://" + serverName + "/user?action=resetPassword&passwordResetCode=" + resetCode);
+                Globals.PROTOCOL + "://" + serverName + "/public/user?action=resetPassword&passwordResetCode=" + resetCode);
         
+        LOGGER.debug(subject + "\n" + body);
+
         // Send email
         String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
         SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
@@ -857,7 +863,7 @@ public class UserBean {
         try {
             return new ObjectMapper().writeValueAsString(this.getMapLayersForUser(user));
         } catch (JsonProcessingException ex) {
-            Logger.getLogger(UserBean.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error(ex.getLocalizedMessage(), ex);
             return "";
         }
     }

@@ -46,9 +46,9 @@
 		<input type="password" class="form-control" placeholder="${i18nBundle.password}" name="password" size="15"/>
 		<button class="btn btn-lg btn-primary btn-block" type="submit">${i18nBundle.login}</button>
 		<input type="checkbox" name="rememberUser"<#if checkRemember?has_content && checkRemember> checked="checked"</#if>/> ${i18nBundle.rememberLogin}<br/>
-		<a href="/user?action=registerNewUserForm&userAuthenticationTypeId=1">${i18nBundle.registerNewUser}</a><br/>
-		<a href="/user?action=resetPasswordRequestForm">${i18nBundle.forgottenPassword}</a><br/>
-                <a href="/public/documentation/${i18nBundle.privacyStatementFileName}" target="new">${i18nBundle.privacyStatement}</a>
+		<a href="/public/user?action=registerNewUserForm&userAuthenticationTypeId=1">${i18nBundle.registerNewUser}</a><br/>
+		<a href="/public/user?action=resetPasswordRequestForm">${i18nBundle.forgottenPassword}</a><br/>
+        <a href="/public/documentation/${i18nBundle.privacyStatementFileName}" target="new">${i18nBundle.privacyStatement}</a>
 	</form>
 </div>
 </#macro>

@@ -65,7 +65,10 @@
                 return option;
             };
 
+        // Only on single forecast configuration form
+        <#if ! multipleNew>
         renderPoiSelect(selectLocationElement, locationList, selectedPoiId);
+        </#if>
         
         // Setting weather station select list state correct on page load
         <#if isGridForecastSupported && forecastConfiguration.forecastConfigurationId??>
@@ -150,9 +153,11 @@
             });
         }
 
+        <#if !multipleNew>
         renderWeatherstationSelect(selectWeatherstationElement, locationList, selectedWeatherstationId,
         <#if forecastConfiguration.weatherStationPointOfInterestId??>[${forecastConfiguration.weatherStationPointOfInterestId.longitude?c},${forecastConfiguration.weatherStationPointOfInterestId.latitude?c}]<#else>null</#if>
         );
+        </#if>
 
         window.selectPoi = function(selectElement, selectedId) {
             if (selectedId) {
@@ -457,6 +462,48 @@
                 }
           }
 
+          /**
+           * In case of grid data being used; Disable the form validation check for weather station!
+           */
+          validateFormIntercept = function(theForm, formDefinitionKey)
+          {
+            <#if isGridForecastSupported && ! multipleNew>
+                let weatherDatasourceFieldset = document.getElementById("weatherDatasourceFieldset");
+                // Which location has been selected?
+                let selectedPoiId = document.getElementById("locationPointOfInterestId").options[document.getElementById("locationPointOfInterestId").selectedIndex].value;
+                let selectedLocation = undefined;
+                for(let i=0; i<locationList.length;i++)
+                {
+                    if(locationList[i].pointOfInterestId == selectedPoiId)
+                    {
+                        selectedLocation = locationList[i];
+                    }
+                }
+                if(selectedLocation.pointOfInterestTypeId != POI_TYPE_WEATHERSTATION)
+                {
+                    const formDef = formDefinitions["${formId}"];
+                    console.info(formDef);
+                    for(let i=0;i<formDef["fields"].length;i++)
+                    {
+                        if(formDef["fields"][i]["name"] == "weatherStationPointOfInterestId"){
+                            formDef["fields"][i]["required"] = false;
+                        }
+                    }
+                }
+                else {
+                    const formDef = formDefinitions["${formId}"];
+                    console.info(formDef);
+                    for(let i=0;i<formDef["fields"].length;i++)
+                    {
+                        if(formDef["fields"][i]["name"] == "weatherStationPointOfInterestId"){
+                            formDef["fields"][i]["required"] = true;
+                        }
+                    }
+                }
+            </#if>
+            validateForm(theForm, formDefinitionKey);
+          }
+
 
 
           window.handleLocationChanged = function(){
@@ -496,7 +543,7 @@
 
             setUseGridWeatherData(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? "false" : "true");
             handleWeatherDatasourceSelected(selectedLocation.pointOfInterestTypeId == POI_TYPE_WEATHERSTATION ? selectedLocation.pointOfInterestId: undefined);
-
+            
             </#if>
           }
 	</script>
@@ -517,7 +564,7 @@
 	<#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>
 	</#if>
-        <form id="${formId}" role="form" action="/forecastConfiguration?action=forecastConfigurationFormSubmit" method="POST" onsubmit2="return false;" onsubmit="try{ return (validateForm(this) && validateForm(this, this.modelId.options[this.modelId.selectedIndex].value));}catch(err){alert(err);return false;}">
+        <form id="${formId}" role="form" action="/forecastConfiguration?action=forecastConfigurationFormSubmit" method="POST" onsubmit2="return false;" onsubmit="try{ return (validateFormIntercept(this) && validateFormIntercept(this, this.modelId.options[this.modelId.selectedIndex].value));}catch(err){alert(err);return false;}">
           <input type="hidden" id="forecastConfigurationId" name="forecastConfigurationId" value="${forecastConfiguration.forecastConfigurationId!"-1"}"/>
           <div class="form-group">
 	    <label for="modelId">${i18nBundle.modelId}</label>
@@ -684,7 +731,7 @@
 	  	
 	  </fieldset>
 	  <button type="submit" class="btn btn-default">${i18nBundle.submit}</button>
-	  <!--button type="button" onclick="var theForm=document.getElementById('${formId}');validateForm(theForm);validateForm(theForm, theForm.modelId.options[theForm.modelId.selectedIndex].value); ">Test</button-->
+      <!--button type="button" onclick="validateFormIntercept(this) && validateFormIntercept(this, this.modelId.options[this.modelId.selectedIndex].value)">Test</button-->
 	  <button type="button" class="btn btn-warning" onclick="if(confirm('${i18nBundle.confirmLeaveForm}')){window.location.href='/forecastConfiguration';}">${i18nBundle.leaveForm}</button>
 	  <#if forecastConfiguration.forecastConfigurationId?has_content>
 	  <button type="button" class="btn btn-danger" onclick="if(confirm('${i18nBundle.confirmDelete}')){window.location.href='/forecastConfiguration?action=deleteForecastConfiguration&forecastConfigurationId=${forecastConfiguration.forecastConfigurationId}';}">${i18nBundle.delete}</button>

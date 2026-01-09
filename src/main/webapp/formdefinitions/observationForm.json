@@ -25,6 +25,11 @@
             "required" : true
         },
         {
+            "name" : "observationTimeSeriesId",
+            "dataType" : "INTEGER",
+            "required" : false
+        },
+        {
             "name" : "organismId",
             "dataType" : "INTEGER",
             "fieldType" : "SELECT_SINGLE",
@@ -40,9 +45,7 @@
         },
         {
             "name" : "timeOfObservation",
-            "dataType" : "TIMESTAMP",
-            "timestampFormat" : "yyyy-MM-dd HH:mmZ",
-            "timestampFormatMomentJS" : "YYYY-MM-DD HH:mmZ",
+            "dataType" : "DATE",
             "required" : true
         },
         {
@@ -99,7 +102,7 @@
         {
             "name" : "observationText",
             "dataType" : "STRING",
-            "required" : true
+            "required" : false
         },
         {
             "name" : "deleteIllustration",

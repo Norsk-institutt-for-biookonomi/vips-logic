@@ -54,25 +54,13 @@
 			if(isNaN(lon) || isNaN(lat)) return;
 			
 			// Get altitude from the startkart web service
-			fetch("/corsproxy/http://openwps.statkart.no/skwms1/wps.elevation2?request=Execute&service=WPS&version=1.0.0&identifier=elevation&datainputs=lat=" + lat + ";lon=" + lon + ";epsg=4326")
-			.then(response => response.text())
-			.then(str => (new window.DOMParser()).parseFromString(str,"text/xml"))
-			.then(xmlDoc => {
-					var outputs = xmlDoc.getElementsByTagName("wps:Output");
-					for(var i=0; i<outputs.length;i++)
-					{
-						if(outputs[i].getElementsByTagName("ows:Identifier")[0].textContent.trim() == "elevation")
-						{
-							var elevation = parseFloat(outputs[i].getElementsByTagName("wps:LiteralData")[0].textContent.trim());
-							if(isNaN(elevation)) 
-							{
-								elevation = 0;
-							}
-							theForm["altitude"].value = elevation;
-						}
-					}
-					
+			// https://ws.geonorge.no/hoydedata/v1/punkt?koordsys=4326&nord=60.48413&ost=7.97852&geojson=false
+			fetch("/corsproxy/https://ws.geonorge.no/hoydedata/v1/punkt?koordsys=4326&nord=" + lat + "&ost=" + lon + "&geojson=false")
+			.then(response => response.json())
+			.then(data => {
+				theForm["altitude"].value = data["punkter"][0]["z"];
 			});
+			
 			// Get County and municipality
 			fetch("/corsproxy/" + municipalityPolygonServiceUrl + "?lon=" + lon + "&lat=" + lat)
 			.then(response => response.json())

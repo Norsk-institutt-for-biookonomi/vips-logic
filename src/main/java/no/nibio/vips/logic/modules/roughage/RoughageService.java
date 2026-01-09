@@ -18,7 +18,6 @@
 
 package no.nibio.vips.logic.modules.roughage;
 
-import com.webcohesion.enunciate.metadata.Facet;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -30,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+import com.webcohesion.enunciate.metadata.Facet;
 import jakarta.ejb.EJB;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -41,7 +40,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.entity.WeatherObservation;
@@ -68,7 +66,6 @@ import no.nibio.vips.util.weather.WeatherStationProviderFactory;
 @Path("rest/roughage")
 @Facet("restricted")
 public class RoughageService {
-    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;

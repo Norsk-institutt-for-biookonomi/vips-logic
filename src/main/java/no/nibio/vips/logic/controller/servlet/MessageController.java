@@ -18,7 +18,6 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -26,11 +25,14 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import jakarta.ejb.EJB;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,10 +53,6 @@ import no.nibio.web.forms.FormUtil;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.apache.commons.fileupload2.core.FileItem;
-import org.apache.commons.fileupload2.core.FileUploadException;
-import org.apache.commons.fileupload2.core.DiskFileItemFactory;
-import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 
 /**
  * @copyright 2014-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -276,7 +274,8 @@ public class MessageController extends HttpServlet {
                 if(JakartaServletFileUpload.isMultipartContent(request))
                 {
                     // Create a new file upload handler
-                    JakartaServletFileUpload upload = new JakartaServletFileUpload();
+                    DiskFileItemFactory dfif = DiskFileItemFactory.builder().get();
+                    JakartaServletFileUpload upload = new JakartaServletFileUpload(dfif);
 
                     // Parse the request
                     items = upload.parseRequest(request);

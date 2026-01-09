@@ -33,6 +33,15 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.jboss.resteasy.annotations.GZIP;
+import org.jboss.resteasy.spi.HttpRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.util.ULocale;
+import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import de.micromata.opengis.kml.v_2_2_0.Kml;
 import jakarta.ejb.EJB;
 import jakarta.persistence.NonUniqueResultException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,24 +53,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import org.apache.commons.validator.routines.EmailValidator;
-import org.jboss.resteasy.annotations.GZIP;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.spi.HttpRequest;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.util.ULocale;
-import com.webcohesion.enunciate.metadata.Facet;
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import de.micromata.opengis.kml.v_2_2_0.Kml;
-import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.controller.session.DeleteUserException;
@@ -80,9 +74,7 @@ import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestType;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.UserAuthentication;
 import no.nibio.vips.logic.entity.UserAuthenticationType;
 import no.nibio.vips.logic.entity.VipsLogicRole;
@@ -102,8 +94,7 @@ import no.nibio.web.forms.FormValidationException;
  */
 @Path("rest")
 public class LogicService {
-    private final static String VIPSCOREMANAGER_URL = System.getProperty("no.nibio.vips.logic.VIPSCOREMANAGER_URL");
-    
+        
     @Context
     private HttpRequest httpRequest;
     @Context
@@ -802,76 +793,6 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
-
-    
-    /**
-     * Get a list of locations (pois) for a given organization
-     * @param organizationId
-     * @return 
-     */
-    @GET
-    @Path("poi/organization/{organizationId}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(PointOfInterestWeatherStation[].class)
-    public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId)
-    {
-        Organization organization = userBean.getOrganization(organizationId);
-        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getWeatherstationsForOrganization(organization, Boolean.TRUE);
-        return Response.ok().entity(retVal).build();
-    }
-    
-    /**
-     * 
-     * @param pointOfInterestId
-     * @return a particular POI (Point of interest)
-     */
-    @GET
-    @Path("poi/{pointOfInterestId}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(PointOfInterest.class)
-    public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId)
-    {
-        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(pointOfInterestId);
-        return Response.ok().entity(retVal).build();
-    }
-    
-    /**
-     * Find a POI (Point of interest) by name
-     * @param poiName
-     * @return 
-     */
-    @GET
-    @Path("poi/name/{poiName}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(PointOfInterest.class)
-    public Response getPoiByName(@PathParam("poiName") String poiName)
-    {
-        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(poiName);
-        return retVal != null ? Response.ok().entity(retVal).build() : Response.noContent().build();
-    }
-    
-    /**
-     * If used outside of VIPSLogic: Requires a valid UUID to be provided in the Authorization header
-     * @return a list of POIs for the user logged in in this session
-     */
-    @GET
-    @Path("poi/user")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(PointOfInterest[].class)
-    public Response getPoisForCurrentUser()
-    {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        // Could be the VIPS obs app or some other client using UUID
-        if(user == null)
-        {
-        	String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-    		UUID uuid = UUID.fromString(uuidStr);
-    		user = userBean.findVipsLogicUser(uuid);
-        }
-        List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
-        return Response.ok().entity(retVal).build();
-    }
     
     /**
      * 
@@ -1543,20 +1464,5 @@ public class LogicService {
         }
 
     }
-    
-    /**
-     * Get the client to use for calling VIPSCoreManager REST services programmatically
-     * @return 
-     */
-    private ManagerResource getManagerResource()
-    {
-        Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(VIPSCOREMANAGER_URL);
-        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-        ManagerResource resource = rTarget.proxy(ManagerResource.class);
-        return resource;
-    }
-    
-    
     
 }

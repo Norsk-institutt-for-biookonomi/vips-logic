@@ -43,66 +43,30 @@ async function initMap() {
     var iconRadius = 16;
 
     const colors = {
-
+        'rhododendron': [153, 0, 153, 1], // Lilla 1
+        'vaccinium myrtillus': [204, 0, 204, 1], // Lilla 2
+        'pieris': [255, 0, 255, 1], // Lilla 3
+        'viburnum': [255, 51, 255, 1], // Lilla 4
         'fagus sylvatica': [255, 0, 0, 1], // Bøk = rød
         'alnus incana': [239, 133, 19, 1], // Gråor = dyp oransje
         'quercus': [239, 236, 19, 1], // Eik = gul
         'acer': [0, 255, 0, 1], // Lønn = grønn
         'alnus glutinosa': [122, 175, 131, 1], // Svartor = grågrønn
+        
         'plantae': [0, 0, 255, 1]
     };
 
-    var styles = {
-        // Bøk = rød
-        'fagus sylvatica': [new ol.style.Style({
+    let styles = {};
+    Object.entries(colors).forEach(([hostName, color]) => {
+        styles[hostName] = [new ol.style.Style({
             image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [255, 0, 0, 1] }),
+                fill: new ol.style.Fill({ color: color }),
                 stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
                 radius: iconRadius
             })
-        })],
-        // Gråor = dyp oransje
-        'alnus incana': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [239, 133, 19, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Eik = gul
-        'quercus': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [239, 236, 19, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Lønn = grønn
-        'acer': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [0, 255, 0, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Svartor = grågrønn
-        'alnus glutinosa': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [122, 175, 131, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })],
-        // Planteriket = blå 
-        'plantae': [new ol.style.Style({
-            image: new ol.style.Circle({
-                fill: new ol.style.Fill({ color: [0, 0, 255, 1] }),
-                stroke: new ol.style.Stroke({ width: 1, color: [0, 0, 0, 1] }),
-                radius: iconRadius
-            })
-        })
-        ]
-    };
+        })]
+    });
+
 
     // Initialize the layer for observations. Empty features array at first
     featureOverlay = new ol.layer.Vector({
@@ -119,11 +83,13 @@ async function initMap() {
                 : colors["plantae"];
 
 
+            let ikkeFunn = observationData["funn"] == "[Ukjent]" || observationData["funn"] == "Negativ";
+
             retVal = [
                 new ol.style.Style({
                     image: new ol.style.Circle({
-                        fill: new ol.style.Fill({ color: (observationData["funn"] == "[Ukjent]" ? color : observationData["funn"] == "Sanns. Phyt." ? [204, 204, 204, 1] : [0, 0, 0, 1]) }),
-                        stroke: new ol.style.Stroke({ width: (observationData["funn"] == "[Ukjent]" ? 0 : 4), color: (observationData["funn"] == "[Ukjent]" ? [0, 0, 0, 1] : color) }),
+                        fill: new ol.style.Fill({ color: (ikkeFunn ? color : observationData["funn"] == "Sanns. Phyt." ? [204, 204, 204, 1] : [0, 0, 0, 1]) }),
+                        stroke: new ol.style.Stroke({ width: (ikkeFunn ? 0 : 4), color: (ikkeFunn ? [0, 0, 0, 1] : color) }),
                         radius: iconRadius
                     }),
                     text: new ol.style.Text({
@@ -235,7 +201,7 @@ async function initMap() {
         getAndRenderObservations(lastYear);
 
         // Handle user click on map
-        map.on('click', function (evt) {
+        map.on('click', (evt) => {
             //features = []
             var feature = map.forEachFeatureAtPixel(
                 evt.pixel, function (ft, l) {
@@ -415,6 +381,7 @@ var displayFeature = function (feature) {
         '<table>',
         '<tr><td>Plante</td><td>', getLocalizedOrganismName(feature.get("cropOrganism"), hardcodedLanguage), '</td></tr>',
         '<tr><td>Plante spes</td><td>', observationData["plantespes"], '</td></tr>',
+        '<tr><td>Uttakssted</td><td>', observationData["uttakssted"], '</td></tr>',
         '<tr><td>Symptom</td><td>', observationData["symptom"], '</td></tr>',
         '<tr><td>Sym spes</td><td>', observationData["symspes"], '</td></tr>',
         '<tr><td>Prøvetype</td><td>', observationData["provetype"], '</td></tr>',
@@ -429,6 +396,10 @@ var displayFeature = function (feature) {
 }
 
 var forekomsttypeLatinskeNavn = [
+    "Rhododendron",
+    "Vaccinium myrtillus", // Blåbær
+    "Pieris", // Pyramidelyng
+    "Viburnum", // Korsved
     "Fagus sylvatica", //"Bøk",
     "Alnus incana", //"Gråor",
     "Quercus", //"Eik", 
@@ -464,9 +435,10 @@ var getCropOrganism = function (organismId) {
 }
 
 
-var symptoms = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
-var funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
-var provetypes = ["[Ikke prøve]", "Jord", "Vev", "Vann", "Blad", "Bait"];
+const symptomer = ["Flekker", "Glisne kroner", "Oppsprekking", "Død", "Andre symptom", "Andre skader", "Ikke symptom", "Irrelevant"];
+const uttakssteder = ["Import", "Hagesentre", "Planteskole", "Grøntanlegg"];
+const funns = ["[Ukjent]", "Sanns. Phyt.", "Phytophthora ramorum", "Phytophthora syringae", "Phytophthora hedraiandra", "Negativ", "Annet", "Phytophthora gonapodyides", "Phytophthora lacustris", "Phytophthora plurivora", "Phytophthora cambivora", "Phytophthora cactorum", "Phytophthora sp"]
+const provetyper = ["[Ikke prøve]", "Blad", "Kvist", "Jord", "Vev", "Vann", "Bait"];
 
 
 var editFeature = function (featureId) {
@@ -485,14 +457,17 @@ var editFeature = function (featureId) {
         '</td></tr>' +
         '<tr><td>Plante spes.</td><td>' +
         '<input type="text" id="plantespes" name="plantespes" size="15" value="' + (observationData["plantespes"] != null ? observationData["plantespes"] : "") + '"/></td></tr>' +
+        '<tr><td>Uttakssted</td><td>' +
+        generateSelect("uttakssted", uttakssteder, observationData["uttakssted"]) +
+        '</td></tr>' +
         '<tr><td>Symptom</td><td>' +
-        generateSelect("symptom", symptoms, observationData["symptom"]) +
+        generateSelect("symptom", symptomer, observationData["symptom"]) +
         '</td></tr>' +
         '<tr><td>Sym spes.</td><td>' +
         '<input type="text" id="symspes" name="symspes" size="15" value="' + (observationData["symspes"] != null ? observationData["symspes"] : "") + '"/></td></tr>' +
-
+        
         '<tr><td>Prøvetype</td><td>' +
-        generateSelect("provetype", provetypes, observationData["provetype"]) +
+        generateSelect("provetype", provetyper, observationData["provetype"]) +
         '</td></tr>' +
         '<tr><td>Prøvenummer</td><td>' +
         '<input type="text" id="provenummer" name="provenummer" size="15" value="' + (observationData["provenummer"] != null ? observationData["provenummer"] : "") + '"/></td></tr>' +
@@ -525,8 +500,9 @@ var storeFeature = function (featureId) {
     // Add the form data
     var cropOrganism = getCropOrganism(document.getElementById("forekomsttype").options[document.getElementById("forekomsttype").options.selectedIndex].value);
     //console.info(cropOrganism);
-    var plantespes = document.getElementById("plantespes").value;
-    var symptom = document.getElementById("symptom").options[document.getElementById("symptom").options.selectedIndex].value;
+    const plantespes = document.getElementById("plantespes").value;
+    const uttakssted = document.getElementById("uttakssted").options[document.getElementById("uttakssted").options.selectedIndex].value;
+    const symptom = document.getElementById("symptom").options[document.getElementById("symptom").options.selectedIndex].value;
     var symspes = document.getElementById("symspes").value;
     var provetype = document.getElementById("provetype").options[document.getElementById("provetype").options.selectedIndex].value;
     var provenummer = document.getElementById("provenummer").value;
@@ -545,7 +521,7 @@ var storeFeature = function (featureId) {
         organism: phytophthora,
         observationHeading: observationHeading,
         observationText: observationText,
-        observationData: "{\"plantespes\":\"" + plantespes + "\",\"symptom\":\"" + symptom + "\",\"symspes\":\"" + symspes + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
+        observationData: "{\"plantespes\":\"" + plantespes + "\",\"uttakssted\":\"" + uttakssted + "\",\"symptom\":\"" + symptom + "\",\"symspes\":\"" + symspes + "\",\"funn\":\"" + funn + "\",\"provetype\":\"" + provetype + "\",\"provenummer\":\"" + provenummer + "\"}",
         statusTypeId: 3,
         statusRemarks: "Registrert via phytophthora-overvåkningskartet",
         isQuantified: true,
@@ -556,7 +532,7 @@ var storeFeature = function (featureId) {
         featureProjection: map.getView().getProjection().getCode()
     });
 
-    //console.log(feature);
+    console.log(feature);
 
     $.ajax({
         type: "POST",
@@ -671,11 +647,11 @@ var unFocusForm = function () {
     newFeatureOverlay.getSource().clear();
 }
 
-var navigateTo = function (center) {
+var navigateTo = function (center, preferredZoom) {
     var centerPosition = ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857');
     view = new ol.View({
         center: centerPosition,
-        zoom: 16
+        zoom: preferredZoom != undefined ? preferredZoom : 16
     });
 
     map.setView(view);

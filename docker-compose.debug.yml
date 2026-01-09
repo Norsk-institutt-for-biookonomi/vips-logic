@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  vipslogic:
+    environment:
+      JAVA_OPTS_APPEND: >-
+        -Xms4g
+        -Xmx16g
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:+UseStringDeduplication
+        -Dno.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH=/data/messages
+        -Dno.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH=/data/observations
+        -Dno.nibio.vips.logic.START_SCHEDULING_ON_BOOT=false
+        -Djboss.bind.address=0.0.0.0
+        -Djboss.bind.address.management=0.0.0.0
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - "8080:8080"
+      - "9990:9990"
+      - "5005:5005"

@@ -189,6 +189,15 @@ public class ObservationBean {
         return retVal;
     }
 
+    public List<Observation> getObservationsForTimeSeries(ObservationTimeSeries observationTimeSeries) {
+        List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByObservationTimeSeries", Observation.class)
+            .setParameter("observationTimeSeries", observationTimeSeries)
+            .getResultList());
+        retVal = this.getObservationsWithLocations(retVal);
+        retVal = this.getObservationsWithObservers(retVal);
+        return retVal;
+    }
+
     public Observation getObservation(Integer observationId) {
         Observation retVal = em.find(Observation.class, observationId);
         if (retVal != null) {

@@ -18,40 +18,48 @@
 package no.nibio.vips.logic.service;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.jboss.resteasy.spi.HttpRequest;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webcohesion.enunciate.metadata.Facet;
+import com.webcohesion.enunciate.metadata.rs.TypeHint;
+import jakarta.ejb.EJB;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import no.nibio.vips.logic.controller.session.PointOfInterestBean;
-import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
-import org.jboss.resteasy.spi.HttpRequest;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Point;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.webcohesion.enunciate.metadata.Facet;
-import com.webcohesion.enunciate.metadata.rs.TypeHint;
-
-import java.util.stream.Collectors;
-
 import no.nibio.vips.gis.GISUtil;
+import no.nibio.vips.logic.controller.session.PointOfInterestBean;
+import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.controller.session.SessionControllerGetter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
 
 /**
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -66,8 +74,14 @@ public class POIService {
     @Context
     private HttpServletRequest httpServletRequest;
 
+    @EJB
+    PointOfInterestBean pointOfInterestBean;
+
+    @EJB
+    UserBean userBean;
+
     /**
-     * Get a list of locations (pois) for a given organization
+     * Get a list of weather stations for a given organization
      *
      * @param organizationId Database id for the organization
      * @return List of weather stations for the organization
@@ -76,9 +90,9 @@ public class POIService {
     @Path("organization/{organizationId}")
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterestWeatherStation[].class)
-    public Response getPoisForOrganization(@PathParam("organizationId") Integer organizationId) {
-        Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
-        List<PointOfInterestWeatherStation> retVal = SessionControllerGetter.getPointOfInterestBean().getWeatherstationsForOrganization(organization, Boolean.TRUE);
+    public Response getWeatherstationsForOrganization(@PathParam("organizationId") Integer organizationId) {
+        Organization organization = userBean.getOrganization(organizationId);
+        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getWeatherstationsForOrganization(organization, Boolean.TRUE, Boolean.FALSE);
         return Response.ok().entity(retVal).build();
     }
 
@@ -92,7 +106,7 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterest.class)
     public Response getPoi(@PathParam("pointOfInterestId") Integer pointOfInterestId) {
-        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(pointOfInterestId);
+        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(pointOfInterestId);
         return Response.ok().entity(retVal).build();
     }
 
@@ -109,14 +123,13 @@ public class POIService {
             return Response.status(Status.BAD_REQUEST).entity("Unable to parse input").build();
         }
 
-        VipsLogicUser user = SessionControllerGetter.getUserBean().getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user == null) {
             LOGGER.error("No user found for UUID in Authorization");
             return Response.status(Status.UNAUTHORIZED).build();
         }
         LOGGER.error("Remember to check for roles as well, if necessary!");
 
-        PointOfInterestBean poiBean = SessionControllerGetter.getPointOfInterestBean();
         Integer poiTypeId = poiMap.get("pointOfInterestTypeId") != null ? Integer.parseInt(poiMap.get("pointOfInterestTypeId").toString()) : null;
         if(poiTypeId == null) {
             return Response.status(Status.BAD_REQUEST).entity("pointOfInterestTypeId is required").build();
@@ -144,7 +157,7 @@ public class POIService {
             Point p3d = gisUtil.createPointWGS84(coordinate);
             poiToSave.setGisGeom(p3d);
         }
-        poiToSave = poiBean.storePoi(poiToSave);
+        poiToSave = pointOfInterestBean.storePoi(poiToSave);
 
         if (poiToSave != null) {
             return Response.status(Response.Status.CREATED)
@@ -172,10 +185,10 @@ public class POIService {
     )
     {
         List<Integer> poiTypes = Arrays.asList(poiTypesStr.split(",")).stream().map(str->Integer.valueOf(str)).collect(Collectors.toList());
-        Organization organization = SessionControllerGetter.getUserBean().getOrganization(organizationId);
-        List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPoisForOrganizationAndOfTypes(organization, poiTypes); 
+        Organization organization = userBean.getOrganization(organizationId);
+        List<PointOfInterest> pois = pointOfInterestBean.getPoisForOrganizationAndOfTypes(organization, poiTypes); 
         
-        return Response.ok().entity(SessionControllerGetter.getPointOfInterestBean().getPoisAsGeoJson(pois)).build();
+        return Response.ok().entity(pointOfInterestBean.getPoisAsGeoJson(pois)).build();
     }
 
     @POST
@@ -184,11 +197,11 @@ public class POIService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getPoisGeoJson(Set<Integer> ids) {
         // Retrieve POIs from data source
-        List<PointOfInterest> pois = SessionControllerGetter.getPointOfInterestBean().getPois(ids);
+        List<PointOfInterest> pois = pointOfInterestBean.getPois(ids);
         if (pois == null || pois.isEmpty()) {
             return Response.noContent().build();
         }
-        return Response.ok(SessionControllerGetter.getPointOfInterestBean().getPoisAsGeoJson(pois)).build();
+        return Response.ok(pointOfInterestBean.getPoisAsGeoJson(pois)).build();
     }
 
     /**
@@ -202,7 +215,7 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterest.class)
     public Response getPoiByName(@PathParam("poiName") String poiName) {
-        PointOfInterest retVal = SessionControllerGetter.getPointOfInterestBean().getPointOfInterest(poiName);
+        PointOfInterest retVal = pointOfInterestBean.getPointOfInterest(poiName);
         return retVal != null ? Response.ok().entity(retVal).build() : Response.noContent().build();
     }
 
@@ -223,12 +236,40 @@ public class POIService {
         if (user == null) {
             String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
             UUID uuid = UUID.fromString(uuidStr);
-            user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
+            user = userBean.findVipsLogicUser(uuid);
             if (user == null) {
                 return Response.status(Status.UNAUTHORIZED).build();
             }
         }
-        List<PointOfInterest> retVal = SessionControllerGetter.getPointOfInterestBean().getRelevantPointOfInterestsForUser(user);
+        List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
+        return Response.ok().entity(retVal).build();
+    }
+
+    /**
+     * If used outside of VIPSLogic: Requires a valid UUID to be provided in the
+     * Authorization header
+     *
+     * @return a list of weather stations, including the ones belonging to the user's organization and any private stations belonging to the user
+     */
+    @GET
+    @Path("weatherstation/user")
+    @Produces("application/json;charset=UTF-8")
+    @Facet("restricted")
+    @TypeHint(PointOfInterest[].class)
+    public Response getWeatherStationsForCurrentUser() {
+        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        // Could be the VIPS obs app or some other client using UUID
+        if (user == null) {
+            String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+            UUID uuid = UUID.fromString(uuidStr);
+            user = userBean.findVipsLogicUser(uuid);
+            if (user == null) {
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+        }
+        List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user).stream()
+            .filter(poi->poi instanceof PointOfInterestWeatherStation)
+            .map(poi->(PointOfInterestWeatherStation) poi).collect(Collectors.toList());
         return Response.ok().entity(retVal).build();
     }
     
@@ -256,7 +297,6 @@ public class POIService {
             Map<Object, Object> mapFromApp = oM.readValue(poiJson, new TypeReference<HashMap<Object, Object>>() {
             });
             Integer pointOfInterestId = (Integer) mapFromApp.get("pointOfInterestId");
-            PointOfInterestBean pointOfInterestBean = SessionControllerGetter.getPointOfInterestBean();
             // Check if it is marked as deleted or not
             if (mapFromApp.get("deleted") != null && (mapFromApp.get("deleted").equals(true))) {
                 if (pointOfInterestBean.getPointOfInterest(pointOfInterestId) != null) {

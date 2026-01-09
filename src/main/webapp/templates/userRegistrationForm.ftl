@@ -20,7 +20,7 @@
 </#macro>
 <#macro custom_css>
         <!-- Custom styles for VIPSLogic -->
-	<link href="css/signin.css" rel="stylesheet" media="screen" />
+	<link href="/css/signin.css" rel="stylesheet" media="screen" />
 </#macro>
 <#macro custom_js>
 	<script src="/js/resourcebundle.js"></script>
@@ -31,7 +31,7 @@
 <#macro page_contents>
 <div class="container">
 	<#assign formId = "userRegistrationFormType" + userAuthenticationTypeId>
-	<form id="${formId}" class="form-signin" action="/user?action=registerNewUserFormSubmit" method="POST" onsubmit="return validateForm(this);/*try{validateForm(this);}catch(err){console.log(err);}finally{return false;}*/">
+	<form id="${formId}" class="form-signin" action="/public/user?action=registerNewUserFormSubmit" method="POST" onsubmit="return validateForm(this);/*try{validateForm(this);}catch(err){console.log(err);}finally{return false;}*/">
 		<input type="hidden" name="userAuthenticationTypeId" value="${userAuthenticationTypeId}"/>
 		<#if messageKey?has_content>
 		<div class="alert alert-success">${i18nBundle(messageKey)}</div>

@@ -911,7 +911,7 @@ document.addEventListener("DOMContentLoaded", function() {
             function(){ 
                 loadHeadElement("script", 
                     { 
-                        src: hostName + "/public/nordic_septoria_map/ol-debug.js" 
+                        src: hostName + "/public/nordic_septoria_map/ol.js"
                     }, 
                     function() {
                         loadHeadElement("script", 

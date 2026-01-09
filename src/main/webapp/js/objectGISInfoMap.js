@@ -94,11 +94,7 @@ function initGisInfoMap(containerId, center, zoomLevel, displayMarker, drawnObjs
     type: 'base',
     visible: true,
     source: new ol.source.OSM({
-      attributions: [
-        new ol.Attribution({
-          html: mapConstants.MAP_ATTRIBUTION
-        })
-      ]
+      attributions: [mapConstants.MAP_ATTRIBUTION]
     })
   });
 
@@ -173,52 +169,45 @@ var app = window.app;
 // Define rotate to north control.
 //
 
+// Define the custom control class
+  class GeoLocationControl extends ol.control.Control {
+    constructor(opt_options) {
+      const options = opt_options || {};
 
+      const button = document.createElement('button');
+      //button.innerHTML = 'O';
+      button.title = getI18nMsg("showMeWhereIAm");
 
-/**
- * @constructor
- * @extends {ol.control.Control}
- * @param {Object=} opt_options Control options.
- */
-app.geoLocationControl = function(opt_options) {
+      const element = document.createElement('div');
+      element.className = 'ol-unselectable ol-control geo-location';
+      element.appendChild(button);
 
-  var options = opt_options || {};
+      super({
+        element: element,
+        target: options.target
+      });
 
-  var button = document.createElement('button');
-  //button.innerHTML = 'O';
-  button.title = getI18nMsg("showMeWhereIAm");
+      button.addEventListener('click', this.handleGeoLocation.bind(this), false);
+      button.addEventListener('touchstart', this.handleGeoLocation.bind(this), false);
+    }
 
-  var this_ = this;
-
-  var handleGeoLocation = function(e) {
-    /*if (geolocation.getTracking()){
-      geolocation.setTracking(false);
-      geoOverlay.getSource().clear(true);
-    } else {*/
+    handleGeoLocation(e) {
+      // Your geolocation logic here
       GISInfoMap.removeInteraction(draw);
       removeMouseOver();
       $('#deleteOne').removeClass('clearOneActive');
       deleteObj = false;
       geolocation.setTracking(true);
-    //}
-  };
+    }
+  }
 
-  button.addEventListener('click', handleGeoLocation, false);
-  button.addEventListener('touchstart', handleGeoLocation, false);
+  // Transform the center coordinates from EPSG:4326 to EPSG:3857
+  const centerPosition = ol.proj.fromLonLat(center, 'EPSG:3857');
 
-  var element = document.createElement('div');
-  element.className = 'ol-unselectable ol-control geo-location';
-  element.appendChild(button);
-
-  ol.control.Control.call(this, {
-    element: element,
-    target: options.target
-  });
-
-};
-ol.inherits(app.geoLocationControl, ol.control.Control);
-
- 
+  view = new ol.View({
+    center: centerPosition,
+    zoom: zoomLevel
+  })
 
   // Creating the map
   GISInfoMap = new ol.Map({
@@ -228,25 +217,12 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
         collapsible: true
       })
     }).extend([
-      new app.geoLocationControl()
+      new GeoLocationControl()
     ]),
     layers: allLayers,
-    renderer: 'canvas'
+    renderer: 'canvas',
+    view: view
   });
-
-  var centerPosition = ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857');
-
-  // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
-  // center to correct map projection)
-  view = new ol.View({
-    center: centerPosition,
-    zoom: zoomLevel
-  });
-
-  GISInfoMap.setView(view);
-
-
-
 
   // Marker overlay
   var marker = new ol.Overlay({
@@ -266,9 +242,14 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
   });
   GISInfoMap.addControl(mousePositionControl);
 
-  var layerSwitcher = new ol.control.LayerSwitcher({
-    tipLabel: 'Layerswitcher' // Optional label for button
+  const layerSwitcher = new ol.control.LayerSwitcher({
+    activationMode: 'click',
+    startActive: false,
+    tipLabel: 'Layerswitcher',
+    collapseTipLabel: 'Collapse legend',
+    groupSelectStyle: 'children'
   });
+
   GISInfoMap.addControl(layerSwitcher);
 
 
@@ -411,7 +392,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
       });
     };
 
-    GISInfoMap.on('click', function(evt) {
+    GISInfoMap.on('click', (evt) => {
       var pixel = evt.pixel;
       clickInfo(pixel);
     });
@@ -424,7 +405,7 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
       });
     };
 
-    pointerMoveId =  GISInfoMap.on('pointermove', function(evt) {
+    pointerMoveId =  GISInfoMap.on('pointermove', (evt) => {
       var pixel = evt.pixel;
       mouseInfo(pixel);
     });
@@ -681,6 +662,9 @@ ol.inherits(app.geoLocationControl, ol.control.Control);
  * @return {GEOJson} returns all features currently on the map in GEOJson format
  */
 function getFeatures() {
+  if(!featureOverlay){
+    return null;
+  }
   var features = featureOverlay.getSource().getFeatures();
   var format = new ol.format.GeoJSON();
   // write features to GeoJSON format using projection EPSG:4326

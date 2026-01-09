@@ -18,15 +18,19 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import no.nibio.vips.logic.controller.session.*;
+import no.nibio.vips.logic.entity.*;
+import org.apache.http.client.utils.URIBuilder;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import jakarta.ejb.EJB;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -34,35 +38,17 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import no.nibio.vips.logic.entity.Country;
-import no.nibio.vips.logic.entity.ForecastConfiguration;
-import no.nibio.vips.logic.entity.ModelInformation;
-import no.nibio.vips.logic.entity.Organization;
-import no.nibio.vips.logic.entity.PointOfInterest;
-import no.nibio.vips.logic.entity.PointOfInterestExternalResource;
-import no.nibio.vips.logic.entity.PointOfInterestExternalResourcePK;
-import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
-import no.nibio.vips.logic.entity.VipsLogicRole;
-import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.entity.WeatherStationDataSource;
-import no.nibio.vips.util.ExceptionUtil;
-import no.nibio.vips.util.ServletUtil;
-import no.nibio.vips.logic.entity.WeatherForecastProvider;
-import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.gis.GISUtil;
-import no.nibio.vips.logic.controller.session.ForecastBean;
-import no.nibio.vips.logic.controller.session.ObservationBean;
-import no.nibio.vips.logic.controller.session.PointOfInterestBean;
-import no.nibio.vips.logic.controller.session.UserBean;
-import no.nibio.vips.logic.entity.Observation;
 import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
+import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.util.ExceptionUtil;
+import no.nibio.vips.util.ServletUtil;
 import no.nibio.web.forms.FormField;
 import no.nibio.web.forms.FormValidation;
 import no.nibio.web.forms.FormValidationException;
 import no.nibio.web.forms.FormValidator;
-import org.apache.http.client.utils.URIBuilder;
 
 /**
  * Handles transactions for POIs
@@ -81,8 +67,9 @@ public class PointOfInterestController extends HttpServlet {
     ForecastBean forecastBean;
     @EJB
     ObservationBean observationBean;
-    
-    
+    @EJB
+    ObservationTimeSeriesBean observationTimeSeriesBean;
+
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -133,8 +120,8 @@ public class PointOfInterestController extends HttpServlet {
                         else
                         {
                             organization = em.find(Organization.class, organizationId);
-                            activeWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, true);
-                            inactiveWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, false);
+                            activeWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, true, true);
+                            inactiveWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, false, true);
                         }
                         request.setAttribute("organizations", userBean.getOrganizations());
                         request.setAttribute("organizationId", organizationId);
@@ -143,8 +130,8 @@ public class PointOfInterestController extends HttpServlet {
                     else
                     {
                         organization = user.getOrganizationId();
-                        activeWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization,true);
-                        inactiveWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, false);
+                        activeWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization,true, false);
+                        inactiveWeatherStations = pointOfInterestBean.getWeatherstationsForOrganization(organization, false, false);
                         request.setAttribute("organizationId", organization.getOrganizationId());
                     }
                     
@@ -795,12 +782,10 @@ public class PointOfInterestController extends HttpServlet {
 
                         // Are there forecasts attached to this location
                         List<ForecastConfiguration> forecastConfigurations = forecastBean.getForecastConfigurationsByLocation(poi);
-                        
-                        // TODO: Are there observations attached to this location?
                         List<Observation> observations = observationBean.getObservationsByLocation(poi);
-                        // 
-                        // If no strings attached, delete immediately
-                        if(forecastConfigurations.isEmpty() && observations.isEmpty())
+                        List<ObservationTimeSeries> observationTimeSeries = observationTimeSeriesBean.getObservationTimeSeriesListForLocation(poi);
+
+                        if(forecastConfigurations.isEmpty() && observations.isEmpty() && observationTimeSeries.isEmpty())
                         {
                             response.sendRedirect(new StringBuilder(Globals.PROTOCOL + "://")
                                 .append(ServletUtil.getServerName(request))
@@ -814,8 +799,8 @@ public class PointOfInterestController extends HttpServlet {
                             request.setAttribute("returnURL","poi?action=editPoiForm&pointOfInterestId=" + pointOfInterestId);
                             request.setAttribute("poi", poi);
                             request.setAttribute("forecastConfigurations", forecastConfigurations);
-                            // TODO Set observations
                             request.setAttribute("observations", observations);
+                            request.setAttribute("observationTimeSeries", observationTimeSeries);
                             request.setAttribute("modelInformation", modelInformationMap);
                             request.getRequestDispatcher("/poiDeletePreview.ftl").forward(request, response);
                         }

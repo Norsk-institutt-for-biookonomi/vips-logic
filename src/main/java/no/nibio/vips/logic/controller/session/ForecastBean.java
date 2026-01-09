@@ -446,8 +446,7 @@ public class ForecastBean {
         Integer instancesCompleted = 0;
         for (VipsCoreInstance vipsCoreInstance : vipsCoreInstances) {
             LOGGER.debug("Attempting to connect to " + vipsCoreInstance.getUri());
-            try {
-                Client client = ClientBuilder.newClient();
+            try (Client client = ClientBuilder.newClient()){
                 WebTarget target = client.target(vipsCoreInstance.getUri());
                 ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
                 ManagerResource resource = rTarget.proxy(ManagerResource.class);
@@ -707,20 +706,21 @@ public class ForecastBean {
              * catch(JsonProcessingException ex) { ex.printStackTrace(); }
              */
 
-            Response resp = this.getManagerResource(modelInformation).runModel(config.getModelId(), request);
-            if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
-                // System.out.println(resp.readEntity(String.class));
-                List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>() {});
-                // System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ",
-                // resultsize=" + results.size());
-                // We delete all former results before we store the new ones
-                forecastBean.storeResults(forecastConfiguration, results);
-            } else {
-                throw new RunModelException(resp.readEntity(String.class));
+            try(Response resp = this.getManagerResource(modelInformation).runModel(config.getModelId(), request)) {
+            
+                if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
+                    // System.out.println(resp.readEntity(String.class));
+                    List<Result> results = (List<Result>) resp.readEntity(new GenericType<List<Result>>() {});
+                    // System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ",
+                    // resultsize=" + results.size());
+                    // We delete all former results before we store the new ones
+                    forecastBean.storeResults(forecastConfiguration, results);
+                } else {
+                    throw new RunModelException(resp.readEntity(String.class));
+                }
+                // System.out.println("Finished runModel for wsId" +
+                // forecastConfiguration.getWeatherStationPointOfInterestId());
             }
-            // System.out.println("Finished runModel for wsId" +
-            // forecastConfiguration.getWeatherStationPointOfInterestId());
-
         } else {
             throw new PreprocessorException(
                     "Could not find model with id=|" + forecastConfiguration.getModelId() + "|");
@@ -760,10 +760,10 @@ public class ForecastBean {
      */
     private ManagerResource getManagerResource(ModelInformation modelInformation) {
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(modelInformation.getVipsCoreInstanceId().getUri());
-        ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-        ManagerResource resource = rTarget.proxy(ManagerResource.class);
-        return resource;
+            WebTarget target = client.target(modelInformation.getVipsCoreInstanceId().getUri());
+            ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
+            ManagerResource resource = rTarget.proxy(ManagerResource.class);
+            return resource;
     }
 
     public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate,
@@ -792,7 +792,7 @@ public class ForecastBean {
                     .withId("warning_type_" + i)
                     .withLabelStyle(noLabel)
                     .createAndSetIconStyle()
-                    .withScale(1)
+                    .withScale(0.5)
                     .withHotSpot(hotspot)
                     .createAndSetIcon()
                     .withHref(iconPath + "station_icon_status_" +
@@ -1112,7 +1112,7 @@ public class ForecastBean {
             // System.out.println(poi.getName() + " SQL=" + sql);
             Query q = em.createNativeQuery(sql);
             if (user != null) {
-                q.setParameter("vipsLogicUserId", user);
+                q.setParameter("vipsLogicUserId", user.getUserId());
             }
             q.setParameter("locationPointOfInterestId", poi.getPointOfInterestId());
             q.setParameter("midnight", midnight);

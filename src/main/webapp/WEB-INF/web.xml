@@ -40,6 +40,10 @@
         <servlet-class>no.nibio.vips.logic.controller.servlet.UserController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>PublicUserControllerServlet</servlet-name>
+        <servlet-class>no.nibio.vips.logic.controller.servlet.PublicUserController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ResourceBundleJSServlet</servlet-name>
         <servlet-class>no.nibio.vips.logic.i18n.ResourceBundleJSServlet</servlet-class>
     </servlet>
@@ -58,6 +62,10 @@
     <servlet>
         <servlet-name>MessageController</servlet-name>
         <servlet-class>no.nibio.vips.logic.controller.servlet.MessageController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ObservationTimeSeriesServlet</servlet-name>
+        <servlet-class>no.nibio.vips.logic.controller.servlet.ObservationTimeSeriesController</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ObservationServlet</servlet-name>
@@ -124,6 +132,10 @@
         <url-pattern>/user/new</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>PublicUserControllerServlet</servlet-name>
+        <url-pattern>/public/user</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>ResourceBundleJSServlet</servlet-name>
         <url-pattern>/js/resourcebundle.js</url-pattern>
     </servlet-mapping>
@@ -138,6 +150,10 @@
     <servlet-mapping>
         <servlet-name>MessageController</servlet-name>
         <url-pattern>/message</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ObservationTimeSeriesServlet</servlet-name>
+        <url-pattern>/observationTimeSeries</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ObservationServlet</servlet-name>

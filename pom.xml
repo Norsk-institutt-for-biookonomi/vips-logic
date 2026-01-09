@@ -136,7 +136,6 @@
             <artifactId>httpclient5</artifactId>
             <version>5.4.1</version>
             <type>jar</type>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -268,11 +267,6 @@
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
             <version>76.1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.measure</groupId>
-            <artifactId>unit-api</artifactId>
-            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>com.webcohesion.enunciate</groupId>

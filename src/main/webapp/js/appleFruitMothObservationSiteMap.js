@@ -39,11 +39,7 @@ function initMap(center, observationSiteId, currentSeason)
     // Background layer is OpenStreetMap
     var backgroundLayer = new ol.layer.Tile({
                     source: new ol.source.OSM({
-                        attributions: [
-                            new ol.Attribution({
-                              html: ""
-                            })
-                          ]
+                        attributions: [mapConstants.MAP_ATTRIBUTION]
                     })
     });
     
@@ -59,25 +55,18 @@ function initMap(center, observationSiteId, currentSeason)
                     projection: ol.proj.get('EPSG:3857')
             })
     });
-    
+
     // Creating the map
     map = new ol.Map({
                     target: 'appleFruitMothObservationSiteMap',
                     layers: [backgroundLayer,sitePointsLayer],
                     overlays: [popOverlay],
-                    renderer: 'canvas'
+                    renderer: 'canvas',
+                    view: new ol.View({
+                        center: ol.proj.fromLonLat(center, 'EPSG:3857'),
+                        zoom: 9
+                    })
     });
-
-    var centerPosition = ol.proj.transform(center, 'EPSG:4326', map.getView().getProjection().getCode());
-    
-    // Setting zoom and center for the map (need to do this after creating map. so that we kan transform our
-    // center to correct map projection)
-    var view = new ol.View({
-            center: centerPosition,
-            zoom:9
-    });
-    map.setView(view);
-       
 }
 
 
