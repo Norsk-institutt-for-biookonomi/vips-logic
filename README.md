@@ -26,10 +26,10 @@ VIPSLogic is a part of the [VIPS platform for automatic pest prediction](https:/
 
 ## Technical description
 ### Requirements
-* Operating system: Ubuntu Linux >= 18.0.4 
+* Operating system: Ubuntu Linux >= 22.0.4 
 * Database: PostgreSQL >= 10  + PostGIS >= 2.4
-* Java: OpenJDK >= 11
-* Java EE application server: Wildfly >= 25
+* Java: OpenJDK >= 17
+* Java EE application server: Wildfly >= 34
 
 ## License
 VIPSLogic is licensed under the [GNU Affero GPL v3 license](https://www.gnu.org/licenses/agpl-3.0.en.html).
