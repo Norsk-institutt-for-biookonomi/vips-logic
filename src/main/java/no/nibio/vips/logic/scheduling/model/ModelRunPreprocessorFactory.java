@@ -18,6 +18,7 @@
 
 package no.nibio.vips.logic.scheduling.model;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,9 +41,9 @@ public class ModelRunPreprocessorFactory {
         try 
         {
             Class<? extends ModelRunPreprocessor> impl = getModelRunPreprocessors().get(modelId);
-            return impl != null ? impl.newInstance() : null;
+            return impl != null ? impl.getDeclaredConstructor().newInstance() : null;
         } 
-        catch (InstantiationException | IllegalAccessException ex) 
+        catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) 
         {
             Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
             return null;
@@ -55,15 +56,15 @@ public class ModelRunPreprocessorFactory {
         {
             modelRunPreprocessors = new HashMap<>();
             Reflections reflections;
-            Set<Class<? extends ModelRunPreprocessor>> subTypes = new HashSet();
+            Set<Class<? extends ModelRunPreprocessor>> subTypes = new HashSet<>();
             reflections = new Reflections("no.nibio.vips.logic");
             subTypes.addAll(reflections.getSubTypesOf(ModelRunPreprocessor.class));
             subTypes.forEach((subType) -> {
                 try 
                 {
-                    modelRunPreprocessors.put(subType.newInstance().getModelId(), subType);
+                    modelRunPreprocessors.put(subType.getDeclaredConstructor().newInstance().getModelId(), subType);
                 }
-                catch ( InstantiationException | IllegalAccessException ex) 
+                catch ( InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) 
                 {
                     Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
                 }
