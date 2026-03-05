@@ -26,7 +26,7 @@ FROM quay.io/wildfly/wildfly:34.0.1.Final-jdk17
 ENV JBOSS_HOME=/opt/jboss/wildfly
 
 # Copy the WAR from the builder stage
-COPY --from=builder /build/VIPSLogic/target/*.war ${JBOSS_HOME}/standalone/deployments/VIPSLogic-2025.1.war
+COPY --from=builder /build/VIPSLogic/target/*.war ${JBOSS_HOME}/standalone/deployments/VIPSLogic-2026.1.war
 
 # Provide the PostgreSQL JDBC driver as a WildFly module
 USER root
