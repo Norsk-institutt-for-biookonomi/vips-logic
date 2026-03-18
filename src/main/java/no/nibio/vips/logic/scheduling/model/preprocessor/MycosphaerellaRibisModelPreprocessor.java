@@ -258,8 +258,8 @@ public class MycosphaerellaRibisModelPreprocessor extends ModelRunPreprocessor{
             }
             else
             {
-                System.out.println("TM starts " + TM.get(0).getTimeMeasured() + ", ends " + TM.get(TM.size()-1).getTimeMeasured());
-                System.out.println("UM starts " + UM.get(0).getTimeMeasured() + ", ends " + UM.get(UM.size()-1).getTimeMeasured());
+                LOGGER.debug("TM starts " + TM.get(0).getTimeMeasured() + ", ends " + TM.get(TM.size()-1).getTimeMeasured());
+                LOGGER.debug("UM starts " + UM.get(0).getTimeMeasured() + ", ends " + UM.get(UM.size()-1).getTimeMeasured());
                 throw new ConfigValidationException("Incorrect number of weather data. TM.size() = " + TM.size() + ", BT.size()=" + BT.size() +  ", RR.size()=" + RR.size() + ", UM.size()=" + UM.size() );
             }
         }
