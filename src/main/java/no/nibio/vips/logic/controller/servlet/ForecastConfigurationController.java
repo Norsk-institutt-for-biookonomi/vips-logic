@@ -19,6 +19,7 @@ package no.nibio.vips.logic.controller.servlet;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -186,11 +187,12 @@ public class ForecastConfigurationController extends HttpServlet {
 
         // View and edit a forecast configuration
         else if (action.equals("viewForecastConfiguration")) {
+            LOGGER.debug("Viewing forecast configuration with id " + request.getParameter("forecastConfigurationId"));
             if (userBean.authorizeUser(user, VipsLogicRole.ORGANIZATION_ADMINISTRATOR, VipsLogicRole.SUPERUSER)) {
                 try {
                     Long forecastConfigurationId = Long.valueOf(request.getParameter("forecastConfigurationId"));
-                    ForecastConfiguration forecastConfiguration =
-                            em.find(ForecastConfiguration.class, forecastConfigurationId);
+                    ForecastConfiguration forecastConfiguration = forecastBean.getForecastConfiguration(forecastConfigurationId);
+                    LOGGER.debug("Done getting the forecastConfigurations itself with id " + request.getParameter("forecastConfigurationId"));
                     boolean multipleNew = false;
                     // No forecastconfiguration found, assuming user want to register new
                     if (forecastConfiguration == null) {
@@ -248,6 +250,7 @@ public class ForecastConfigurationController extends HttpServlet {
                                 organismBean.getHierarchyCategoryNames(SessionLocaleUtil.getCurrentLocale(request)));
                         request.setAttribute("modelInformations", forecastBean.getBatchableModels());
                         request.setAttribute("messageKey", request.getParameter("messageKey"));
+                        LOGGER.debug("DONE getting forecast configuration with id " + request.getParameter("forecastConfigurationId"));
                         request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
 
                     }
@@ -288,6 +291,7 @@ public class ForecastConfigurationController extends HttpServlet {
                             em.createNamedQuery("ModelInformation.findAll").getResultList());
                     request.setAttribute("messageKey", request.getParameter("messageKey"));
                     request.setAttribute("multipleNew", false);
+                    LOGGER.debug("DONE getting forecast configuration with id " + request.getParameter("forecastConfigurationId"));
                     request.getRequestDispatcher("/forecastConfigurationForm.ftl").forward(request, response);
                 } else {
                     response.sendError(403, "Access not authorized");
