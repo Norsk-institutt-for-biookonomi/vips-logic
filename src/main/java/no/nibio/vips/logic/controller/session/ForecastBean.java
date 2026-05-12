@@ -18,6 +18,7 @@ package no.nibio.vips.logic.controller.session;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -432,7 +433,9 @@ public class ForecastBean {
      * @return
      */
     public ForecastConfiguration getForecastConfiguration(Long forecastConfigurationId) {
-        return em.find(ForecastConfiguration.class, forecastConfigurationId);
+        return em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationId", ForecastConfiguration.class)
+                .setParameter("forecastConfigurationId", forecastConfigurationId)
+                .getSingleResult();
     }
 
     /**
@@ -598,6 +601,7 @@ public class ForecastBean {
             String deCamelizedFieldName = getDeCamelizedFieldName(forecastConfiguration.getModelId(), field.getName());
             ForecastModelConfiguration forecastModelConfiguration = new ForecastModelConfiguration(
                     forecastConfiguration.getForecastConfigurationId(), deCamelizedFieldName);
+            forecastModelConfiguration.setForecastConfiguration(forecastConfiguration);
             forecastModelConfiguration.setParameterValue(field.getWebValue());
             em.merge(forecastModelConfiguration);
         }
@@ -1198,6 +1202,7 @@ public class ForecastBean {
             String deCamelizedFieldName = getDeCamelizedFieldName(forecastConfiguration.getModelId(), field.getName());
             ForecastModelConfiguration forecastModelConfiguration = new ForecastModelConfiguration(
                     forecastConfiguration.getForecastConfigurationId(), deCamelizedFieldName);
+            forecastModelConfiguration.setForecastConfiguration(forecastConfiguration);
             forecastModelConfiguration.setParameterValue(field.getWebValue());
             em.merge(forecastModelConfiguration);
         }
