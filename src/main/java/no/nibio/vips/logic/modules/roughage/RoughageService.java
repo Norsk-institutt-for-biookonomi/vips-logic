@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.webcohesion.enunciate.metadata.Facet;
 import jakarta.ejb.EJB;
 import jakarta.persistence.EntityManager;
@@ -46,6 +50,7 @@ import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ForecastBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
+import no.nibio.vips.logic.scheduling.model.preprocessor.MycosphaerellaRibisModelPreprocessor;
 import no.nibio.vips.logic.util.RunModelException;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.InvalidAggregationTypeException;
@@ -66,6 +71,8 @@ import no.nibio.vips.util.weather.WeatherStationProviderFactory;
 @Path("rest/roughage")
 @Facet("restricted")
 public class RoughageService {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(RoughageService.class);
 
     @PersistenceContext(unitName="VIPSLogic-PU")
     EntityManager em;
@@ -268,6 +275,7 @@ public class RoughageService {
             }
         }
         Collections.sort(observations);
+        LOGGER.debug(observations.stream().map(o -> o.toString()).collect(Collectors.joining(",")));
          /*for(WeatherObservation obs:observations)
             {
                 if(obs.getElementMeasurementTypeId().equals("TM"))
