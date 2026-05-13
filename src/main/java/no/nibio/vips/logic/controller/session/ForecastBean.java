@@ -433,9 +433,14 @@ public class ForecastBean {
      * @return
      */
     public ForecastConfiguration getForecastConfiguration(Long forecastConfigurationId) {
-        return em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationId", ForecastConfiguration.class)
-                .setParameter("forecastConfigurationId", forecastConfigurationId)
-                .getSingleResult();
+        try
+        {
+            return em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationId", ForecastConfiguration.class)
+                    .setParameter("forecastConfigurationId", forecastConfigurationId)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
     /**
