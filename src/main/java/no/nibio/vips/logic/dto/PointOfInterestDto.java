@@ -1,9 +1,12 @@
 package no.nibio.vips.logic.dto;
 
+import java.util.List;
+
 public class PointOfInterestDto {
     private Long pointOfInterestId;
     private String name;
     private Double latitude, longitude;
+    private List<PointOfInterestExternalResourceDto> externalResources;
 
     public Long getPointOfInterestId() {
         return pointOfInterestId;
@@ -28,5 +31,11 @@ public class PointOfInterestDto {
     }
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+    public List<PointOfInterestExternalResourceDto> getExternalResources() {
+        return externalResources;
+    }
+    public void setExternalResources(List<PointOfInterestExternalResourceDto> externalResources) {
+        this.externalResources = externalResources;
     }
 }

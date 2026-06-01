@@ -70,6 +70,7 @@ import no.nibio.vips.entity.Result;
 import no.nibio.vips.logic.dto.ForecastConfigurationDto;
 import no.nibio.vips.logic.dto.ForecastResultDto;
 import no.nibio.vips.logic.dto.PointOfInterestDto;
+import no.nibio.vips.logic.dto.PointOfInterestExternalResourceDto;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
@@ -483,6 +484,7 @@ public class ForecastBean {
                         dto.setModelId(resultSet.getString("model_id"));
                         dto.setTimeZone(resultSet.getString("time_zone"));
 
+                        // Get POI info
                         long locationPointOfInterestId = resultSet.getLong("location_point_of_interest_id");
                         PointOfInterestDto locationPoiDto = resultSet.wasNull() ? null
                                 : getPointOfInterestDtoFromResultSet(connection, locationPointOfInterestId);
@@ -494,7 +496,8 @@ public class ForecastBean {
 
                         dto.setLocationPointOfInterestId(locationPoiDto);
                         dto.setWeatherStationPointOfInterestId(weatherStationPoiDto);
-                        return dto;
+
+                       return dto;
                     }
                 }
             });
@@ -510,6 +513,7 @@ public class ForecastBean {
 
     private PointOfInterestDto getPointOfInterestDtoFromResultSet(Connection connection, long pointOfInterestId)
             throws SQLException {
+                PointOfInterestDto dto = new PointOfInterestDto();
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT point_of_interest_id, name, longitude, latitude FROM point_of_interest WHERE point_of_interest_id = ?")) {
             statement.setLong(1, pointOfInterestId);
@@ -518,7 +522,7 @@ public class ForecastBean {
                     return null;
                 }
 
-                PointOfInterestDto dto = new PointOfInterestDto();
+                
                 dto.setPointOfInterestId(resultSet.getLong("point_of_interest_id"));
                 dto.setName(resultSet.getString("name"));
                 dto.setLongitude(resultSet.getDouble("longitude"));
@@ -529,9 +533,28 @@ public class ForecastBean {
                 if (resultSet.wasNull()) {
                     dto.setLatitude(null);
                 }
-                return dto;
+                
             }
         }
+        try(PreparedStatement statement = connection.prepareStatement(
+                "SELECT poier.*, er.uri, er.identifier_template " +
+                "FROM point_of_interest_external_resource poier, external_resource er " +
+                "WHERE poier.point_of_interest_id = ? " + 
+                "AND poier.external_resource_id = er.external_resource_id"
+                )) {
+                    statement.setLong(1, pointOfInterestId);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        List<PointOfInterestExternalResourceDto> externalResources = new ArrayList<>();
+                        while (resultSet.next()) {
+                            PointOfInterestExternalResourceDto externalResourceDto = new PointOfInterestExternalResourceDto();
+                            externalResourceDto.setExternalResourceId(resultSet.getLong("external_resource_id"));
+                            externalResourceDto.setExternalResourceUri(resultSet.getString("uri") + resultSet.getString("identifier_template").replace("%s", resultSet.getString("resource_identifier")));
+                            externalResources.add(externalResourceDto);
+                }
+                dto.setExternalResources(externalResources);
+            }            
+        }
+        return dto;
     }
 
     /**
