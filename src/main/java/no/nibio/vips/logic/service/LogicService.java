@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.jboss.resteasy.annotations.GZIP;
@@ -64,6 +65,8 @@ import no.nibio.vips.logic.controller.session.MessageBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.dto.ForecastConfigurationDto;
+import no.nibio.vips.logic.dto.ForecastResultDto;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -113,6 +116,9 @@ public class LogicService {
     @EJB
     ObservationDataBean observationDataBean;
     
+
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(LogicService.class);
+
     /**
      * Get all results for one pest prediction
      * @param forecastConfigurationId Database id of the configured forecast
@@ -144,7 +150,7 @@ public class LogicService {
     @Path("forecastresults/{forecastConfigurationId}")
     @GZIP
     @Produces("application/json;charset=UTF-8")
-    @TypeHint(ForecastResult[].class)
+    @TypeHint(ForecastResultDto[].class)
     public Response getForecastResults(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
             @QueryParam("userUUID") String userUUID
@@ -152,7 +158,7 @@ public class LogicService {
     {
         if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
-            List<ForecastResult> results = forecastBean.getForecastResults(forecastConfigurationId);
+            List<ForecastResultDto> results = forecastBean.getForecastResultDtos(forecastConfigurationId);
             if(results == null)
             {
                 results = new ArrayList<>();
@@ -435,6 +441,35 @@ public class LogicService {
         {
             ForecastConfiguration forecastConfiguration = forecastBean.getForecastConfiguration(forecastConfigurationId);
             return Response.ok().entity(forecastConfiguration).build();
+        }
+        else
+        {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * Get the configuration of the specified forecast
+     * @param forecastConfigurationId The ID of the requested configuration (crop, pest, model, location, period, owner etc.)
+     * @param userUUID if the forecast is private, the correct userUUID must be supplied. 
+     * @return the configuration (crop, pest, model, location, period, owner etc.) of the specified forecast
+     */
+    @GET
+    @Path("forecastconfigurations/{forecastConfigurationId}/dto")
+    @Produces("application/json;charset=UTF-8")
+    @TypeHint(ForecastConfigurationDto.class)
+    public Response getForecastConfigurationDto(
+            @PathParam("forecastConfigurationId") Long forecastConfigurationId,
+            @QueryParam("userUUID") String userUUID
+    )
+    {
+        LOGGER.debug("Authorizing user for access to forecast configuration DTO for id " + forecastConfigurationId + " at " + SystemTime.getSystemTime() );
+        if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
+        {
+            LOGGER.debug("Getting forecast configuration DTO for id " + forecastConfigurationId + " at " + SystemTime.getSystemTime() );
+            ForecastConfigurationDto forecastConfigurationDto = forecastBean.getForecastConfigurationDto(forecastConfigurationId);
+            LOGGER.debug("Retrieved forecast configuration DTO for id " + forecastConfigurationId + " at " + SystemTime.getSystemTime() );
+            return Response.ok().entity(forecastConfigurationDto).build();
         }
         else
         {

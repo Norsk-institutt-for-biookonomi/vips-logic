@@ -16,6 +16,10 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -44,6 +48,7 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,6 +67,9 @@ import no.nibio.vips.coremanager.service.ManagerResource;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.ModelRunRequest;
 import no.nibio.vips.entity.Result;
+import no.nibio.vips.logic.dto.ForecastConfigurationDto;
+import no.nibio.vips.logic.dto.ForecastResultDto;
+import no.nibio.vips.logic.dto.PointOfInterestDto;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
@@ -118,6 +126,12 @@ public class ForecastBean {
         return q.getResultList();
     }
 
+    public List<ForecastResultDto> getForecastResultDtos(Long forecastConfigurationId) {
+        Query q = em.createNativeQuery("SELECT forecast_configuration_id, valid_time_start, valid_time_end, warning_status, all_values FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId", ForecastResultDto.class);
+        q.setParameter("forecastConfigurationId", forecastConfigurationId);
+        return q.getResultList();
+    }
+
     /**
      * 
      * @param forecastConfiguration
@@ -136,9 +150,11 @@ public class ForecastBean {
     }
 
 
+    // TODO: ForecastConfiguration entity is huge. Pull only the relevant values.
     public boolean isUserAuthorizedForForecastConfiguration(Long forecastConfigurationId, String userUUID) {
         // Authentication
-        ForecastConfiguration fc = em.find(ForecastConfiguration.class, forecastConfigurationId);
+        //ForecastConfiguration fc = em.find(ForecastConfiguration.class, forecastConfigurationId);
+        ForecastConfigurationDto fc = this.getForecastConfigurationDto(forecastConfigurationId);
         if (fc == null) {
             return true;
         }
@@ -148,7 +164,7 @@ public class ForecastBean {
             }
             UUID uUUID = UUID.fromString(userUUID);
             VipsLogicUser user = userBean.findVipsLogicUser(uUUID);
-            if (user == null || !user.getUserId().equals(fc.getVipsLogicUserId().getUserId())) {
+            if (user == null || !user.getUserId().equals(fc.getVipsLogicUserId())) {
                 return false;
             }
         }
@@ -440,6 +456,81 @@ public class ForecastBean {
                     .getSingleResult();
         } catch (NoResultException e) {
             return null;
+        }
+    }
+
+
+    public ForecastConfigurationDto getForecastConfigurationDto(Long forecastConfigurationId)
+    {
+        try
+        {
+            return em.unwrap(Session.class).doReturningWork(connection -> {
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "SELECT forecast_configuration_id, vips_logic_user_id, is_private, location_point_of_interest_id, weather_station_point_of_interest_id, date_start, date_end, model_id, time_zone "
+                                + "FROM forecast_configuration WHERE forecast_configuration_id = ?")) {
+                    statement.setLong(1, forecastConfigurationId);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (!resultSet.next()) {
+                            return null;
+                        }
+
+                        ForecastConfigurationDto dto = new ForecastConfigurationDto();
+                        dto.setForecastConfigurationId(resultSet.getLong("forecast_configuration_id"));
+                        dto.setVipsLogicUserId(resultSet.getInt("vips_logic_user_id"));
+                        dto.setIsPrivate(resultSet.getBoolean("is_private"));
+                        dto.setDateStart(resultSet.getTimestamp("date_start").toInstant());
+                        dto.setDateEnd(resultSet.getTimestamp("date_end").toInstant());
+                        dto.setModelId(resultSet.getString("model_id"));
+                        dto.setTimeZone(resultSet.getString("time_zone"));
+
+                        long locationPointOfInterestId = resultSet.getLong("location_point_of_interest_id");
+                        PointOfInterestDto locationPoiDto = resultSet.wasNull() ? null
+                                : getPointOfInterestDtoFromResultSet(connection, locationPointOfInterestId);
+
+                        long weatherStationPointOfInterestId = resultSet
+                                .getLong("weather_station_point_of_interest_id");
+                        PointOfInterestDto weatherStationPoiDto = resultSet.wasNull() ? null
+                                : getPointOfInterestDtoFromResultSet(connection, weatherStationPointOfInterestId);
+
+                        dto.setLocationPointOfInterestId(locationPoiDto);
+                        dto.setWeatherStationPointOfInterestId(weatherStationPoiDto);
+                        return dto;
+                    }
+                }
+            });
+        }
+        catch(RuntimeException e)
+        {
+            LOGGER.error("Error fetching forecast configuration with id " + forecastConfigurationId, e);
+            return null;
+        }
+            
+
+    }
+
+    private PointOfInterestDto getPointOfInterestDtoFromResultSet(Connection connection, long pointOfInterestId)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT point_of_interest_id, name, longitude, latitude FROM point_of_interest WHERE point_of_interest_id = ?")) {
+            statement.setLong(1, pointOfInterestId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                PointOfInterestDto dto = new PointOfInterestDto();
+                dto.setPointOfInterestId(resultSet.getLong("point_of_interest_id"));
+                dto.setName(resultSet.getString("name"));
+                dto.setLongitude(resultSet.getDouble("longitude"));
+                if (resultSet.wasNull()) {
+                    dto.setLongitude(null);
+                }
+                dto.setLatitude(resultSet.getDouble("latitude"));
+                if (resultSet.wasNull()) {
+                    dto.setLatitude(null);
+                }
+                return dto;
+            }
         }
     }
 
