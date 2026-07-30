@@ -49,6 +49,16 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
+ * Provides weather forecasts from the Norwegian Meteorological Institute (MET) through the locationforecast API. 
+ * The API is documented at https://api.met.no/weatherapi/locationforecast/2.0/document
+ * Hourly values are returned for temperature, relative humidity, wind speed and precipitation. 
+ * The hourly values from the API go only approximately 48 hours into the future. The rest of the 9-day forecast
+ * is returned as 6-hourly values. To convert these to hourly values, linear interpolation is used for temperature, 
+ * relative humidity and wind speed. For rainfall, each 6-hourly values are stored and the hours in between are set to 0. 
+ * Conclusion: Usage of the hourly values after 48 hours is not recommended, as the values are interpolated and not measured.
+ * They can be used to aggregate to daily values, but not for hourly values.
+ * 
+ * 
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
