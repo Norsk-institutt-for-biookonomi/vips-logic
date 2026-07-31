@@ -55,7 +55,7 @@ import org.xml.sax.SAXException;
  * The hourly values from the API go only approximately 48 hours into the future. The rest of the 9-day forecast
  * is returned as 6-hourly values. To convert these to hourly values, linear interpolation is used for temperature, 
  * relative humidity and wind speed. For rainfall, each 6-hourly values are stored and the hours in between are set to 0. 
- * Conclusion: Usage of the hourly values after 48 hours is not recommended, as the values are interpolated and not measured.
+ * Conclusion: Usage of the hourly values after 48 hours is not recommended, as the values are interpolated
  * They can be used to aggregate to daily values, but not for hourly values.
  * 
  * 
