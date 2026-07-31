@@ -55,7 +55,7 @@ public class DOWNCASTModelPreprocessor extends ModelRunPreprocessor{
 
         // We use only short-time forecasts, as the model is very sensitive
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE,3);
+        cal.add(Calendar.DATE,4);
         if(cal.getTime().before(configuration.getDateEnd()))
         {
             configuration.setDateEnd(cal.getTime());
