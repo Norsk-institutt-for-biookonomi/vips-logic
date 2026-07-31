@@ -88,8 +88,11 @@ public class WeatherDataSourceUtil {
                 for (String elementMeasurementType : elementMeasurementTypes) {
                     obsMap.put(elementMeasurementType, new ArrayList<>());
                 }
+
+                // Remove forecasts that are outside the requested time span, and those that are not of the requested logIntervalId
                 forecasts.stream().filter((obs) -> (
                         toleratedLogIntervalIds.contains(obs.getLogIntervalId()) && obsMap.get(obs.getElementMeasurementTypeId()) != null)
+                        && obs.getTimeMeasured().compareTo(endTime) <= 0
                     ).forEachOrdered((obs) -> {
                         obsMap.get(obs.getElementMeasurementTypeId()).add(obs);
                     });
