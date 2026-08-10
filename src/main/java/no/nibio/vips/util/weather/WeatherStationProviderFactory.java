@@ -25,6 +25,7 @@ package no.nibio.vips.util.weather;
 public class WeatherStationProviderFactory {
     public final static int YR = 1;
     public final static int FMI = 2;
+    public final static int OPEN_METEO = 3;
 
     public static WeatherForecastProvider getWeatherForecastProvider(Integer weatherForecastProviderId)
     {
@@ -34,6 +35,8 @@ public class WeatherStationProviderFactory {
                 return new YrWeatherForecastProvider();
             case WeatherStationProviderFactory.FMI:
                 return new FMIWeatherForecastprovider();
+            case WeatherStationProviderFactory.OPEN_METEO:
+                return new OpenMeteoForecastProvider();
             default:
                 return null;
         }
