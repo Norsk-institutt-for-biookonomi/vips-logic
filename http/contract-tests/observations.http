@@ -1,0 +1,52 @@
+### Filter observations for organization
+GET {{baseUrl}}/rest/observation/filter/{{organizationId}}?cropCategoryId={{cropCategoryId}}&from={{filterFrom}}&to={{filterTo}}
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is JSON array", function () {
+    client.assert(Array.isArray(response.body), "Expected JSON array");
+  });
+%}
+
+###
+
+### Filtered observation list items
+GET {{baseUrl}}/rest/observation/list/filter/{{organizationId}}?pestId={{pestId}}&from={{listFilterFrom}}&to={{listFilterTo}}
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is JSON array with expected list item shape", function () {
+    client.assert(Array.isArray(response.body), "Expected JSON array");
+    client.assert(response.body.length > 0, "Expected at least one observation for pestId 129");
+
+    const first = response.body[0];
+    client.assert(first.observationId != null, "Missing observationId");
+    client.assert(first.organismId != null, "Missing organismId");
+    client.assert(first.timeOfObservation != null, "Missing timeOfObservation");
+  });
+%}
+
+###
+
+### Filtered observations as GeoJSON
+GET {{baseUrl}}/rest/observation/filter/{{organizationId}}/geoJSON?cropCategoryId={{cropCategoryId}}&from={{filterFrom}}&to={{filterTo}}
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is GeoJSON FeatureCollection", function () {
+    client.assert(response.body.type === "FeatureCollection", "Expected type FeatureCollection");
+    client.assert(Array.isArray(response.body.features), "Expected features array");
+  });
+%}

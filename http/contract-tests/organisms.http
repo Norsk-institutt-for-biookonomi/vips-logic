@@ -1,0 +1,79 @@
+### List all organisms
+GET {{baseUrl}}/rest/organism/list
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is non-empty organism array", function () {
+    client.assert(Array.isArray(response.body), "Expected JSON array");
+    client.assert(response.body.length > 0, "Expected at least one organism");
+
+    const first = response.body[0];
+    client.assert(first.organismId != null, "Missing organismId");
+    client.assert(first.latinName != null, "Missing latinName");
+    client.assert(typeof first.logicallyDeleted === "boolean", "Missing logicallyDeleted boolean");
+  });
+%}
+
+###
+
+### List all crops
+GET {{baseUrl}}/rest/organism/crop/list
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is non-empty crop array", function () {
+    client.assert(Array.isArray(response.body), "Expected JSON array");
+    client.assert(response.body.length > 0, "Expected at least one crop");
+
+    const first = response.body[0];
+    client.assert(first.isCrop === true, "Expected isCrop=true");
+    client.assert(first.organismId != null, "Missing organismId");
+    client.assert(first.latinName != null, "Missing latinName");
+  });
+%}
+
+###
+
+### List pests for organization
+GET {{baseUrl}}/rest/organism/pest/list?organizationId={{organizationId}}
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is non-empty pest array", function () {
+    client.assert(Array.isArray(response.body), "Expected JSON array");
+    client.assert(response.body.length > 0, "Expected at least one pest");
+
+    const first = response.body[0];
+    client.assert(first.isPest === true, "Expected isPest=true");
+    client.assert(first.organismId != null, "Missing organismId");
+  });
+%}
+
+###
+
+### Search organisms by unknown latin name
+GET {{baseUrl}}/rest/organism/search/latinnames?keywords=ZZZ_nonexistent_organism_contract_test
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is empty array", function () {
+    client.assert(Array.isArray(response.body), "Expected JSON array");
+    client.assert(response.body.length === 0, "Expected empty array for unknown keyword");
+  });
+%}

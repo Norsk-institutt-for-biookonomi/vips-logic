@@ -1,0 +1,35 @@
+### List organizations
+GET {{baseUrl}}/rest/organization
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body is non-empty organization array", function () {
+    client.assert(Array.isArray(response.body), "Expected JSON array");
+    client.assert(response.body.length > 0, "Expected at least one organization");
+
+    const first = response.body[0];
+    client.assert(first.organizationId != null, "Missing organizationId");
+    client.assert(first.organizationName != null, "Missing organizationName");
+  });
+%}
+
+###
+
+### Get organization by id
+GET {{baseUrl}}/rest/organization/1
+Accept: application/json
+
+> {%
+  import {assertJsonResponse} from "./scripts/assertions.js";
+
+  assertJsonResponse(client, response);
+
+  client.test("Body matches organization id 1", function () {
+    client.assert(response.body.organizationId == 1, "Expected organizationId 1");
+    client.assert(response.body.organizationName != null, "Missing organizationName");
+  });
+%}
