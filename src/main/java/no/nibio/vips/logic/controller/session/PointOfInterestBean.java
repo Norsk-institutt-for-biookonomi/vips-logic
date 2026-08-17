@@ -35,13 +35,12 @@ import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Point;
-import jakarta.ejb.EJB;
-import jakarta.ejb.LocalBean;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.ExternalResource;
 import no.nibio.vips.logic.entity.ExternalResourceType;
@@ -62,17 +61,17 @@ import no.nibio.vips.logic.util.Globals;
  * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@LocalBean
-@Stateless
+@ApplicationScoped
+@Transactional
 public class PointOfInterestBean {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
-    
-    @EJB
+
+    @Inject
     ForecastBean forecastBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
     
     public List<PointOfInterest> getWeatherstations(String countryCode)

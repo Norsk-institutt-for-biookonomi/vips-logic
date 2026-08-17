@@ -35,12 +35,12 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -97,18 +97,16 @@ import no.nibio.web.forms.FormField;
  * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class ForecastBean {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ForecastBean.class);
 
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
 
-    @EJB
-    ForecastBean forecastBean;
-
-    @EJB
+    @Inject
     UserBean userBean;
 
     /**
@@ -837,7 +835,7 @@ public class ForecastBean {
                     // System.out.println("ForecastConfigId=" + forecastConfiguration.getForecastConfigurationId() + ",
                     // resultsize=" + results.size());
                     // We delete all former results before we store the new ones
-                    forecastBean.storeResults(forecastConfiguration, results);
+                    this.storeResults(forecastConfiguration, results);
                 } else {
                     throw new RunModelException(resp.readEntity(String.class));
                 }

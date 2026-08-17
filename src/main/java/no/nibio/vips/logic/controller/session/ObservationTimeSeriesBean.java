@@ -19,22 +19,23 @@
 package no.nibio.vips.logic.controller.session;
 
 import java.util.*;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import no.nibio.vips.logic.entity.*;
 
-@Stateless
+@ApplicationScoped
+@Transactional
 public class ObservationTimeSeriesBean {
 
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
 
     /**

@@ -30,8 +30,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import org.geotools.api.referencing.FactoryException;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.referencing.operation.MathTransform;
@@ -48,12 +46,10 @@ import de.micromata.opengis.kml.v_2_2_0.LabelStyle;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import de.micromata.opengis.kml.v_2_2_0.Units;
 import de.micromata.opengis.kml.v_2_2_0.Vec2;
-import jakarta.ejb.EJB;
-import jakarta.ejb.LocalBean;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import jakarta.transaction.Transactional;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicRole;
@@ -70,35 +66,23 @@ import no.nibio.vips.logic.util.SimpleMailSender;
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@LocalBean
-@Stateless
+@ApplicationScoped
+@Transactional
 public class BarkbeetleBean {
 
     private static Logger LOGGER = LoggerFactory.getLogger(BarkbeetleBean.class);
 
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
 
     public static final List<Integer> TRAP_EMPTYING_WEEKS = Arrays.asList(new Integer[]{21, 24, 28, 33});
     public static final Locale NORGE_MITT_NORGE = new Locale("nb", "NO");
 
-    @EJB
+    @Inject
     UserBean userBean;
 
-    @EJB
+    @Inject
     MessagingBean messagingBean;
-
-    public static BarkbeetleBean getEJBInstance() {
-        try {
-            InitialContext ic = new InitialContext();
-            BarkbeetleBean retVal = (BarkbeetleBean) ic.lookup(SessionControllerGetter.getJndiPath(BarkbeetleBean.class));
-
-            return retVal;
-        } catch (NamingException ne) {
-            System.out.println("Could not find " + BarkbeetleBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(BarkbeetleBean.class));
-            return null;
-        }
-    }
 
     /**
      * Get the list of trapsites for the given season
