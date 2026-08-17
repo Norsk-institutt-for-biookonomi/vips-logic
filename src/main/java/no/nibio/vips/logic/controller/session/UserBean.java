@@ -39,11 +39,11 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
-import jakarta.ejb.EJB;
-import jakarta.ejb.LocalBean;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -80,29 +80,26 @@ import org.slf4j.Logger;
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@LocalBean
-@Stateless
+@ApplicationScoped
+@Transactional
 public class UserBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserBean.class);
-    
-    
-    @PersistenceContext(unitName="VIPSLogic-PU")
+
+    @Inject
     EntityManager em;
-    
-    @EJB
-    UserBean userBean;
-    @EJB
+
+    @Inject
     ForecastBean forecastBean;
-    @EJB
+    @Inject
     MessagingBean messagingBean;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     MessageBean messageBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    
+
     private Properties serverProperties;
     private List<Rule> defaultPasswordValidatorRuleList;
     
@@ -223,7 +220,7 @@ public class UserBean {
     {
         // Must double check: NO user can be force deleted without first
         // transferring resources to another user
-        UserResources userResources = userBean.getUserResources(user);
+        UserResources userResources = this.getUserResources(user);
         if(! userResources.isEmpty())
         {
             throw new DeleteUserException("User still has resources connected to them.");
@@ -238,13 +235,12 @@ public class UserBean {
         messagingBean.deleteAllNotificationSubscriptions(user);
         // Remove all User UUIDs
         this.deleteAllUserUuidsForUser(user);
-        
-        // Delete all of the user's private forecast configurations and results
+
         forecastBean.deleteAllPrivateForecastConfigurationsForUser(user);
-        
+
         em.remove(user);
     }
-    
+
     public UserResources getUserResources(VipsLogicUser user)
     {
         UserResources retVal = new UserResources();
@@ -1076,7 +1072,6 @@ public class UserBean {
     		return null;
     	}
 		UUID uuid = UUID.fromString(uuidStr);
-		VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
-		return user;
+		return findVipsLogicUser(uuid);
     }
 }

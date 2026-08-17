@@ -26,11 +26,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageIllustration;
 import no.nibio.vips.logic.entity.MessageIllustrationCaptionLocale;
@@ -50,9 +51,10 @@ import org.apache.commons.io.FilenameUtils;
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class MessageBean {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
 
     public List<Message> getMessageList(Integer organizationId, Date publishedFrom, Date publishedTo)

@@ -35,11 +35,11 @@ import it.sauronsoftware.cron4j.SchedulingPattern;
 import it.sauronsoftware.cron4j.TaskCollector;
 import it.sauronsoftware.cron4j.TaskExecutor;
 import it.sauronsoftware.cron4j.TaskTable;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.TaskHistory;
 import no.nibio.vips.logic.entity.TaskHistoryStatus;
@@ -55,15 +55,16 @@ import no.nibio.vips.logic.util.SystemTime;
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class SchedulingBean {
     
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ForecastBean forecastBean;
     
     // There can be only one systemScheduler!

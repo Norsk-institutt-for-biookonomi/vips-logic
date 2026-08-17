@@ -22,7 +22,6 @@ import it.sauronsoftware.cron4j.SchedulerListener;
 import it.sauronsoftware.cron4j.TaskExecutor;
 
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
-import no.nibio.vips.logic.controller.session.SchedulingBean;
 
 /**
  * Logs task events to the database
@@ -30,9 +29,7 @@ import no.nibio.vips.logic.controller.session.SchedulingBean;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class TaskLoggerSchedulerListener implements SchedulerListener{
-    
-	SchedulingBean schedulingBean;
-    
+
     @Override
     public void taskLaunching(TaskExecutor te) {
     	SessionControllerGetter.getSchedulingBean().logTaskLaunching(te);

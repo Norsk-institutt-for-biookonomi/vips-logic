@@ -50,12 +50,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.util.ULocale;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Gis;
@@ -79,17 +79,18 @@ import no.nibio.vips.observationdata.ObservationDataSchemaPK;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  * @copyright 2014-2020 <a href="http://www.nibio.no/">NIBIO</a>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class ObservationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ObservationBean.class);
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     UserBean userBean;
 
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
 
     public List<Observation> getObservations(Integer organizationId) {
