@@ -18,12 +18,9 @@
 
 package no.nibio.vips.logic.startup;
 
-import jakarta.annotation.Resource;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletContextEvent;
-import javax.sql.DataSource;
 import no.nibio.vips.logic.controller.session.SchedulingBean;
-import org.flywaydb.core.Flyway;
 
 /**
  * This class is created and method contextInitialized called when the application
@@ -34,9 +31,6 @@ import org.flywaydb.core.Flyway;
  */
 public class StartupListener implements jakarta.servlet.ServletContextListener{
 
-    @Resource(lookup="java:/jboss/datasources/vipslogic")
-    DataSource vipslogicDS;
-    
     @EJB
     SchedulingBean schedulingBean;
     
@@ -48,13 +42,7 @@ public class StartupListener implements jakarta.servlet.ServletContextListener{
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("VIPSLogic system initializing");
-        System.out.println("VIPSLogic checking for database migrations");
-        // Migrate DB on startup using flywaydb.org
-        Flyway flyway = Flyway.configure()
-                .table("schema_version") // This was done to ease the upgrade from v4 to v8 - which has "flyway_schema_history" as default name for this table
-                .dataSource(vipslogicDS)
-                .load();
-        flyway.migrate();
+        // Flyway runs via Quarkus (quarkus.flyway.* in application.properties)
         
         schedulingBean.initSystemScheduler();
         if(System.getProperty("no.nibio.vips.logic.START_SCHEDULING_ON_BOOT").equals("true"))
