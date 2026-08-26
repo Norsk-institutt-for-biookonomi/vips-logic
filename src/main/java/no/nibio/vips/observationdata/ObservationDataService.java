@@ -21,10 +21,10 @@ package no.nibio.vips.observationdata;
 import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
 import java.io.IOException;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -40,16 +40,17 @@ import no.nibio.vips.logic.controller.session.UserBean;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Facet("restricted")
-@Path("rest/observationdata")
+@ApplicationScoped
+@Path("observationdata")
 public class ObservationDataService {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     ObservationDataBean observationDataBean;
     
     @Context

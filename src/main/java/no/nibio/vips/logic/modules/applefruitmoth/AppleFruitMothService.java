@@ -21,7 +21,8 @@ package no.nibio.vips.logic.modules.applefruitmoth;
 import com.webcohesion.enunciate.metadata.Facet;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.util.Calendar;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -37,11 +38,12 @@ import no.nibio.vips.util.ServletUtil;
  * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/applefruitmoth")
+@ApplicationScoped
+@Path("applefruitmoth")
 @Facet("restricted")
 public class AppleFruitMothService {
     
-    @EJB
+    @Inject
     AppleFruitMothBean appleFruitMothBean;
     
     @Context

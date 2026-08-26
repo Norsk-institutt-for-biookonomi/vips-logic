@@ -1066,12 +1066,16 @@ public class UserBean {
     
     public VipsLogicUser getUserFromUUID(HttpServletRequest request)
     {
-    	String uuidStr = request.getHeader(HttpHeaders.AUTHORIZATION);
-    	if(uuidStr == null)
+    	return getUserFromAuthorizationHeader(request != null ? request.getHeader(HttpHeaders.AUTHORIZATION) : null);
+    }
+
+    public VipsLogicUser getUserFromAuthorizationHeader(String authorizationHeader)
+    {
+    	if(authorizationHeader == null || authorizationHeader.isBlank())
     	{
     		return null;
     	}
-		UUID uuid = UUID.fromString(uuidStr);
+		UUID uuid = UUID.fromString(authorizationHeader);
 		return findVipsLogicUser(uuid);
     }
 }

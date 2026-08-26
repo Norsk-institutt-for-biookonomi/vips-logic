@@ -134,13 +134,34 @@ public class ObservationDataBean {
     
     public List<Organism> decoratePestsWithOrganismDataSchema(List<Organism> pests, Integer organizationId, HttpServletRequest httpServletRequest, ULocale locale)
     {
+    	if (httpServletRequest != null)
+    	{
+    		try
+    		{
+    			if(locale != null)
+    			{
+    				SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
+    			}
+    			return decoratePestsWithOrganismDataSchema(pests, organizationId, SessionLocaleUtil.getI18nBundle(httpServletRequest));
+    		}
+    		catch (IllegalStateException ex)
+    		{
+    			// No active servlet request (e.g. Quarkus REST)
+    		}
+    	}
+    	return decoratePestsWithOrganismDataSchema(pests, organizationId, locale);
+    }
+
+    public List<Organism> decoratePestsWithOrganismDataSchema(List<Organism> pests, Integer organizationId, ULocale locale)
+    {
+    	ResourceBundle bundle = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
+    	return decoratePestsWithOrganismDataSchema(pests, organizationId, bundle);
+    }
+
+    private List<Organism> decoratePestsWithOrganismDataSchema(List<Organism> pests, Integer organizationId, ResourceBundle bundle)
+    {
     	try
     	{
-    		if(locale != null)
-            {
-            	SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
-            }
-            ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
 	    	ObjectMapper om = new ObjectMapper();
 	    	for(Organism pest:pests)
 	    	{

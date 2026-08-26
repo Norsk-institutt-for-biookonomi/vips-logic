@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TimeZone;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -64,7 +65,6 @@ import no.nibio.vips.logic.entity.vipsmobile.VIPSMobilePresentation;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.WeatherUtil;
-import org.jboss.resteasy.spi.HttpRequest;
 
 /**
  * The purpose of this service is to mimic the services for VIPSMobile that
@@ -75,25 +75,24 @@ import org.jboss.resteasy.spi.HttpRequest;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Facet("restricted")
-@Path("rest/vipsmobile")
+@ApplicationScoped
+@Path("vipsmobile")
 public class VIPSMobileService {
     
     @Context
-    private HttpRequest httpRequest;
-    @Context
     private HttpServletRequest httpServletRequest;
     
-    @EJB
+    @Inject
     MessageBean messageBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     OrganismBean organismBean;
-    @EJB
+    @Inject
     ForecastBean forecastBean;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     UserBean userBean;
     
     // TODO: Add observation messages

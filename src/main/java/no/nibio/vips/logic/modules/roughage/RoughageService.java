@@ -34,9 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.webcohesion.enunciate.metadata.Facet;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -67,16 +67,17 @@ import no.nibio.vips.util.weather.WeatherStationProviderFactory;
  * @copyright 2015-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/roughage")
+@ApplicationScoped
+@Path("roughage")
 @Facet("restricted")
 public class RoughageService {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RoughageService.class);
 
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     ForecastBean forecastBean;
     
     /**

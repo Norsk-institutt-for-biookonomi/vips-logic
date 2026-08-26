@@ -47,7 +47,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -91,20 +92,21 @@ import no.nibio.vips.logic.util.Globals;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  */
-@Path("rest/observation")
+@ApplicationScoped
+@Path("observation")
 public class ObservationService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ObservationService.class);
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     OrganismBean organismBean;
 
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
-    @EJB
+    @Inject
     MessagingBean messagingBean;
     @Context
     private HttpServletRequest httpServletRequest;
@@ -265,7 +267,6 @@ public class ObservationService {
                 return obs.getListItem(locale.getLanguage(),
                     observationBean.getLocalizedObservationDataSchema(
                         observationBean.getObservationDataSchema(organizationId, obs.getOrganismId()),
-                        httpServletRequest,
                         locale
                     )
                 );
@@ -1164,11 +1165,10 @@ public class ObservationService {
      * @return the corresponding VipsLogicUser
      */
     private VipsLogicUser getVipsLogicUser(String userUUID) {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        if (user == null && userUUID != null) {
-            user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
+        if (userUUID != null) {
+            return userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
-        return user;
+        return null;
     }
 
 

@@ -18,8 +18,9 @@
 
 package no.nibio.vips.logic.modules.barkbeetle;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
@@ -38,7 +39,9 @@ import com.webcohesion.enunciate.metadata.Facet;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
 import no.nibio.vips.logic.util.SystemTime;
 import no.nibio.vips.util.ServletUtil;
@@ -47,15 +50,16 @@ import no.nibio.vips.util.ServletUtil;
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/barkbeetle")
+@ApplicationScoped
+@Path("barkbeetle")
 @Facet("restricted")
 public class BarkbeetleService {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     @Context
     private HttpServletRequest httpServletRequest;
     
-    @EJB
+    @Inject
     BarkbeetleBean barkbeetleBean;
     
     @GET

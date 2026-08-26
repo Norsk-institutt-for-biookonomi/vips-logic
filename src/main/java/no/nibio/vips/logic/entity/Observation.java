@@ -76,6 +76,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     private Organism cropOrganism;
     private Integer userId;
     private Integer lastEditedBy;
+    @Transient
     private List<Gis> geoinfo;
     private ObservationTimeSeries observationTimeSeries;
     private Integer locationPointOfInterestId;
@@ -98,9 +99,12 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 
     private ObservationDataSchema observationDataSchema;
 
-    private VipsLogicUser user; // Transient
-    private VipsLogicUser lastEditedByUser; //
-    private PointOfInterest location; // Transient
+    @Transient
+    private VipsLogicUser user;
+    @Transient
+    private VipsLogicUser lastEditedByUser;
+    @Transient
+    private PointOfInterest location;
 
     private Set<ObservationIllustration> observationIllustrationSet;
 
@@ -176,11 +180,13 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
 
     public void addGeoInfo(Gis geoinfo)
     {
-        if(this.geoinfo == null)
+        List<Gis> current = getGeoinfos();
+        if (current == null)
         {
-            this.geoinfo = new ArrayList<>();
+            current = new ArrayList<>();
+            setGeoinfos(current);
         }
-        this.geoinfo.add(geoinfo);
+        current.add(geoinfo);
     }
 
     @JsonIgnore
@@ -204,7 +210,7 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
         properties.put("observationId", this.getObservationId());
         properties.put("isPositive", this.getIsPositive());
         properties.put("timestamp", this.getTimeOfObservation() != null ? this.getTimeOfObservation().getTime() : "null");
-        return this.GISEntityUtil.getGeoJSONFromGis(this.geoinfo, properties);
+        return this.GISEntityUtil.getGeoJSONFromGis(getGeoinfos(), properties);
     }
     
     /*@Transient
@@ -683,11 +689,12 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
     public ObservationListItem getListItem(String locale, ObservationDataSchema observationDataSchema)
     {
         // If geoInfo is from POI, need to add observationId and other stuff for observation rendering
-        if(this.location != null)
+        PointOfInterest poi = getLocation();
+        if(poi != null)
         {
-            this.location.addProperty("observationId", this.getObservationId());
-            this.location.addProperty("isPositive", this.isPositive);
-            this.location.addProperty("timestamp", this.getTimeOfObservation().getTime());
+            poi.addProperty("observationId", this.getObservationId());
+            poi.addProperty("isPositive", this.isPositive);
+            poi.addProperty("timestamp", this.getTimeOfObservation().getTime());
         }
         return new ObservationListItem(
             this.getObservationId(),
@@ -703,9 +710,9 @@ public class Observation implements Serializable, no.nibio.vips.observation.Obse
             // Specific geoInfo trumps location. This is to be interpreted
             // as that the observation has been geographically masked by
             // choice of the observer
-            this.location != null ? this.location.getPointOfInterestId() : null,
-            this.location != null ? this.location.getName() : null,
-            this.location != null && this.geoinfo == null ? this.location.getGeoJSON() : this.getGeoinfo(),
+            poi != null ? poi.getPointOfInterestId() : null,
+            poi != null ? poi.getName() : null,
+            poi != null && getGeoinfos() == null ? poi.getGeoJSON() : this.getGeoinfo(),
             this.getObservationHeading(),
             this.getObservationText(),
             this.getBroadcastMessage(),

@@ -21,7 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -38,7 +39,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import jakarta.ejb.EJB;
 import no.nibio.vips.logic.controller.session.UserBean;
 
 import no.nibio.vips.logic.entity.UserUuid;
@@ -49,15 +49,12 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
  * @copyright 2021-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/auth")
+@ApplicationScoped
+@Path("auth")
 public class AuthenticationService {
     
-    @EJB
+    @Inject
     UserBean userBean;
-	
-    @Context
-    private HttpServletRequest httpServletRequest;
-	
 	/**
 	 * Authenticates user
 	 * Example input
@@ -109,9 +106,9 @@ public class AuthenticationService {
 	@Path("uuid")
 	@Produces(MediaType.APPLICATION_JSON)
 	@TypeHint(VipsLogicUser.class)
-	public Response getUserByUuidInAuthorizationHeader()
+	public Response getUserByUuidInAuthorizationHeader(@Context HttpHeaders headers)
 	{
-		String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+		String uuidStr = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
 		UUID uuid = UUID.fromString(uuidStr);
 		VipsLogicUser user = userBean.findVipsLogicUser(uuid);
 		if(user != null)

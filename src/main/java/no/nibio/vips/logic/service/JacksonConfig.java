@@ -29,6 +29,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.ext.Provider;
 
 /**
@@ -38,6 +39,7 @@ import jakarta.ws.rs.ext.Provider;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Provider
+@ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class JacksonConfig implements ContextResolver<ObjectMapper>

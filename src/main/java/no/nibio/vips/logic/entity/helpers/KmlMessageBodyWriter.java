@@ -2,6 +2,7 @@ package no.nibio.vips.logic.entity.helpers;
 
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.ext.Provider;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 
 @Provider
+@ApplicationScoped
 @Produces("application/vnd.google-earth.kml+xml")
 public class KmlMessageBodyWriter implements MessageBodyWriter<Kml> {
 
