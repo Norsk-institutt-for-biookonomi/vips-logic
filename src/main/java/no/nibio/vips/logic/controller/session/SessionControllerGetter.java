@@ -20,7 +20,7 @@ package no.nibio.vips.logic.controller.session;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.spi.CDI;
-import jakarta.inject.Inject;
+import io.quarkus.arc.Unremovable;
 import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.modules.barkbeetle.BarkbeetleBean;
 
@@ -32,58 +32,42 @@ import no.nibio.vips.logic.modules.barkbeetle.BarkbeetleBean;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @ApplicationScoped
+@Unremovable
 public class SessionControllerGetter {
 
-    @Inject
-    SchedulingBean schedulingBean;
-    @Inject
-    ForecastBean forecastBean;
-    @Inject
-    PointOfInterestBean pointOfInterestBean;
-    @Inject
-    UserBean userBean;
-    @Inject
-    MessagingBean messagingBean;
-    @Inject
-    OrganismBean organismBean;
-    @Inject
-    ObservationBean observationBean;
-    @Inject
-    BarkbeetleBean barkbeetleBean;
-
-    private static SessionControllerGetter instance() {
-        return CDI.current().select(SessionControllerGetter.class).get();
+    private static <T> T getBean(Class<T> type) {
+        return CDI.current().select(type).get();
     }
 
     public static SchedulingBean getSchedulingBean() {
-        return instance().schedulingBean;
+        return getBean(SchedulingBean.class);
     }
 
     public static ForecastBean getForecastBean() {
-        return instance().forecastBean;
+        return getBean(ForecastBean.class);
     }
 
     public static PointOfInterestBean getPointOfInterestBean() {
-        return instance().pointOfInterestBean;
+        return getBean(PointOfInterestBean.class);
     }
 
     public static UserBean getUserBean() {
-        return instance().userBean;
+        return getBean(UserBean.class);
     }
 
     public static MessagingBean getMessagingBean() {
-        return instance().messagingBean;
+        return getBean(MessagingBean.class);
     }
 
     public static OrganismBean getOrganismBean() {
-        return instance().organismBean;
+        return getBean(OrganismBean.class);
     }
 
     public static ObservationBean getObservationBean() {
-        return instance().observationBean;
+        return getBean(ObservationBean.class);
     }
 
     public static BarkbeetleBean getBarkbeetleBean() {
-        return instance().barkbeetleBean;
+        return getBean(BarkbeetleBean.class);
     }
 }

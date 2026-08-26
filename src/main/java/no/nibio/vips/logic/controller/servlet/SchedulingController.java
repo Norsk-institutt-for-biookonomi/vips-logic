@@ -18,8 +18,6 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import it.sauronsoftware.cron4j.Scheduler;
-import it.sauronsoftware.cron4j.TaskExecutor;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -40,9 +38,8 @@ import no.nibio.vips.logic.entity.TaskHistory;
 import no.nibio.vips.logic.entity.VipsLogicRole;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.scheduling.TaskLoggerSchedulerListener;
-import no.nibio.vips.logic.scheduling.TerminateSchedulerListener;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
+import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutor;
 import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.util.ServletUtil;
@@ -107,7 +104,7 @@ public class SchedulingController extends HttpServlet {
 
                     TaskExecutor[] taskExecutors = schedulingBean.getRunningTasks();
                     request.setAttribute("taskExecutors", taskExecutors);
-                    request.setAttribute("schedulingStarted", schedulingBean.getSystemScheduler().isStarted());
+                    request.setAttribute("schedulingStarted", schedulingBean.isSystemSchedulerStarted());
                     request.setAttribute("orderedScheduledTasks", schedulingBean.getOrderedScheduledTasks(user));
                     request.setAttribute("taskHistoryDate",taskHistoryDate);
                     request.setAttribute("taskHistory",schedulingBean.getTaskHistory(taskHistoryDate, user));
@@ -202,22 +199,7 @@ public class SchedulingController extends HttpServlet {
                         {
                             task.setOrganization(user.getOrganizationId());
                         }
-                        // If system scheduler is running, launch task there
-                        if(schedulingBean.getSystemScheduler().isStarted())
-                        {
-                            schedulingBean.getSystemScheduler().launch(task);
-                        }
-                        // Otherwise, create one time scheduler that terminates
-                        // upon task termination
-                        else
-                        {
-                            Scheduler oneTimeScheduler = new Scheduler();
-                            oneTimeScheduler.addSchedulerListener(new TaskLoggerSchedulerListener());
-                            oneTimeScheduler.addSchedulerListener(new TerminateSchedulerListener());
-                            oneTimeScheduler.start();
-                            oneTimeScheduler.launch(task);
-                            schedulingBean.getOneOffSchedulers().add(oneTimeScheduler);
-                        }
+                        schedulingBean.launchSystemSchedulerTask(task);
                         String message = MessageFormat.format(SessionLocaleUtil.getI18nText(request, "taskXWasLaunched"), task.getName(SessionLocaleUtil.getCurrentLocale(request).getLanguage()));
                         response.sendRedirect(Globals.PROTOCOL + "://" + ServletUtil.getServerName(request) + "/scheduling?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8.toString()));
                     }

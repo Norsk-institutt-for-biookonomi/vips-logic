@@ -21,7 +21,7 @@ package no.nibio.vips.logic.scheduling.tasks;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import it.sauronsoftware.cron4j.TaskExecutionContext;
+import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutionContext;
 import no.nibio.vips.i18n.I18nImpl;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.ForecastConfiguration;

@@ -18,7 +18,6 @@
 
 package no.nibio.vips.logic.scheduling;
 
-import it.sauronsoftware.cron4j.Task;
 import java.util.Map;
 import no.nibio.vips.i18n.I18nImpl;
 import no.nibio.vips.logic.entity.Organization;
@@ -28,7 +27,7 @@ import no.nibio.vips.logic.entity.Organization;
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public abstract class VipsLogicTask extends Task{
+public abstract class VipsLogicTask {
     /** Default language is English */
     public static final String DEFAULT_LANGUAGE = "en";
     
@@ -38,6 +37,78 @@ public abstract class VipsLogicTask extends Task{
     private Organization organization;
     
     public abstract String getConfigFormDefinition(String language);
+
+    public abstract void execute(TaskExecutionContext tec) throws RuntimeException;
+
+    public boolean supportsStatusTracking() {
+        return false;
+    }
+
+    public boolean supportsCompletenessTracking() {
+        return false;
+    }
+
+    /**
+     * Replaces cron4j TaskExecutionContext.
+     */
+    public static class TaskExecutionContext {
+        private final TaskExecutor taskExecutor;
+
+        public TaskExecutionContext(TaskExecutor taskExecutor) {
+            this.taskExecutor = taskExecutor;
+        }
+
+        public TaskExecutor getTaskExecutor() {
+            return taskExecutor;
+        }
+
+        public void setCompleteness(double completeness) {
+            taskExecutor.setCompleteness(completeness);
+        }
+
+        public void setStatusMessage(String statusMessage) {
+            taskExecutor.setStatusMessage(statusMessage);
+        }
+    }
+
+    /**
+     * Replaces cron4j TaskExecutor.
+     */
+    public static class TaskExecutor {
+        public final long startTime;
+        private final VipsLogicTask task;
+        private double completeness;
+        private String statusMessage;
+
+        public TaskExecutor(VipsLogicTask task) {
+            this.task = task;
+            this.startTime = System.currentTimeMillis();
+        }
+
+        public VipsLogicTask getTask() {
+            return task;
+        }
+
+        public long getStartTime() {
+            return startTime;
+        }
+
+        public double getCompleteness() {
+            return completeness;
+        }
+
+        public void setCompleteness(double completeness) {
+            this.completeness = completeness;
+        }
+
+        public String getStatusMessage() {
+            return statusMessage;
+        }
+
+        public void setStatusMessage(String statusMessage) {
+            this.statusMessage = statusMessage;
+        }
+    }
     
     /**
      * Initiates i18n module. Using no.nibio.vips.logic.i18n.vipslogictexts for translations

@@ -18,13 +18,13 @@
 
 package no.nibio.vips.logic.scheduling;
 
-import it.sauronsoftware.cron4j.TaskExecutionContext;
+import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutionContext;
 
 /**
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class SchedulingTest extends it.sauronsoftware.cron4j.Task{
+public class SchedulingTest extends VipsLogicTask {
 
     @Override
     public void execute(TaskExecutionContext tec) throws RuntimeException {
@@ -56,6 +56,11 @@ public class SchedulingTest extends it.sauronsoftware.cron4j.Task{
                 return;
         }
         System.out.println("Exit job after 70 seconds...");
+    }
+
+    @Override
+    public String getConfigFormDefinition(String language) {
+        return "{\"fields\":[]}";
     }
     
     @Override

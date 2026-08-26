@@ -18,34 +18,39 @@
 
 package no.nibio.vips.logic.startup;
 
-import jakarta.ejb.EJB;
-import jakarta.servlet.ServletContextEvent;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import no.nibio.vips.logic.controller.session.SchedulingBean;
+import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
- * This class is created and method contextInitialized called when the application
- * is deployed (either at startup of application container or when redeploying the app)
+ * This class is called when the application starts on Quarkus
+ * (replaces ServletContextListener on WildFly).
  * 
  * @copyright 2013-2022 {@link http://www.nibio.no NIBIO}
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class StartupListener implements jakarta.servlet.ServletContextListener{
+@ApplicationScoped
+public class StartupListener {
 
-    @EJB
+    @Inject
     SchedulingBean schedulingBean;
+
+    @ConfigProperty(name = "vipslogic.scheduling.start-on-boot")
+    boolean startSchedulingOnBoot;
+
+    @ConfigProperty(name = "vipslogic.scheduling.smoke-launch-expired-uuids-task", defaultValue = "false")
+    boolean smokeLaunchExpiredUuidsTask;
     
-    /**
-     * Called when the application
-     * is deployed (either at startup of application container or when redeploying the app)
-     * @param sce 
-     */
-    @Override
-    public void contextInitialized(ServletContextEvent sce) {
+    void onStart(@Observes StartupEvent event) {
         System.out.println("VIPSLogic system initializing");
-        // Flyway runs via Quarkus (quarkus.flyway.* in application.properties)
         
         schedulingBean.initSystemScheduler();
-        if(System.getProperty("no.nibio.vips.logic.START_SCHEDULING_ON_BOOT").equals("true"))
+        if(startSchedulingOnBoot)
         {
             System.out.println("VIPSLogic starting scheduling services");
             schedulingBean.startSystemScheduler();
@@ -54,18 +59,16 @@ public class StartupListener implements jakarta.servlet.ServletContextListener{
         {
             System.out.println("VIPSLogic scheduling services configured NOT to start.");
         }
-        
+        if (smokeLaunchExpiredUuidsTask) {
+            System.out.println("VIPSLogic smoke test: launching DeleteAllExpiredUserUuidsTask");
+            java.util.concurrent.CompletableFuture.runAsync(() ->
+                    schedulingBean.launchSystemSchedulerTask(
+                            VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK)));
+        }
     }
-    
 
-    /**
-     * Called when the web app is closed
-     * @param sce 
-     */
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
+    void onStop(@Observes ShutdownEvent event) {
         System.out.println("VIPSLogic system shutting down");
-        // Shutting down scheduler
         schedulingBean.stopSystemScheduler();
     }
 }

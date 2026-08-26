@@ -18,29 +18,24 @@
 
 package no.nibio.vips.logic.scheduling;
 
-import it.sauronsoftware.cron4j.SchedulerListener;
-import it.sauronsoftware.cron4j.TaskExecutor;
-
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
+import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutor;
 
 /**
  * Logs task events to the database
  * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class TaskLoggerSchedulerListener implements SchedulerListener{
+public class TaskLoggerSchedulerListener {
 
-    @Override
     public void taskLaunching(TaskExecutor te) {
     	SessionControllerGetter.getSchedulingBean().logTaskLaunching(te);
     }
 
-    @Override
     public void taskSucceeded(TaskExecutor te) {
     	SessionControllerGetter.getSchedulingBean().logTaskSucceeded(te);
     }
 
-    @Override
     public void taskFailed(TaskExecutor te, Throwable thrwbl) {
     	thrwbl.printStackTrace();
     	SessionControllerGetter.getSchedulingBean().logTaskFailed(te,thrwbl);
