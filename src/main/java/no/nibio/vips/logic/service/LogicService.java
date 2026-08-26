@@ -32,18 +32,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.jboss.resteasy.annotations.GZIP;
-import org.jboss.resteasy.spi.HttpRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.NonUniqueResultException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
@@ -95,25 +94,24 @@ import no.nibio.web.forms.FormValidationException;
  * @copyright 2013-2023 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest")
+@ApplicationScoped
+@Path("")
 public class LogicService {
-        
-    @Context
-    private HttpRequest httpRequest;
+
     @Context
     private HttpServletRequest httpServletRequest;
-    
-    @EJB
+
+    @Inject
     ForecastBean forecastBean;
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     OrganismBean organismBean;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     MessageBean messageBean;
-    @EJB
+    @Inject
     ObservationDataBean observationDataBean;
     
 
@@ -908,6 +906,7 @@ public class LogicService {
     @Facet("restricted")
     @TypeHint(Organism[].class)
     public Response getPestOrganismList(
+    		@Context jakarta.ws.rs.core.HttpHeaders httpHeaders,
     		@QueryParam("cropOrganismId") Integer cropOrganismId,
     		@QueryParam("organizationId") Integer organizationId
     		)
@@ -923,13 +922,14 @@ public class LogicService {
     	}
     	if(organizationId != null)
     	{
-    		VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+    		VipsLogicUser user = userBean.getUserFromAuthorizationHeader(
+                    httpHeaders != null ? httpHeaders.getHeaderString(jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION) : null);
             
             
     		ULocale locale = new ULocale(
             	user != null ? user.getOrganizationId().getDefaultLocale() : 
             		userBean.getOrganization(organizationId).getDefaultLocale());
-    		organismList = observationDataBean.decoratePestsWithOrganismDataSchema(organismList, organizationId, httpServletRequest, locale);
+    		organismList = observationDataBean.decoratePestsWithOrganismDataSchema(organismList, organizationId, locale);
     	}
         return Response.ok().entity(organismList).build();
     }

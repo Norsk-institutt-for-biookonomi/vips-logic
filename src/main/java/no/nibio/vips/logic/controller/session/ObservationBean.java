@@ -871,11 +871,28 @@ public class ObservationBean {
      * @return
      */
     public ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, HttpServletRequest httpServletRequest, ULocale locale) throws IOException {
-        if (locale != null) {
-            SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
+        if (httpServletRequest != null) {
+            try {
+                if (locale != null) {
+                    SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
+                }
+                return getLocalizedObservationDataSchema(ods, SessionLocaleUtil.getI18nBundle(httpServletRequest));
+            } catch (IllegalStateException ex) {
+                // No active servlet request (e.g. Quarkus REST)
+            }
         }
-        ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
+        if (locale == null) {
+            throw new IOException("Locale is required when no servlet request is available");
+        }
+        return getLocalizedObservationDataSchema(ods,
+                ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale()));
+    }
 
+    public ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, ULocale locale) throws IOException {
+        return getLocalizedObservationDataSchema(ods, (HttpServletRequest) null, locale);
+    }
+
+    private ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, ResourceBundle bundle) throws IOException {
         // We iterate the schema, replacing default field labels with
         // translated ones
         // First: Convert to Jackson JsonNode tree

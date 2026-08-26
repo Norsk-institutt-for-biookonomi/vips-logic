@@ -17,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
 
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.client.Client;
@@ -31,7 +32,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Path("rest/observationtimeseries")
+@ApplicationScoped
+@Path("observationtimeseries")
 public class ObservationTimeSeriesService {
     private final static Logger LOGGER = LoggerFactory.getLogger(ObservationTimeSeriesService.class);
 
@@ -47,11 +49,11 @@ public class ObservationTimeSeriesService {
     private static final String DESCRIPTION = "description";
     private static final String LOCATION_IS_PRIVATE = "locationIsPrivate";
     private static final String POLYGON_SERVICE = "polygonService";
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
-    @EJB
+    @Inject
     OrganismBean organismBean;
 
     @Context

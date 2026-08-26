@@ -19,7 +19,8 @@
 package no.nibio.vips.logic.messaging.sms;
 
 import com.webcohesion.enunciate.metadata.Facet;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -31,11 +32,12 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/sms")
+@ApplicationScoped
+@Path("sms")
 @Facet("restricted")
 public class SMSHandlingService {
     
-    @EJB
+    @Inject
     UserBean userBean;
 
     /**

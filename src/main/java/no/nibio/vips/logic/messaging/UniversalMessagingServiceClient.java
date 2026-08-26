@@ -19,6 +19,7 @@
 package no.nibio.vips.logic.messaging;
 
 import com.webcohesion.enunciate.metadata.Facet;
+import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -30,6 +31,7 @@ import jakarta.ws.rs.core.Response;
  * @author Tor-Einar Skog <tor-einar.skog@bioforsk.no>
  */
 @Facet("restricted")
+@RegisterRestClient(configKey = "universal-messaging")
 @Path("/")
 public interface UniversalMessagingServiceClient {
 

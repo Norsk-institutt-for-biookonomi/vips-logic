@@ -19,6 +19,7 @@
 package no.nibio.vips.logic;
 
 import java.util.Set;
+import jakarta.enterprise.inject.Vetoed;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 
@@ -27,6 +28,7 @@ import jakarta.ws.rs.core.Application;
  * @copyright 2016-2021 {@link http://www.nibio.no NIBIO}
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
+@Vetoed
 @ApplicationPath("/rest/")
 public class VIPSLogicApplication extends Application
 {

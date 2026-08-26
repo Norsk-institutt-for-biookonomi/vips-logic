@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.jboss.resteasy.spi.HttpRequest;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
@@ -36,7 +35,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -52,7 +52,6 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
-import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.Organization;
@@ -65,19 +64,18 @@ import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/poi")
+@ApplicationScoped
+@Path("poi")
 public class POIService {
     private final static Logger LOGGER = LoggerFactory.getLogger(POIService.class);
 
     @Context
-    private HttpRequest httpRequest;
-    @Context
     private HttpServletRequest httpServletRequest;
 
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
 
-    @EJB
+    @Inject
     UserBean userBean;
 
     /**
@@ -288,7 +286,7 @@ public class POIService {
     public Response syncPOIFromApp(
             String poiJson
     ) {
-        VipsLogicUser user = SessionControllerGetter.getUserBean().getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
         if (user == null) {
             return Response.status(Status.UNAUTHORIZED).build();
         }

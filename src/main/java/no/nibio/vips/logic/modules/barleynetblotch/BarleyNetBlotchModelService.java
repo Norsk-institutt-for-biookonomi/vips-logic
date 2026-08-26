@@ -27,10 +27,10 @@ import java.util.List;
 import java.util.TimeZone;
 import org.slf4j.LoggerFactory;
 import com.webcohesion.enunciate.metadata.Facet;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -58,15 +58,16 @@ import no.nibio.vips.util.weather.WeatherDataSourceUtil;
  * @copyright 2015 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/barleynetblotchmodel")
+@ApplicationScoped
+@Path("barleynetblotchmodel")
 @Facet("restricted")
 public class BarleyNetBlotchModelService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(BarleyNetBlotchModelService.class);
     
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     ForecastBean forecastBean;
 
     @GET
