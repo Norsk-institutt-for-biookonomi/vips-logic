@@ -17,7 +17,16 @@
  */
 package no.nibio.vips.logic.dto;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashMap;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Dto for transferring forecast result data to the client. 
@@ -25,17 +34,33 @@ import java.time.Instant;
  * @copyright 2026 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class ForecastResultDto {
-    private Long forecastConfigurationId;
+public class ForecastResultDto implements Comparable<ForecastResultDto>{
+    private Long forecastConfigurationId, forecastResultId;
     private Instant validTimeStart, validTimeEnd;
-    private Integer warningStatus;
+    private Long warningStatus;
+    private String keys;
     private String allValues;
+
+    public ForecastResultDto(Long forecastConfigurationId, Long forecastResultId, Instant validTimeStart, Instant validTimeEnd, Long warningStatus, String allValues) {
+        this.forecastConfigurationId = forecastConfigurationId;
+        this.forecastResultId = forecastResultId;
+        this.validTimeStart = validTimeStart;
+        this.validTimeEnd = validTimeEnd;
+        this.warningStatus = warningStatus;
+        this.allValues = allValues;
+    }
     
     public Long getForecastConfigurationId() {
         return forecastConfigurationId;
     }
     public void setForecastConfigurationId(Long forecastConfigurationId) {
         this.forecastConfigurationId = forecastConfigurationId;
+    }
+    public Long getForecastResultId() {
+        return forecastResultId;
+    }
+    public void setForecastResultId(Long forecastResultId) {
+        this.forecastResultId = forecastResultId;
     }
     public Instant getValidTimeStart() {
         return validTimeStart;
@@ -49,16 +74,39 @@ public class ForecastResultDto {
     public void setValidTimeEnd(Instant validTimeEnd) {
         this.validTimeEnd = validTimeEnd;
     }
-    public Integer getWarningStatus() {
+    public Long getWarningStatus() {
         return warningStatus;
     }
-    public void setWarningStatus(Integer warningStatus) {
+    public void setWarningStatus(Long warningStatus) {
         this.warningStatus = warningStatus;
     }
+
+    @JsonProperty("allValues")
+    public Map<String,String> getAllValuesAsMap()
+    {
+        try {
+            return new ObjectMapper().readValue(this.allValues, new TypeReference<HashMap<String,String>>(){});
+        } catch (IOException ex) {
+
+            return new HashMap<>();
+        }
+ 
+    }
+
+    @JsonIgnore
     public String getAllValues() {
         return allValues;
     }
     public void setAllValues(String allValues) {
         this.allValues = allValues;
+    }
+
+    public Set<String> getKeys() {
+        return this.getAllValuesAsMap().keySet();
+    }
+    
+    @Override
+    public int compareTo(ForecastResultDto other) {
+        return this.validTimeStart.compareTo(other.validTimeStart);
     }
 }
