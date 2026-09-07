@@ -531,7 +531,7 @@ public class RoughageService {
             @QueryParam("precipitationLastDayBeforeHarvest") Double precipitationLastDayBeforeHarvest
     )
     {
-        Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(timeOfHarvestStr);
+        Calendar cal = jakarta.xml.bind.DatatypeConverter.parseDateTime(timeOfHarvestStr);
         Date timeOfHarvest = cal.getTime();
         // timeOfHarvest can't be later than "today"
         if(timeOfHarvest.after(new Date()))

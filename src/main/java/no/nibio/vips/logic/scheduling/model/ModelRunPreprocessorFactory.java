@@ -18,14 +18,17 @@
 
 package no.nibio.vips.logic.scheduling.model;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.reflections.Reflections;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexReader;
 
 /**
  * Returns the appropriate factory for the given model
@@ -50,25 +53,33 @@ public class ModelRunPreprocessorFactory {
         }
     }
     
+    @SuppressWarnings("unchecked")
     private static Map<String,Class<? extends ModelRunPreprocessor>> getModelRunPreprocessors()
     {
         if(modelRunPreprocessors == null)
         {
             modelRunPreprocessors = new HashMap<>();
-            Reflections reflections;
-            Set<Class<? extends ModelRunPreprocessor>> subTypes = new HashSet<>();
-            reflections = new Reflections("no.nibio.vips.logic");
-            subTypes.addAll(reflections.getSubTypesOf(ModelRunPreprocessor.class));
-            subTypes.forEach((subType) -> {
-                try 
-                {
-                    modelRunPreprocessors.put(subType.getDeclaredConstructor().newInstance().getModelId(), subType);
+            try (InputStream indexStream = ModelRunPreprocessorFactory.class.getClassLoader()
+                    .getResourceAsStream("META-INF/jandex.idx")) {
+                if (indexStream == null) {
+                    throw new IllegalStateException("Jandex index not found on classpath");
                 }
-                catch ( InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) 
-                {
-                    Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
+                Index index = new IndexReader(indexStream).read();
+                DotName preprocessorName = DotName.createSimple(ModelRunPreprocessor.class.getName());
+                for (ClassInfo classInfo : index.getAllKnownSubclasses(preprocessorName)) {
+                    Class<? extends ModelRunPreprocessor> subType =
+                            (Class<? extends ModelRunPreprocessor>) Class.forName(classInfo.name().toString());
+                    try {
+                        modelRunPreprocessors.put(
+                                subType.getDeclaredConstructor().newInstance().getModelId(), subType);
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException
+                            | NoSuchMethodException ex) {
+                        Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-            });
+            } catch (IOException | ClassNotFoundException ex) {
+                Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return modelRunPreprocessors;
     }

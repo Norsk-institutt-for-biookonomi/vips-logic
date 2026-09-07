@@ -34,7 +34,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Point;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,9 +64,9 @@ public class BarkbeetleController extends HttpServlet {
 	public final static String FILENAME_INSTRUKS_BARKBILLEFYLKESKONTAKTER = "Instruks_Barkbillefylkeskontakter_2025-02-19.pdf";
 	public final static String FILENAME_KJENN_IGJEN_ANGREP = "Kjenn_igjen_angrep_stor_granbarkbille_2022-04-25.pdf";
         
-    @EJB
+    @Inject
     BarkbeetleBean barkbeetleBean;
-    @EJB
+    @Inject
     UserBean userBean;
     
     /** 

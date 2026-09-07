@@ -60,7 +60,6 @@ import no.nibio.vips.logic.messaging.UniversalMessage;
 import no.nibio.vips.logic.messaging.UniversalMessageFormat;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.SimpleMailSender;
 
 /**
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -734,9 +733,6 @@ public class BarkbeetleBean {
 
         // Is it time to send the first reminder?
         if (this.isTimeToSendFirstReminder(currentDate)) {
-            String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-            SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
-
             Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
             cal.setTime(currentDate);
 
@@ -761,8 +757,6 @@ public class BarkbeetleBean {
 
         } // Is it time to send the second reminder?
         else if (this.isTimeToSendSecondReminder(currentDate)) {
-            String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-            SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
             Calendar cal = Calendar.getInstance(BarkbeetleBean.NORGE_MITT_NORGE);
             cal.setTime(currentDate);
             //System.out.println("We think that " + currentDate + " is in week " + cal.get(Calendar.WEEK_OF_YEAR));

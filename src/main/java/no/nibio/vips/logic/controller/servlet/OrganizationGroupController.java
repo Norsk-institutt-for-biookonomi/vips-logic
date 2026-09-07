@@ -19,7 +19,7 @@ package no.nibio.vips.logic.controller.servlet;
 
 import java.io.IOException;
 import java.util.List;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,7 +41,7 @@ import no.nibio.web.forms.FormValidator;
 public class OrganizationGroupController extends HttpServlet {
 
     
-    @EJB
+    @Inject
     UserBean userBean;
     
     /**

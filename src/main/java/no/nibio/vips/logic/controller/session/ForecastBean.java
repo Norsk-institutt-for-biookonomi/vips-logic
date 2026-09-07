@@ -16,6 +16,7 @@
 
 package no.nibio.vips.logic.controller.session;
 
+import java.net.URI;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Connection;
@@ -42,14 +43,11 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ProcessingException;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.hibernate.Session;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
@@ -566,10 +564,10 @@ public class ForecastBean {
         Integer instancesCompleted = 0;
         for (VipsCoreInstance vipsCoreInstance : vipsCoreInstances) {
             LOGGER.debug("Attempting to connect to " + vipsCoreInstance.getUri());
-            try (Client client = ClientBuilder.newClient()){
-                WebTarget target = client.target(vipsCoreInstance.getUri());
-                ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-                ManagerResource resource = rTarget.proxy(ManagerResource.class);
+            ManagerResource resource = RestClientBuilder.newBuilder()
+                    .baseUri(URI.create(vipsCoreInstance.getUri()))
+                    .build(ManagerResource.class);
+            try {
 
                 // Get all model Ids from Core Manager
                 Response resp = resource.printModelListJSON();
@@ -623,10 +621,17 @@ public class ForecastBean {
                     modelInformation.setDateLastRegistered(new Date());
                 }
                 resp.close();
-                client.close();
                 instancesCompleted++;
             } catch (ProcessingException ex) {
                 jobReport += ex.getMessage() + "\n";
+            } finally {
+                if (resource instanceof AutoCloseable closeable) {
+                    try {
+                        closeable.close();
+                    } catch (Exception ignored) {
+                        // ignore close failures
+                    }
+                }
             }
 
         }
@@ -880,11 +885,9 @@ public class ForecastBean {
      * @return
      */
     private ManagerResource getManagerResource(ModelInformation modelInformation) {
-        Client client = ClientBuilder.newClient();
-            WebTarget target = client.target(modelInformation.getVipsCoreInstanceId().getUri());
-            ResteasyWebTarget rTarget = (ResteasyWebTarget) target;
-            ManagerResource resource = rTarget.proxy(ManagerResource.class);
-            return resource;
+        return RestClientBuilder.newBuilder()
+                .baseUri(URI.create(modelInformation.getVipsCoreInstanceId().getUri()))
+                .build(ManagerResource.class);
     }
 
     public Kml getForecastsAggregateKml(List<Integer> organizationIds, List<Integer> cropOrganismIds, Date theDate,

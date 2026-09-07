@@ -25,9 +25,8 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,12 +54,12 @@ import no.nibio.web.forms.HTMLFormGenerator;
  */
 public class SchedulingController extends HttpServlet {
 
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     SchedulingBean schedulingBean;
     
     /**

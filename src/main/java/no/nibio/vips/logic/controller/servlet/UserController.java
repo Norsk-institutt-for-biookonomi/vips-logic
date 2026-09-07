@@ -31,11 +31,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,13 +68,13 @@ import no.nibio.web.forms.FormValidator;
  */
 public class UserController extends HttpServlet {
 
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     UserBean userBean;
 
-    @EJB
+    @Inject
     BarkbeetleBean barkbeetleBean;
     
     /**

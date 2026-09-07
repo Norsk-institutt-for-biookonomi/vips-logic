@@ -22,7 +22,7 @@ import jakarta.persistence.*;
 import no.nibio.vips.logic.util.GISEntityUtil;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.*;
 

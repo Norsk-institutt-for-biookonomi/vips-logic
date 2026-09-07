@@ -25,7 +25,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * Provides translation strings in current session language for JavaScript
@@ -55,7 +55,7 @@ public class ResourceBundleJSServlet extends HttpServlet {
             {
                 if(first) first = false;
                 else output.append(",");
-                output.append("\n\"").append(key).append("\":\"").append(StringEscapeUtils.escapeJavaScript(i18nTexts.getString(key))).append("\"");
+                output.append("\n\"").append(key).append("\":\"").append(StringEscapeUtils.escapeEcmaScript(i18nTexts.getString(key))).append("\"");
             }
             output.append("\n};\n\n");
             

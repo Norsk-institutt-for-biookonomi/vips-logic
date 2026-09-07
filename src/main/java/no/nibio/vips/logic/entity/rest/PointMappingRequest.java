@@ -20,7 +20,7 @@ package no.nibio.vips.logic.entity.rest;
 
 import java.io.Serializable;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 /**
  * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>

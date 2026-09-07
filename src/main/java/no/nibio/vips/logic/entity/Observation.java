@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.Date;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.HashMap;

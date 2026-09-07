@@ -19,7 +19,6 @@
 package no.nibio.vips.logic.scheduling.tasks;
 
 import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutionContext;
-import jakarta.ejb.EJB;
 
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;

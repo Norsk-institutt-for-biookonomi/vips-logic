@@ -35,6 +35,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
@@ -58,6 +59,9 @@ import org.slf4j.LoggerFactory;
 public class MessagingBean {
     @Inject
     EntityManager em;
+
+    @ConfigProperty(name = "no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM", defaultValue = "false")
+    String disableMessagingSystem;
     
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MessagingBean.class);
     
@@ -120,10 +124,7 @@ public class MessagingBean {
         // TODO Handle errors better!
         try
         {
-            if  (
-                System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM") == null 
-                || System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM").equals("false")
-            )
+            if (!"true".equalsIgnoreCase(disableMessagingSystem))
             {
                 IVipsMessageHandler vipsMessageHandler = new VipsMessageInputHandler();
                 vipsMessageHandler.sendMessage(new VipsMessage(uMessage));

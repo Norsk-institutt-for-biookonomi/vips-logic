@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.jboss.resteasy.annotations.GZIP;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -131,7 +130,6 @@ public class ObservationService {
      */
     @GET
     @Path("filter/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getFilteredObservations(
@@ -168,7 +166,6 @@ public class ObservationService {
      */
     @GET
     @Path("list/filter/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ObservationListItem.class)
     public Response getFilteredObservationListItemsAsJson(
@@ -198,7 +195,6 @@ public class ObservationService {
      */
     @GET
     @Path("list/filter/{organizationId}/xlsx")
-    @GZIP
     @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public Response getFilteredObservationListItemsAsXlsx(
         @PathParam("organizationId") Integer organizationId,
@@ -290,7 +286,6 @@ public class ObservationService {
      */
     @GET
     @Path("list/filter/{organizationId}/csv")
-    @GZIP
     @Produces("text/csv;charset=UTF-8")
     @TypeHint(ObservationListItem.class)
     public Response getFilteredObservationListItemsAsCSV(
@@ -479,7 +474,6 @@ public class ObservationService {
      */
     @GET
     @Path("filter/{organizationId}/geoJSON")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(GeoJSON.class)
     public Response getFilteredObservationsAsGeoJSON(
@@ -558,7 +552,6 @@ public class ObservationService {
      */
     @GET
     @Path("list/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getObservations(@PathParam("organizationId") Integer organizationId) {
@@ -633,7 +626,6 @@ public class ObservationService {
      */
     @GET
     @Path("broadcast/list/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getBroadcastObservations(

@@ -34,7 +34,6 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.jboss.resteasy.annotations.GZIP;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.icu.util.ULocale;
@@ -146,7 +145,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ForecastResultDto[].class)
     public Response getForecastResults(
@@ -189,7 +187,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}/csv")
-    @GZIP
     @Produces("text/csv;charset=UTF-8")
     public Response getForecastResultsCSV(
             @PathParam("forecastConfigurationId") Long forecastConfigurationId,
@@ -264,7 +261,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastresults/{forecastConfigurationId}/{latestDays}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ForecastResult[].class)
     public Response getForecastResults(
@@ -318,7 +314,6 @@ public class LogicService {
     */
     @GET
     @Path("forecastresults/{forecastConfigurationId}/{dateStart}/{dateEnd}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ForecastResult[].class)
     public Response getForecastResults(
@@ -349,7 +344,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastconfigurationsummaries/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     @TypeHint(ForecastConfiguration[].class)
@@ -399,7 +393,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastconfigurationsummaries/private/{userUUID}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     public Response getForecastSummaries(
@@ -534,7 +527,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastconfigurationsincludeorgs/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ForecastConfiguration[].class)
     public Response getActiveForecastConfigurationsWithIncludeOrganizations(
@@ -594,7 +586,6 @@ public class LogicService {
      */
     @GET
     @Path("organizationforecastconfigurations/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ForecastConfiguration[].class)
     public Response getForecastConfigurationsForOrganization(
@@ -694,7 +685,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastresults/aggregate/{organizationId}")
-    @GZIP
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     @Facet("restricted")
     public Response getForecastResultsAggregate(
@@ -737,7 +727,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastresults/aggregate/orgspan")
-    @GZIP
     @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
     @Facet("restricted")
     public Response getForecastResultsAggregate(
@@ -777,7 +766,6 @@ public class LogicService {
      */
     @GET
     @Path("forecastresults/latest/poi/{poiId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response getLatestForecastResultsForPoi(@PathParam("poiId") Integer poiId)
     {
@@ -979,7 +967,6 @@ public class LogicService {
      */
     @GET
     @Path("message/list/{organizationId}")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     @TypeHint(Message[].class)
@@ -1022,7 +1009,6 @@ public class LogicService {
      */
     @GET
     @Path("message/list/{organizationId}/tagfilter")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     @TypeHint(Message[].class)

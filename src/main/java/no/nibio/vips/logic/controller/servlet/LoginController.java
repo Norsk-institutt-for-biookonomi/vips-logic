@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
@@ -55,7 +55,7 @@ public class LoginController extends HttpServlet {
 
     private static final String RETURN_UUID_PARAMETER_NAME = "returnUUID";
 
-    @EJB
+    @Inject
     UserBean userBean;
 
     /**

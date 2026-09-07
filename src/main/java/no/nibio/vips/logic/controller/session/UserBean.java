@@ -98,6 +98,8 @@ public class UserBean {
     @Inject
     MessageBean messageBean;
     @Inject
+    SimpleMailSender mailSender;
+    @Inject
     ObservationBean observationBean;
 
     private Properties serverProperties;
@@ -194,8 +196,6 @@ public class UserBean {
         LOGGER.debug(subject + "\n" + body);
        
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, user.getEmail(), subject, body);
         
     }
@@ -651,8 +651,6 @@ public class UserBean {
 
         //System.out.println(body);
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         for(VipsLogicUser organizationAdmin: organizationAdmins)
         {
             mailSender.sendMail("noreply@" + serverName, organizationAdmin.getEmail(), subject, body);
@@ -679,8 +677,6 @@ public class UserBean {
         String body = MessageFormat.format(i18nBundle.getString("sendUserApprovalConfirmationBody"), 
                             Globals.PROTOCOL + "://" + serverName + "/");
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, user.getEmail(), subject, body);
     }
 
@@ -705,8 +701,6 @@ public class UserBean {
         String body = MessageFormat.format(i18nBundle.getString("sendUsernameAndPasswordToUserBody"), username, password, serverName);
         
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, viewUser.getEmail(), subject, body);
     }
     
@@ -749,8 +743,6 @@ public class UserBean {
         LOGGER.debug(subject + "\n" + body);
 
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, resetPasswordUser.getEmail(), subject, body);
         return null;
     }

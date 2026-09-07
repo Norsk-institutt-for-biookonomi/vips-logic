@@ -25,6 +25,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 
@@ -39,6 +40,12 @@ public class SMSHandlingService {
     
     @Inject
     UserBean userBean;
+
+    @ConfigProperty(name = "vipslogic.messaging.sms.webhook.username")
+    String webhookUsername;
+
+    @ConfigProperty(name = "vipslogic.messaging.sms.webhook.password", defaultValue = "")
+    String webhookPassword;
 
     /**
      * Sample of incoming request: /rest/sms/vianett/customer_request
@@ -67,7 +74,7 @@ public class SMSHandlingService {
         ViaNettCustomerReply reply = new ViaNettCustomerReply();
         reply.setRefno(refno);
         reply.setErrorcode("0");
-        if(message !=null && sourceaddr != null && username!=null && username.equals("vianett") && password != null && password.equals("plantevern2016"))
+        if(message !=null && sourceaddr != null && username!=null && username.equals(webhookUsername) && password != null && password.equals(webhookPassword))
         {
             VipsLogicUser user = userBean.getUserByPhoneNumber(sourceaddr);
             if(user != null)

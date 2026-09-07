@@ -23,11 +23,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.Date;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.NonUniqueResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,10 +52,10 @@ import no.nibio.web.forms.FormValidator;
  */
 public class PublicUserController extends HttpServlet {
 
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     UserBean userBean;
     
     /**

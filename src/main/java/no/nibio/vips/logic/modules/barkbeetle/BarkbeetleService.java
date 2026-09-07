@@ -31,7 +31,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
-import org.jboss.resteasy.annotations.GZIP;
 
 import com.ibm.icu.util.Calendar;
 import com.webcohesion.enunciate.metadata.Facet;
@@ -130,7 +129,6 @@ public class BarkbeetleService {
     
     @GET
     @Path("batch/checkandsendtrapemptyingreminder")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response checkAndSendTrapEmptyingReminder(
     		@QueryParam("currentDate") String currentDateStr

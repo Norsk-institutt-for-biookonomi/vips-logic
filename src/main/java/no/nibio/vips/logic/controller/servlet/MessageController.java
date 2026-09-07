@@ -29,10 +29,9 @@ import org.apache.commons.fileupload2.core.DiskFileItemFactory;
 import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.fileupload2.core.FileUploadException;
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,16 +59,16 @@ import no.nibio.web.forms.FormValidator;
  */
 public class MessageController extends HttpServlet {
    
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     MessageBean messageBean;
     
-    @EJB
+    @Inject
     UserBean userBean;
     
-    @EJB
+    @Inject
     MessagingBean messagingBean;
     
     /** 
