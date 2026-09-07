@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -124,9 +125,24 @@ public class ForecastBean {
     }
 
     public List<ForecastResultDto> getForecastResultDtos(Long forecastConfigurationId) {
-        Query q = em.createNativeQuery("SELECT forecast_configuration_id, valid_time_start, valid_time_end, warning_status, all_values FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId", ForecastResultDto.class);
+        Query q = em.createNativeQuery("SELECT CAST(forecast_configuration_id AS bigint), CAST(forecast_result_id AS bigint),valid_time_start, valid_time_end, CAST(warning_status AS bigint), all_values FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId", ForecastResultDto.class);
         q.setParameter("forecastConfigurationId", forecastConfigurationId);
         return q.getResultList();
+    }
+
+    public List<ForecastResultDto> getForecastResultDtos(Long forecastConfigurationId, Integer latestDays) {
+        List<ForecastResultDto> allResults = this.getForecastResultDtos(forecastConfigurationId);
+        if(allResults == null || allResults.isEmpty()) {
+            return null;
+        }
+        Collections.sort(allResults);
+        ForecastResultDto mostRecentForecastResult = allResults.get(allResults.size()-1);
+
+        Instant latestDaysLimit = mostRecentForecastResult.getValidTimeStart().minus(Duration.ofDays(latestDays));
+        return allResults.stream()
+                .filter(result -> result.getValidTimeStart().isAfter(latestDaysLimit))
+                .collect(Collectors.toList());
+
     }
 
     /**

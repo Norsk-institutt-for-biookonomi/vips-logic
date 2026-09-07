@@ -271,7 +271,7 @@ public class LogicService {
     {
         if(forecastBean.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID))
         {
-            List<ForecastResult> results = forecastBean.getForecastResults(forecastConfigurationId, latestDays);
+            List<ForecastResultDto> results = forecastBean.getForecastResultDtos(forecastConfigurationId, latestDays);
             if(results == null)
             {
                 results = new ArrayList<>();
