@@ -38,10 +38,15 @@ public class VipsLogicConfig {
     @ConfigProperty(name = "vipslogic.server-name")
     String serverName;
 
+    @ConfigProperty(name = "vipslogic.md5-salt")
+    String md5Salt;
+
     void onStart(@Observes StartupEvent event) {
         Globals.PROTOCOL = protocol;
         Globals.SERVER_NAME = serverName;
-        LOG.infof("VIPSLogic config: protocol=%s serverName=%s", protocol, serverName);
+        System.setProperty("no.nibio.vips.logic.MD5_SALT", md5Salt);
+        LOG.infof("VIPSLogic config: protocol=%s serverName=%s md5SaltConfigured=%s",
+                protocol, serverName, md5Salt != null && !md5Salt.isBlank());
     }
 
     public String getProtocol() {

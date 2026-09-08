@@ -714,7 +714,7 @@ public class LogicService {
         else
         {
             List<Integer> cropOrganismIds = organismBean.getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = forecastBean.getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
+            Kml retVal = forecastBean.getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), Globals.SERVER_NAME, viewUser);
             return Response.ok().entity(retVal).build();
         }
     }
@@ -754,7 +754,7 @@ public class LogicService {
                 }
             }
             List<Integer> cropOrganismIds = organismBean.getCropCategoryOrganismIds(cropCategoryIds);
-            Kml retVal = forecastBean.getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), ServletUtil.getServerName(httpServletRequest), viewUser);
+            Kml retVal = forecastBean.getForecastsAggregateKml(organizationIds, cropOrganismIds, SystemTime.getSystemTime(), Globals.SERVER_NAME, viewUser);
             return Response.ok().entity(retVal).build();
         }
     }
