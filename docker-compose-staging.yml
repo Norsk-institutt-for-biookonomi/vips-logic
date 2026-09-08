@@ -38,7 +38,7 @@ services:
       VIPSLOGIC_SMS_PASSWORD: ${VIPSLOGIC_SMS_PASSWORD:-}
       VIPSLOGIC_SMS_SENDER_SRC: ${VIPSLOGIC_SMS_SENDER_SRC:-}
       VIPSLOGIC_TRAFFIC_LOG_DIRECTORY: ${VIPSLOGIC_TRAFFIC_LOG_DIRECTORY:-}
-      JAVA_OPTS_APPEND: "-Xms512m -Xmx4096m -XX:+UseG1GC"
+      JAVA_OPTS_APPEND: "-Xms512m -Xmx4096m"
     volumes:
       - /disks/data01/static/images/messages:/disks/data01/static/images/messages:ro
       - /disks/data01/static/images/observations:/disks/data01/static/images/observations:ro
