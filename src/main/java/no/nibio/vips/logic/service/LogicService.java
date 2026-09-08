@@ -789,7 +789,7 @@ public class LogicService {
             @PathParam("organizationId") Integer organizationId
     )
     {
-        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
+        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, Globals.SERVER_NAME, SessionLocaleUtil.getI18nBundle(httpServletRequest), PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
         return Response.ok().entity(retVal).build();
     }
     
@@ -810,7 +810,7 @@ public class LogicService {
             @PathParam("organizationId") Integer organizationId
     )
     {
-        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludePoiId, highlightPoiId, ServletUtil.getServerName(httpServletRequest), SessionLocaleUtil.getI18nBundle(httpServletRequest), null);
+        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludePoiId, highlightPoiId, Globals.SERVER_NAME, SessionLocaleUtil.getI18nBundle(httpServletRequest), null);
         return Response.ok().entity(retVal).build();
     }
     

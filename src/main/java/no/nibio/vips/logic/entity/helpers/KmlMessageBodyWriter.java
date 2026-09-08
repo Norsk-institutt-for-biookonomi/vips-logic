@@ -20,7 +20,13 @@ public class KmlMessageBodyWriter implements MessageBodyWriter<Kml> {
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, 
                                Annotation[] annotations, MediaType mediaType) {
-        return Kml.class.isAssignableFrom(type);
+        if (!Kml.class.isAssignableFrom(type)) {
+            return false;
+        }
+        if (mediaType == null) {
+            return true;
+        }
+        return mediaType.isCompatible(MediaType.valueOf("application/vnd.google-earth.kml+xml"));
     }
 
     @Override

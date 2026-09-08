@@ -62,6 +62,7 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -109,6 +110,9 @@ public class ObservationService {
     MessagingBean messagingBean;
     @Context
     private HttpServletRequest httpServletRequest;
+
+    @Context
+    private HttpHeaders httpHeaders;
 
     /*
      * PostGIS tip:
@@ -573,7 +577,7 @@ public class ObservationService {
         @QueryParam("observationIds") String observationIds
     ) {
         try {
-            VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+            VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
             if (user != null) {
                 List<Observation> allObs = observationBean.getObservationsForUser(user);
                 if (observationIds != null) {
@@ -609,7 +613,7 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ObservationSyncInfo[].class)
     public Response getMinimizedObservationsForUser() {
-        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user != null) {
             return Response.ok().entity(observationBean.getObservationsForUser(user).stream()
                 .map(obs -> new ObservationSyncInfo(obs)).collect(Collectors.toList())).build();
@@ -771,7 +775,7 @@ public class ObservationService {
             // Allow for UUID login
             if(user == null)
             {
-                user = userBean.getUserFromUUID(httpServletRequest);
+                user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
             }
             // If no user, send error message back to client
             if (user == null) {
@@ -987,7 +991,7 @@ public class ObservationService {
         String observationJson
     ) {
         try {
-            VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+            VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
             if (user == null) {
                 LOGGER.warn("Unable to get user from UUID");
                 return Response.status(Status.UNAUTHORIZED).build();

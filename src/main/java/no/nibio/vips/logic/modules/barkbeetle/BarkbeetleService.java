@@ -42,8 +42,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
-import no.nibio.vips.util.ServletUtil;
 
 /**
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
@@ -68,7 +68,7 @@ public class BarkbeetleService {
             @PathParam("season") Integer season,
             @QueryParam("excludeSeasonTrapsiteId") Integer excludeSeasonTrapsiteId)
     {
-        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesKml(season, excludeSeasonTrapsiteId, ServletUtil.getServerName(httpServletRequest))).build();
+        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesKml(season, excludeSeasonTrapsiteId, Globals.SERVER_NAME)).build();
     }
     
     @GET
@@ -78,7 +78,7 @@ public class BarkbeetleService {
             @PathParam("season") Integer season
             )
     {
-        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesStatusKml(season, ServletUtil.getServerName(httpServletRequest))).build();
+        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesStatusKml(season, Globals.SERVER_NAME)).build();
     }
     
     @GET

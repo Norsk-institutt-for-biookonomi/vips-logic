@@ -72,6 +72,9 @@ public class POIService {
     @Context
     private HttpServletRequest httpServletRequest;
 
+    @Context
+    private HttpHeaders httpHeaders;
+
     @Inject
     PointOfInterestBean pointOfInterestBean;
 
@@ -121,7 +124,7 @@ public class POIService {
             return Response.status(Status.BAD_REQUEST).entity("Unable to parse input").build();
         }
 
-        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user == null) {
             LOGGER.error("No user found for UUID in Authorization");
             return Response.status(Status.UNAUTHORIZED).build();
@@ -229,15 +232,9 @@ public class POIService {
     @Facet("restricted")
     @TypeHint(PointOfInterest[].class)
     public Response getPoisForCurrentUser() {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        // Could be the VIPS obs app or some other client using UUID
+        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user == null) {
-            String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-            UUID uuid = UUID.fromString(uuidStr);
-            user = userBean.findVipsLogicUser(uuid);
-            if (user == null) {
-                return Response.status(Status.UNAUTHORIZED).build();
-            }
+            return Response.status(Status.UNAUTHORIZED).build();
         }
         List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
         return Response.ok().entity(retVal).build();
@@ -255,15 +252,9 @@ public class POIService {
     @Facet("restricted")
     @TypeHint(PointOfInterest[].class)
     public Response getWeatherStationsForCurrentUser() {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        // Could be the VIPS obs app or some other client using UUID
+        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user == null) {
-            String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-            UUID uuid = UUID.fromString(uuidStr);
-            user = userBean.findVipsLogicUser(uuid);
-            if (user == null) {
-                return Response.status(Status.UNAUTHORIZED).build();
-            }
+            return Response.status(Status.UNAUTHORIZED).build();
         }
         List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user).stream()
             .filter(poi->poi instanceof PointOfInterestWeatherStation)
@@ -286,7 +277,7 @@ public class POIService {
     public Response syncPOIFromApp(
             String poiJson
     ) {
-        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user == null) {
             return Response.status(Status.UNAUTHORIZED).build();
         }

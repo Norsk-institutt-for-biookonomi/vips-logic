@@ -122,13 +122,8 @@ public class ObservationBean {
     }
 
     public List<Observation> getObservations(Integer organizationId, Integer statusTypeId) {
-        Organization organization = em.find(Organization.class, organizationId);
-        /*List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
-                                        .setParameter("organizationId", organization)
-                                        .getResultList();*/
-
         List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeId")
-                .setParameter("organizationId", organization)
+                .setParameter("organizationId", organizationId)
                 .setParameter("statusTypeId", statusTypeId)
                 .getResultList());
 

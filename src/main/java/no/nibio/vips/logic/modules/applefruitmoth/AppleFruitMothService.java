@@ -31,8 +31,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
-import no.nibio.vips.util.ServletUtil;
 
 /**
  * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
@@ -71,7 +71,7 @@ public class AppleFruitMothService {
             @QueryParam("onlyPubliclyAvailable") Boolean onlyPubliclyAvailable
     )
     {
-        Kml retVal = appleFruitMothBean.getObservationSitesKml(season, selectedObservationSiteId, ServletUtil.getServerName(httpServletRequest), onlyPubliclyAvailable);
+        Kml retVal = appleFruitMothBean.getObservationSitesKml(season, selectedObservationSiteId, Globals.SERVER_NAME, onlyPubliclyAvailable);
         return Response.ok().entity(retVal).build();
     }
     
