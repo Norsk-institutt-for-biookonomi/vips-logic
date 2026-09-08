@@ -1,7 +1,4 @@
-# Ignore migration files - we use direct database import instead
-src/main/resources/db/migration/
-
-# Ignore other build artifacts
+# Ignore build artifacts
 target/
 *.log
 *.tmp
@@ -21,11 +18,13 @@ Thumbs.db
 .git/
 .gitignore
 
-# Ignore documentation
+# Ignore documentation (not needed in image)
 README.md
 DOCKER_SETUP.md
 docs/
 
-# Ignore test files
+# Ignore test sources (not needed in runtime image)
 src/test/
 
+# Maven settings cloned in CI only
+ci_settings.xml
