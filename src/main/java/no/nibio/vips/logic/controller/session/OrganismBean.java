@@ -49,6 +49,7 @@ import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.OrganismExternalResource;
 import no.nibio.vips.logic.entity.OrganismLocale;
 import no.nibio.vips.logic.entity.OrganismLocalePK;
+import no.nibio.vips.logic.organism.OrganismService;
 import no.nibio.vips.logic.util.HierarchyCategoryLocaleNames;
 
 /**
@@ -61,6 +62,9 @@ public class OrganismBean {
     @Inject
     EntityManager em;
 
+    @Inject
+    OrganismService organismService;
+
    
     /**
      * 
@@ -68,22 +72,7 @@ public class OrganismBean {
      * @return All child nodes of given organism, organized in tree
      */
     public List<Organism> getOrganismSubTree(Integer parentOrganismId){
-        List<Organism> retVal;
-        if(parentOrganismId == null)
-        {
-            retVal = em.createNativeQuery("SELECT * FROM Organism o WHERE o.parent_organism_id IS NULL", Organism.class).getResultList();
-        }
-        else
-        {
-            retVal = em.createNamedQuery("Organism.findByParentOrganismId").setParameter("parentOrganismId", parentOrganismId).getResultList();
-        }
-         
-        for(Organism organism : retVal)
-        {
-            organism.setChildOrganisms(this.getOrganismSubTree(organism.getOrganismId()));
-        }
-        return retVal;
-        
+        return organismService.getSubTree(parentOrganismId);
     }
     
     /**
@@ -275,12 +264,12 @@ public class OrganismBean {
     
     public List<Organism> getAllCrops()
     {
-        return em.createNamedQuery("Organism.findAllCrops").getResultList();
+        return organismService.findAllCrops();
     }
     
     public List<Organism> getAllPests()
     {
-        return em.createNamedQuery("Organism.findAllPests").getResultList();
+        return organismService.findAllPests();
     }
     
     public Map<Integer, Organism> getAllCropsMapped()
@@ -318,12 +307,7 @@ public class OrganismBean {
     
     public Map<String, CropPest> getCropPestsMapped()
     {
-        List<CropPest> cropPests = em.createNamedQuery("CropPest.findAll").getResultList();
-        Map<String, CropPest> retVal = new HashMap<>();
-        cropPests.forEach((cPest) -> {
-            retVal.put(String.valueOf(cPest.getCropOrganismId()), cPest);
-        });
-        return retVal;
+        return organismService.getCropPestsMapped();
     }
     
     /**
@@ -369,9 +353,7 @@ public class OrganismBean {
      */
     public List<Organism> getCropPests(Integer cropOrganismId)
     {
-    	return em.createNativeQuery("SELECT DISTINCT * FROM public.organism WHERE organism_id = ANY ((SELECT pest_organism_ids FROM public.crop_pest where crop_organism_id = :cropOrganismId)\\:\\:int[])", Organism.class)
-                .setParameter("cropOrganismId", cropOrganismId)
-                .getResultList();
+        return organismService.findPestsByCropOrganismId(cropOrganismId);
     }
     
     
@@ -383,28 +365,7 @@ public class OrganismBean {
      */
     public CropPest getCropPestRecursive(Integer cropOrganismId, boolean isPrimaryCrop)
     {
-        // Try to find a cropPest for this crop
-        CropPest cropPest = this.getCropPest(cropOrganismId);
-        // If found AND either it is the primary crop OR it's a parent set to include all child crops
-        // we return it
-        if(cropPest != null && (isPrimaryCrop || cropPest.getIncludeAllChildCrops()))
-        {
-            return cropPest;
-        }
-        // If not, check if parent crop exists and keep on searching
-        // (If no parent crop, we're done and return empty handed)
-        else
-        {
-            Organism o = em.find(Organism.class, cropOrganismId);
-            if(o.getParentOrganismId() != null)
-            {
-                return this.getCropPestRecursive(o.getParentOrganismId(), false);
-            }
-            else
-            {
-                return null;
-            }
-        }
+        return organismService.getCropPestRecursive(cropOrganismId, isPrimaryCrop);
     }
     
     public CropPest storeCropPest(CropPest cropPest)
@@ -429,16 +390,7 @@ public class OrganismBean {
     
     public List<CropCategory> getCropCategories(Integer organizationId)
     {
-        try
-        {
-            return em.createNamedQuery("CropCategory.findByOrganizationId")
-                    .setParameter("organizationId", organizationId)
-                    .getResultList();
-        }
-        catch(NoResultException ex)
-        {
-            return new ArrayList<>();
-        }
+        return organismService.getCropCategories(organizationId);
     }
 
     public Organism getOrganismByLatinName(String latinName) {
@@ -514,14 +466,11 @@ public class OrganismBean {
     }
 
     public List<Organism> findOrganismsByLatinNames(List<String> latinNames) {
-        return em.createNamedQuery("Organism.findByLatinNames").setParameter("latinNames", latinNames).getResultList();
+        return organismService.findByLatinNames(latinNames);
     }
 
     public List<Organism> findOrganismsByLocalNames(List<String> localNames, String locale) {
-        return em.createNamedQuery("Organism.findByLocalNames")
-                .setParameter("localNames", localNames)
-                .setParameter("locale", locale)
-                .getResultList();
+        return organismService.findByLocalNames(localNames, locale);
     }
     
     /**
