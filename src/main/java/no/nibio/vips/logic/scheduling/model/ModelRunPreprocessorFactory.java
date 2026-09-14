@@ -21,14 +21,19 @@ package no.nibio.vips.logic.scheduling.model;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.DotName;
-import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
+import org.jboss.jandex.IndexView;
 
 /**
  * Returns the appropriate factory for the given model
@@ -59,28 +64,46 @@ public class ModelRunPreprocessorFactory {
         if(modelRunPreprocessors == null)
         {
             modelRunPreprocessors = new HashMap<>();
-            try (InputStream indexStream = ModelRunPreprocessorFactory.class.getClassLoader()
-                    .getResourceAsStream("META-INF/jandex.idx")) {
-                if (indexStream == null) {
-                    throw new IllegalStateException("Jandex index not found on classpath");
-                }
-                Index index = new IndexReader(indexStream).read();
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            if (classLoader == null) {
+                classLoader = ModelRunPreprocessorFactory.class.getClassLoader();
+            }
+            try {
+                IndexView index = loadCompositeJandexIndex(classLoader);
                 DotName preprocessorName = DotName.createSimple(ModelRunPreprocessor.class.getName());
                 for (ClassInfo classInfo : index.getAllKnownSubclasses(preprocessorName)) {
-                    Class<? extends ModelRunPreprocessor> subType =
-                            (Class<? extends ModelRunPreprocessor>) Class.forName(classInfo.name().toString());
                     try {
+                        Class<? extends ModelRunPreprocessor> subType =
+                                (Class<? extends ModelRunPreprocessor>) Class.forName(
+                                        classInfo.name().toString(), true, classLoader);
                         modelRunPreprocessors.put(
                                 subType.getDeclaredConstructor().newInstance().getModelId(), subType);
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException
-                            | NoSuchMethodException ex) {
+                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+                            | InvocationTargetException | NoSuchMethodException ex) {
                         Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-            } catch (IOException | ClassNotFoundException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return modelRunPreprocessors;
+    }
+
+    private static IndexView loadCompositeJandexIndex(ClassLoader classLoader) throws IOException {
+        List<IndexView> indexes = new ArrayList<>();
+        Enumeration<URL> resources = classLoader.getResources("META-INF/jandex.idx");
+        while (resources.hasMoreElements()) {
+            URL url = resources.nextElement();
+            try (InputStream indexStream = url.openStream()) {
+                indexes.add(new IndexReader(indexStream).read());
+            } catch (IOException ex) {
+                Logger.getLogger(ModelRunPreprocessorFactory.class.getName()).log(Level.WARNING, "Skipping unreadable Jandex index " + url, ex);
+            }
+        }
+        if (indexes.isEmpty()) {
+            throw new IllegalStateException("Jandex index not found on classpath");
+        }
+        return indexes.size() == 1 ? indexes.get(0) : CompositeIndex.create(indexes);
     }
 }
