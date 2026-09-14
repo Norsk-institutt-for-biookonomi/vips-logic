@@ -23,7 +23,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -65,15 +64,12 @@ import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.dto.ForecastConfigurationDto;
 import no.nibio.vips.logic.dto.ForecastResultDto;
-import no.nibio.vips.logic.entity.CropCategory;
-import no.nibio.vips.logic.entity.CropPest;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.ModelInformation;
-import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.UserAuthentication;
@@ -83,7 +79,6 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
-import no.nibio.vips.observationdata.ObservationDataBean;
 import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.ServletUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
@@ -110,8 +105,6 @@ public class LogicService {
     PointOfInterestBean pointOfInterestBean;
     @Inject
     MessageBean messageBean;
-    @Inject
-    ObservationDataBean observationDataBean;
     
 
     private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(LogicService.class);
@@ -817,128 +810,6 @@ public class LogicService {
     
     /**
      * 
-     * @return A list of all organisms (pests and crops)
-     */
-    @GET
-    @Path("organism/list")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(Organism[].class)
-    public Response getOrganismList()
-    {
-        List<Organism> organismList = organismBean.getOrganismSubTree(null);
-        return Response.ok().entity(organismList).build();
-    }
-    
-    /**
-     * Look up (an) organism(s) by its/their latin name(s)
-     * @param keywords comma separated list of latin names
-     * @return List of matching organisms (pests and crops)
-     */
-    @GET
-    @Path("organism/search/latinnames")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(Organism[].class)
-    public Response findOrganismsByLatinNames(@QueryParam("keywords") String keywords)
-    {
-        List<String> latinNames = Arrays.asList(keywords.split(","));
-        List<Organism> organismList = organismBean.findOrganismsByLatinNames(latinNames);
-        return Response.ok().entity(organismList).build();
-    }
-    
-    /**
-     * Look up organisms by local names
-     * @param locale two-letter language code
-     * @param keywords Comma separated list of local name
-     * @return List of matching organisms (pests and crops)
-     */
-    @GET
-    @Path("organism/search/localnames/{locale}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(Organism[].class)
-    public Response findOrganismsByLocalNames(
-            @PathParam("locale") String locale,
-            @QueryParam("keywords") String keywords
-    )
-    {
-        List<String> localNames = Arrays.asList(keywords.split(",")).stream().map(String::trim).collect(Collectors.toList());
-        List<Organism> organismList = organismBean.findOrganismsByLocalNames(localNames, locale);
-        return Response.ok().entity(organismList).build();
-    }
-    
-    /**
-     * Get a list of all crops
-     * @return A list of all crops
-     */
-    @GET
-    @Path("organism/crop/list")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(Organism[].class)
-    public Response getCropOrganismList()
-    {
-        List<Organism> organismList = organismBean.getAllCrops();
-        return Response.ok().entity(organismList).build();
-    }
-    
-    /**
-     * Get a list of all pests, OR if cropOrganismId is specified,
-     * get a list of all pests that are connected with this crop
-     * @param cropOrganismId optional if set, only pests for this crop are returned
-     * @param organizationId optional if set, observation data schemas are added
-     * @return 
-     */
-    @GET
-    @Path("organism/pest/list")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(Organism[].class)
-    public Response getPestOrganismList(
-    		@Context jakarta.ws.rs.core.HttpHeaders httpHeaders,
-    		@QueryParam("cropOrganismId") Integer cropOrganismId,
-    		@QueryParam("organizationId") Integer organizationId
-    		)
-    {
-    	List<Organism> organismList;
-    	if(cropOrganismId == null)
-    	{
-    		organismList = organismBean.getAllPests();
-    	}
-    	else
-    	{
-    		organismList = organismBean.getCropPests(cropOrganismId);
-    	}
-    	if(organizationId != null)
-    	{
-    		VipsLogicUser user = userBean.getUserFromAuthorizationHeader(
-                    httpHeaders != null ? httpHeaders.getHeaderString(jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION) : null);
-            
-            
-    		ULocale locale = new ULocale(
-            	user != null ? user.getOrganizationId().getDefaultLocale() : 
-            		userBean.getOrganization(organizationId).getDefaultLocale());
-    		organismList = observationDataBean.decoratePestsWithOrganismDataSchema(organismList, organizationId, locale);
-    	}
-        return Response.ok().entity(organismList).build();
-    }
-    
-    /**
-     * Returns a list of all Crop ids with connected
-     * pest ids as arrays.
-     * @return 
-     */
-    @GET
-    @Path("organism/crop/pest/list")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    public Response getCropPestList(
-    		)
-    {
-        return Response.ok().entity(organismBean.getCropPestsMapped()).build();
-    }
-    
-    /**
-     * 
      * @param messageId the ID of the news message
      * @return a news message
      */
@@ -1229,51 +1100,6 @@ public class LogicService {
         catch(IllegalArgumentException ex)
         {
             return Response.serverError().entity(ex.getMessage()).build();
-        }
-    }
-    
-    /**
-     * 
-     * @param cropOrganismId ID of the crop
-     * @return list of pests associated with the given crop
-     */
-    @GET
-    @Path("organism/croppest/{cropOrganismId}")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(CropPest.class)
-    public Response getCropPest(@PathParam("cropOrganismId") Integer cropOrganismId)
-    {
-        CropPest retVal = organismBean.getCropPestRecursive(cropOrganismId,true);
-        if(retVal != null)
-        {
-            return Response.ok().entity(retVal).build();
-        }
-        else
-        {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
-    }
-    
-    /**
-     * 
-     * @param organizationId
-     * @return List of crop categories for a given organization
-     */
-    @GET
-    @Path("organism/cropcategory/{organizationId}")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(CropCategory[].class)
-    public Response getCropCategories(@PathParam("organizationId") Integer organizationId)
-    {
-        if(organizationId != null)
-        {
-            return Response.ok().entity(organismBean.getCropCategories(organizationId)).build();
-        }
-        else
-        {
-            return Response.noContent().build();
         }
     }
     
