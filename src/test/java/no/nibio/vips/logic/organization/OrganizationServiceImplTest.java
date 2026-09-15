@@ -16,22 +16,22 @@
  */
 package no.nibio.vips.logic.organization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.List;
 import no.nibio.vips.logic.entity.Organization;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OrganizationServiceImplTest {
 
     @Mock
@@ -39,7 +39,7 @@ public class OrganizationServiceImplTest {
 
     private OrganizationServiceImpl organizationService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         organizationService = new OrganizationServiceImpl(organizationRepository);
     }

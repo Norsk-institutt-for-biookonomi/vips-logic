@@ -16,7 +16,7 @@
  */
 package no.nibio.vips.logic.organization.jpa;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,13 +24,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
 import no.nibio.vips.logic.entity.Organization;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class JpaOrganizationRepositoryTest {
 
     @Mock
@@ -41,7 +41,7 @@ public class JpaOrganizationRepositoryTest {
 
     private JpaOrganizationRepository repository;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         repository = new JpaOrganizationRepository(em);
     }
