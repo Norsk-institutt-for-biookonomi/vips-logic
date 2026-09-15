@@ -54,6 +54,7 @@ import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.MessagingBean;
+import no.nibio.vips.logic.organization.OrganizationService;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
@@ -88,6 +89,9 @@ public class UserBean {
 
     @Inject
     EntityManager em;
+
+    @Inject
+    OrganizationService organizationService;
 
     @Inject
     ForecastBean forecastBean;
@@ -428,7 +432,7 @@ public class UserBean {
     
     public List<Organization> getOrganizations()
     {
-        return em.createNamedQuery("Organization.findAll").getResultList();
+        return organizationService.findAll();
     }
     
     /**
@@ -581,7 +585,7 @@ public class UserBean {
     
     public Organization getOrganization(Integer organizationId)
     {
-        return em.find(Organization.class, organizationId);
+        return organizationService.findById(organizationId);
     }
     
     /**

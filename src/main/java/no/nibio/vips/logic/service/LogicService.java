@@ -1104,24 +1104,6 @@ public class LogicService {
     }
     
     @GET
-    @Path("organization")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(Organization[].class)
-    public Response getOrganizations()
-    {
-        return Response.ok().entity(userBean.getOrganizations()).build();
-    }
-
-    @GET
-    @Path("organization/{organizationId}")
-    @Produces("application/json;charset=UTF-8")
-    @TypeHint(Organization[].class)
-    public Response getOrganizations(@PathParam("organizationId") Integer organizationId)
-    {
-        return Response.ok().entity(userBean.getOrganization(organizationId)).build();
-    }
-    
-    @GET
     @Path("model/{modelId}")
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ModelInformation.class)
