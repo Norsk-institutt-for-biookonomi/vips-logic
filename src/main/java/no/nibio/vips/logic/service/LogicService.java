@@ -58,7 +58,6 @@ import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.controller.session.DeleteUserException;
 import no.nibio.vips.logic.controller.session.ForecastBean;
-import no.nibio.vips.logic.controller.session.MessageBean;
 import no.nibio.vips.logic.controller.session.OrganismBean;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
 import no.nibio.vips.logic.controller.session.UserBean;
@@ -67,8 +66,6 @@ import no.nibio.vips.logic.dto.ForecastResultDto;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastModelConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
-import no.nibio.vips.logic.entity.Message;
-import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.ModelInformation;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterestType;
@@ -103,8 +100,6 @@ public class LogicService {
     OrganismBean organismBean;
     @Inject
     PointOfInterestBean pointOfInterestBean;
-    @Inject
-    MessageBean messageBean;
     
 
     private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(LogicService.class);
@@ -807,105 +802,6 @@ public class LogicService {
         return Response.ok().entity(retVal).build();
     }
     
-    
-    /**
-     * 
-     * @param messageId the ID of the news message
-     * @return a news message
-     */
-    @GET
-    @Path("message/{messageId}")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(Message.class)
-    public Response getMessage(@PathParam("messageId") Integer messageId)
-    {
-        Message message = messageBean.getMessage(messageId);
-        if(message != null)
-        {
-            return Response.ok().entity(message).build();
-        }
-        return Response.status(Status.NOT_FOUND).build();
-    }
-    
-    /**
-     * 
-     * @param publishedFrom Format "yyyy-MM-dd"
-     * @param publishedTo Format "yyyy-MM-dd"
-     * @param locale two letter language code for preferred language version (if it exists)
-     * @param organizationId The organization for which to get messages
-     * @return a list of news messages, filtered by the parameters given
-     */
-    @GET
-    @Path("message/list/{organizationId}")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(Message[].class)
-    public Response getMessageList(
-            @QueryParam("publishedFrom") String publishedFrom , @QueryParam("publishedTo") String publishedTo,
-            @QueryParam("locale") String locale,
-            @PathParam("organizationId") Integer organizationId
-    )
-    {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        try
-        {
-            Date datePublishedFrom;// = publishedFrom == null ? SystemTime.getSystemTime() : format.parse(publishedFrom);
-            Date datePublishedTo;// = publishedTo == null ? SystemTime.getSystemTime() : format.parse(publishedTo);
-            if(publishedFrom == null && publishedTo == null)
-            {
-                datePublishedFrom = SystemTime.getSystemTime();
-                datePublishedTo = datePublishedFrom;
-            }
-            else
-            {
-                datePublishedFrom = publishedFrom == null ? null : format.parse(publishedFrom);
-                datePublishedTo = publishedTo == null ? null : format.parse(publishedTo);
-            }
-            
-            List<Message> messageList = messageBean.getMessageList(organizationId, datePublishedFrom, datePublishedTo);
-            return Response.ok().entity(messageList).build();
-        }
-        catch(ParseException ex){
-            return Response.serverError().entity(ex.getMessage()).build();
-        }
-    }
-    
-    /**
-     * 
-     * @param tagIds comma separated list of tagIds to filter the news messages
-     * Use the messagetag/list endpoint to see what tags are available
-     * @param organizationId The organization for which to get messages
-     * @return a list of news messages, filtered by the parameters given
-     */
-    @GET
-    @Path("message/list/{organizationId}/tagfilter")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(Message[].class)
-    public Response getMessageListWithTags(
-            @QueryParam("tagId") List<Integer> tagIds, 
-            @PathParam("organizationId") Integer organizationId
-    )
-    {
-        List<Message> messageListWithTags = messageBean.getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
-        return Response.ok().entity(messageListWithTags).build();
-    }
-    
-    /**
-     * 
-     * @return a list of available message tags (for filtering messages)
-     */
-    @GET
-    @Path("messagetag/list")
-    @Produces("application/json;charset=UTF-8")
-    @Facet("restricted")
-    @TypeHint(MessageTag[].class)
-    public Response getMessageTagList()
-    {
-        List<MessageTag> messageTags = messageBean.getMessageTagList();
-        return Response.ok().entity(messageTags).build();
-    }
     
     /**
      * Not ready for production use!
