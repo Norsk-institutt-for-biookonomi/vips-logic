@@ -1204,17 +1204,15 @@ public class ForecastBean {
                 continue;
             }
             mappedForecastConfigurations.put(forecastConfiguration.getForecastConfigurationId(), forecastConfiguration);
+        }
+        if (!mappedForecastConfigurations.isEmpty()) {
             Query q = em.createNativeQuery(
-                    "SELECT * FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId "
-                            + "AND valid_time_start = (SELECT max(valid_time_start) FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId)",
+                    "SELECT DISTINCT ON (forecast_configuration_id) * FROM forecast_result "
+                            + "WHERE forecast_configuration_id IN (:forecastConfigurationIds) "
+                            + "ORDER BY forecast_configuration_id, valid_time_start DESC",
                     ForecastResult.class);
-            q.setParameter("forecastConfigurationId", forecastConfiguration.getForecastConfigurationId());
-            try {
-                results.add((ForecastResult) q.getSingleResult());
-            } catch (NoResultException ex) {
-                // This means that the forecast exists, but that there have not been any valid forecast results created
-                // For example, it might be too early to start any calculation
-            }
+            q.setParameter("forecastConfigurationIds", mappedForecastConfigurations.keySet());
+            results.addAll(q.getResultList());
         }
 
         retVal.put("forecastConfigurations", mappedForecastConfigurations);

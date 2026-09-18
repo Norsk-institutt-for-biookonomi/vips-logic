@@ -44,6 +44,10 @@ public class SessionLocaleUtil {
      * @return 
      */
     public static ULocale getCurrentLocale(HttpServletRequest request){
+        return resolveLocale(request);
+    }
+
+    public static ULocale getStoredLocale(HttpServletRequest request) {
         return getSessionAttribute(request, ATTRIBUTE_CURRENT_LOCALE, ULocale.class);
     }
     /**
@@ -81,7 +85,7 @@ public class SessionLocaleUtil {
         }
 
         try {
-            ULocale sessionLocale = getCurrentLocale(request);
+            ULocale sessionLocale = getStoredLocale(request);
             if (sessionLocale != null) {
                 return sessionLocale;
             }
