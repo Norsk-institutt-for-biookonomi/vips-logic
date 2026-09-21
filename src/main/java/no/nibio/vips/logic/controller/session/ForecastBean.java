@@ -23,8 +23,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -33,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -68,6 +65,7 @@ import no.nibio.vips.entity.ModelRunRequest;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.logic.dto.ForecastConfigurationDto;
 import no.nibio.vips.logic.dto.ForecastResultDto;
+import no.nibio.vips.logic.forecast.ForecastService;
 import no.nibio.vips.logic.dto.PointOfInterestDto;
 import no.nibio.vips.logic.dto.PointOfInterestExternalResourceDto;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
@@ -106,7 +104,7 @@ public class ForecastBean {
     EntityManager em;
 
     @Inject
-    UserBean userBean;
+    ForecastService forecastService;
 
     /**
      * Returns all forecast results.
@@ -118,31 +116,16 @@ public class ForecastBean {
     }
 
     public List<ForecastResult> getForecastResults(Long forecastConfigurationId) {
-        // ForecastConfiguration config = this.getForecastConfiguration(forecastConfigurationId);
-        Query q = em.createNamedQuery("ForecastResult.findByForecastConfigurationId");
-        q.setParameter("forecastConfigurationId", forecastConfigurationId);
-        return q.getResultList();
+        return forecastService.getForecastResults(forecastConfigurationId);
     }
 
     public List<ForecastResultDto> getForecastResultDtos(Long forecastConfigurationId) {
-        Query q = em.createNativeQuery("SELECT CAST(forecast_configuration_id AS bigint), CAST(forecast_result_id AS bigint),valid_time_start, valid_time_end, CAST(warning_status AS bigint), all_values FROM forecast_result WHERE forecast_configuration_id = :forecastConfigurationId", ForecastResultDto.class);
-        q.setParameter("forecastConfigurationId", forecastConfigurationId);
-        return q.getResultList();
+        return forecastService.getForecastResultDtos(forecastConfigurationId);
     }
 
     public List<ForecastResultDto> getForecastResultDtos(Long forecastConfigurationId, Integer latestDays) {
-        List<ForecastResultDto> allResults = this.getForecastResultDtos(forecastConfigurationId);
-        if(allResults == null || allResults.isEmpty()) {
-            return null;
-        }
-        Collections.sort(allResults);
-        ForecastResultDto mostRecentForecastResult = allResults.get(allResults.size()-1);
-
-        Instant latestDaysLimit = mostRecentForecastResult.getValidTimeStart().minus(Duration.ofDays(latestDays));
-        return allResults.stream()
-                .filter(result -> result.getValidTimeStart().isAfter(latestDaysLimit))
-                .collect(Collectors.toList());
-
+        List<ForecastResultDto> results = forecastService.getForecastResultDtos(forecastConfigurationId, latestDays);
+        return results == null || results.isEmpty() ? null : results;
     }
 
     /**
@@ -165,23 +148,7 @@ public class ForecastBean {
 
     // TODO: ForecastConfiguration entity is huge. Pull only the relevant values.
     public boolean isUserAuthorizedForForecastConfiguration(Long forecastConfigurationId, String userUUID) {
-        // Authentication
-        //ForecastConfiguration fc = em.find(ForecastConfiguration.class, forecastConfigurationId);
-        ForecastConfigurationDto fc = this.getForecastConfigurationDto(forecastConfigurationId);
-        if (fc == null) {
-            return true;
-        }
-        if (fc.getIsPrivate()) {
-            if (userUUID == null) {
-                return false;
-            }
-            UUID uUUID = UUID.fromString(userUUID);
-            VipsLogicUser user = userBean.findVipsLogicUser(uUUID);
-            if (user == null || !user.getUserId().equals(fc.getVipsLogicUserId())) {
-                return false;
-            }
-        }
-        return true;
+        return forecastService.isUserAuthorizedForForecastConfiguration(forecastConfigurationId, userUUID);
     }
 
     public List<ForecastResult> getForecastResults(Long forecastConfigurationId, Integer latestDays) {
@@ -199,15 +166,7 @@ public class ForecastBean {
     }
 
     public List<ForecastResult> getForecastResults(Long forecastConfigurationId, Date timeStart, Date timeEnd) {
-        Query q = em.createNamedQuery("ForecastResult.findByForecastConfigurationIdAndPeriod");
-        q.setParameter("forecastConfigurationId", forecastConfigurationId);
-        q.setParameter("timeStart", timeStart);
-        q.setParameter("timeEnd", timeEnd);
-        try {
-            return q.getResultList();
-        } catch (NoResultException ex) {
-            return null;
-        }
+        return forecastService.getForecastResults(forecastConfigurationId, timeStart, timeEnd);
     }
 
     public ForecastResult getMostRecentForecastResult(Long forecastConfigurationId) {
@@ -270,21 +229,13 @@ public class ForecastBean {
      * @return
      */
     public List<ForecastConfiguration> getPrivateForecastConfigurationsForUser(Integer userId) {
-        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
-        Query q = em.createNamedQuery("ForecastConfiguration.findPrivateByVipsLogicUserId");
-        q.setParameter("vipsLogicUserId", user);
-        return q.getResultList();
+        return forecastService.getPrivateForecastConfigurationsForUser(userId);
     }
 
 
 
     public List<ForecastConfiguration> getForecastConfigurationsForUserAndDate(Integer userId, Date from, Date to) {
-        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
-        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdAndDate");
-        q.setParameter("vipsLogicUserId", user);
-        q.setParameter("from", from);
-        q.setParameter("to", to);
-        return q.getResultList();
+        return forecastService.getForecastConfigurationsForUserAndDate(userId, from, to);
     }
 
     public List<ForecastConfiguration> getForecastConfigurationsForUserAndCrops(Integer userId,
@@ -298,13 +249,7 @@ public class ForecastBean {
 
     public List<ForecastConfiguration> getForecastConfigurationsForUserAndCropsAndDate(Integer userId,
             List<Integer> cropOrganismIds, Date from, Date to) {
-        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
-        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismIdsAndDate");
-        q.setParameter("vipsLogicUserId", user);
-        q.setParameter("cropOrganismIds", cropOrganismIds);
-        q.setParameter("from", from);
-        q.setParameter("to", to);
-        return q.getResultList();
+        return forecastService.getForecastConfigurationsForUserAndCropsAndDate(userId, cropOrganismIds, from, to);
     }
 
 
@@ -379,22 +324,7 @@ public class ForecastBean {
     }
 
     public List<ForecastConfiguration> getForecastConfigurations(List<Integer> organizationIds, Date from, Date to) {
-        List<VipsLogicUser> organizationUsers = em
-                .createNamedQuery("VipsLogicUser.findByOrganizationIds")
-                .setParameter("organizationIds", organizationIds)
-                .getResultList();
-
-
-        if (!organizationUsers.isEmpty()) {
-            return em
-                    .createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdsAndDate")
-                    .setParameter("vipsLogicUserIds", organizationUsers)
-                    .setParameter("from", from)
-                    .setParameter("to", to)
-                    .getResultList();
-        } else {
-            return new ArrayList<>();
-        }
+        return forecastService.getForecastConfigurations(organizationIds, from, to);
     }
 
     public List<ForecastConfiguration> getForecastConfigurationsByWeatherStation(
@@ -462,14 +392,7 @@ public class ForecastBean {
      * @return
      */
     public ForecastConfiguration getForecastConfiguration(Long forecastConfigurationId) {
-        try
-        {
-            return em.createNamedQuery("ForecastConfiguration.findByForecastConfigurationId", ForecastConfiguration.class)
-                    .setParameter("forecastConfigurationId", forecastConfigurationId)
-                    .getSingleResult();
-        } catch (NoResultException e) {
-            return null;
-        }
+        return forecastService.getForecastConfiguration(forecastConfigurationId);
     }
 
 
@@ -682,12 +605,7 @@ public class ForecastBean {
     }
 
     public ModelInformation getModelInformation(String modelId) {
-        try {
-            return em.createNamedQuery("ModelInformation.findByModelId", ModelInformation.class)
-                    .setParameter("modelId", modelId).getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
-        }
+        return forecastService.getModelInformation(modelId);
     }
 
     /**
@@ -764,8 +682,7 @@ public class ForecastBean {
 
 
     public List<ForecastModelConfiguration> getForecastModelConfigurations(Long forecastConfigurationId) {
-        return em.createNamedQuery("ForecastModelConfiguration.findByForecastConfigurationId")
-                .setParameter("forecastConfigurationId", forecastConfigurationId).getResultList();
+        return forecastService.getForecastModelConfigurations(forecastConfigurationId);
     }
 
     /**
@@ -1402,10 +1319,7 @@ public class ForecastBean {
      * @return
      */
     public List<ForecastConfiguration> getForecastConfigurationsForModel(String modelId, Integer year) {
-        return em.createNamedQuery("ForecastConfiguration.findByModelIdAndYear")
-                .setParameter("modelId", modelId)
-                .setParameter("year", year)
-                .getResultList();
+        return forecastService.getForecastConfigurationsForModel(modelId, year);
     }
 
 }
