@@ -87,6 +87,7 @@ import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.util.ExcelFileGenerator;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.ServletRequestUtil;
 
 /**
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
@@ -683,7 +684,7 @@ public class ObservationService {
         VipsLogicUser observer = userBean.getVipsLogicUser(o.getUserId());
         o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
 
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        VipsLogicUser user = ServletRequestUtil.getSessionUser(httpServletRequest);
         if (user == null && userUUID != null) {
             user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
@@ -738,7 +739,7 @@ public class ObservationService {
     @DELETE
     @Path("gisobservation/{gisId}")
     public Response deleteGisObservation(@PathParam("gisId") Integer gisId) {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        VipsLogicUser user = ServletRequestUtil.getSessionUser(httpServletRequest);
         // If no user, send error message back to client
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -771,7 +772,7 @@ public class ObservationService {
         try {
             // Create the Observation
             Observation observation = observationBean.getObservationFromGeoJSON(geoJSON);
-            VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+            VipsLogicUser user = ServletRequestUtil.getSessionUser(httpServletRequest);
             // Allow for UUID login
             if(user == null)
             {
