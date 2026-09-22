@@ -55,6 +55,7 @@ import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.organization.OrganizationService;
+import no.nibio.vips.logic.user.UserService;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
@@ -73,6 +74,7 @@ import org.passay.Rule;
 import org.passay.RuleResult;
 import org.passay.WhitespaceRule;
 import org.postgresql.util.PSQLException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -94,6 +96,9 @@ public class UserBean {
     OrganizationService organizationService;
 
     @Inject
+    UserService userService;
+
+    @Inject
     ForecastBean forecastBean;
     @Inject
     MessagingBean messagingBean;
@@ -105,6 +110,9 @@ public class UserBean {
     SimpleMailSender mailSender;
     @Inject
     ObservationBean observationBean;
+
+    @ConfigProperty(name = "no.nibio.vips.logic.USER_COUNTRY_CODES", defaultValue = "NO,SE,BA,LV,US,FI,LT,CH")
+    String userCountryCodes;
 
     private Properties serverProperties;
     private List<Rule> defaultPasswordValidatorRuleList;
@@ -146,19 +154,7 @@ public class UserBean {
      */
     public VipsLogicUser getUser(String username, Integer userAuthenticationTypeId)
     {
-        // We find the authentication with given name
-        Query q = em.createNamedQuery("UserAuthentication.findByUsername");
-        q.setParameter("username", username);
-        List<UserAuthentication> userAuthentications = q.getResultList();
-        for(UserAuthentication userAuth:userAuthentications)
-        {
-            // We check that only the given combination of user name and authentication type is a full match
-            if(userAuth.getUserAuthenticationType().getUserAuthenticationTypeId().equals(userAuthenticationTypeId))
-            {
-                return userAuth.getVipsLogicUser();
-            }
-        }
-        return null;
+        return userService.findUserByUsernameAndAuthenticationType(username, userAuthenticationTypeId);
     }
 
     public UserAuthenticationType createUserAuthenticationTypeInstance(Integer userAuthenticationTypeId)
@@ -398,16 +394,7 @@ public class UserBean {
      */
     public VipsLogicUser getUserByEmail(String email) throws NonUniqueResultException
     {
-        Query q = em.createNamedQuery("VipsLogicUser.findByEmail",VipsLogicUser.class);
-        q.setParameter("email", email);
-        try
-        {
-            return (VipsLogicUser) q.getSingleResult();
-        }
-        catch(NoResultException ex)
-        {
-            return null;
-        }
+        return userService.findUserByEmail(email);
     }
     
     public String getMD5EncryptedString(String str) throws IOException
@@ -758,27 +745,7 @@ public class UserBean {
      */
     public VipsLogicUser findVipsLogicUser(UUID uuid)
     {
-        try
-        {
-            Query q = em.createNamedQuery("UserUuid.findByUserUUID", UserUuid.class);
-            q.setParameter("userUUID", uuid);
-            UserUuid uUuid = (UserUuid) q.getSingleResult();
-            // If the uuid credential has expired, delete it and return nothing(null)
-            if(uUuid.getExpiresAt().before(new Date()))
-            {
-                this.deleteUserUuid(uuid);
-                return null;
-            }
-            q = em.createNamedQuery("VipsLogicUser.findByUserId", VipsLogicUser.class);
-            q.setParameter("userId", uUuid.getUserUuidPK().getUserId());
-            VipsLogicUser user = (VipsLogicUser) q.getSingleResult(); 
-            user.setUserUuid(uuid);
-            return user;
-        }
-        catch(NoResultException ex)
-        {
-            return null;
-        }
+        return userService.findUserByUuid(uuid);
     }
     
     /**
@@ -805,12 +772,7 @@ public class UserBean {
      */
     public void deleteUserUuid(UUID uuid)
     {
-        try
-        {
-            UserUuid u = (UserUuid) em.createNamedQuery("UserUuid.findByUserUUID").setParameter("userUUID", uuid).getSingleResult();
-            em.remove(u);
-        }
-        catch(NoResultException ex) {}
+        userService.deleteUserUuid(uuid);
     }
     
     /**
@@ -900,16 +862,9 @@ public class UserBean {
     
     public List<Country> getUserCountries()
     {
-        try
-        {
-            return em.createNamedQuery("Country.findByCountryCodes")
-                    .setParameter("countryCodes",Arrays.asList(System.getProperty("no.nibio.vips.logic.USER_COUNTRY_CODES").split(",")))
-                    .getResultList();
-        }
-        catch(NullPointerException ex)
-        {
-            return new ArrayList<>();
-        }
+        return em.createNamedQuery("Country.findByCountryCodes")
+                .setParameter("countryCodes", Arrays.asList(userCountryCodes.split(",")))
+                .getResultList();
     }
     
     public List<Country> getCountries()
