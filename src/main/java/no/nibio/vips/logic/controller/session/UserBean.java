@@ -74,6 +74,7 @@ import org.passay.Rule;
 import org.passay.RuleResult;
 import org.passay.WhitespaceRule;
 import org.postgresql.util.PSQLException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -109,6 +110,9 @@ public class UserBean {
     SimpleMailSender mailSender;
     @Inject
     ObservationBean observationBean;
+
+    @ConfigProperty(name = "no.nibio.vips.logic.USER_COUNTRY_CODES", defaultValue = "NO,SE,BA,LV,US,FI,LT,CH")
+    String userCountryCodes;
 
     private Properties serverProperties;
     private List<Rule> defaultPasswordValidatorRuleList;
@@ -858,16 +862,9 @@ public class UserBean {
     
     public List<Country> getUserCountries()
     {
-        try
-        {
-            return em.createNamedQuery("Country.findByCountryCodes")
-                    .setParameter("countryCodes",Arrays.asList(System.getProperty("no.nibio.vips.logic.USER_COUNTRY_CODES").split(",")))
-                    .getResultList();
-        }
-        catch(NullPointerException ex)
-        {
-            return new ArrayList<>();
-        }
+        return em.createNamedQuery("Country.findByCountryCodes")
+                .setParameter("countryCodes", Arrays.asList(userCountryCodes.split(",")))
+                .getResultList();
     }
     
     public List<Country> getCountries()
