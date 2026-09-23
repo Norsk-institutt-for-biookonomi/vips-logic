@@ -13,6 +13,7 @@ import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.rest.PointMappingResponse;
 import no.nibio.vips.logic.entity.rest.ReferencedPoint;
 import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.logic.util.ServletRequestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
@@ -104,7 +105,7 @@ public class ObservationTimeSeriesService {
         if (ots == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        VipsLogicUser requester = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        VipsLogicUser requester = ServletRequestUtil.getSessionUser(httpServletRequest);
         if (requester == null && userUUID != null) {
             requester = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
