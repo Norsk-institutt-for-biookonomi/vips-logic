@@ -46,7 +46,7 @@ public class VIPSLogicApplication extends Application
      * @param resources 
      */
     private void addRestResourceClassesManually(Set<Class<?>> resources) {
-        resources.add(no.nibio.vips.logic.service.LogicService.class);
+        resources.add(no.nibio.vips.logic.weather.SolarRadiationResource.class);
         resources.add(no.nibio.vips.logic.organism.OrganismResource.class);
         resources.add(no.nibio.vips.logic.organization.OrganizationResource.class);
         resources.add(no.nibio.vips.logic.message.MessageResource.class);
