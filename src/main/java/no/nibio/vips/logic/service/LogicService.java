@@ -24,22 +24,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import com.webcohesion.enunciate.metadata.Facet;
-import de.micromata.opengis.kml.v_2_2_0.Kml;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import no.nibio.vips.entity.WeatherObservation;
-import no.nibio.vips.logic.controller.session.PointOfInterestBean;
-import no.nibio.vips.logic.entity.PointOfInterestType;
-import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.util.CSVPrintUtil;
 import no.nibio.vips.util.SolarRadiationUtil;
 
@@ -50,54 +41,6 @@ import no.nibio.vips.util.SolarRadiationUtil;
 @ApplicationScoped
 @Path("")
 public class LogicService {
-
-    @Context
-    private HttpServletRequest httpServletRequest;
-
-    @Inject
-    PointOfInterestBean pointOfInterestBean;
-
-    /**
-     * Get a list of weather stations for a given organization
-     * @param excludeWeatherStationId Exclude this weather station from the KML
-     * @param highlightWeatherStationId Show highlight icon for this weather station
-     * @param organizationId
-     * @return a KML with weather stations for an organization
-     */
-    @GET
-    @Path("weatherstations/kml/{organizationId}")
-    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getWeatherStations(
-            @QueryParam("excludeWeatherStationId") Integer excludeWeatherStationId, 
-            @QueryParam("highlightWeatherStationId") Integer highlightWeatherStationId, 
-            @PathParam("organizationId") Integer organizationId
-    )
-    {
-        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludeWeatherStationId, highlightWeatherStationId, Globals.SERVER_NAME, SessionLocaleUtil.getI18nBundle(httpServletRequest), PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION);
-        return Response.ok().entity(retVal).build();
-    }
-    
-    /**
-     * Get a KML list of locations (pois) for a given organization
-     * @param excludePoiId 
-     * @param highlightPoiId use this if you want to highlight a specific POI. Should be 
-     * used in conjunction with excludePoiId
-     * @param organizationId
-     * @return KML
-     */
-    @GET
-    @Path("pois/kml/{organizationId}")
-    @Produces("application/vnd.google-earth.kml+xml;charset=utf-8")
-    public Response getPois(
-            @QueryParam("excludePoiId") Integer excludePoiId, 
-            @QueryParam("highlightPoiId") Integer highlightPoiId, 
-            @PathParam("organizationId") Integer organizationId
-    )
-    {
-        Kml retVal = pointOfInterestBean.getPoisForOrganization(organizationId, excludePoiId, highlightPoiId, Globals.SERVER_NAME, SessionLocaleUtil.getI18nBundle(httpServletRequest), null);
-        return Response.ok().entity(retVal).build();
-    }
-    
 
     /**
      * Not ready for production use!
