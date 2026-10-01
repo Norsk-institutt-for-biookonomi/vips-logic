@@ -43,6 +43,7 @@ import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.message.MessageService;
+import no.nibio.vips.logic.util.UploadedFileStore;
 import no.nibio.web.forms.FormField;
 import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.FilenameUtils;
@@ -169,8 +170,8 @@ public class MessageBean {
      */
     private String getFilePath(Message message)
     {
-        return System.getProperty("no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH") + "/" 
-                        + message.getOrganizationId();
+        return UploadedFileStore.requireBasePath("no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH")
+                        + "/" + message.getOrganizationId();
     }
     
     public Message storeMessageIllustration(Message message, FileItem item) throws Exception {
@@ -187,15 +188,7 @@ public class MessageBean {
             illustration = new File(filePath + "/" + fileName);
             fileNameSuffix++;
         }
-        File testDirectoryfile = new File(filePath);
-        // If directory does not exist, create it
-        if(!testDirectoryfile.exists())
-        {
-            testDirectoryfile.mkdirs();
-        }
-
-        // Store file
-        item.write(illustration.toPath());
+        UploadedFileStore.write(item, illustration);
         
         // Update MessageIllustrations
         message = em.merge(message);

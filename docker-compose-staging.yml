@@ -43,8 +43,8 @@ services:
       VIPSLOGIC_TRAFFIC_LOG_DIRECTORY: ${TRAFFIC_LOG_DIRECTORY:-}
       JAVA_OPTS_APPEND: "-Xms512m -Xmx4096m"
     volumes:
-      - /disks/data01/static/images/messages:/disks/data01/static/images/messages:ro
-      - /disks/data01/static/images/observations:/disks/data01/static/images/observations:ro
+      - /disks/data01/static/images/messages:/disks/data01/static/images/messages
+      - /disks/data01/static/images/observations:/disks/data01/static/images/observations
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
       interval: 30s

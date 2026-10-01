@@ -72,6 +72,7 @@ import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.logic.util.UploadedFileStore;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import no.nibio.vips.observationdata.ObservationDataSchemaPK;
 
@@ -383,8 +384,8 @@ public class ObservationBean {
      * @return [OBSERVATION_ILLUSTRATION_PATH]/[ORGANISM_ID]/
      */
     private String getFilePath(Observation observation) {
-        return System.getProperty("no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH") + "/"
-                + observation.getOrganismId();
+        return UploadedFileStore.requireBasePath("no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH")
+                + "/" + observation.getOrganismId();
     }
 
     public Observation storeObservationIllustration(Observation observation, String fileName, String base64Data) {
@@ -427,14 +428,7 @@ public class ObservationBean {
             illustration = new File(filePath + "/" + fileName);
             fileNameSuffix++;
         }
-        File testDirectoryfile = new File(filePath);
-        // If directory does not exist, create it
-        if (!testDirectoryfile.exists()) {
-            testDirectoryfile.mkdirs();
-        }
-
-        // Store file
-        item.write(illustration.toPath());
+        UploadedFileStore.write(item, illustration);
 
         // Update MessageIllustrations
         observation = em.merge(observation);
