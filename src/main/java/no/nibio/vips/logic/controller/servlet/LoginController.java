@@ -42,6 +42,7 @@ import no.nibio.vips.logic.entity.UserUuid;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.ServletRequestUtil;
 import no.nibio.vips.util.ServletUtil;
 
 /**
@@ -87,6 +88,7 @@ public class LoginController extends HttpServlet {
             // Make sure we delete the current user and their UUID
             userBean.deleteUserUuid(user.getUserUuid());
             request.getSession().removeAttribute("user");
+            clearUserUuidCookie(response);
 
             // Check if we have a cookie to delete as well
             Cookie rememberedUser = ServletUtil.getCookie(request, "rememberedUser");
@@ -129,6 +131,7 @@ public class LoginController extends HttpServlet {
                         UserUuid uUUID = userBean.createAndPersistUserUuid(user);
                         user.setUserUuid(uUUID.getUserUuidPK().getUserUuid());
                         request.getSession().setAttribute("user", user);
+                        addUserUuidCookie(response, user.getUserUuid());
                         this.handleRememberUser(request, response, user, returnUUID);
                         if (returnUUID) {
                             nextPage += (nextPage.contains("?") ? "&" : "?") + "returnUUID=" + uUUID.getUserUuidPK().getUserUuid().toString();
@@ -264,6 +267,20 @@ public class LoginController extends HttpServlet {
             }
             // return null;
         }
+    }
+
+    private void addUserUuidCookie(HttpServletResponse response, UUID uuid) {
+        Cookie cookie = new Cookie(ServletRequestUtil.USER_UUID_COOKIE, uuid.toString());
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+    }
+
+    private void clearUserUuidCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie(ServletRequestUtil.USER_UUID_COOKIE, "");
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

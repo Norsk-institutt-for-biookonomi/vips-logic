@@ -57,6 +57,7 @@ import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.organization.OrganizationService;
 import no.nibio.vips.logic.user.UserService;
 import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.ServletRequestUtil;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
 import no.nibio.vips.util.MD5Encrypter;
@@ -1018,6 +1019,19 @@ public class UserBean {
     public VipsLogicUser getUserFromUUID(HttpServletRequest request)
     {
     	return getUserFromAuthorizationHeader(request != null ? request.getHeader(HttpHeaders.AUTHORIZATION) : null);
+    }
+
+    public VipsLogicUser resolveCurrentUser(HttpServletRequest request, HttpHeaders headers)
+    {
+        VipsLogicUser user = ServletRequestUtil.getSessionUser(request);
+        if (user != null) {
+            return user;
+        }
+        String authorization = ServletRequestUtil.getAuthorizationHeader(request, headers);
+        if (authorization == null || authorization.isBlank()) {
+            authorization = ServletRequestUtil.getUserUuidCookie(request, headers);
+        }
+        return getUserFromAuthorizationHeader(authorization);
     }
 
     public VipsLogicUser getUserFromAuthorizationHeader(String authorizationHeader)

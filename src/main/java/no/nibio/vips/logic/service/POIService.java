@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
@@ -69,12 +68,6 @@ import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
 public class POIService {
     private final static Logger LOGGER = LoggerFactory.getLogger(POIService.class);
 
-    @Context
-    private HttpServletRequest httpServletRequest;
-
-    @Context
-    private HttpHeaders httpHeaders;
-
     @Inject
     PointOfInterestBean pointOfInterestBean;
 
@@ -114,7 +107,7 @@ public class POIService {
     @POST
     @Consumes("application/json;charset=UTF-8")
     @Produces("application/json;charset=UTF-8")
-    public Response postPoi(String poiJson) {
+    public Response postPoi(String poiJson, @Context HttpHeaders httpHeaders) {
         ObjectMapper oM = new ObjectMapper();
         Map<Object, Object> poiMap;
         try {
@@ -231,8 +224,10 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     @TypeHint(PointOfInterest[].class)
-    public Response getPoisForCurrentUser() {
-        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
+    public Response getPoisForCurrentUser(
+            @Context HttpServletRequest httpServletRequest,
+            @Context HttpHeaders httpHeaders) {
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (user == null) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
@@ -251,8 +246,10 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     @TypeHint(PointOfInterest[].class)
-    public Response getWeatherStationsForCurrentUser() {
-        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
+    public Response getWeatherStationsForCurrentUser(
+            @Context HttpServletRequest httpServletRequest,
+            @Context HttpHeaders httpHeaders) {
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (user == null) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
@@ -275,7 +272,8 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterest.class)
     public Response syncPOIFromApp(
-            String poiJson
+            String poiJson,
+            @Context HttpHeaders httpHeaders
     ) {
         VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user == null) {
