@@ -23,16 +23,31 @@ public final class UploadedFileStore {
     }
 
     public static void write(FileItem item, File destination) throws IOException {
-        Path dest = destination.toPath();
+        Path dest = destination.toPath().toAbsolutePath();
         Path dir = dest.getParent();
-        if (dir != null) {
-            Files.createDirectories(dir);
-            if (!Files.isWritable(dir)) {
-                throw new IOException("Illustration directory is not writable: " + dir.toAbsolutePath());
+        try {
+            if (dir != null) {
+                Files.createDirectories(dir);
             }
+            try (InputStream in = item.getInputStream()) {
+                Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            throw new IOException(writeFailureMessage(dest, dir, e), e);
         }
-        try (InputStream in = item.getInputStream()) {
-            Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    static String writeFailureMessage(Path dest, Path dir, IOException cause) {
+        boolean dirWritable = false;
+        try {
+            dirWritable = dir != null && Files.isWritable(dir);
+        } catch (Exception ignored) {
+
         }
+        return "Could not store illustration at " + dest
+                + " (user=" + System.getProperty("user.name")
+                + ", dir=" + dir
+                + ", dirWritable=" + dirWritable
+                + "): " + cause.getMessage();
     }
 }
