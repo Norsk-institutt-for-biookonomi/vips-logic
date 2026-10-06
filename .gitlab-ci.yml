@@ -1,4 +1,4 @@
-# Quarkus VIPSLogic — build, test, Docker image, deploy to Quarkic staging.
+# Quarkus VIPSLogic — build, test, Docker image, deploy to Quarkic staging/production.
 # Pattern aligned with vips-weather-proxy and VIPSCore.
 
 image: docker:27.4.1
@@ -6,7 +6,7 @@ image: docker:27.4.1
 stages:
   - test
   - build
-  - deploy-staging
+  - deploy
 
 services:
   - docker:27.4.1-dind
@@ -19,6 +19,8 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository -Dmaven.artifact.threads=10"
   TAG_NAME: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
   STAGING_SERVER_HOST: vipslogicapp02test.nibio.no
+  PRODUCTION_SERVER_HOST: vipslogicapp02.nibio.no
+  QUARKIC_COMPOSE_FILE: docker-compose-staging.yml
   QUARKUS_MIGRATION_BRANCH: VIPSUTV-1125-Quarkus-Migration
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: /certs
@@ -77,11 +79,10 @@ build-docker:
   rules:
     - if: '$CI_COMMIT_REF_NAME == $QUARKUS_MIGRATION_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
 
-deploy-staging:
-  stage: deploy-staging
+.deploy_quarkic:
+  stage: deploy
   services: []
   variables:
-    DOCKER_HOST: "ssh://$SERVER_USER@$STAGING_SERVER_HOST"
     DOCKER_TLS_CERTDIR: ""
     DOCKER_TLS_VERIFY: ""
     DOCKER_CERT_PATH: ""
@@ -93,20 +94,43 @@ deploy-staging:
     # IdentitiesOnly without IdentityFile ignores ssh-agent keys; Docker over SSH needs an explicit key file.
     - |
       printf 'Host %s\n\tIdentityFile ~/.ssh/id_ci\n\tIdentitiesOnly yes\n\tStrictHostKeyChecking no\n' \
-        "$STAGING_SERVER_HOST" > ~/.ssh/config
+        "$DEPLOY_SERVER_HOST" > ~/.ssh/config
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
   script:
     - export TAG_NAME="$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - docker compose -f docker-compose-staging.yml pull
-    - docker compose -f docker-compose-staging.yml up -d --remove-orphans
-    - docker compose -f docker-compose-staging.yml ps
+    - docker compose -f "$QUARKIC_COMPOSE_FILE" pull
+    - docker compose -f "$QUARKIC_COMPOSE_FILE" up -d --remove-orphans
+    - docker compose -f "$QUARKIC_COMPOSE_FILE" ps
   after_script:
     - docker logout "$CI_REGISTRY" || true
   tags:
     - java
-  environment:
-    name: quarkic-staging
-    url: https://quarkic.testvips.nibio.no
+  needs:
+    - build-docker
   rules:
     - if: '$CI_COMMIT_REF_NAME == $QUARKUS_MIGRATION_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
   when: manual
+
+deploy-staging:
+  extends: .deploy_quarkic
+  variables:
+    DEPLOY_SERVER_HOST: $STAGING_SERVER_HOST
+    DOCKER_HOST: "ssh://$SERVER_USER@$STAGING_SERVER_HOST"
+  environment:
+    name: quarkic-staging
+    url: https://quarkic.testvips.nibio.no
+  resource_group: quarkic-staging
+
+deploy-production:
+  extends: .deploy_quarkic
+  variables:
+    DEPLOY_SERVER_HOST: $PRODUCTION_SERVER_HOST
+    DOCKER_HOST: "ssh://$SERVER_USER@$PRODUCTION_SERVER_HOST"
+    VIPSLOGIC_PROTOCOL: https
+    PROTOCOL: https
+    VIPSLOGIC_SERVER_NAME: quarkic.vips.nibio.no
+    SERVER_NAME: quarkic.vips.nibio.no
+  environment:
+    name: quarkic-production
+    url: https://quarkic.vips.nibio.no
+  resource_group: quarkic-production
