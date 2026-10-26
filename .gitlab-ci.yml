@@ -116,6 +116,10 @@ deploy-staging:
   variables:
     DEPLOY_SERVER_HOST: $STAGING_SERVER_HOST
     DOCKER_HOST: "ssh://$SERVER_USER@$STAGING_SERVER_HOST"
+    VIPSLOGIC_PROTOCOL: https
+    PROTOCOL: https
+    VIPSLOGIC_SERVER_NAME: logic.testvips.nibio.no
+    SERVER_NAME: logic.testvips.nibio.no
   environment:
     name: quarkic-staging
     url: https://quarkic.testvips.nibio.no
@@ -128,9 +132,9 @@ deploy-production:
     DOCKER_HOST: "ssh://$SERVER_USER@$PRODUCTION_SERVER_HOST"
     VIPSLOGIC_PROTOCOL: https
     PROTOCOL: https
-    VIPSLOGIC_SERVER_NAME: quarkic.vips.nibio.no
-    SERVER_NAME: quarkic.vips.nibio.no
+    VIPSLOGIC_SERVER_NAME: logic.vips.nibio.no
+    SERVER_NAME: logic.vips.nibio.no
   environment:
     name: quarkic-production
-    url: https://quarkic.vips.nibio.no
+    url: https://logic.vips.nibio.no
   resource_group: quarkic-production
