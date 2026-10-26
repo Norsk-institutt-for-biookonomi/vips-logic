@@ -27,21 +27,13 @@ import java.util.stream.Collectors;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.GeoJSON;
 import org.wololo.jts2geojson.GeoJSONWriter;
-import de.micromata.opengis.kml.v_2_2_0.Coordinate;
-import de.micromata.opengis.kml.v_2_2_0.Data;
-import de.micromata.opengis.kml.v_2_2_0.Document;
-import de.micromata.opengis.kml.v_2_2_0.ExtendedData;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
-import de.micromata.opengis.kml.v_2_2_0.KmlFactory;
-import de.micromata.opengis.kml.v_2_2_0.Placemark;
-import de.micromata.opengis.kml.v_2_2_0.Point;
-import jakarta.ejb.EJB;
-import jakarta.ejb.LocalBean;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.entity.ExternalResource;
 import no.nibio.vips.logic.entity.ExternalResourceType;
@@ -49,11 +41,10 @@ import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.PointOfInterest;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResource;
 import no.nibio.vips.logic.entity.PointOfInterestExternalResourcePK;
-import no.nibio.vips.logic.entity.PointOfInterestType;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.entity.WeatherStationDataSource;
-import no.nibio.vips.logic.util.GISEntityUtil;
+import no.nibio.vips.logic.poi.PointOfInterestService;
 import no.nibio.vips.logic.util.Globals;
 
 
@@ -62,18 +53,20 @@ import no.nibio.vips.logic.util.Globals;
  * @copyright 2013-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@LocalBean
-@Stateless
+@ApplicationScoped
+@Transactional
 public class PointOfInterestBean {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
-    
-    @EJB
+
+    @Inject
     ForecastBean forecastBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
+    @Inject
+    PointOfInterestService pointOfInterestService;
     
     public List<PointOfInterest> getWeatherstations(String countryCode)
     {
@@ -163,103 +156,8 @@ public class PointOfInterestBean {
     }
 
     public Kml getPoisForOrganization(Integer organizationId, Integer excludePoiId, Integer highlightPoiId, String serverName, ResourceBundle i18nBundle, Integer pointOfInterestTypeId) {
-        String iconPath = Globals.PROTOCOL + "://" + serverName + "/public/images/";
-        
-        List<PointOfInterest> pois = new ArrayList<>();
-        if(organizationId.equals(-1))
-        {
-            List<Organization> organizations = em.createNamedQuery("Organization.findAllTopLevelOrganizations").getResultList();
-            for(Organization organization:organizations)
-            {
-                if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
-                {
-                    pois.addAll(this.getWeatherstationsForOrganization(organization,true, false));
-                }
-                else
-                {
-                    pois.addAll(this.getPoisForOrganization(organization));
-                }
-            }
-        }
-        else
-        {
-            if(pointOfInterestTypeId != null && pointOfInterestTypeId == PointOfInterestType.POINT_OF_INTEREST_TYPE_WEATHER_STATION)
-            {
-                pois.addAll(this.getWeatherstationsForOrganization(em.find(Organization.class, organizationId),true, false));
-            }
-            else
-            {
-                pois.addAll(this.getPoisForOrganization(em.find(Organization.class, organizationId)));
-            }
-        }
- 
-        
-        // Initialization
-        final Kml kml = KmlFactory.createKml();
-        final Document document = kml.createAndSetDocument()
-        .withName("Weather stations").withDescription("Weather stations for ");
-        
-        document.createAndAddStyle()
-            .withId("weatherstation_icon")
-        .createAndSetIconStyle()
-                .withScale(0.55)
-                .createAndSetIcon()
-                    .withHref(iconPath + "dot_blue.png");
-        
-        document.createAndAddStyle()
-            .withId("weatherstation_icon_highlighted")
-        .createAndSetIconStyle()
-                .withScale(0.55)
-                .createAndSetIcon()
-                    .withHref(iconPath + "Map_pin_icon_green_small.png");
-        
-        
-        
-        String description = "";
-        GISEntityUtil gisUtil = new GISEntityUtil();
-        for(PointOfInterest poi:pois)
-        {
-            if(excludePoiId != null && excludePoiId.equals(poi.getPointOfInterestId()))
-            {
-                continue;
-            }
-            
-            String styleUrl = "#weatherstation_icon"
-                            +   (highlightPoiId != null && highlightPoiId.equals(poi.getPointOfInterestId()) ? "_highlighted" :"");
-            
-            String infoUriValue = "";
-            if(poi instanceof PointOfInterestWeatherStation)
-            {
-                description = i18nBundle.getString("dataSourceName") + 
-                                ": <a href=\"" + ((PointOfInterestWeatherStation) poi).getWeatherStationDataSourceId().getUri() + "\" target=\"new\">" 
-                                +  ((PointOfInterestWeatherStation) poi).getWeatherStationDataSourceId().getName() 
-                                + "</a>";
-                String infoUriExpression = ((PointOfInterestWeatherStation) poi).getWeatherStationDataSourceId().getInfoUriExpression();
-                if(!infoUriExpression.isEmpty())
-                {
-                    infoUriValue = String.format(infoUriExpression, ((PointOfInterestWeatherStation) poi).getWeatherStationRemoteId());
-                }
-            }
-            Data infoUri = new Data(infoUriValue);
-            infoUri.setName("infoUri");
-            List<Data> dataList = new ArrayList<>();
-            dataList.add(infoUri);
-            ExtendedData extendedData = document.createAndSetExtendedData()
-                    .withData(dataList);
-            
-            final Placemark placemark = document.createAndAddPlacemark()
-            .withName(poi.getName())
-            .withDescription(description)
-            .withStyleUrl(styleUrl)
-            .withId(poi.getPointOfInterestId().toString())
-            .withExtendedData(extendedData);
-            
-            
-            final Point point = placemark.createAndSetPoint();
-            List<Coordinate> coord = point.createAndSetCoordinates();
-            coord.add(gisUtil.getKMLCoordinateFromJTSCoordinate(poi.getGisGeom().getCoordinate()));
-        }
-        return kml;
+        return pointOfInterestService.getPoisForOrganization(
+                organizationId, excludePoiId, highlightPoiId, serverName, i18nBundle, pointOfInterestTypeId);
     }
 
     public WeatherStationDataSource getWeatherStationDataSource(Integer weatherStationDataSourceId)
@@ -526,7 +424,7 @@ public class PointOfInterestBean {
             // double catching of privately owned weather station
             retVal.addAll(this.getWeatherstationsForOrganization(user.getOrganizationId(), Boolean.TRUE, Boolean.FALSE)
                     .stream()
-                    .filter(weatherStation -> ! weatherStation.getUser().getUserId().equals(user.getUserId()))
+                    .filter(weatherStation -> weatherStation.getUser() == null || !weatherStation.getUser().getUserId().equals(user.getUserId()))
                     .collect(Collectors.toList())
             );
             

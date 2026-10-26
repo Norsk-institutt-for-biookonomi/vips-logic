@@ -26,11 +26,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import no.nibio.vips.logic.entity.Message;
 import no.nibio.vips.logic.entity.MessageIllustration;
 import no.nibio.vips.logic.entity.MessageIllustrationCaptionLocale;
@@ -41,7 +42,8 @@ import no.nibio.vips.logic.entity.MessageLocalePK;
 import no.nibio.vips.logic.entity.MessageTag;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.logic.message.MessageService;
+import no.nibio.vips.logic.util.UploadedFileStore;
 import no.nibio.web.forms.FormField;
 import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.FilenameUtils;
@@ -50,48 +52,18 @@ import org.apache.commons.io.FilenameUtils;
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class MessageBean {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
+
+    @Inject
+    MessageService messageService;
 
     public List<Message> getMessageList(Integer organizationId, Date publishedFrom, Date publishedTo)
     {
-        Organization mainOrg = em.find(Organization.class, organizationId);
-        List<Organization> organizations = em.createNamedQuery("Organization.findAllRelated")
-                .setParameter("organizationId",mainOrg).getResultList();
-        
-        List<Message> retVal = new ArrayList<Message>();
-        for(Organization org : organizations)
-        {
-            if(publishedFrom != null && publishedTo != null)
-            {
-                retVal.addAll(em.createNamedQuery("Message.findByOrganizationIdAndPublicationPeriod", Message.class)
-                        .setParameter("organizationId", org.getOrganizationId())
-                        .setParameter("publishedFrom", publishedFrom)
-                        .setParameter("publishedTo", publishedTo)
-                        .getResultList()
-                );
-            }
-            else if(publishedFrom == null)
-            {
-                retVal.addAll(em.createNamedQuery("Message.findByOrganizationIdAndMaxPublicationPeriod", Message.class)
-                        .setParameter("organizationId", org.getOrganizationId())
-                        .setParameter("publishedTo", publishedTo)
-                        .getResultList()
-                );
-            }
-            else
-            {
-                retVal.addAll(em.createNamedQuery("Message.findByOrganizationIdAndMinPublicationPeriod", Message.class)
-                        .setParameter("organizationId", org.getOrganizationId())
-                        .setParameter("publishedFrom", publishedFrom)
-                        .getResultList()
-                );
-            }
-        }
-        return retVal;
-        
+        return messageService.getMessageList(organizationId, publishedFrom, publishedTo);
     }
     
     
@@ -198,8 +170,8 @@ public class MessageBean {
      */
     private String getFilePath(Message message)
     {
-        return System.getProperty("no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH") + "/" 
-                        + message.getOrganizationId();
+        return UploadedFileStore.requireBasePath("no.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH")
+                        + "/" + message.getOrganizationId();
     }
     
     public Message storeMessageIllustration(Message message, FileItem item) throws Exception {
@@ -216,15 +188,7 @@ public class MessageBean {
             illustration = new File(filePath + "/" + fileName);
             fileNameSuffix++;
         }
-        File testDirectoryfile = new File(filePath);
-        // If directory does not exist, create it
-        if(!testDirectoryfile.exists())
-        {
-            testDirectoryfile.mkdirs();
-        }
-
-        // Store file
-        item.write(illustration.toPath());
+        UploadedFileStore.write(item, illustration);
         
         // Update MessageIllustrations
         message = em.merge(message);
@@ -294,7 +258,7 @@ public class MessageBean {
     }
 
     public Message getMessage(Integer messageId) {
-        return em.find(Message.class, messageId);
+        return messageService.getMessage(messageId);
     }
 
     public List<Message> getFilteredMessages(Integer organizationId, List<Integer> tagIds, Date datePubStart, Date datePubEnd) {
@@ -336,20 +300,11 @@ public class MessageBean {
     }
     
     public List<Message> getCurrentFilteredMessagesForOrganization(List<Integer> tagIds, Integer organizationId) {
-        Query q = em.createNativeQuery("SELECT * FROM message WHERE message_id IN ("
-                + "SELECT message_id FROM message_message_tag "
-                + "WHERE message_tag_id IN (:tagIds) "
-                + "AND :systemTime BETWEEN date_pub AND date_valid_to "
-                + "AND organization_id IN (SELECT organization_id FROM organization WHERE organization_id=:organizationId or parent_organization_id = :organizationId) "
-                + ")", Message.class);
-        q.setParameter("tagIds", tagIds);
-        q.setParameter("systemTime", SystemTime.getSystemTime());
-        q.setParameter("organizationId", organizationId);
-        return q.getResultList();
+        return messageService.getCurrentFilteredMessagesForOrganization(tagIds, organizationId);
     }
 
     public List<MessageTag> getMessageTagList() {
-        return em.createNamedQuery("MessageTag.findAll", MessageTag.class).getResultList();
+        return messageService.getMessageTagList();
     }
 
     

@@ -42,7 +42,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.hibernate.annotations.Type;
 import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 

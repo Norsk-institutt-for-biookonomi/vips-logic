@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import java.util.List;
 
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +51,7 @@ public class WeatherStationDataSourceController  extends HttpServlet{
 
     private static Logger LOGGER = LoggerFactory.getLogger(WeatherStationDataSourceController.class);
 
-    @EJB
+    @Inject
     PointOfInterestBean poiBean;
 
     /** 

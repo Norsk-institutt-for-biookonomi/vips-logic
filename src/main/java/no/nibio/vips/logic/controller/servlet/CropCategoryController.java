@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,10 +46,10 @@ import no.nibio.web.forms.FormValidator;
  */
 public class CropCategoryController extends HttpServlet {
    
-    @EJB
+    @Inject
     UserBean userBean;
     
-    @EJB
+    @Inject
     OrganismBean organismBean;
     
     /** 

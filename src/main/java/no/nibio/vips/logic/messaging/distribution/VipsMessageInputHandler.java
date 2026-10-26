@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import org.eclipse.microprofile.config.ConfigProvider;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -58,6 +59,10 @@ import no.nibio.vips.logic.messaging.distribution.send.SmsMsgDeliveryHandler;
 public class VipsMessageInputHandler implements IVipsMessageHandler {
     
     private static Logger LOGGER = LoggerFactory.getLogger(VipsMessageInputHandler.class);
+
+    private static String configProperty(String key) {
+        return ConfigProvider.getConfig().getOptionalValue(key, String.class).orElse(null);
+    }
 
 
     // where to out log files for th etraf
@@ -345,7 +350,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public String getSmtpMailserver() {
         if(this.smtpMailserver == null)
         {
-            this.smtpMailserver = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
+            this.smtpMailserver = configProperty("no.nibio.vips.logic.SMTP_SERVER");
         }
         return smtpMailserver;
     }
@@ -363,7 +368,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public String getMailSenderAddress() {
         if(this.mailSenderAddress == null)
         {
-            this.mailSenderAddress = System.getProperty("no.nibio.vips.logic.messaging.dist.MAIL_SENDER_ADDRESS");
+            this.mailSenderAddress = configProperty("no.nibio.vips.logic.messaging.dist.MAIL_SENDER_ADDRESS");
         }
         return mailSenderAddress;
     }
@@ -381,7 +386,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public boolean isSimumlateMailSending() {
         if(this.simulateMailSending == null)
         {
-            String simulateMailsendingProp = System.getProperty("no.nibio.vips.logic.messaging.dist.SIMULATE_MAIL_SENDING");
+            String simulateMailsendingProp = configProperty("no.nibio.vips.logic.messaging.dist.SIMULATE_MAIL_SENDING");
             this.simulateMailSending = simulateMailsendingProp == null ? true: simulateMailsendingProp.equals("true");
         }
         return simulateMailSending;
@@ -400,7 +405,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public String getTrafficLogDirectory() {
         if(this.trafficLogDirectory == null)
         {
-            this.trafficLogDirectory = System.getProperty("no.nibio.vips.logic.messaging.dist.TRAFFIC_LOG_DIRECTORY");
+            this.trafficLogDirectory = configProperty("no.nibio.vips.logic.messaging.dist.TRAFFIC_LOG_DIRECTORY");
         }
         return trafficLogDirectory;
     }
@@ -418,7 +423,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public String getSmscServer() {
         if(this.smscServer == null)
         {
-            this.smscServer = System.getProperty("no.nibio.vips.logic.messaging.dist.SMS_SERVER");
+            this.smscServer = configProperty("no.nibio.vips.logic.messaging.dist.SMS_SERVER");
         }
         return smscServer;
     }
@@ -436,7 +441,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public String getSmscUsername() {
         if(this.smscUsername == null)
         {
-            this.smscUsername = System.getProperty("no.nibio.vips.logic.messaging.dist.SMS_USERNAME");
+            this.smscUsername = configProperty("no.nibio.vips.logic.messaging.dist.SMS_USERNAME");
         }
         return smscUsername;
     }
@@ -454,7 +459,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public String getSmscPassword() {
         if(this.smscPassword == null)
         {
-            this.smscPassword = System.getProperty("no.nibio.vips.logic.messaging.dist.SMS_PASSWORD");
+            this.smscPassword = configProperty("no.nibio.vips.logic.messaging.dist.SMS_PASSWORD");
         }
         return smscPassword;
     }
@@ -472,7 +477,7 @@ public class VipsMessageInputHandler implements IVipsMessageHandler {
     public String getSmscSenderSrc() {
         if(this.smscSenderSrc == null)
         {
-            this.smscSenderSrc = System.getProperty("no.nibio.vips.logic.messaging.dist.SMS_SENDER_SRC");
+            this.smscSenderSrc = configProperty("no.nibio.vips.logic.messaging.dist.SMS_SENDER_SRC");
         }
         return smscSenderSrc;
     }

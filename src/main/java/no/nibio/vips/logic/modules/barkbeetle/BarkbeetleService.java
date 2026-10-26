@@ -18,8 +18,9 @@
 
 package no.nibio.vips.logic.modules.barkbeetle;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
@@ -30,7 +31,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
-import org.jboss.resteasy.annotations.GZIP;
 
 import com.ibm.icu.util.Calendar;
 import com.webcohesion.enunciate.metadata.Facet;
@@ -38,24 +38,27 @@ import com.webcohesion.enunciate.metadata.Facet;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
-import no.nibio.vips.util.ServletUtil;
 
 /**
  * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/barkbeetle")
+@ApplicationScoped
+@Path("barkbeetle")
 @Facet("restricted")
 public class BarkbeetleService {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     @Context
     private HttpServletRequest httpServletRequest;
     
-    @EJB
+    @Inject
     BarkbeetleBean barkbeetleBean;
     
     @GET
@@ -65,7 +68,7 @@ public class BarkbeetleService {
             @PathParam("season") Integer season,
             @QueryParam("excludeSeasonTrapsiteId") Integer excludeSeasonTrapsiteId)
     {
-        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesKml(season, excludeSeasonTrapsiteId, ServletUtil.getServerName(httpServletRequest))).build();
+        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesKml(season, excludeSeasonTrapsiteId, Globals.SERVER_NAME)).build();
     }
     
     @GET
@@ -75,7 +78,7 @@ public class BarkbeetleService {
             @PathParam("season") Integer season
             )
     {
-        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesStatusKml(season, ServletUtil.getServerName(httpServletRequest))).build();
+        return Response.ok().entity(barkbeetleBean.getSeasonTrapsitesStatusKml(season, Globals.SERVER_NAME)).build();
     }
     
     @GET
@@ -126,7 +129,6 @@ public class BarkbeetleService {
     
     @GET
     @Path("batch/checkandsendtrapemptyingreminder")
-    @GZIP
     @Produces("application/json;charset=UTF-8")
     public Response checkAndSendTrapEmptyingReminder(
     		@QueryParam("currentDate") String currentDateStr

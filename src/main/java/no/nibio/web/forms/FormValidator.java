@@ -36,12 +36,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import jakarta.ejb.EJB;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import no.nibio.vips.logic.authenticate.PasswordValidationException;
 import no.nibio.vips.logic.controller.session.SessionControllerGetter;
-import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.LoggerFactory;
@@ -60,9 +58,6 @@ import org.slf4j.LoggerFactory;
 public class FormValidator {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(FormValidator.class);
-    
-    @EJB
-    UserBean userBean;
     
     public static String RELATION_TYPE_EQUALS = "EQUALS";
     public static String RELATION_TYPE_AFTER = "AFTER";

@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,9 +50,9 @@ import no.nibio.web.forms.FormValidator;
  */
 public class AppleFruitMothController extends HttpServlet {
 
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     AppleFruitMothBean appleFruitMothBean;
     
     

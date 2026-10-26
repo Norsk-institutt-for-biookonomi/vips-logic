@@ -18,9 +18,8 @@
 
 package no.nibio.vips.logic.controller.servlet;
 
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,18 +57,18 @@ import java.util.stream.Collectors;
 public class ObservationController extends HttpServlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(ObservationController.class);
 
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
 
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     MessagingBean messagingBean;
-    @EJB
+    @Inject
     OrganismBean organismBean;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
 
     /**

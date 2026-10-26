@@ -31,9 +31,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,18 +55,18 @@ import no.nibio.web.forms.FormValidator;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class PointOfInterestController extends HttpServlet {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ForecastBean forecastBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
 
     /**

@@ -17,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wololo.geojson.Feature;
 
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.client.Client;
@@ -25,13 +26,15 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Path("rest/observationtimeseries")
+@ApplicationScoped
+@Path("observationtimeseries")
 public class ObservationTimeSeriesService {
     private final static Logger LOGGER = LoggerFactory.getLogger(ObservationTimeSeriesService.class);
 
@@ -47,23 +50,23 @@ public class ObservationTimeSeriesService {
     private static final String DESCRIPTION = "description";
     private static final String LOCATION_IS_PRIVATE = "locationIsPrivate";
     private static final String POLYGON_SERVICE = "polygonService";
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
-    @EJB
+    @Inject
     OrganismBean organismBean;
-
-    @Context
-    private HttpServletRequest httpServletRequest;
 
     @GET
     @Path("list/user")
     @Produces(APPLICATION_JSON)
     @TypeHint(ObservationTimeSeries[].class)
-    public Response getObservationsTimeSeriesForUser(@QueryParam("observationTimeSeriesIds") String otsIds) {
+    public Response getObservationsTimeSeriesForUser(
+            @QueryParam("observationTimeSeriesIds") String otsIds,
+            @Context HttpServletRequest httpServletRequest,
+            @Context HttpHeaders httpHeaders) {
         try {
-            VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+            VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
             if (user != null) {
                 List<ObservationTimeSeries> allObs = observationTimeSeriesBean.getObservationTimeSeriesListForUser(user);
                 if (otsIds != null) {
@@ -82,6 +85,7 @@ public class ObservationTimeSeriesService {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
         } catch (Exception e) {
+            LOGGER.error("Exception when getting observation time series for user", e);
             return Response.serverError().entity(e.getMessage()).build();
         }
     }
@@ -97,12 +101,16 @@ public class ObservationTimeSeriesService {
     @Path("{observationTimeSeriesId}")
     @Produces(APPLICATION_JSON)
     @TypeHint(ObservationTimeSeries.class)
-    public Response getObservationTimeSeries(@PathParam("observationTimeSeriesId") Integer observationTimeSeriesId, @QueryParam("userUUID") String userUUID) {
+    public Response getObservationTimeSeries(
+            @PathParam("observationTimeSeriesId") Integer observationTimeSeriesId,
+            @QueryParam("userUUID") String userUUID,
+            @Context HttpServletRequest httpServletRequest,
+            @Context HttpHeaders httpHeaders) {
         ObservationTimeSeries ots = observationTimeSeriesBean.getObservationTimeSeries(observationTimeSeriesId);
         if (ots == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        VipsLogicUser requester = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
+        VipsLogicUser requester = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (requester == null && userUUID != null) {
             requester = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
@@ -142,24 +150,33 @@ public class ObservationTimeSeriesService {
             rp.setLat(observationTimeSeries.getLocationPointOfInterest().getLatitude());
 
             ReferencedPoint[] pointArray = {rp};
-            PointMappingResponse response = target.request(MediaType.APPLICATION_JSON).post(Entity.entity(pointArray, MediaType.APPLICATION_JSON), PointMappingResponse.class);
-            // We need to loop through the observations and find corresponding featurecollections and replace those
-            Map<Integer, Feature> indexedPolygons = new HashMap<>();
-            for (Feature feature : response.getFeatureCollection().getFeatures()) {
-                indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
-            }
-            GISEntityUtil gisEntityUtil = new GISEntityUtil();
-            for (Map mapping : response.getMapping()) {
-                Integer observationTimeSeriesId = Integer.valueOf((String) mapping.get("id"));
-                if (observationTimeSeries.getObservationTimeSeriesId().equals(observationTimeSeriesId)) {
-                    Integer borderId = (Integer) mapping.get("borderid");
-                    Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
-                    List<Gis> gis = new ArrayList<>();
-                    gis.add(polygon);
-                    observationTimeSeries.setGeoInfoList(gis);
-                    observationTimeSeries.setLocationPointOfInterest(null);
-                    observationTimeSeries.setLocationPointOfInterestId(null);
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                try (Response httpResponse = target.request(MediaType.APPLICATION_JSON)
+                        .post(Entity.entity(objectMapper.writeValueAsString(pointArray), MediaType.APPLICATION_JSON))) {
+                    PointMappingResponse response = objectMapper.readValue(
+                            httpResponse.readEntity(String.class), PointMappingResponse.class);
+                    // We need to loop through the observations and find corresponding featurecollections and replace those
+                    Map<Integer, Feature> indexedPolygons = new HashMap<>();
+                    for (Feature feature : response.getFeatureCollection().getFeatures()) {
+                        indexedPolygons.put((Integer) feature.getProperties().get("id"), feature);
+                    }
+                    GISEntityUtil gisEntityUtil = new GISEntityUtil();
+                    for (Map mapping : response.getMapping()) {
+                        Integer observationTimeSeriesId = Integer.valueOf((String) mapping.get("id"));
+                        if (observationTimeSeries.getObservationTimeSeriesId().equals(observationTimeSeriesId)) {
+                            Integer borderId = (Integer) mapping.get("borderid");
+                            Gis polygon = gisEntityUtil.getGisFromFeature(indexedPolygons.get(borderId));
+                            List<Gis> gis = new ArrayList<>();
+                            gis.add(polygon);
+                            observationTimeSeries.setGeoInfoList(gis);
+                            observationTimeSeries.setLocationPointOfInterest(null);
+                            observationTimeSeries.setLocationPointOfInterestId(null);
+                        }
+                    }
                 }
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -176,9 +193,12 @@ public class ObservationTimeSeriesService {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @TypeHint(ObservationTimeSeries.class)
-    public Response syncObservationTimeSeriesFromApp(String jsonOts) {
+    public Response syncObservationTimeSeriesFromApp(
+            String jsonOts,
+            @Context HttpServletRequest httpServletRequest,
+            @Context HttpHeaders httpHeaders) {
         LOGGER.info(jsonOts);
-        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (user == null) {
             LOGGER.warn("Unable to get user from UUID");
             return Response.status(Response.Status.UNAUTHORIZED).build();

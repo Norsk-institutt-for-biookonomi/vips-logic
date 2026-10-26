@@ -7,11 +7,12 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Map.Entry;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -21,16 +22,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.util.ULocale;
 
 import no.nibio.vips.logic.controller.session.ObservationBean;
-import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.entity.Organism;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 
-@Stateless
+@ApplicationScoped
+@Transactional
 public class ObservationDataBean {
-	@PersistenceContext(unitName="VIPSLogic-PU")
+	@Inject
     EntityManager em;
 	
-	ObservationBean observationBean = SessionControllerGetter.getObservationBean();
+	@Inject
+	ObservationBean observationBean;
 	
 	public JsonNode getSchema(Integer organizationId, Integer organismId, ResourceBundle bundle){
     	ObservationDataSchema ods = null;
@@ -132,13 +134,34 @@ public class ObservationDataBean {
     
     public List<Organism> decoratePestsWithOrganismDataSchema(List<Organism> pests, Integer organizationId, HttpServletRequest httpServletRequest, ULocale locale)
     {
+    	if (httpServletRequest != null)
+    	{
+    		try
+    		{
+    			if(locale != null)
+    			{
+    				SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
+    			}
+    			return decoratePestsWithOrganismDataSchema(pests, organizationId, SessionLocaleUtil.getI18nBundle(httpServletRequest));
+    		}
+    		catch (IllegalStateException ex)
+    		{
+    			// No active servlet request (e.g. Quarkus REST)
+    		}
+    	}
+    	return decoratePestsWithOrganismDataSchema(pests, organizationId, locale);
+    }
+
+    public List<Organism> decoratePestsWithOrganismDataSchema(List<Organism> pests, Integer organizationId, ULocale locale)
+    {
+    	ResourceBundle bundle = ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale());
+    	return decoratePestsWithOrganismDataSchema(pests, organizationId, bundle);
+    }
+
+    private List<Organism> decoratePestsWithOrganismDataSchema(List<Organism> pests, Integer organizationId, ResourceBundle bundle)
+    {
     	try
     	{
-    		if(locale != null)
-            {
-            	SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
-            }
-            ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
 	    	ObjectMapper om = new ObjectMapper();
 	    	for(Organism pest:pests)
 	    	{

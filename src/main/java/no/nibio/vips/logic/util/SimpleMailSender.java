@@ -18,96 +18,43 @@
 
 package no.nibio.vips.logic.util;
 
-
+import io.quarkus.mailer.Mail;
+import io.quarkus.mailer.Mailer;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.Iterator;
 import java.util.List;
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
-import java.util.Properties;
 
 
 /**
- * TODO: Better error handling!!!!
- * Simple utility class for sending a mail using the JavaMail API
+ * Simple utility class for sending mail via Quarkus Mailer (replaces Jakarta Mail SMTP).
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
+@ApplicationScoped
 public class SimpleMailSender {
-    
-    private final String SMTPserver;
-    
-    private final boolean DEBUG=false;
-    
-    /** Creates a new instance of SimpleMailSender
-     * @param SMTPserver the url of the SMTP server to relay mail through
-     */
-    public SimpleMailSender(String SMTPserver) {
-        this.SMTPserver = SMTPserver;
-    }
-    
-    /** <pre> Sends a mail message with the specified contents </pre>
-     * @param from the sender
-     * @param to the recipient
-     * @param subject the subject
-     * @param body the body text
-     *
-     */
-    public void sendMail(String from, String to, String subject, String body)
-    {
-        if(DEBUG)
-            System.out.println("[SimpleMailSender] DEBUG from=" + from + ",to=" + to + ",SMTPserver=" + this.SMTPserver);
-        try
-        {
-            Properties props = System.getProperties();
-            props.put("mail.smtp.host", SMTPserver);
-            Session session = Session.getDefaultInstance(props, null);
 
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject(subject);
-            message.setText(body);
+    @Inject
+    Mailer mailer;
 
-            Transport.send(message);
+    /** Sends a mail message with the specified contents */
+    public void sendMail(String from, String to, String subject, String body) {
+        try {
+            mailer.send(Mail.withText(to, subject, body).setFrom(from));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        catch(jakarta.mail.internet.AddressException ae){ae.printStackTrace();}
-        catch(jakarta.mail.MessagingException me) {me.printStackTrace();}
     }
 
-    /**
-     * UNTESTED
-     * @param from
-     * @param to
-     * @param bccRecipients
-     * @param subject
-     * @param body
-     */
-    public void sendMail(String from, String to, List<String> bccRecipients, String subject, String body)
-    {
-        if(DEBUG)
-            System.out.println("[SimpleMailSender] DEBUG from=" + from + ",to=" + to + ",SMTPserver=" + this.SMTPserver);
-        try
-        {
-            Properties props = System.getProperties();
-            props.put("mail.smtp.host", SMTPserver);
-            Session session = Session.getDefaultInstance(props, null);
-
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject(subject);
-            message.setText(body);
-
-            for(Iterator<String> i = bccRecipients.iterator();i.hasNext();)
-            {
-                String recipient = i.next();
-                message.addRecipient(Message.RecipientType.BCC, new InternetAddress(recipient));
+    public void sendMail(String from, String to, List<String> bccRecipients, String subject, String body) {
+        try {
+            Mail mail = Mail.withText(to, subject, body).setFrom(from);
+            for (Iterator<String> i = bccRecipients.iterator(); i.hasNext();) {
+                mail.addBcc(i.next());
             }
-
-            Transport.send(message);
+            mailer.send(mail);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        catch(jakarta.mail.internet.AddressException ae){ae.printStackTrace();}
-        catch(jakarta.mail.MessagingException me) {me.printStackTrace();}
     }
-    
 }

@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jakarta.ejb.EJB;
 import no.nibio.vips.entity.ModelConfiguration;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.controller.session.ForecastBean;

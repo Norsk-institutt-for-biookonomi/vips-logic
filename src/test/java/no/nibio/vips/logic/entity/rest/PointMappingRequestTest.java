@@ -17,6 +17,7 @@
  */
 package no.nibio.vips.logic.entity.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.ws.rs.client.Client;
@@ -24,13 +25,13 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.wololo.geojson.Polygon;
 
 /**
  *
@@ -85,7 +86,7 @@ public class PointMappingRequestTest {
     }
     
     @Test
-    public void testClient() {
+    public void testClient() throws Exception {
         System.out.println("testClient");
         List<ReferencedPoint> points = new ArrayList<>();
         ReferencedPoint r1 = new ReferencedPoint();
@@ -101,25 +102,17 @@ public class PointMappingRequestTest {
         points.add(r2);
         
         ReferencedPoint[] instance = points.toArray(new ReferencedPoint[points.size()]);
+        ObjectMapper objectMapper = new ObjectMapper();
         
         try(Client client = ClientBuilder.newClient()) {
             WebTarget target = client.target("https://proxy1.nibio.no/municipality_cache_ws/pointmapping/1/4326");
 
-            //PointMappingResponse response = 
-            PointMappingResponse response =    target.request(MediaType.APPLICATION_JSON)
-                    .post(Entity.entity(instance, MediaType.APPLICATION_JSON), PointMappingResponse.class);//.toString();
-            //System.out.println(((Polygon)response.getFeatureCollection().getFeatures()[0].getGeometry()).getCoordinates()[0].length);
-            
-            assertNotNull(response);
+            try (Response httpResponse = target.request(MediaType.APPLICATION_JSON)
+                    .post(Entity.entity(objectMapper.writeValueAsString(instance), MediaType.APPLICATION_JSON))) {
+                PointMappingResponse response = objectMapper.readValue(
+                        httpResponse.readEntity(String.class), PointMappingResponse.class);
+                assertNotNull(response);
+            }
         }
-        //System.out.println(Entity.entity(instance, MediaType.APPLICATION_JSON));
-        
-        //System.out.println(target.request(MediaType.APPLICATION_JSON)
-        //        .buildPost(Entity.entity(instance, MediaType.APPLICATION_JSON).));
-
-                
-        //System.out.println(response.getStatus());
-        
-           
     }
 }

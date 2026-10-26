@@ -20,7 +20,7 @@ package no.nibio.vips.logic.authenticate;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.UUID;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -43,7 +43,7 @@ import no.nibio.vips.util.ServletUtil;
  */
 public class AuthenticationFilter implements Filter {
 
-    @EJB
+    @Inject
     UserBean userBean;
 
     // The URLs that do not require login

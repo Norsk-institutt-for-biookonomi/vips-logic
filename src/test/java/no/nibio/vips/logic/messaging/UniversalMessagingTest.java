@@ -20,13 +20,12 @@ package no.nibio.vips.logic.messaging;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.ws.rs.core.Response;
 import no.nibio.vips.logic.util.RESTAuthenticator;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -132,13 +131,10 @@ public class UniversalMessagingTest {
             }
             um.setDistributionList(rList);
 
-            ResteasyClient client = (ResteasyClient) ResteasyClientBuilder.newClient();
-            //client.register(new RESTAuthenticator("user", "userPass"));
-            client.register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"));
-            //ResteasyWebTarget target = client.target("http://kart13utv.ad.skogoglandskap.no:8080");
-            ResteasyWebTarget target = client.target("http://localhost:8080");
-            //ResteasyWebTarget target = client.target("http://logic.testvips2.nibio.no");
-            UniversalMessagingServiceClient umClient = target.proxy(UniversalMessagingServiceClient.class);
+            UniversalMessagingServiceClient umClient = RestClientBuilder.newBuilder()
+                    .baseUri(URI.create("http://localhost:8080"))
+                    .register(new RESTAuthenticator("VIPSLogic", "plmoknijbuhv000"))
+                    .build(UniversalMessagingServiceClient.class);
             
         
             //System.out.println(new ObjectMapper().writeValueAsString(um));

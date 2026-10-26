@@ -27,7 +27,6 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 
-import jakarta.mail.MessagingException;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgReceiver;
 import no.nibio.vips.logic.messaging.distribution.entity.MsgToSend;
 import no.nibio.vips.logic.messaging.distribution.entity.VipsMessage;
@@ -71,7 +70,7 @@ public class SmsMsgDeliveryHandler implements IDeliveryMsgHandler {
      * @throws MalformedURLException
      * @throws IOException
      */
-    private boolean sendMessage(String subjekt, String smsText, String smsAddress, String pricegroup) throws MessagingException, MalformedURLException, IOException {
+    private boolean sendMessage(String subjekt, String smsText, String smsAddress, String pricegroup) throws MalformedURLException, IOException {
         boolean result = false;
         InputStream response = null;
         URLConnection connection = null;
@@ -173,7 +172,7 @@ public class SmsMsgDeliveryHandler implements IDeliveryMsgHandler {
                 sendMessage(msgToSend.getMsgSubject(), smsText, msgReceiver.msgDeliveryAddress, pricegroup);
             }
             return SingleMsgSentStateEnum.Ok;
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             LOGGER.error("Failed to send message " + smsText + " to " + msgReceiver.msgDeliveryAddress + " using server " + smscServer,e);
             return SingleMsgSentStateEnum.FailedNotSentWithException;
         } catch (Throwable e1) {
