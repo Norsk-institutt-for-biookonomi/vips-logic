@@ -1,8 +1,7 @@
 package no.nibio.vips.logic.controller.servlet;
 
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,20 +31,20 @@ public class ObservationTimeSeriesController extends HttpServlet {
     public static final String LOCATION_VISIBILITY_FORM_VALUE_PUBLIC = "public";
     public static final String LOCATION_VISIBILITY_FORM_VALUE_MASK_PREFIX = "mask_";
 
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
 
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
-    @EJB
+    @Inject
     ObservationBean observationBean;
-    @EJB
+    @Inject
     MessagingBean messagingBean;
-    @EJB
+    @Inject
     OrganismBean organismBean;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
 
     /**

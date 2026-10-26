@@ -39,11 +39,11 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
-import jakarta.ejb.EJB;
-import jakarta.ejb.LocalBean;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -54,7 +54,10 @@ import no.nibio.vips.logic.entity.*;
 import no.nibio.vips.logic.entity.misc.UserResources;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.messaging.MessagingBean;
+import no.nibio.vips.logic.organization.OrganizationService;
+import no.nibio.vips.logic.user.UserService;
 import no.nibio.vips.logic.util.Globals;
+import no.nibio.vips.logic.util.ServletRequestUtil;
 import no.nibio.vips.logic.util.SimpleMailSender;
 import no.nibio.vips.logic.util.StringUtils;
 import no.nibio.vips.util.MD5Encrypter;
@@ -72,6 +75,7 @@ import org.passay.Rule;
 import org.passay.RuleResult;
 import org.passay.WhitespaceRule;
 import org.postgresql.util.PSQLException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -80,29 +84,37 @@ import org.slf4j.Logger;
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@LocalBean
-@Stateless
+@ApplicationScoped
+@Transactional
 public class UserBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserBean.class);
-    
-    
-    @PersistenceContext(unitName="VIPSLogic-PU")
+
+    @Inject
     EntityManager em;
-    
-    @EJB
-    UserBean userBean;
-    @EJB
+
+    @Inject
+    OrganizationService organizationService;
+
+    @Inject
+    UserService userService;
+
+    @Inject
     ForecastBean forecastBean;
-    @EJB
+    @Inject
     MessagingBean messagingBean;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     MessageBean messageBean;
-    @EJB
+    @Inject
+    SimpleMailSender mailSender;
+    @Inject
     ObservationBean observationBean;
-    
+
+    @ConfigProperty(name = "no.nibio.vips.logic.USER_COUNTRY_CODES", defaultValue = "NO,SE,BA,LV,US,FI,LT,CH")
+    String userCountryCodes;
+
     private Properties serverProperties;
     private List<Rule> defaultPasswordValidatorRuleList;
     
@@ -143,19 +155,7 @@ public class UserBean {
      */
     public VipsLogicUser getUser(String username, Integer userAuthenticationTypeId)
     {
-        // We find the authentication with given name
-        Query q = em.createNamedQuery("UserAuthentication.findByUsername");
-        q.setParameter("username", username);
-        List<UserAuthentication> userAuthentications = q.getResultList();
-        for(UserAuthentication userAuth:userAuthentications)
-        {
-            // We check that only the given combination of user name and authentication type is a full match
-            if(userAuth.getUserAuthenticationType().getUserAuthenticationTypeId().equals(userAuthenticationTypeId))
-            {
-                return userAuth.getVipsLogicUser();
-            }
-        }
-        return null;
+        return userService.findUserByUsernameAndAuthenticationType(username, userAuthenticationTypeId);
     }
 
     public UserAuthenticationType createUserAuthenticationTypeInstance(Integer userAuthenticationTypeId)
@@ -197,8 +197,6 @@ public class UserBean {
         LOGGER.debug(subject + "\n" + body);
        
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, user.getEmail(), subject, body);
         
     }
@@ -223,7 +221,7 @@ public class UserBean {
     {
         // Must double check: NO user can be force deleted without first
         // transferring resources to another user
-        UserResources userResources = userBean.getUserResources(user);
+        UserResources userResources = this.getUserResources(user);
         if(! userResources.isEmpty())
         {
             throw new DeleteUserException("User still has resources connected to them.");
@@ -238,13 +236,12 @@ public class UserBean {
         messagingBean.deleteAllNotificationSubscriptions(user);
         // Remove all User UUIDs
         this.deleteAllUserUuidsForUser(user);
-        
-        // Delete all of the user's private forecast configurations and results
+
         forecastBean.deleteAllPrivateForecastConfigurationsForUser(user);
-        
+
         em.remove(user);
     }
-    
+
     public UserResources getUserResources(VipsLogicUser user)
     {
         UserResources retVal = new UserResources();
@@ -398,16 +395,7 @@ public class UserBean {
      */
     public VipsLogicUser getUserByEmail(String email) throws NonUniqueResultException
     {
-        Query q = em.createNamedQuery("VipsLogicUser.findByEmail",VipsLogicUser.class);
-        q.setParameter("email", email);
-        try
-        {
-            return (VipsLogicUser) q.getSingleResult();
-        }
-        catch(NoResultException ex)
-        {
-            return null;
-        }
+        return userService.findUserByEmail(email);
     }
     
     public String getMD5EncryptedString(String str) throws IOException
@@ -432,7 +420,7 @@ public class UserBean {
     
     public List<Organization> getOrganizations()
     {
-        return em.createNamedQuery("Organization.findAll").getResultList();
+        return organizationService.findAll();
     }
     
     /**
@@ -585,7 +573,7 @@ public class UserBean {
     
     public Organization getOrganization(Integer organizationId)
     {
-        return em.find(Organization.class, organizationId);
+        return organizationService.findById(organizationId);
     }
     
     /**
@@ -655,8 +643,6 @@ public class UserBean {
 
         //System.out.println(body);
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         for(VipsLogicUser organizationAdmin: organizationAdmins)
         {
             mailSender.sendMail("noreply@" + serverName, organizationAdmin.getEmail(), subject, body);
@@ -683,8 +669,6 @@ public class UserBean {
         String body = MessageFormat.format(i18nBundle.getString("sendUserApprovalConfirmationBody"), 
                             Globals.PROTOCOL + "://" + serverName + "/");
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, user.getEmail(), subject, body);
     }
 
@@ -709,8 +693,6 @@ public class UserBean {
         String body = MessageFormat.format(i18nBundle.getString("sendUsernameAndPasswordToUserBody"), username, password, serverName);
         
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, viewUser.getEmail(), subject, body);
     }
     
@@ -753,8 +735,6 @@ public class UserBean {
         LOGGER.debug(subject + "\n" + body);
 
         // Send email
-        String smtpServer = System.getProperty("no.nibio.vips.logic.SMTP_SERVER");
-        SimpleMailSender mailSender = new SimpleMailSender(smtpServer);
         mailSender.sendMail("noreply@" + serverName, resetPasswordUser.getEmail(), subject, body);
         return null;
     }
@@ -766,27 +746,7 @@ public class UserBean {
      */
     public VipsLogicUser findVipsLogicUser(UUID uuid)
     {
-        try
-        {
-            Query q = em.createNamedQuery("UserUuid.findByUserUUID", UserUuid.class);
-            q.setParameter("userUUID", uuid);
-            UserUuid uUuid = (UserUuid) q.getSingleResult();
-            // If the uuid credential has expired, delete it and return nothing(null)
-            if(uUuid.getExpiresAt().before(new Date()))
-            {
-                this.deleteUserUuid(uuid);
-                return null;
-            }
-            q = em.createNamedQuery("VipsLogicUser.findByUserId", VipsLogicUser.class);
-            q.setParameter("userId", uUuid.getUserUuidPK().getUserId());
-            VipsLogicUser user = (VipsLogicUser) q.getSingleResult(); 
-            user.setUserUuid(uuid);
-            return user;
-        }
-        catch(NoResultException ex)
-        {
-            return null;
-        }
+        return userService.findUserByUuid(uuid);
     }
     
     /**
@@ -813,12 +773,7 @@ public class UserBean {
      */
     public void deleteUserUuid(UUID uuid)
     {
-        try
-        {
-            UserUuid u = (UserUuid) em.createNamedQuery("UserUuid.findByUserUUID").setParameter("userUUID", uuid).getSingleResult();
-            em.remove(u);
-        }
-        catch(NoResultException ex) {}
+        userService.deleteUserUuid(uuid);
     }
     
     /**
@@ -908,16 +863,9 @@ public class UserBean {
     
     public List<Country> getUserCountries()
     {
-        try
-        {
-            return em.createNamedQuery("Country.findByCountryCodes")
-                    .setParameter("countryCodes",Arrays.asList(System.getProperty("no.nibio.vips.logic.USER_COUNTRY_CODES").split(",")))
-                    .getResultList();
-        }
-        catch(NullPointerException ex)
-        {
-            return new ArrayList<>();
-        }
+        return em.createNamedQuery("Country.findByCountryCodes")
+                .setParameter("countryCodes", Arrays.asList(userCountryCodes.split(",")))
+                .getResultList();
     }
     
     public List<Country> getCountries()
@@ -1070,13 +1018,29 @@ public class UserBean {
     
     public VipsLogicUser getUserFromUUID(HttpServletRequest request)
     {
-    	String uuidStr = request.getHeader(HttpHeaders.AUTHORIZATION);
-    	if(uuidStr == null)
+    	return getUserFromAuthorizationHeader(request != null ? request.getHeader(HttpHeaders.AUTHORIZATION) : null);
+    }
+
+    public VipsLogicUser resolveCurrentUser(HttpServletRequest request, HttpHeaders headers)
+    {
+        VipsLogicUser user = ServletRequestUtil.getSessionUser(request);
+        if (user != null) {
+            return user;
+        }
+        String authorization = ServletRequestUtil.getAuthorizationHeader(request, headers);
+        if (authorization == null || authorization.isBlank()) {
+            authorization = ServletRequestUtil.getUserUuidCookie(request, headers);
+        }
+        return getUserFromAuthorizationHeader(authorization);
+    }
+
+    public VipsLogicUser getUserFromAuthorizationHeader(String authorizationHeader)
+    {
+    	if(authorizationHeader == null || authorizationHeader.isBlank())
     	{
     		return null;
     	}
-		UUID uuid = UUID.fromString(uuidStr);
-		VipsLogicUser user = SessionControllerGetter.getUserBean().findVipsLogicUser(uuid);
-		return user;
+		UUID uuid = UUID.fromString(authorizationHeader);
+		return findVipsLogicUser(uuid);
     }
 }

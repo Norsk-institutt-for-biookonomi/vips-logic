@@ -24,9 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import org.jboss.resteasy.spi.HttpRequest;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
@@ -36,7 +34,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -52,7 +51,6 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import no.nibio.vips.gis.GISUtil;
 import no.nibio.vips.logic.controller.session.PointOfInterestBean;
-import no.nibio.vips.logic.controller.session.SessionControllerGetter;
 import no.nibio.vips.logic.controller.session.UserBean;
 import no.nibio.vips.logic.entity.Country;
 import no.nibio.vips.logic.entity.Organization;
@@ -65,19 +63,15 @@ import no.nibio.vips.logic.entity.helpers.PointOfInterestFactory;
  * @copyright 2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/poi")
+@ApplicationScoped
+@Path("poi")
 public class POIService {
     private final static Logger LOGGER = LoggerFactory.getLogger(POIService.class);
 
-    @Context
-    private HttpRequest httpRequest;
-    @Context
-    private HttpServletRequest httpServletRequest;
-
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
 
-    @EJB
+    @Inject
     UserBean userBean;
 
     /**
@@ -113,7 +107,7 @@ public class POIService {
     @POST
     @Consumes("application/json;charset=UTF-8")
     @Produces("application/json;charset=UTF-8")
-    public Response postPoi(String poiJson) {
+    public Response postPoi(String poiJson, @Context HttpHeaders httpHeaders) {
         ObjectMapper oM = new ObjectMapper();
         Map<Object, Object> poiMap;
         try {
@@ -123,7 +117,7 @@ public class POIService {
             return Response.status(Status.BAD_REQUEST).entity("Unable to parse input").build();
         }
 
-        VipsLogicUser user = userBean.getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user == null) {
             LOGGER.error("No user found for UUID in Authorization");
             return Response.status(Status.UNAUTHORIZED).build();
@@ -230,16 +224,12 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     @TypeHint(PointOfInterest[].class)
-    public Response getPoisForCurrentUser() {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        // Could be the VIPS obs app or some other client using UUID
+    public Response getPoisForCurrentUser(
+            @Context HttpServletRequest httpServletRequest,
+            @Context HttpHeaders httpHeaders) {
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (user == null) {
-            String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-            UUID uuid = UUID.fromString(uuidStr);
-            user = userBean.findVipsLogicUser(uuid);
-            if (user == null) {
-                return Response.status(Status.UNAUTHORIZED).build();
-            }
+            return Response.status(Status.UNAUTHORIZED).build();
         }
         List<PointOfInterest> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user);
         return Response.ok().entity(retVal).build();
@@ -256,16 +246,12 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @Facet("restricted")
     @TypeHint(PointOfInterest[].class)
-    public Response getWeatherStationsForCurrentUser() {
-        VipsLogicUser user = (VipsLogicUser) httpServletRequest.getSession().getAttribute("user");
-        // Could be the VIPS obs app or some other client using UUID
+    public Response getWeatherStationsForCurrentUser(
+            @Context HttpServletRequest httpServletRequest,
+            @Context HttpHeaders httpHeaders) {
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (user == null) {
-            String uuidStr = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-            UUID uuid = UUID.fromString(uuidStr);
-            user = userBean.findVipsLogicUser(uuid);
-            if (user == null) {
-                return Response.status(Status.UNAUTHORIZED).build();
-            }
+            return Response.status(Status.UNAUTHORIZED).build();
         }
         List<PointOfInterestWeatherStation> retVal = pointOfInterestBean.getRelevantPointOfInterestsForUser(user).stream()
             .filter(poi->poi instanceof PointOfInterestWeatherStation)
@@ -286,9 +272,10 @@ public class POIService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(PointOfInterest.class)
     public Response syncPOIFromApp(
-            String poiJson
+            String poiJson,
+            @Context HttpHeaders httpHeaders
     ) {
-        VipsLogicUser user = SessionControllerGetter.getUserBean().getUserFromUUID(httpServletRequest);
+        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
         if (user == null) {
             return Response.status(Status.UNAUTHORIZED).build();
         }

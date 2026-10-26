@@ -1,5 +1,9 @@
 version: "3.9"
 
+# Local Quarkus dev stack (PostGIS + app). Requires ci_settings.xml from vips-common-config for build.
+#   docker compose up --build -d
+#   curl http://localhost:8080/q/health
+
 services:
   vipslogicdb:
     image: postgis/postgis:16-3.4
@@ -11,38 +15,35 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vipslogic -d vipslogic"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vipslogic"]
       interval: 5s
       timeout: 5s
       retries: 20
     volumes:
       - dbdata:/var/lib/postgresql/data
+
   vipslogic:
     build:
-      context: ..
-      dockerfile: VIPSLogic/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: vipslogic
     depends_on:
       vipslogicdb:
         condition: service_healthy
     environment:
-      # Java options including debug configuration
-      JAVA_OPTS: >-
-        -Xms4g
-        -Xmx16g
-        -XX:+UseG1GC
-        -XX:MaxGCPauseMillis=200
-        -XX:+UseStringDeduplication
-        -Dno.nibio.vips.logic.MESSAGE_ILLUSTRATION_PATH=/data/messages
-        -Dno.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH=/data/observations
-        -Dno.nibio.vips.logic.START_SCHEDULING_ON_BOOT=false
-        -Djboss.bind.address=0.0.0.0
-        -Djboss.bind.address.management=0.0.0.0
-        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      VIPSLOGIC_DB_URL: jdbc:postgresql://vipslogicdb:5432/vipslogic
+      VIPSLOGIC_DB_USER: postgres
+      VIPSLOGIC_DB_PASSWORD: foobar
+      VIPSLOGIC_PROTOCOL: http
+      VIPSLOGIC_SERVER_NAME: localhost:8080
+      VIPSLOGIC_START_SCHEDULING_ON_BOOT: "false"
+      VIPSLOGIC_DISABLE_MESSAGING: "true"
+      VIPSLOGIC_MESSAGE_ILLUSTRATION_PATH: /data/messages
+      VIPSLOGIC_OBSERVATION_ILLUSTRATION_PATH: /data/observations
+      VIPSLOGIC_MD5_SALT: local-dev-salt-change-me
+      JAVA_OPTS_APPEND: "-Xms512m -Xmx2048m"
     ports:
       - "8080:8080"
-      - "9990:9990"
-      - "5005:5005"
     volumes:
       - appdata:/data
 

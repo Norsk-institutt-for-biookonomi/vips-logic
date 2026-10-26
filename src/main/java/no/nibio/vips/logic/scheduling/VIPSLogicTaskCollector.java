@@ -18,15 +18,15 @@
 
 package no.nibio.vips.logic.scheduling;
 
-import it.sauronsoftware.cron4j.TaskCollector;
-import it.sauronsoftware.cron4j.TaskTable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Idea: One Task Collector per organization
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-public class VIPSLogicTaskCollector implements TaskCollector{
+public class VIPSLogicTaskCollector {
     private TaskTable taskTable;
     private Integer organizationId;
     
@@ -35,7 +35,6 @@ public class VIPSLogicTaskCollector implements TaskCollector{
         this.organizationId = organizationId;
     }
 
-    @Override
     public TaskTable getTasks() {
         if(this.taskTable == null)
             this.taskTable = new TaskTable();
@@ -49,7 +48,29 @@ public class VIPSLogicTaskCollector implements TaskCollector{
     public Integer getOrganizationId(){
         return this.organizationId;
     }
-    
-    
 
+    /**
+     * Replaces cron4j TaskTable.
+     */
+    public static class TaskTable {
+        private final List<String> cronPatterns = new ArrayList<>();
+        private final List<VipsLogicTask> tasks = new ArrayList<>();
+
+        public void add(String cronPattern, VipsLogicTask task) {
+            cronPatterns.add(cronPattern);
+            tasks.add(task);
+        }
+
+        public int size() {
+            return tasks.size();
+        }
+
+        public String getCronPattern(int index) {
+            return cronPatterns.get(index);
+        }
+
+        public VipsLogicTask getTask(int index) {
+            return tasks.get(index);
+        }
+    }
 }

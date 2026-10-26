@@ -50,12 +50,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ibm.icu.util.ULocale;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
 import no.nibio.vips.logic.entity.CropCategory;
 import no.nibio.vips.logic.entity.Gis;
@@ -72,6 +72,7 @@ import no.nibio.vips.logic.entity.PolygonService;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
 import no.nibio.vips.logic.util.SystemTime;
+import no.nibio.vips.logic.util.UploadedFileStore;
 import no.nibio.vips.observationdata.ObservationDataSchema;
 import no.nibio.vips.observationdata.ObservationDataSchemaPK;
 
@@ -79,17 +80,18 @@ import no.nibio.vips.observationdata.ObservationDataSchemaPK;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  * @copyright 2014-2020 <a href="http://www.nibio.no/">NIBIO</a>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class ObservationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ObservationBean.class);
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     UserBean userBean;
 
-    @EJB
+    @Inject
     ObservationTimeSeriesBean observationTimeSeriesBean;
 
     public List<Observation> getObservations(Integer organizationId) {
@@ -121,13 +123,8 @@ public class ObservationBean {
     }
 
     public List<Observation> getObservations(Integer organizationId, Integer statusTypeId) {
-        Organization organization = em.find(Organization.class, organizationId);
-        /*List<VipsLogicUser> users = em.createNamedQuery("VipsLogicUser.findByOrganizationId", VipsLogicUser.class)
-                                        .setParameter("organizationId", organization)
-                                        .getResultList();*/
-
         List<Observation> retVal = this.getObservationsWithGeoInfo(em.createNamedQuery("Observation.findByOrganizationIdAndStatusTypeId")
-                .setParameter("organizationId", organization)
+                .setParameter("organizationId", organizationId)
                 .setParameter("statusTypeId", statusTypeId)
                 .getResultList());
 
@@ -387,8 +384,8 @@ public class ObservationBean {
      * @return [OBSERVATION_ILLUSTRATION_PATH]/[ORGANISM_ID]/
      */
     private String getFilePath(Observation observation) {
-        return System.getProperty("no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH") + "/"
-                + observation.getOrganismId();
+        return UploadedFileStore.requireBasePath("no.nibio.vips.logic.OBSERVATION_ILLUSTRATION_PATH")
+                + "/" + observation.getOrganismId();
     }
 
     public Observation storeObservationIllustration(Observation observation, String fileName, String base64Data) {
@@ -431,14 +428,7 @@ public class ObservationBean {
             illustration = new File(filePath + "/" + fileName);
             fileNameSuffix++;
         }
-        File testDirectoryfile = new File(filePath);
-        // If directory does not exist, create it
-        if (!testDirectoryfile.exists()) {
-            testDirectoryfile.mkdirs();
-        }
-
-        // Store file
-        item.write(illustration.toPath());
+        UploadedFileStore.write(item, illustration);
 
         // Update MessageIllustrations
         observation = em.merge(observation);
@@ -870,11 +860,28 @@ public class ObservationBean {
      * @return
      */
     public ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, HttpServletRequest httpServletRequest, ULocale locale) throws IOException {
-        if (locale != null) {
-            SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
+        if (httpServletRequest != null) {
+            try {
+                if (locale != null) {
+                    SessionLocaleUtil.setCurrentLocale(httpServletRequest, locale);
+                }
+                return getLocalizedObservationDataSchema(ods, SessionLocaleUtil.getI18nBundle(httpServletRequest));
+            } catch (IllegalStateException ex) {
+                // No active servlet request (e.g. Quarkus REST)
+            }
         }
-        ResourceBundle bundle = SessionLocaleUtil.getI18nBundle(httpServletRequest);
+        if (locale == null) {
+            throw new IOException("Locale is required when no servlet request is available");
+        }
+        return getLocalizedObservationDataSchema(ods,
+                ResourceBundle.getBundle("no.nibio.vips.logic.i18n.vipslogictexts", locale.toLocale()));
+    }
 
+    public ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, ULocale locale) throws IOException {
+        return getLocalizedObservationDataSchema(ods, (HttpServletRequest) null, locale);
+    }
+
+    private ObservationDataSchema getLocalizedObservationDataSchema(ObservationDataSchema ods, ResourceBundle bundle) throws IOException {
         // We iterate the schema, replacing default field labels with
         // translated ones
         // First: Convert to Jackson JsonNode tree

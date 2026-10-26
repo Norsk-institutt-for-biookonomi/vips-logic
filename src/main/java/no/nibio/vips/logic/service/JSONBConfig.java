@@ -18,6 +18,7 @@
 
 package no.nibio.vips.logic.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
@@ -38,6 +39,7 @@ import java.util.logging.Logger;
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 @Provider
+@ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 //@Consumes(MediaType.APPLICATION_JSON)
 public class JSONBConfig implements ContextResolver<jakarta.json.bind.Jsonb>

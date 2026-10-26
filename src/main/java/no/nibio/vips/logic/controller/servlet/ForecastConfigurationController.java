@@ -26,9 +26,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,19 +64,19 @@ public class ForecastConfigurationController extends HttpServlet {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ForecastConfigurationController.class);
 
-    @PersistenceContext(unitName = "VIPSLogic-PU")
+    @Inject
     EntityManager em;
 
-    @EJB
+    @Inject
     ForecastBean forecastBean;
 
-    @EJB
+    @Inject
     UserBean userBean;
 
-    @EJB
+    @Inject
     OrganismBean organismBean;
 
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
 
     /**

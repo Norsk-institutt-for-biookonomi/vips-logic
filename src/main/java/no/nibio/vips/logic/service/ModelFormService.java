@@ -28,7 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.webcohesion.enunciate.metadata.Facet;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -61,16 +62,17 @@ import no.nibio.vips.util.XDate;
  * @copyright 2018-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/modelform")
+@ApplicationScoped
+@Path("modelform")
 @Facet("restricted")
 public class ModelFormService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelFormService.class);
 
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
-    @EJB
+    @Inject
     ForecastBean forecastBean;
 
     /**

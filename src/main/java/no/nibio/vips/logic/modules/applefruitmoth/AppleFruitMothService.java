@@ -21,7 +21,8 @@ package no.nibio.vips.logic.modules.applefruitmoth;
 import com.webcohesion.enunciate.metadata.Facet;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import java.util.Calendar;
-import jakarta.ejb.EJB;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -30,18 +31,19 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
-import no.nibio.vips.util.ServletUtil;
 
 /**
  * @copyright 2016-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Path("rest/applefruitmoth")
+@ApplicationScoped
+@Path("applefruitmoth")
 @Facet("restricted")
 public class AppleFruitMothService {
     
-    @EJB
+    @Inject
     AppleFruitMothBean appleFruitMothBean;
     
     @Context
@@ -69,7 +71,7 @@ public class AppleFruitMothService {
             @QueryParam("onlyPubliclyAvailable") Boolean onlyPubliclyAvailable
     )
     {
-        Kml retVal = appleFruitMothBean.getObservationSitesKml(season, selectedObservationSiteId, ServletUtil.getServerName(httpServletRequest), onlyPubliclyAvailable);
+        Kml retVal = appleFruitMothBean.getObservationSitesKml(season, selectedObservationSiteId, Globals.SERVER_NAME, onlyPubliclyAvailable);
         return Response.ok().entity(retVal).build();
     }
     

@@ -16,12 +16,11 @@
 
 package no.nibio.vips.logic.scheduling.tasks;
 
-import it.sauronsoftware.cron4j.TaskExecutionContext;
+import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutionContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import jakarta.ejb.EJB;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

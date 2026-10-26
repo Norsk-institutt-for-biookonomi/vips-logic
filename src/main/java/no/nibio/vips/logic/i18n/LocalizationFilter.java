@@ -69,7 +69,7 @@ public class LocalizationFilter implements Filter{
             System.out.println(line);
         }*/
 
-        ULocale currentLocale = SessionLocaleUtil.getCurrentLocale((HttpServletRequest)request);
+        ULocale currentLocale = SessionLocaleUtil.getStoredLocale((HttpServletRequest) request);
         ULocale browserRequestedLocale = getBrowserRequestedLocale(request);
         String userRequestedLocaleStr = request.getParameter("userRequestedLocale");
         ULocale userRequestedLocale = userRequestedLocaleStr != null ? new ULocale(userRequestedLocaleStr) : null;

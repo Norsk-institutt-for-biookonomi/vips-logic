@@ -29,11 +29,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import no.nibio.vips.entity.Result;
 import no.nibio.vips.logic.entity.ForecastConfiguration;
 import no.nibio.vips.logic.entity.ForecastResult;
@@ -52,10 +54,14 @@ import org.slf4j.LoggerFactory;
  * @copyright 2015-2022 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class MessagingBean {
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
+
+    @ConfigProperty(name = "no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM", defaultValue = "false")
+    String disableMessagingSystem;
     
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MessagingBean.class);
     
@@ -118,10 +124,7 @@ public class MessagingBean {
         // TODO Handle errors better!
         try
         {
-            if  (
-                System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM") == null 
-                || System.getProperty("no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM").equals("false")
-            )
+            if (!"true".equalsIgnoreCase(disableMessagingSystem))
             {
                 IVipsMessageHandler vipsMessageHandler = new VipsMessageInputHandler();
                 vipsMessageHandler.sendMessage(new VipsMessage(uMessage));

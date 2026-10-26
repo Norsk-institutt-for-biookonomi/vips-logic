@@ -19,34 +19,32 @@
 package no.nibio.vips.logic.controller.session;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import it.sauronsoftware.cron4j.Predictor;
-import it.sauronsoftware.cron4j.Scheduler;
-import it.sauronsoftware.cron4j.SchedulingPattern;
-import it.sauronsoftware.cron4j.TaskCollector;
-import it.sauronsoftware.cron4j.TaskExecutor;
-import it.sauronsoftware.cron4j.TaskTable;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
+import io.quarkus.scheduler.Scheduler;
 import no.nibio.vips.logic.entity.Organization;
 import no.nibio.vips.logic.entity.TaskHistory;
 import no.nibio.vips.logic.entity.TaskHistoryStatus;
 import no.nibio.vips.logic.entity.VipsLogicUser;
-import no.nibio.vips.logic.scheduling.TaskLoggerSchedulerListener;
 import no.nibio.vips.logic.scheduling.VIPSLogicTaskCollector;
 import no.nibio.vips.logic.scheduling.VipsLogicTask;
+import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutionContext;
+import no.nibio.vips.logic.scheduling.VipsLogicTask.TaskExecutor;
 import no.nibio.vips.logic.scheduling.VipsLogicTaskFactory;
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
@@ -55,67 +53,74 @@ import no.nibio.vips.logic.util.SystemTime;
  * @copyright 2013 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-@Stateless
+@ApplicationScoped
+@Transactional
 public class SchedulingBean {
     
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     UserBean userBean;
-    @EJB
+    @Inject
     ForecastBean forecastBean;
+    @Inject
+    Scheduler scheduler;
+
+    private final List<VIPSLogicTaskCollector> systemTaskCollectors = new ArrayList<>();
+    private final List<String> scheduledJobIds = new ArrayList<>();
+    private final List<VipsLogicTask> scheduledTasks = new ArrayList<>();
+    private final Set<TaskExecutor> runningTasks = ConcurrentHashMap.newKeySet();
+    private final ExecutorService taskRunner = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "vipslogic-task");
+        t.setDaemon(true);
+        return t;
+    });
+
+    private volatile boolean systemSchedulerStarted = false;
     
-    // There can be only one systemScheduler!
-    private static Scheduler systemScheduler;
-    
-    // But there may be one or more one-off schedulers
-    private static Set<Scheduler> oneOffSchedulers;
-    //private SchedulerListener TaskLoggerSchedulerListener;
-    
-    /**
-     * Get the system scheduler
-     * @return 
-     */
-    public Scheduler getSystemScheduler(){
-        if(systemScheduler == null)
-        {
-            systemScheduler = new Scheduler();
-            systemScheduler.addSchedulerListener(new TaskLoggerSchedulerListener());
-        }
-        return systemScheduler;
+    public boolean isSystemSchedulerStarted() {
+        return systemSchedulerStarted;
     }
-    
-    public Set<Scheduler> getOneOffSchedulers()
-    {
-        if(oneOffSchedulers == null)
-        {
-            oneOffSchedulers = new HashSet<>();
-        }
-        return oneOffSchedulers;
+
+    public void launchSystemSchedulerTask(VipsLogicTask task) {
+        taskRunner.submit(() -> executeTask(copyTask(task)));
     }
     
     /**
      * Initiates and starts the system scheduler
      */
     public void initSystemScheduler(){
+        for (String jobId : scheduledJobIds) {
+            scheduler.unscheduleJob(jobId);
+        }
+        scheduledJobIds.clear();
+        systemTaskCollectors.clear();
+        scheduledTasks.clear();
 
-        // In case this is called for a second (or later) time after system boot
-        // we remove all existing tasks (in task collectors) before we add the
-        // ones that are configured for starting.
-        TaskCollector[] existingTaskCollectors = getSystemScheduler().getTaskCollectors();
-        if(existingTaskCollectors != null)
+        for(VIPSLogicTaskCollector taskCollector: this.getDefinedTasks())
         {
-            for(TaskCollector existingTaskCollector:existingTaskCollectors)
-            {
-                getSystemScheduler().removeTaskCollector(existingTaskCollector);
+            systemTaskCollectors.add(taskCollector);
+            VIPSLogicTaskCollector.TaskTable taskTable = taskCollector.getTasks();
+            for (int i = 0; i < taskTable.size(); i++) {
+                String cron = taskTable.getCronPattern(i);
+                VipsLogicTask templateTask = taskTable.getTask(i);
+                String jobId = "vipslogic-" + templateTask.getFactoryId() + "-" + scheduledJobIds.size();
+                final int factoryId = templateTask.getFactoryId();
+                final Organization organization = templateTask.getOrganization();
+                scheduler.newJob(jobId)
+                        .setCron(cron)
+                        .setTask(executionContext -> executeTask(createTask(factoryId, organization)))
+                        .schedule();
+                scheduledJobIds.add(jobId);
+                scheduledTasks.add(templateTask);
             }
         }
-        
-        // Getting tasks from database (?)
-        for(TaskCollector taskCollector: this.getDefinedTasks())
-        {
-            getSystemScheduler().addTaskCollector(taskCollector);
+
+        if (systemSchedulerStarted) {
+            startSystemScheduler();
+        } else {
+            stopSystemScheduler();
         }
     }
     
@@ -123,10 +128,10 @@ public class SchedulingBean {
      * Stops scheduling of all tasks
      */
     public void stopSystemScheduler(){
-        if(getSystemScheduler().isStarted())
-        {
-            getSystemScheduler().stop();
+        for (String jobId : scheduledJobIds) {
+            scheduler.pause(jobId);
         }
+        systemSchedulerStarted = false;
     }
     
     /**
@@ -134,36 +139,20 @@ public class SchedulingBean {
      * starts same schedule as when it was stopped
      */
     public void startSystemScheduler(){
-        if(!getSystemScheduler().isStarted())
-        {
-            getSystemScheduler().start();
+        for (String jobId : scheduledJobIds) {
+            scheduler.resume(jobId);
         }
+        systemSchedulerStarted = true;
     }
     
-    private List<TaskCollector> getDefinedTasks(){
-        // Real life: Get stuff from database
-        // Idea: One TaskCollector per organization? Then we can
-        // manipulate tasks per org pretty neatly (?)
-        // We keep it at one task collector for now.
-        // In order to run same tasks for different organizations,
-        // VipsLogicTask must have a configuration interface
+    private List<VIPSLogicTaskCollector> getDefinedTasks(){
+        String halfPastEveryThreeHoursPattern = toQuarkusCron("30 */3 * * *");
+        String onTheHourPattern = toQuarkusCron("0 * * * *");
+        String everyNightPattern = toQuarkusCron("0 6 * * *");
+        String morningAndAfternoonPattern = toQuarkusCron("15 6,12 * * *");
         
-        // Also: the Task may be configured _here_ (since we use the Tasks constructor), 
-        // at creation time.
-        
-        // The different scheduling patterns. See http://www.adminschoice.com/crontab-quick-reference 
-        SchedulingPattern halfPastPattern = new SchedulingPattern("30 * * * *");
-        SchedulingPattern halfPastEveryThreeHoursPattern = new SchedulingPattern("30 */3 * * *");
-        SchedulingPattern onTheHourPattern = new SchedulingPattern("0 * * * *");
-        SchedulingPattern every10MinsPattern = new SchedulingPattern("*/10 * * * *");
-        SchedulingPattern every20MinsPattern = new SchedulingPattern("*/20 * * * *");
-        SchedulingPattern everyNightPattern = new SchedulingPattern("0 6 * * *");
-        SchedulingPattern morningAndAfternoonPattern = new SchedulingPattern("15 6,12 * * *");
-        
-        // Running all forecasts every hour:30
         VIPSLogicTaskCollector modelRunCollector = new VIPSLogicTaskCollector(-1);
         
-        // Separating the forecasts for each organization
         List<Organization> organizations = userBean.getOrganizationsWithActiveForecastConfigurations(SystemTime.getSystemTime());
         if(organizations != null && !organizations.isEmpty())
         {
@@ -174,36 +163,26 @@ public class SchedulingBean {
                 modelRunCollector.getTasks().add(halfPastEveryThreeHoursPattern, runAllForecastsTask);
             }
         }
-        else // We run an empty job for all VIPS systems just to show that we've tried, but there's nothing to do
+        else
         {
             VipsLogicTask runAllForecastsTask = VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.RUN_ALL_FORECAST_CONFIGURATIONS_TASK);
             modelRunCollector.getTasks().add(halfPastEveryThreeHoursPattern, runAllForecastsTask);
         }
         modelRunCollector.getTasks().add(halfPastEveryThreeHoursPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_MODEL_INFORMATION_TASK));
         
-        
-        // Update forecast cache
         VIPSLogicTaskCollector cacheHandlerCollector = new VIPSLogicTaskCollector(-1);
-        
         cacheHandlerCollector.getTasks().add(onTheHourPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_RESULT_CACHE_TABLE_TASK));
         
-        // Update forecast summaries every 20 minutes
         VIPSLogicTaskCollector summariesCollector = new VIPSLogicTaskCollector(-1);
-        
         summariesCollector.getTasks().add(onTheHourPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.UPDATE_FORECAST_SUMMARY_TABLE_TASK));
         
-        // Clean up UUIDs (for cookies/remembering client logins) once a day
         VIPSLogicTaskCollector deleteAllExpiredUserUuidsCollector = new VIPSLogicTaskCollector(-1);
-        
         deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK));
         
-        // Send forecast notifications
         VIPSLogicTaskCollector sendForecastNotificationsCollector = new VIPSLogicTaskCollector(-1);
-        
         sendForecastNotificationsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
         
-        
-        List<TaskCollector> definedTasks = new ArrayList<>();
+        List<VIPSLogicTaskCollector> definedTasks = new ArrayList<>();
         definedTasks.add(modelRunCollector);
         definedTasks.add(cacheHandlerCollector);
         definedTasks.add(summariesCollector);
@@ -213,37 +192,53 @@ public class SchedulingBean {
     }
     
     public TaskExecutor[] getRunningTasks(){
-        List<TaskExecutor> runningTaskExecutors = new ArrayList<>();
-        for(Scheduler oneOffScheduler:this.getOneOffSchedulers())
-        {
-            runningTaskExecutors.addAll(Arrays.asList(oneOffScheduler.getExecutingTasks()));
-        }
-        if(this.getSystemScheduler().isStarted())
-        {
-            runningTaskExecutors.addAll(Arrays.asList(this.getSystemScheduler().getExecutingTasks()));
-        }
-        return runningTaskExecutors.toArray(new TaskExecutor[runningTaskExecutors.size()]);
+        return runningTasks.toArray(new TaskExecutor[0]);
     }
     
-    /**
-     * 
-     * @return List of scheduled tasks, ordered chronologically by next predicted
-     * execution time
-     */
     public SortedMap<String, List<VipsLogicTask>> getOrderedScheduledTasks()
     {
         SimpleDateFormat format = new SimpleDateFormat(Globals.defaultTimestampFormat);
-        // Need to do some bucket sorting (date for next execution time as bucket)
         SortedMap<String, List<VipsLogicTask>> sortedTasks = new TreeMap<>();
-        for(TaskCollector taskCollector: this.getSystemScheduler().getTaskCollectors())
-        {
-            TaskTable taskTable = taskCollector.getTasks();
-            for(int i=0;i<taskTable.size();i++)
+        for (int i = 0; i < scheduledTasks.size(); i++) {
+            VipsLogicTask task = scheduledTasks.get(i);
+            Date nextExecutionTime = new Date();
+            if (i < scheduledJobIds.size()) {
+                Instant nextFire = scheduler.getScheduledJob(scheduledJobIds.get(i)).getNextFireTime();
+                if (nextFire != null) {
+                    nextExecutionTime = Date.from(nextFire);
+                }
+            }
+            List<VipsLogicTask> tasksAtSameTime = sortedTasks.get(format.format(nextExecutionTime));
+            if(tasksAtSameTime == null)
             {
-                SchedulingPattern pattern = taskTable.getSchedulingPattern(i);
-                Predictor p = new Predictor(pattern);
-                Date nextExecutionTime = p.nextMatchingDate();
-                VipsLogicTask task = (VipsLogicTask) taskTable.getTask(i);
+                tasksAtSameTime = new ArrayList<>();
+                sortedTasks.put(format.format(nextExecutionTime), tasksAtSameTime);
+            }
+            tasksAtSameTime.add(task);
+        }
+        return sortedTasks;
+    }
+    
+    public SortedMap<String, List<VipsLogicTask>> getOrderedScheduledTasks(VipsLogicUser user)
+    {
+        if(user.isSuperUser())
+        {
+            return this.getOrderedScheduledTasks();
+        }
+        
+        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultTimestampFormat);
+        SortedMap<String, List<VipsLogicTask>> sortedTasks = new TreeMap<>();
+        for (int i = 0; i < scheduledTasks.size(); i++) {
+            VipsLogicTask task = scheduledTasks.get(i);
+            if(task.getOrganization() == null || task.getOrganization().equals(user.getOrganizationId()))
+            {
+                Date nextExecutionTime = new Date();
+                if (i < scheduledJobIds.size()) {
+                    Instant nextFire = scheduler.getScheduledJob(scheduledJobIds.get(i)).getNextFireTime();
+                    if (nextFire != null) {
+                        nextExecutionTime = Date.from(nextFire);
+                    }
+                }
                 List<VipsLogicTask> tasksAtSameTime = sortedTasks.get(format.format(nextExecutionTime));
                 if(tasksAtSameTime == null)
                 {
@@ -254,70 +249,14 @@ public class SchedulingBean {
             }
         }
         return sortedTasks;
-        /*
-        // Then we sort the buckets
-        List<Date> executionTimes = new ArrayList(sortedTasks.keySet());
-        Collections.sort(executionTimes);
-        
-        // Finally, we iterate over the ordered dates and add the tasks to the result list
-        List<VipsLogicTask> scheduledTasks = new ArrayList<>();
-        for(Date executionTime:executionTimes)
-        {
-            scheduledTasks.addAll(sortedTasks.get(executionTime));
-        }
-        
-        return scheduledTasks;
-                */
-    }
-    
-    /**
-     * 
-     * @return List of scheduled tasks, ordered chronologically by next predicted
-     * execution time
-     */
-    public SortedMap<String, List<VipsLogicTask>> getOrderedScheduledTasks(VipsLogicUser user)
-    {
-        if(user.isSuperUser())
-        {
-            return this.getOrderedScheduledTasks();
-        }
-        
-        SimpleDateFormat format = new SimpleDateFormat(Globals.defaultTimestampFormat);
-        // Need to do some bucket sorting (date for next execution time as bucket)
-        SortedMap<String, List<VipsLogicTask>> sortedTasks = new TreeMap<>();
-        for(TaskCollector taskCollector: this.getSystemScheduler().getTaskCollectors())
-        {
-            TaskTable taskTable = taskCollector.getTasks();
-            for(int i=0;i<taskTable.size();i++)
-            {
-                SchedulingPattern pattern = taskTable.getSchedulingPattern(i);
-                Predictor p = new Predictor(pattern);
-                Date nextExecutionTime = p.nextMatchingDate();
-                VipsLogicTask task = (VipsLogicTask) taskTable.getTask(i);
-                if(task.getOrganization() == null || task.getOrganization().equals(user.getOrganizationId()))
-                {
-                    List<VipsLogicTask> tasksAtSameTime = sortedTasks.get(format.format(nextExecutionTime));
-                    if(tasksAtSameTime == null)
-                    {
-                        tasksAtSameTime = new ArrayList<>();
-                        sortedTasks.put(format.format(nextExecutionTime), tasksAtSameTime);
-                    }
-                    tasksAtSameTime.add(task);
-                }
-            }
-        }
-        return sortedTasks;
-        
     }
     
     public List<VipsLogicTask> getVipsLogicTasks(VipsLogicUser user)
     {
-        // Super User
         if(user.isSuperUser())
         {
             return VipsLogicTaskFactory.getAllVipsLogicTasks();
         }
-        // Organization admin
         else if(user.isOrganizationAdmin())
         {
             return VipsLogicTaskFactory.getOrganizationAdminVipsLogicTasks();
@@ -330,7 +269,7 @@ public class SchedulingBean {
     
     public void logTaskLaunching(TaskExecutor taskExecutor)
     {
-        VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
+        VipsLogicTask task = taskExecutor.getTask();
         
         String organizationName = "all organizations";
         
@@ -343,7 +282,7 @@ public class SchedulingBean {
     
     public void logTaskSucceeded(TaskExecutor taskExecutor)
     {
-        VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
+        VipsLogicTask task = taskExecutor.getTask();
         TaskHistory taskHistory = new TaskHistory();
         taskHistory.setTaskFactoryId(task.getFactoryId());
         taskHistory.setTaskHistoryStatusId(em.find(TaskHistoryStatus.class, TaskHistoryStatus.STATUS_OK));
@@ -366,7 +305,7 @@ public class SchedulingBean {
     
     public void logTaskFailed(TaskExecutor taskExecutor, Throwable throwable)
     {
-        VipsLogicTask task = (VipsLogicTask) taskExecutor.getTask();
+        VipsLogicTask task = taskExecutor.getTask();
         TaskHistory taskHistory = new TaskHistory();
         taskHistory.setTaskFactoryId(task.getFactoryId());
         
@@ -377,14 +316,6 @@ public class SchedulingBean {
         String taskHistoryStatusId = taskHistory.getCompletenessAtFinish() > 0 ? TaskHistoryStatus.STATUS_FAILED_PARTLY : TaskHistoryStatus.STATUS_FAILED_COMPLETELY;
         taskHistory.setTaskHistoryStatusId(em.find(TaskHistoryStatus.class, taskHistoryStatusId));
         
-        // Build stacktrace
-        /*
-        StringBuilder stackTrace = new StringBuilder();
-        stackTrace.append(throwable.getMessage());
-        for(StackTraceElement element: throwable.getCause().getStackTrace())
-        {
-            stackTrace.append(element.toString());
-        }*/
         taskHistory.setMessage(taskExecutor.getStatusMessage());
         em.persist(taskHistory);
         
@@ -395,12 +326,13 @@ public class SchedulingBean {
             organizationName = task.getOrganization().getOrganizationName();
         }
         
+        String message = taskHistory.getMessage();
         System.out.println("############ Task " + task.getName() + 
                 "for " + organizationName +
                 " failed at + " + taskExecutor.getStartTime() + 
                 ", finished at " + new Date() + 
                 ". Status is " + taskHistory.getTaskHistoryStatusId() + 
-                ". Error was " + taskHistory.getMessage().substring(0, Math.min(400, taskHistory.getMessage().length()))  + "[...]" +
+                ". Error was " + (message != null ? message.substring(0, Math.min(400, message.length())) : throwable.getMessage())  + "[...]" +
                 " ############");
     }
     
@@ -425,7 +357,6 @@ public class SchedulingBean {
     
     public List<TaskHistory> getTaskHistory(Date historyDate, VipsLogicUser user)
     {
-        // SuperUser can see all, hear all, he is OMNIPOTENT
         if(user.isSuperUser())
         {
             return this.getTaskHistory(historyDate);
@@ -448,5 +379,39 @@ public class SchedulingBean {
         q.setParameter("organization", user.getOrganizationId());
         return q.getResultList();
     }
-    
+
+    private void executeTask(VipsLogicTask task) {
+        TaskExecutor taskExecutor = new TaskExecutor(task);
+        runningTasks.add(taskExecutor);
+        TaskExecutionContext context = new TaskExecutionContext(taskExecutor);
+        try {
+            logTaskLaunching(taskExecutor);
+            task.execute(context);
+            logTaskSucceeded(taskExecutor);
+        } catch (Throwable throwable) {
+            logTaskFailed(taskExecutor, throwable);
+        } finally {
+            runningTasks.remove(taskExecutor);
+        }
+    }
+
+    private VipsLogicTask createTask(int factoryId, Organization organization) {
+        VipsLogicTask task = VipsLogicTaskFactory.createVipsLogicTask(factoryId);
+        if (organization != null) {
+            task.setOrganization(organization);
+        }
+        return task;
+    }
+
+    private VipsLogicTask copyTask(VipsLogicTask task) {
+        VipsLogicTask copy = VipsLogicTaskFactory.createVipsLogicTask(task.getFactoryId());
+        copy.setOrganization(task.getOrganization());
+        copy.setConfiguration(task.getConfiguration());
+        return copy;
+    }
+
+    private static String toQuarkusCron(String cron4jPattern) {
+        String[] parts = cron4jPattern.split(" ");
+        return "0 " + parts[0] + " " + parts[1] + " " + parts[2] + " " + parts[3] + " ?";
+    }
 }

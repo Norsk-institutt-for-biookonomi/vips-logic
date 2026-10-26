@@ -37,7 +37,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.locationtech.jts.geom.Geometry;
 import java.util.Set;
@@ -85,7 +85,7 @@ public class PointOfInterest implements Serializable, Comparable {
     private Double altitude;
     @JsonIgnore
     private Geometry gisGeom;
-    private VipsLogicUser userId;
+    private VipsLogicUser user;
     private Country countryCode;
     private WeatherForecastProvider weatherForecastProviderId;
     private Boolean isForecastLocation;
@@ -104,6 +104,7 @@ public class PointOfInterest implements Serializable, Comparable {
 
     // For attaching ad-hoc properties
     // e.g. Worst warning for map
+    @Transient
     private Map<String, Object> properties;
     
     private GISUtil gisUtil;
@@ -306,14 +307,14 @@ public class PointOfInterest implements Serializable, Comparable {
     @ManyToOne
     @JsonIgnore
     public VipsLogicUser getUser() {
-        return userId;
+        return user;
     }
 
     /**
-     * @param userId the userId to set
+     * @param user the user to set
      */
-    public void setUser(VipsLogicUser userId) {
-        this.userId = userId;
+    public void setUser(VipsLogicUser user) {
+        this.user = user;
     }
     
     /**

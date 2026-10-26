@@ -22,9 +22,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import freemarker.core.ParseException;
-import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,19 +51,19 @@ import no.nibio.web.forms.FormUtil;
 
 public class NotificationSubscriptionController extends HttpServlet {
 
-    @PersistenceContext(unitName="VIPSLogic-PU")
+    @Inject
     EntityManager em;
     
-    @EJB
+    @Inject
     UserBean userBean;
     
-    @EJB
+    @Inject
     MessagingBean messagingBean;
     
-    @EJB
+    @Inject
     OrganismBean organismBean;
     
-    @EJB
+    @Inject
     PointOfInterestBean pointOfInterestBean;
     
     /**

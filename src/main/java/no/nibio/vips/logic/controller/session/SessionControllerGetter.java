@@ -18,134 +18,56 @@
 
 package no.nibio.vips.logic.controller.session;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.spi.CDI;
+import io.quarkus.arc.Unremovable;
 import no.nibio.vips.logic.messaging.MessagingBean;
-
+import no.nibio.vips.logic.modules.barkbeetle.BarkbeetleBean;
 
 /**
- * Thought this was oblivious because of @EJB, but it turns out this is necessary when invoking beans from outside managed beans!
+ * CDI bridge for code outside the container (scheduler tasks, preprocessors, static helpers).
+ * Prefer {@code @Inject} in CDI-managed classes; use these static accessors only when injection is not possible.
+ *
  * @copyright 2013-2025 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
-
+@ApplicationScoped
+@Unremovable
 public class SessionControllerGetter {
-    
-	// This obviously has to be changed when changing the application name in Maven
-	// TODO: Refactor out to System properties (e.g. in standalone.xml in JBoss/WildFly)
-    public static final String JNDI_PATH = "java:global/VIPSLogic-2026.1/";
 
-    public static SchedulingBean getSchedulingBean()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            SchedulingBean retVal = (SchedulingBean) ic.lookup(SessionControllerGetter.getJndiPath(SchedulingBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + SchedulingBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(SchedulingBean.class));
-            return null;
-        }
-    }
-    
-    public static ForecastBean getForecastBean()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            ForecastBean retVal = (ForecastBean) ic.lookup(SessionControllerGetter.getJndiPath(ForecastBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + ForecastBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(ForecastBean.class));
-            return null;
-        }
-    }
-    
-    public static PointOfInterestBean getPointOfInterestBean()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            PointOfInterestBean retVal = (PointOfInterestBean) ic.lookup(SessionControllerGetter.getJndiPath(PointOfInterestBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + PointOfInterestBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(PointOfInterestBean.class));
-            return null;
-        }
-    }
-    
-    public static UserBean getUserBean()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            UserBean retVal = (UserBean) ic.lookup(SessionControllerGetter.getJndiPath(UserBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + UserBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(UserBean.class));
-            return null;
-        }
-    }
-    
-    public static MessagingBean getMessagingBean()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            MessagingBean retVal = (MessagingBean) ic.lookup(SessionControllerGetter.getJndiPath(MessagingBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + MessagingBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(MessagingBean.class));
-            return null;
-        }
-    }
-    
-    public static OrganismBean getOrganismBean()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            OrganismBean retVal = (OrganismBean) ic.lookup(SessionControllerGetter.getJndiPath(OrganismBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + OrganismBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(OrganismBean.class));
-            return null;
-        }
-    }
-    
-    public static ObservationBean getObservationBean()
-    {
-        try
-        {
-            InitialContext ic = new InitialContext();
-            ObservationBean retVal = (ObservationBean) ic.lookup(SessionControllerGetter.getJndiPath(ObservationBean.class));
-
-            return retVal;
-        }catch(NamingException ne)
-        {
-            System.out.println("Could not find " + ObservationBean.class.getSimpleName() + " using JNDI path " + SessionControllerGetter.getJndiPath(ObservationBean.class));
-            return null;
-        }
-    }
-    
-    public static String getJndiPath(Class obj)
-    {
-        String retVal = SessionControllerGetter.JNDI_PATH + obj.getSimpleName();
-        //System.out.println("JNDI-path=" + retVal);
-        return retVal;
+    private static <T> T getBean(Class<T> type) {
+        return CDI.current().select(type).get();
     }
 
+    public static SchedulingBean getSchedulingBean() {
+        return getBean(SchedulingBean.class);
+    }
+
+    public static ForecastBean getForecastBean() {
+        return getBean(ForecastBean.class);
+    }
+
+    public static PointOfInterestBean getPointOfInterestBean() {
+        return getBean(PointOfInterestBean.class);
+    }
+
+    public static UserBean getUserBean() {
+        return getBean(UserBean.class);
+    }
+
+    public static MessagingBean getMessagingBean() {
+        return getBean(MessagingBean.class);
+    }
+
+    public static OrganismBean getOrganismBean() {
+        return getBean(OrganismBean.class);
+    }
+
+    public static ObservationBean getObservationBean() {
+        return getBean(ObservationBean.class);
+    }
+
+    public static BarkbeetleBean getBarkbeetleBean() {
+        return getBean(BarkbeetleBean.class);
+    }
 }
