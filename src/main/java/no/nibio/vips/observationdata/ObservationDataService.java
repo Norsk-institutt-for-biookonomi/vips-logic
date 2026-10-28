@@ -52,11 +52,6 @@ public class ObservationDataService {
     ObservationBean observationBean;
     @Inject
     ObservationDataBean observationDataBean;
-    
-    @Context
-    private HttpServletRequest httpServletRequest;
-    
-
 
     /**
      * TODO Integrate with ObservationBean.getObservationDataSchema(...)
@@ -67,7 +62,10 @@ public class ObservationDataService {
     @GET
     @Path("schema/{organizationId}/{organismId}")
     @Produces("application/json;charset=UTF-8")
-    public Response getSchema(@PathParam("organizationId") Integer organizationId,@PathParam("organismId") Integer organismId){
+    public Response getSchema(
+            @PathParam("organizationId") Integer organizationId,
+            @PathParam("organismId") Integer organismId,
+            @Context HttpServletRequest httpServletRequest){
         
         try
         {
