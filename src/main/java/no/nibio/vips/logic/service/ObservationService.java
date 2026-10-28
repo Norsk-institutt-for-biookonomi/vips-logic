@@ -87,7 +87,6 @@ import no.nibio.vips.logic.messaging.MessagingBean;
 import no.nibio.vips.logic.util.ExcelFileGenerator;
 import no.nibio.vips.logic.util.GISEntityUtil;
 import no.nibio.vips.logic.util.Globals;
-import no.nibio.vips.logic.util.ServletRequestUtil;
 
 /**
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
@@ -109,11 +108,6 @@ public class ObservationService {
     ObservationTimeSeriesBean observationTimeSeriesBean;
     @Inject
     MessagingBean messagingBean;
-    @Context
-    private HttpServletRequest httpServletRequest;
-
-    @Context
-    private HttpHeaders httpHeaders;
 
     /*
      * PostGIS tip:
@@ -575,10 +569,12 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation[].class)
     public Response getObservationsForUser(
-        @QueryParam("observationIds") String observationIds
+        @QueryParam("observationIds") String observationIds,
+        @Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders httpHeaders
     ) {
         try {
-            VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
+            VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
             if (user != null) {
                 List<Observation> allObs = observationBean.getObservationsForUser(user);
                 if (observationIds != null) {
@@ -613,8 +609,11 @@ public class ObservationService {
     @Path("list/minimized/user")
     @Produces("application/json;charset=UTF-8")
     @TypeHint(ObservationSyncInfo[].class)
-    public Response getMinimizedObservationsForUser() {
-        VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
+    public Response getMinimizedObservationsForUser(
+        @Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders httpHeaders
+    ) {
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (user != null) {
             return Response.ok().entity(observationBean.getObservationsForUser(user).stream()
                 .map(obs -> new ObservationSyncInfo(obs)).collect(Collectors.toList())).build();
@@ -673,7 +672,9 @@ public class ObservationService {
     @TypeHint(Observation.class)
     public Response getObservation(
         @PathParam("observationId") Integer observationId,
-        @QueryParam("userUUID") String userUUID
+        @QueryParam("userUUID") String userUUID,
+        @Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders httpHeaders
     ) {
         // Observation needs to be masked here as well, or does it create trouble for VIPSLogic observation admin?
         Observation o = observationBean.getObservation(observationId);
@@ -684,7 +685,7 @@ public class ObservationService {
         VipsLogicUser observer = userBean.getVipsLogicUser(o.getUserId());
         o.setObservationDataSchema(observationBean.getObservationDataSchema(observer.getOrganizationId().getOrganizationId(), o.getOrganismId()));
 
-        VipsLogicUser user = ServletRequestUtil.getSessionUser(httpServletRequest);
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         if (user == null && userUUID != null) {
             user = userBean.findVipsLogicUser(UUID.fromString(userUUID));
         }
@@ -738,8 +739,12 @@ public class ObservationService {
      */
     @DELETE
     @Path("gisobservation/{gisId}")
-    public Response deleteGisObservation(@PathParam("gisId") Integer gisId) {
-        VipsLogicUser user = ServletRequestUtil.getSessionUser(httpServletRequest);
+    public Response deleteGisObservation(
+        @PathParam("gisId") Integer gisId,
+        @Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders httpHeaders
+    ) {
+        VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
         // If no user, send error message back to client
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -763,22 +768,17 @@ public class ObservationService {
      * @param geoJSON
      * @return the Url of the created entity (observation)
      */
-    // TODO Authentication
     @POST
     @Path("gisobservation")
     @Consumes("application/json;charset=UTF-8")
     @Produces("application/json;charset=UTF-8")
-    public Response storeGisObservation(String geoJSON) {
+    public Response storeGisObservation(
+        String geoJSON,
+        @Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders httpHeaders
+    ) {
         try {
-            // Create the Observation
-            Observation observation = observationBean.getObservationFromGeoJSON(geoJSON);
-            VipsLogicUser user = ServletRequestUtil.getSessionUser(httpServletRequest);
-            // Allow for UUID login
-            if(user == null)
-            {
-                user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
-            }
-            // If no user, send error message back to client
+            VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
             if (user == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
@@ -791,6 +791,7 @@ public class ObservationService {
             ) {
                 return Response.status(Response.Status.FORBIDDEN).build();
             }
+            Observation observation = observationBean.getObservationFromGeoJSON(geoJSON);
             observation.setUserId(user.getUserId());
             observation.setStatusChangedByUserId(user.getUserId());
             observation.setStatusChangedTime(new Date());
@@ -989,10 +990,12 @@ public class ObservationService {
     @Produces("application/json;charset=UTF-8")
     @TypeHint(Observation.class)
     public Response syncObservationFromApp(
-        String observationJson
+        String observationJson,
+        @Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders httpHeaders
     ) {
         try {
-            VipsLogicUser user = userBean.getUserFromAuthorizationHeader(httpHeaders.getHeaderString(HttpHeaders.AUTHORIZATION));
+            VipsLogicUser user = userBean.resolveCurrentUser(httpServletRequest, httpHeaders);
             if (user == null) {
                 LOGGER.warn("Unable to get user from UUID");
                 return Response.status(Status.UNAUTHORIZED).build();

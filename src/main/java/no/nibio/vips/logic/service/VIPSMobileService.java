@@ -78,10 +78,7 @@ import no.nibio.vips.util.WeatherUtil;
 @ApplicationScoped
 @Path("vipsmobile")
 public class VIPSMobileService {
-    
-    @Context
-    private HttpServletRequest httpServletRequest;
-    
+
     @Inject
     MessageBean messageBean;
     @Inject
@@ -238,7 +235,8 @@ public class VIPSMobileService {
     public Response getPresentations(
             @QueryParam("varselIder") String forecastConfigurationIds,
             @QueryParam("timeZone") String timeZoneStr,
-            @QueryParam("locale") String locale
+            @QueryParam("locale") String locale,
+            @Context HttpServletRequest httpServletRequest
     ){
         // Default locale is English
         if(locale == null)
@@ -354,7 +352,8 @@ public class VIPSMobileService {
     public Response getForecastConfigurations(
             @QueryParam("klimastasjonId") Integer klimastasjonId,
             @QueryParam("kulturId") List<Integer> kulturIder,
-            @QueryParam("locale") String locale
+            @QueryParam("locale") String locale,
+            @Context HttpServletRequest httpServletRequest
     )
     {
         // Default locale is English

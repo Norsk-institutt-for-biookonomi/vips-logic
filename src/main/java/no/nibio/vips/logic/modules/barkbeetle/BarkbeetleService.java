@@ -21,26 +21,18 @@ package no.nibio.vips.logic.modules.barkbeetle;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
-
-import com.ibm.icu.util.Calendar;
 import com.webcohesion.enunciate.metadata.Facet;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
 
 import no.nibio.vips.logic.util.Globals;
 import no.nibio.vips.logic.util.SystemTime;
@@ -55,9 +47,7 @@ import no.nibio.vips.logic.util.SystemTime;
 public class BarkbeetleService {
     @Inject
     EntityManager em;
-    @Context
-    private HttpServletRequest httpServletRequest;
-    
+
     @Inject
     BarkbeetleBean barkbeetleBean;
     
