@@ -21,7 +21,7 @@ variables:
   STAGING_SERVER_HOST: vipslogicapp02test.nibio.no
   PRODUCTION_SERVER_HOST: vipslogicapp02.nibio.no
   QUARKIC_COMPOSE_FILE: docker-compose-staging.yml
-  QUARKUS_MIGRATION_BRANCH: VIPSUTV-1125-Quarkus-Migration
+  DEPLOY_BRANCH: develop
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: /certs
   DOCKER_HOST: tcp://docker:2376
@@ -59,7 +59,7 @@ test:
   tags:
     - java
   rules:
-    - if: '$CI_COMMIT_REF_NAME == $QUARKUS_MIGRATION_BRANCH'
+    - if: '$CI_COMMIT_REF_NAME == $DEPLOY_BRANCH'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 build-docker:
@@ -77,7 +77,7 @@ build-docker:
   tags:
     - java
   rules:
-    - if: '$CI_COMMIT_REF_NAME == $QUARKUS_MIGRATION_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
+    - if: '$CI_COMMIT_REF_NAME == $DEPLOY_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
 
 .deploy_quarkic:
   stage: deploy
@@ -108,7 +108,7 @@ build-docker:
   needs:
     - build-docker
   rules:
-    - if: '$CI_COMMIT_REF_NAME == $QUARKUS_MIGRATION_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
+    - if: '$CI_COMMIT_REF_NAME == $DEPLOY_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
   when: manual
 
 deploy-staging:
