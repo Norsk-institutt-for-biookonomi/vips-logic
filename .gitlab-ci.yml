@@ -77,7 +77,8 @@ build-docker:
   tags:
     - java
   rules:
-    - if: '$CI_COMMIT_REF_NAME == $DEPLOY_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
+    # Any branch push, including before merge. Merge-request pipelines do not build an image.
+    - if: '$CI_COMMIT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
 
 .deploy_quarkic:
   stage: deploy
@@ -113,6 +114,11 @@ build-docker:
 
 deploy-staging:
   extends: .deploy_quarkic
+  rules:
+    # Manual staging deploy from a branch before merge, and from develop after merge.
+    # Production stays on the template rule (develop only).
+    - if: '$CI_COMMIT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      when: manual
   variables:
     DEPLOY_SERVER_HOST: $STAGING_SERVER_HOST
     DOCKER_HOST: "ssh://$SERVER_USER@$STAGING_SERVER_HOST"

@@ -59,6 +59,8 @@ import org.slf4j.LoggerFactory;
 public class MessagingBean {
     @Inject
     EntityManager em;
+    @Inject
+    AppNotificationBean appNotificationBean;
 
     @ConfigProperty(name = "no.nibio.vips.logic.DISABLE_MESSAGING_SYSTEM", defaultValue = "false")
     String disableMessagingSystem;
@@ -106,8 +108,7 @@ public class MessagingBean {
         
         // Send it
         this.sendUniversalMessage(uMessage);
-        // Log it
-        
+        sendAppMessagePush(message);
     }
     
     public UniversalMessage sendUniversalMessage(UniversalMessage uMessage)
@@ -337,7 +338,8 @@ public class MessagingBean {
                 
             }
             List<MessageRecipient> distributionList = this.getForecastEventNotificationSubscribers(fConf);
-            if(distributionList == null || distributionList.isEmpty())
+            boolean fcmSent = sendAppForecastPush(fConf, newNotification, format);
+            if((distributionList == null || distributionList.isEmpty()) && !fcmSent)
             {
                 em.remove(newNotification);
             }
@@ -352,11 +354,76 @@ public class MessagingBean {
             {
                 newNotification.setUniversalMessageId(uMessage.getUniversalMessageId());
             }
-            // Otherwise, we remove the events!
-            else
+            // Keep the log if FCM went out, even when nobody got email/SMS
+            else if (!fcmSent)
             {
                 em.remove(newNotification);
             }
+        }
+    }
+
+    private boolean sendAppForecastPush(
+            ForecastConfiguration fConf,
+            ForecastNotificationLog newNotification,
+            SimpleDateFormat format) {
+        try {
+            if (fConf == null || fConf.getVipsLogicUserId() == null
+                    || fConf.getVipsLogicUserId().getOrganizationId() == null) {
+                return false;
+            }
+            Integer organizationId = fConf.getVipsLogicUserId().getOrganizationId().getOrganizationId();
+            ResourceBundle nbBundle = ResourceBundle.getBundle(
+                    "no.nibio.vips.logic.i18n.vipslogictexts",
+                    new ULocale("nb").toLocale());
+            Integer eventId = newNotification.getForecastNotificationLogPK().getForecastEventId();
+            String heading = nbBundle.getString("forecastNotificationMessageHeadingTpl_" + eventId);
+            String bodyTemplate = nbBundle.getString("forecastNotificationMessageBodyTpl_" + eventId);
+            String detailsUrl = fConf.getVipsLogicUserId().getOrganizationId().getVipswebUrl()
+                    + "forecasts/" + fConf.getForecastConfigurationId();
+            Object[] templateParts = {
+                (fConf.getPestOrganismId().getLocalName("nb").isEmpty()
+                    ? fConf.getPestOrganismId().getLatinName()
+                    : fConf.getPestOrganismId().getLocalName("nb")),
+                (fConf.getCropOrganismId().getLocalName("nb").isEmpty()
+                    ? fConf.getCropOrganismId().getLatinName()
+                    : fConf.getCropOrganismId().getLocalName("nb")),
+                fConf.getLocationPointOfInterestId().getName(),
+                format.format(newNotification.getForecastNotificationLogPK().getEventDate()),
+                detailsUrl
+            };
+            String body = MessageFormat.format(bodyTemplate, templateParts);
+            return appNotificationBean.notifyForecast(
+                    fConf.getForecastConfigurationId(),
+                    organizationId,
+                    heading,
+                    body);
+        } catch (Exception ex) {
+            LOGGER.warn("App forecast FCM send failed", ex);
+            return false;
+        }
+    }
+
+    private void sendAppMessagePush(Message message) {
+        try {
+            MessageLocale locale = message.getLocalMessage("nb");
+            if (locale == null) {
+                locale = message.getLocalMessageWithFallback("nb", "nb");
+            }
+            if (locale == null || locale.getHeading() == null || locale.getHeading().isEmpty()) {
+                return;
+            }
+            String title = locale.getHeading();
+            String body = (locale.getLeadParagraph() != null && !locale.getLeadParagraph().isBlank())
+                ? locale.getLeadParagraph()
+                : title;
+            appNotificationBean.notifyMessage(
+                    message.getMessageId(),
+                    message.getCropCategoryIds(),
+                    message.getOrganizationId(),
+                    title,
+                    body);
+        } catch (Exception ex) {
+            LOGGER.warn("App message FCM send failed", ex);
         }
     }
     
@@ -504,5 +571,6 @@ public class MessagingBean {
         {
             em.remove(f);
         }
+        appNotificationBean.deleteAllForUser(user.getUserId());
     }
 }

@@ -41,6 +41,7 @@ services:
       VIPSLOGIC_SMS_PASSWORD: ${SMS_PASSWORD:-}
       VIPSLOGIC_SMS_SENDER_SRC: ${SMS_SENDER_SRC:-}
       VIPSLOGIC_TRAFFIC_LOG_DIRECTORY: ${TRAFFIC_LOG_DIRECTORY:-}
+      VIPSLOGIC_FCM_SERVICE_ACCOUNT_PATH: ${VIPSLOGIC_FCM_SERVICE_ACCOUNT_PATH:-/run/secrets/fcm-service-account.json}
       JAVA_OPTS_APPEND: "-Xms512m -Xmx4096m"
     user: "0"
     security_opt:
@@ -48,6 +49,7 @@ services:
     volumes:
       - /disks/data01/static/images/messages:/disks/data01/static/images/messages
       - /disks/data01/static/images/observations:/disks/data01/static/images/observations
+      - /disks/data01/secrets/fcm-service-account.json:/run/secrets/fcm-service-account.json:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
       interval: 30s
