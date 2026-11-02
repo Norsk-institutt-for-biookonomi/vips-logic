@@ -52,6 +52,7 @@ public class VIPSLogicApplication extends Application
         resources.add(no.nibio.vips.logic.message.MessageResource.class);
         resources.add(no.nibio.vips.logic.message.MessageTagResource.class);
         resources.add(no.nibio.vips.logic.user.UserResource.class);
+        resources.add(no.nibio.vips.logic.user.UserNotificationResource.class);
         resources.add(no.nibio.vips.logic.user.EvaluatePasswordResource.class);
         resources.add(no.nibio.vips.logic.poi.WeatherStationKmlResource.class);
         resources.add(no.nibio.vips.logic.poi.PoiKmlResource.class);
