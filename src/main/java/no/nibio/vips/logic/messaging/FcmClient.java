@@ -28,9 +28,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * FCM HTTP v1 sender. Disabled when the service-account path is empty or unreadable.
- */
 @ApplicationScoped
 public class FcmClient {
 

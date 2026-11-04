@@ -21,6 +21,8 @@ package no.nibio.vips.logic.messaging;
 import com.ibm.icu.text.MessageFormat;
 import com.ibm.icu.util.ULocale;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -209,6 +211,8 @@ public class MessagingBean {
     
     // For getting all available notification translations
     public final static String[] AVAILABLE_FORECAST_NOTIFICATION_LOCALES = {"nb","en"};
+    private static final int APP_FORECAST_DAYS_AHEAD = 4;
+    private static final ZoneId APP_FORECAST_ZONE = ZoneId.of("Europe/Oslo");
     
     public void sendForecastEventNotifications()
     {
@@ -233,6 +237,7 @@ public class MessagingBean {
             .getResultList();
         
         List<ForecastNotificationLog> newNotifications = new ArrayList<>();
+        List<ForecastNotificationLog> pendingAppPushes = new ArrayList<>();
         ForecastEvent toRed = em.find(ForecastEvent.class, ForecastEvent.TO_RED);
         ForecastEvent greenToYellow = em.find(ForecastEvent.class, ForecastEvent.GREEN_TO_YELLOW);
         ForecastEvent currentEvent = null;
@@ -287,12 +292,23 @@ public class MessagingBean {
                     
                     // Could not find same event. We persist it so we won't
                     // have any more of the same events the same day
-                    if(em.find(ForecastNotificationLog.class, pk) == null)
+                    ForecastNotificationLog existing = em.find(ForecastNotificationLog.class, pk);
+                    boolean onPhoneStrip = isOnPhoneForecastStrip(result.getValidTimeStart(), systemTime);
+                    if(existing == null)
                     {
                         ForecastNotificationLog newNotification = new ForecastNotificationLog(pk);
                         newNotification.setCreatedTime(SystemTime.getSystemTime());
+                        newNotification.setAppPushSent(false);
+                        newNotification.setAppPushDue(onPhoneStrip);
                         em.persist(newNotification);
                         newNotifications.add(newNotification);
+                    }
+                    else if(!existing.isAppPushSent()
+                            && onPhoneStrip
+                            && !newNotifications.contains(existing)
+                            && !pendingAppPushes.contains(existing))
+                    {
+                        pendingAppPushes.add(existing);
                     }
                     if(currentEvent.getForecastEventId().equals(ForecastEvent.TO_RED))
                     {
@@ -338,7 +354,13 @@ public class MessagingBean {
                 
             }
             List<MessageRecipient> distributionList = this.getForecastEventNotificationSubscribers(fConf);
-            boolean fcmSent = sendAppForecastPush(fConf, newNotification, format);
+            boolean fcmSent = false;
+            if (newNotification.isAppPushDue()) {
+                fcmSent = sendAppForecastPush(fConf, newNotification, format);
+                if (fcmSent) {
+                    newNotification.setAppPushSent(true);
+                }
+            }
             if((distributionList == null || distributionList.isEmpty()) && !fcmSent)
             {
                 em.remove(newNotification);
@@ -354,12 +376,28 @@ public class MessagingBean {
             {
                 newNotification.setUniversalMessageId(uMessage.getUniversalMessageId());
             }
-            // Keep the log if FCM went out, even when nobody got email/SMS
             else if (!fcmSent)
             {
                 em.remove(newNotification);
             }
         }
+        for (ForecastNotificationLog pending : pendingAppPushes) {
+            ForecastConfiguration fConf = em.find(
+                    ForecastConfiguration.class,
+                    pending.getForecastNotificationLogPK().getForecastConfigurationId());
+            if (sendAppForecastPush(fConf, pending, format)) {
+                pending.setAppPushSent(true);
+            }
+        }
+    }
+
+    private static boolean isOnPhoneForecastStrip(Date eventTime, Date systemTime) {
+        if (eventTime == null || systemTime == null) {
+            return false;
+        }
+        LocalDate eventDay = eventTime.toInstant().atZone(APP_FORECAST_ZONE).toLocalDate();
+        LocalDate today = systemTime.toInstant().atZone(APP_FORECAST_ZONE).toLocalDate();
+        return !eventDay.isBefore(today) && !eventDay.isAfter(today.plusDays(APP_FORECAST_DAYS_AHEAD));
     }
 
     private boolean sendAppForecastPush(
@@ -372,59 +410,80 @@ public class MessagingBean {
                 return false;
             }
             Integer organizationId = fConf.getVipsLogicUserId().getOrganizationId().getOrganizationId();
-            ResourceBundle nbBundle = ResourceBundle.getBundle(
-                    "no.nibio.vips.logic.i18n.vipslogictexts",
-                    new ULocale("nb").toLocale());
             Integer eventId = newNotification.getForecastNotificationLogPK().getForecastEventId();
-            String heading = nbBundle.getString("forecastNotificationMessageHeadingTpl_" + eventId);
-            String bodyTemplate = nbBundle.getString("forecastNotificationMessageBodyTpl_" + eventId);
             String detailsUrl = fConf.getVipsLogicUserId().getOrganizationId().getVipswebUrl()
                     + "forecasts/" + fConf.getForecastConfigurationId();
-            Object[] templateParts = {
-                (fConf.getPestOrganismId().getLocalName("nb").isEmpty()
-                    ? fConf.getPestOrganismId().getLatinName()
-                    : fConf.getPestOrganismId().getLocalName("nb")),
-                (fConf.getCropOrganismId().getLocalName("nb").isEmpty()
-                    ? fConf.getCropOrganismId().getLatinName()
-                    : fConf.getCropOrganismId().getLocalName("nb")),
-                fConf.getLocationPointOfInterestId().getName(),
-                format.format(newNotification.getForecastNotificationLogPK().getEventDate()),
-                detailsUrl
-            };
-            String body = MessageFormat.format(bodyTemplate, templateParts);
+            Date eventDate = newNotification.getForecastNotificationLogPK().getEventDate();
             return appNotificationBean.notifyForecast(
                     fConf.getForecastConfigurationId(),
                     organizationId,
-                    heading,
-                    body);
+                    locale -> forecastPushText(fConf, eventId, detailsUrl, format, eventDate, locale));
         } catch (Exception ex) {
             LOGGER.warn("App forecast FCM send failed", ex);
             return false;
         }
     }
 
+    private AppNotificationBean.PushText forecastPushText(
+            ForecastConfiguration fConf,
+            Integer eventId,
+            String detailsUrl,
+            SimpleDateFormat format,
+            Date eventDate,
+            String locale) {
+        ResourceBundle bundle = ResourceBundle.getBundle(
+                "no.nibio.vips.logic.i18n.vipslogictexts",
+                new ULocale(locale).toLocale());
+        String heading = bundle.getString("forecastNotificationMessageHeadingTpl_" + eventId);
+        String bodyTemplate = bundle.getString("forecastNotificationMessageBodyTpl_" + eventId);
+        String pestName = fConf.getPestOrganismId().getLocalName(locale);
+        String cropName = fConf.getCropOrganismId().getLocalName(locale);
+        Object[] templateParts = {
+            (pestName == null || pestName.isEmpty() ? fConf.getPestOrganismId().getLatinName() : pestName),
+            (cropName == null || cropName.isEmpty() ? fConf.getCropOrganismId().getLatinName() : cropName),
+            fConf.getLocationPointOfInterestId().getName(),
+            format.format(eventDate),
+            detailsUrl
+        };
+        return new AppNotificationBean.PushText(heading, MessageFormat.format(bodyTemplate, templateParts));
+    }
+
     private void sendAppMessagePush(Message message) {
         try {
-            MessageLocale locale = message.getLocalMessage("nb");
-            if (locale == null) {
-                locale = message.getLocalMessageWithFallback("nb", "nb");
-            }
-            if (locale == null || locale.getHeading() == null || locale.getHeading().isEmpty()) {
-                return;
-            }
-            String title = locale.getHeading();
-            String body = (locale.getLeadParagraph() != null && !locale.getLeadParagraph().isBlank())
-                ? locale.getLeadParagraph()
-                : title;
             appNotificationBean.notifyMessage(
                     message.getMessageId(),
                     message.getCropCategoryIds(),
                     message.getOrganizationId(),
-                    title,
-                    body);
+                    locale -> messagePushText(message, locale));
         } catch (Exception ex) {
             LOGGER.warn("App message FCM send failed", ex);
         }
+    }
+
+    private AppNotificationBean.PushText messagePushText(Message message, String locale) {
+        MessageLocale local = messageText(message, locale);
+        if (local == null) {
+            local = messageText(message, "en");
+        }
+        if (local == null) {
+            local = messageText(message, "nb");
+        }
+        if (local == null) {
+            return null;
+        }
+        String title = local.getHeading();
+        String body = (local.getLeadParagraph() != null && !local.getLeadParagraph().isBlank())
+            ? local.getLeadParagraph()
+            : title;
+        return new AppNotificationBean.PushText(title, body);
+    }
+
+    private static MessageLocale messageText(Message message, String locale) {
+        MessageLocale local = message.getLocalMessage(locale);
+        if (local == null || local.getHeading() == null || local.getHeading().isEmpty()) {
+            return null;
+        }
+        return local;
     }
     
     public List<MessageRecipient> getForecastEventNotificationSubscribers(ForecastConfiguration config)

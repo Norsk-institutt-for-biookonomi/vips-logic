@@ -28,6 +28,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -54,6 +55,10 @@ public class ForecastNotificationLog implements Serializable {
     private Date createdTime;
     @Column(name = "universal_message_id")
     private Integer universalMessageId;
+    @Column(name = "app_push_sent", nullable = false)
+    private boolean appPushSent;
+    @Transient
+    private boolean appPushDue;
     
 
     public ForecastNotificationLog() {
@@ -121,6 +126,22 @@ public class ForecastNotificationLog implements Serializable {
      */
     public void setUniversalMessageId(Integer universalMessageId) {
         this.universalMessageId = universalMessageId;
+    }
+
+    public boolean isAppPushSent() {
+        return appPushSent;
+    }
+
+    public void setAppPushSent(boolean appPushSent) {
+        this.appPushSent = appPushSent;
+    }
+
+    public boolean isAppPushDue() {
+        return appPushDue;
+    }
+
+    public void setAppPushDue(boolean appPushDue) {
+        this.appPushDue = appPushDue;
     }
 
 }

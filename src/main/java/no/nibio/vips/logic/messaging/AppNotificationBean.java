@@ -7,7 +7,11 @@ import jakarta.persistence.NoResultException;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import no.nibio.vips.logic.entity.rest.AppNotificationPrefsDto;
 import no.nibio.vips.logic.entity.rest.UserDeviceDto;
@@ -93,32 +97,32 @@ public class AppNotificationBean {
             .executeUpdate();
     }
 
-    /**
-     * @return true if at least one FCM send succeeded
-     */
-    public boolean notifyForecast(Long forecastConfigurationId, Integer organizationId, String title, String body) {
+    public boolean notifyForecast(
+            Long forecastConfigurationId,
+            Integer organizationId,
+            Function<String, PushText> textForLocale) {
         if (forecastConfigurationId == null || organizationId == null || !fcmClient.isEnabled()) {
             return false;
         }
-        List<UserDevice> devices = em.createNativeQuery(
-                "SELECT d.user_device_id, d.user_id, d.fcm_token, d.platform, d.updated_at "
+        List<DeviceTarget> devices = deviceTargets(em.createNativeQuery(
+                "SELECT d.user_device_id, d.fcm_token, u.preferred_locale "
                     + "FROM messaging.user_device d "
                     + "JOIN messaging.app_notification_preference p ON p.user_id = d.user_id "
                     + "JOIN public.vips_logic_user u ON u.user_id = d.user_id "
                     + "WHERE p.forecast_status_enabled "
                     + "AND :forecastId = ANY(p.forecast_configuration_ids) "
-                    + "AND u.organization_id = :organizationId",
-                UserDevice.class)
+                    + "AND u.organization_id = :organizationId")
             .setParameter("forecastId", forecastConfigurationId)
             .setParameter("organizationId", organizationId)
-            .getResultList();
-        return sendToDevices(devices, title, body, "forecast", String.valueOf(forecastConfigurationId));
+            .getResultList());
+        return sendLocalized(devices, textForLocale, "forecast", String.valueOf(forecastConfigurationId));
     }
 
-    /**
-     * @return true if at least one FCM send succeeded
-     */
-    public boolean notifyMessage(Integer messageId, List<Integer> cropCategoryIds, Integer organizationId, String title, String body) {
+    public boolean notifyMessage(
+            Integer messageId,
+            List<Integer> cropCategoryIds,
+            Integer organizationId,
+            Function<String, PushText> textForLocale) {
         if (messageId == null || organizationId == null || !fcmClient.isEnabled()) {
             return false;
         }
@@ -128,8 +132,8 @@ public class AppNotificationBean {
         if (cropIds.isEmpty()) {
             return false;
         }
-        List<UserDevice> devices = em.createNativeQuery(
-                "SELECT d.user_device_id, d.user_id, d.fcm_token, d.platform, d.updated_at "
+        List<DeviceTarget> devices = deviceTargets(em.createNativeQuery(
+                "SELECT d.user_device_id, d.fcm_token, u.preferred_locale "
                     + "FROM messaging.user_device d "
                     + "JOIN messaging.app_notification_preference p ON p.user_id = d.user_id "
                     + "JOIN public.vips_logic_user u ON u.user_id = d.user_id "
@@ -138,31 +142,93 @@ public class AppNotificationBean {
                     + "    SELECT 1 FROM unnest(p.message_crop_category_ids) AS cid "
                     + "    WHERE cid IN (:cropIds)"
                     + ") "
-                    + "AND u.organization_id = :organizationId",
-                UserDevice.class)
+                    + "AND u.organization_id = :organizationId")
             .setParameter("cropIds", cropIds)
             .setParameter("organizationId", organizationId)
-            .getResultList();
-        return sendToDevices(devices, title, body, "message", String.valueOf(messageId));
+            .getResultList());
+        return sendLocalized(devices, textForLocale, "message", String.valueOf(messageId));
     }
 
-    private boolean sendToDevices(List<UserDevice> devices, String title, String body, String type, String id) {
+    public static String appLocale(String preferredLocale) {
+        if (preferredLocale != null && preferredLocale.toLowerCase(Locale.ROOT).startsWith("en")) {
+            return "en";
+        }
+        return "nb";
+    }
+
+    private boolean sendLocalized(
+            List<DeviceTarget> devices,
+            Function<String, PushText> textForLocale,
+            String type,
+            String id) {
+        Map<String, List<DeviceTarget>> byLocale = new LinkedHashMap<>();
+        for (DeviceTarget device : devices) {
+            byLocale.computeIfAbsent(device.locale, key -> new ArrayList<>()).add(device);
+        }
         boolean sent = false;
-        for (UserDevice device : devices) {
+        for (Map.Entry<String, List<DeviceTarget>> entry : byLocale.entrySet()) {
+            PushText text = textForLocale.apply(entry.getKey());
+            if (text == null || text.title == null || text.title.isBlank()) {
+                continue;
+            }
+            if (sendToDevices(entry.getValue(), text.title, text.body, type, id)) {
+                sent = true;
+            }
+        }
+        return sent;
+    }
+
+    private boolean sendToDevices(List<DeviceTarget> devices, String title, String body, String type, String id) {
+        boolean sent = false;
+        for (DeviceTarget device : devices) {
             try {
-                FcmClient.SendResult result = fcmClient.send(device.getFcmToken(), title, body, type, id);
+                FcmClient.SendResult result = fcmClient.send(device.fcmToken, title, body, type, id);
                 if (result == FcmClient.SendResult.SENT) {
                     sent = true;
                 } else if (result == FcmClient.SendResult.INVALID_TOKEN) {
                     em.createNamedQuery("UserDevice.deleteByFcmToken")
-                        .setParameter("fcmToken", device.getFcmToken())
+                        .setParameter("fcmToken", device.fcmToken)
                         .executeUpdate();
                 }
             } catch (Exception ex) {
-                LOGGER.warn("FCM send failed for device {}", device.getUserDeviceId(), ex);
+                LOGGER.warn("FCM send failed for device {}", device.userDeviceId, ex);
             }
         }
         return sent;
+    }
+
+    private static List<DeviceTarget> deviceTargets(List<?> rows) {
+        List<DeviceTarget> devices = new ArrayList<>();
+        for (Object row : rows) {
+            Object[] values = (Object[]) row;
+            Number deviceId = (Number) values[0];
+            String token = values[1] == null ? "" : values[1].toString();
+            String preferredLocale = values[2] == null ? null : values[2].toString();
+            devices.add(new DeviceTarget(deviceId.intValue(), token, appLocale(preferredLocale)));
+        }
+        return devices;
+    }
+
+    private static final class DeviceTarget {
+        private final int userDeviceId;
+        private final String fcmToken;
+        private final String locale;
+
+        private DeviceTarget(int userDeviceId, String fcmToken, String locale) {
+            this.userDeviceId = userDeviceId;
+            this.fcmToken = fcmToken;
+            this.locale = locale;
+        }
+    }
+
+    public static final class PushText {
+        private final String title;
+        private final String body;
+
+        public PushText(String title, String body) {
+            this.title = title;
+            this.body = body;
+        }
     }
 
     private UserDevice findByToken(String fcmToken) {
