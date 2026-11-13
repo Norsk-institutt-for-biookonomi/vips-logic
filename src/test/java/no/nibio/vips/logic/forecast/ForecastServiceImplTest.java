@@ -145,18 +145,17 @@ public class ForecastServiceImplTest {
 
     @Test
     public void getForecastConfigurationsForOrganizationFiltersNegativeIds() {
-        VipsLogicUser user = new VipsLogicUser();
-        user.setUserId(4);
+       
         ForecastConfiguration publicConfig = new ForecastConfiguration();
         publicConfig.setForecastConfigurationId(10L);
         ForecastConfiguration specialized = new ForecastConfiguration();
         specialized.setForecastConfigurationId(-5L);
-        when(userBean.getUsersByOrganization(8)).thenReturn(List.of(user));
-        when(forecastRepository.findByUserAndDate(eq(4), any(), any()))
+
+        when(forecastRepository.findByOrganizationAndDate(eq(4), any(), any()))
                 .thenReturn(List.of(publicConfig, specialized));
 
         List<ForecastConfiguration> results =
-                forecastService.getForecastConfigurationsForOrganization(8, List.of(), new Date(), new Date());
+                forecastService.getForecastConfigurationsForOrganization(4, List.of(), new Date(), new Date());
 
         assertEquals(List.of(publicConfig), results);
     }
