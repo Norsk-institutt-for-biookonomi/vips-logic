@@ -19,7 +19,7 @@
 package no.nibio.vips.logic.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
+import no.nibio.vips.logic.util.PostgresListArrayType;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -70,8 +70,8 @@ public class CropCategory implements Serializable {
     private String defaultName;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cropCategoryId", fetch = FetchType.EAGER)
     private Set<CropCategoryLocal> cropCategoryLocalSet;
-    @Column(name = "crop_organism_ids")
-    @Type(ListArrayType.class)
+    @Column(name = "crop_organism_ids", columnDefinition = "integer[]")
+    @Type(PostgresListArrayType.class)
     private List<Integer> cropOrganismIds;
     @Column(name = "organization_id")
     private Integer organizationId;
