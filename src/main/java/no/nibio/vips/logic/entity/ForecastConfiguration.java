@@ -40,7 +40,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
+import no.nibio.vips.logic.util.PostgresListArrayType;
 import java.util.List;
 import java.util.TimeZone;
 import jakarta.persistence.Transient;
@@ -131,8 +131,8 @@ public class ForecastConfiguration implements Serializable, Comparable {
         this.useGridWeatherData = useGridWeatherData;
     }
 
-    @Type(ListArrayType.class)
-    @Column(name = "grid_weather_station_point_of_interest_ids")
+    @Type(PostgresListArrayType.class)
+    @Column(name = "grid_weather_station_point_of_interest_ids", columnDefinition = "integer[]")
     private List<Integer> gridWeatherStationPointOfInterestIds;
     
     @Transient

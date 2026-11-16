@@ -82,10 +82,57 @@ public class JpaForecastRepository implements ForecastRepository {
 
     @Override
     @SuppressWarnings("unchecked")
+    public List<ForecastConfiguration> findByOrganizationAndCropsAndDate(Integer organizationId, List<Integer> cropOrganismIds, Date from, Date to) {
+        String sql = """
+           SELECT * FROM forecast_configuration 
+            WHERE vips_logic_user_id IN (
+                SELECT user_id FROM vips_logic_user WHERE organization_id = :organizationId
+            )
+            AND date_start <= :to
+            AND date_end >= :from
+            AND is_private IS FALSE
+            AND crop_organism_id IN(:cropOrganismIds)
+            """;
+        Query q = em.createNativeQuery(sql, ForecastConfiguration.class);
+        q.setParameter("organizationId", organizationId);
+        q.setParameter("from", from);
+        q.setParameter("to", to);
+        q.setParameter("cropOrganismIds", cropOrganismIds);
+        return q.getResultList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<ForecastConfiguration> findByOrganizationAndDate(Integer organizationId, Date from, Date to) {
+        String sql = """
+           SELECT * FROM forecast_configuration 
+            WHERE vips_logic_user_id IN (
+                SELECT user_id FROM vips_logic_user WHERE organization_id = :organizationId
+            )
+            AND date_start <= :to
+            AND date_end >= :from
+            AND is_private IS FALSE
+            """;
+        Query q = em.createNativeQuery(sql, ForecastConfiguration.class);
+        q.setParameter("organizationId", organizationId);
+        q.setParameter("from", from);
+        q.setParameter("to", to);
+        return q.getResultList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public List<ForecastConfiguration> findByUserAndDate(Integer userId, Date from, Date to) {
-        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
-        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdAndDate");
-        q.setParameter("vipsLogicUserId", user);
+
+        String sql = """
+           SELECT * FROM forecast_configuration 
+            WHERE vips_logic_user_id = :vipsLogicUserId
+            AND date_start <= :to
+            AND date_end >= :from
+            AND is_private IS FALSE
+            """;
+        Query q = em.createNativeQuery(sql, ForecastConfiguration.class);
+        q.setParameter("vipsLogicUserId", userId);
         q.setParameter("from", from);
         q.setParameter("to", to);
         return q.getResultList();
@@ -95,12 +142,19 @@ public class JpaForecastRepository implements ForecastRepository {
     @SuppressWarnings("unchecked")
     public List<ForecastConfiguration> findByUserCropsAndDate(
             Integer userId, List<Integer> cropOrganismIds, Date from, Date to) {
-        VipsLogicUser user = em.find(VipsLogicUser.class, userId);
-        Query q = em.createNamedQuery("ForecastConfiguration.findByVipsLogicUserIdAndCropOrganismIdsAndDate");
-        q.setParameter("vipsLogicUserId", user);
-        q.setParameter("cropOrganismIds", cropOrganismIds);
+        String sql = """
+           SELECT * FROM forecast_configuration 
+            WHERE vips_logic_user_id = :vipsLogicUserId
+            AND date_start <= :to
+            AND date_end >= :from
+            AND is_private IS FALSE
+            AND crop_organism_id IN(:cropOrganismIds)
+            """;
+        Query q = em.createNativeQuery(sql, ForecastConfiguration.class);
+        q.setParameter("vipsLogicUserId", userId);
         q.setParameter("from", from);
         q.setParameter("to", to);
+        q.setParameter("cropOrganismIds", cropOrganismIds);
         return q.getResultList();
     }
 

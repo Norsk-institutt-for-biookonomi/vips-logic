@@ -215,6 +215,7 @@ public class ForecastServiceImpl implements ForecastService {
         return forecastRepository.findByOrganizationIdsAndDate(orgIds, from, to);
     }
 
+    
     @Override
     public List<ForecastConfiguration> getForecastConfigurationsForOrganization(
             Integer organizationId, List<Integer> cropOrganismIds, Date from, Date to) {
@@ -228,25 +229,18 @@ public class ForecastServiceImpl implements ForecastService {
             resolvedFrom = cal.getTime();
         }
 
-        List<VipsLogicUser> organizationUsers = userBean.getUsersByOrganization(organizationId);
         List<ForecastConfiguration> forecasts = new ArrayList<>();
-
-        for (VipsLogicUser user : organizationUsers) {
-            Integer userId = user.getUserId();
-            List<ForecastConfiguration> result = cropOrganismIds != null && !cropOrganismIds.isEmpty()
-                    ? forecastRepository.findByUserCropsAndDate(userId, cropOrganismIds, resolvedFrom, resolvedTo)
-                    : forecastRepository.findByUserAndDate(userId, resolvedFrom, resolvedTo);
-            if (forecasts == null) {
-                forecasts = result;
-            } else {
-                forecasts.addAll(result);
-            }
+        if (cropOrganismIds != null && !cropOrganismIds.isEmpty()) {
+            forecasts = forecastRepository.findByOrganizationAndCropsAndDate(organizationId, cropOrganismIds, resolvedFrom, resolvedTo);
+        } else {
+            forecasts = forecastRepository.findByOrganizationAndDate(organizationId, resolvedFrom, resolvedTo);
         }
 
         return forecasts.stream()
                 .filter(forecast -> forecast.getForecastConfigurationId() > 0)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<ForecastConfiguration> getForecastConfigurationsForUserAndDate(Integer userId, Date from, Date to) {
