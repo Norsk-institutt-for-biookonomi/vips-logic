@@ -65,4 +65,6 @@ public interface ForecastService {
     void updateForecastCaches();
 
     ModelInformation getModelInformation(String modelId);
+
+    List<ModelInformation> getAllModelInformation();
 }

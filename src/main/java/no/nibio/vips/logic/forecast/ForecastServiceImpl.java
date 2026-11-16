@@ -289,14 +289,19 @@ public class ForecastServiceImpl implements ForecastService {
     }
 
     @Override
-    public void updateForecastCaches() {
-        forecastBean.updateForecastResultCacheTable();
-        forecastBean.updateForecastSummaryTable(SystemTime.getSystemTime());
+    public ModelInformation getModelInformation(String modelId) {
+        return forecastRepository.findModelInformationById(modelId);
     }
 
     @Override
-    public ModelInformation getModelInformation(String modelId) {
-        return forecastRepository.findModelInformationById(modelId);
+    public List<ModelInformation> getAllModelInformation() {
+        return forecastRepository.getAllModelInformation();
+    }
+
+    @Override
+    public void updateForecastCaches() {
+        forecastBean.updateForecastResultCacheTable();
+        forecastBean.updateForecastSummaryTable(SystemTime.getSystemTime());
     }
 
     private VipsLogicUser findUserOrNull(String userUUID) {
