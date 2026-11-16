@@ -30,7 +30,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.hibernate.annotations.Type;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
+import no.nibio.vips.logic.util.PostgresListArrayType;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -53,8 +53,8 @@ public class CropPest implements Serializable {
     @NotNull
     @Column(name = "crop_organism_id")
     private Integer cropOrganismId;
-    @Type(ListArrayType.class)
-    @Column(name = "pest_organism_ids")
+    @Type(PostgresListArrayType.class)
+    @Column(name = "pest_organism_ids", columnDefinition = "integer[]")
     private List<Integer> pestOrganismIds;
     @Column(name = "include_all_child_crops")
     private Boolean includeAllChildCrops;

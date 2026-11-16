@@ -26,7 +26,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.Type;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
+import no.nibio.vips.logic.util.PostgresListArrayType;
 
 /**
  * @copyright 2016 <a href="http://www.nibio.no/">NIBIO</a>
@@ -44,12 +44,12 @@ public class MessageNotificationSubscription implements Serializable {
     @Column(name = "universal_message_format_id")
     private Integer universalMessageFormatId;
     
-    @Type(ListArrayType.class)
-    @Column(name = "message_tag_ids")
+    @Type(PostgresListArrayType.class)
+    @Column(name = "message_tag_ids", columnDefinition = "integer[]")
     private List<Integer> messageTagIds;
     
-    @Type(ListArrayType.class)
-    @Column(name = "crop_category_ids")
+    @Type(PostgresListArrayType.class)
+    @Column(name = "crop_category_ids", columnDefinition = "integer[]")
     private List<Integer> cropCategoryIds;
 
     public Integer getUserId() {

@@ -13,5 +13,6 @@ selenium/.venv
 selenium/tests/__pycache__
 selenium/.env
 docker-compose-local-dev.yml
+.env
 *firebase-adminsdk*.json
 *fcm-service-account*.json

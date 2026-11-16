@@ -44,7 +44,7 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.hibernate.annotations.Type;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
+import no.nibio.vips.logic.util.PostgresListArrayType;
 
 /**
  * @copyright 2014 <a href="http://www.nibio.no/">NIBIO</a>
@@ -273,8 +273,8 @@ public class Message implements Serializable {
     /**
      * @return the cropCategoryIds
      */
-    @Type(ListArrayType.class)
-    @Column(name="crop_category_ids")
+    @Type(PostgresListArrayType.class)
+    @Column(name="crop_category_ids", columnDefinition = "integer[]")
     public List<Integer> getCropCategoryIds() {
         return cropCategoryIds;
     }

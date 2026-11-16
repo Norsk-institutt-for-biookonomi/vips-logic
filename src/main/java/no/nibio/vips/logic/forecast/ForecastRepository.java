@@ -22,9 +22,12 @@ public interface ForecastRepository {
     List<ForecastConfiguration> findPrivateByUserId(Integer userId);
 
     List<ForecastConfiguration> findByUserAndDate(Integer userId, Date from, Date to);
-
     List<ForecastConfiguration> findByUserCropsAndDate(
             Integer userId, List<Integer> cropOrganismIds, Date from, Date to);
+
+    List<ForecastConfiguration> findByOrganizationAndCropsAndDate(Integer organizationId, List<Integer> cropOrganismIds, Date from, Date to);
+    List<ForecastConfiguration> findByOrganizationAndDate(Integer organizationId, Date from, Date to);
+
 
     List<ForecastConfiguration> findByOrganizationIdsAndDate(
             List<Integer> organizationIds, Date from, Date to);
