@@ -3,6 +3,7 @@ package no.nibio.vips.logic.user;
 import com.ibm.icu.util.ULocale;
 import jakarta.persistence.NonUniqueResultException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -27,5 +28,5 @@ public interface UserService {
             Map<String, Object> userInfo, ResourceBundle i18nBundle, String serverName)
             throws FormValidationException, IOException;
 
-    DeleteMeResult deleteCurrentUser(Boolean keepData, HttpServletRequest request);
+    DeleteMeResult deleteCurrentUser(Boolean keepData, HttpServletRequest request, HttpHeaders headers);
 }

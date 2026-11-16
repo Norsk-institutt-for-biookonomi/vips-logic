@@ -94,11 +94,11 @@ public class UserResourceTest {
 
     @Test
     public void deleteMeReturnsUnauthorized() {
-        when(userService.deleteCurrentUser(null, request))
+        when(userService.deleteCurrentUser(null, request, null))
                 .thenReturn(new DeleteMeResult(DeleteMeResult.Kind.UNAUTHORIZED,
                         "You are not authorized to perform this operation"));
 
-        Response response = userResource.deleteMe(null, request);
+        Response response = userResource.deleteMe(null, request, null);
 
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
         assertEquals("You are not authorized to perform this operation", response.getEntity());

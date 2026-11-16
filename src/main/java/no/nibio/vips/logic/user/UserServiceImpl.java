@@ -5,6 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.NonUniqueResultException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -156,11 +157,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public DeleteMeResult deleteCurrentUser(Boolean keepData, HttpServletRequest request) {
-        VipsLogicUser user = userBean.getUserFromUUID(request);
-        if (user == null) {
-            user = (VipsLogicUser) request.getSession().getAttribute("user");
-        }
+    public DeleteMeResult deleteCurrentUser(Boolean keepData, HttpServletRequest request, HttpHeaders headers) {
+        VipsLogicUser user = userBean.resolveCurrentUser(request, headers);
         if (user == null) {
             return new DeleteMeResult(
                     DeleteMeResult.Kind.UNAUTHORIZED, "You are not authorized to perform this operation");

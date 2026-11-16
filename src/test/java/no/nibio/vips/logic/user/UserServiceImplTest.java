@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -35,9 +34,6 @@ public class UserServiceImplTest {
 
     @Mock
     private HttpServletRequest request;
-
-    @Mock
-    private HttpSession session;
 
     private UserServiceImpl userService;
 
@@ -88,11 +84,9 @@ public class UserServiceImplTest {
 
     @Test
     public void deleteCurrentUserReturnsUnauthorizedWhenNoUser() {
-        when(userBean.getUserFromUUID(request)).thenReturn(null);
-        when(request.getSession()).thenReturn(session);
-        when(session.getAttribute("user")).thenReturn(null);
+        when(userBean.resolveCurrentUser(request, null)).thenReturn(null);
 
-        DeleteMeResult result = userService.deleteCurrentUser(false, request);
+        DeleteMeResult result = userService.deleteCurrentUser(false, request, null);
 
         assertEquals(DeleteMeResult.Kind.UNAUTHORIZED, result.getKind());
     }
