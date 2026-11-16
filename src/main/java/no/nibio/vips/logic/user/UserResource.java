@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 import no.nibio.vips.logic.entity.VipsLogicUser;
 import no.nibio.vips.logic.i18n.SessionLocaleUtil;
-import no.nibio.vips.util.ServletUtil;
+import no.nibio.vips.logic.util.Globals;
 import no.nibio.web.forms.FormValidationException;
 
 @ApplicationScoped
@@ -81,7 +81,7 @@ public class UserResource {
             RegisterUserResult result = userService.registerLimitedUser(
                     userInfo,
                     SessionLocaleUtil.getI18nBundle(httpServletRequest),
-                    ServletUtil.getServerName(httpServletRequest));
+                    Globals.SERVER_NAME);
             if (result.hasErrors()) {
                 Map<String, List<String>> errorMsg = Map.of("errorMessages", result.getErrorMessages());
                 return Response.status(Status.BAD_REQUEST).entity(errorMsg).build();

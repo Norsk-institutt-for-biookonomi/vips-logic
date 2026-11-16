@@ -78,8 +78,6 @@ public class UserResourceTest {
     @Test
     public void registerNewLimitedUserReturnsBadRequestWhenValidationFails() throws Exception {
         when(request.getSession(false)).thenReturn(null);
-        when(request.getServerName()).thenReturn("localhost");
-        when(request.getHeader(org.mockito.ArgumentMatchers.anyString())).thenReturn(null);
         RegisterUserResult result = new RegisterUserResult(List.of("Username must be set"));
         when(userService.registerLimitedUser(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any())).thenReturn(result);
