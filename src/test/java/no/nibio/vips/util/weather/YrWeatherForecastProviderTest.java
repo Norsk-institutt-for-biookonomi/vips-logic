@@ -18,17 +18,11 @@
 package no.nibio.vips.util.weather;
 
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Point;
 import java.util.Collections;
 import java.util.List;
 import no.nibio.vips.entity.WeatherObservation;
 import no.nibio.vips.logic.entity.PointOfInterestWeatherStation;
 import no.nibio.vips.gis.GISUtil;
-import no.nibio.vips.util.WeatherUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -37,93 +31,29 @@ import static org.junit.Assert.*;
  * @author treinar
  */
 public class YrWeatherForecastProviderTest {
-    
-    public YrWeatherForecastProviderTest() {
-    }
-    
-    @BeforeClass
-    public static void setUpClass() {
-    }
-    
-    @AfterClass
-    public static void tearDownClass() {
-    }
-    
-    @Before
-    public void setUp() {
-    }
-    
-    @After
-    public void tearDown() {
-    }
 
-    /**
-     * Test of getWeatherForecasts method, of class YrWeatherForecastProvider.
-     */
     @Test
     public void testGetWeatherForecasts() throws Exception {
-        System.out.println("getWeatherForecasts"); 
         PointOfInterestWeatherStation weatherStation = new PointOfInterestWeatherStation();
-        //Testing in Bosnia (Rodoc, Mostar)
-        GISUtil gisUtil = new GISUtil();
-        Point p = gisUtil.createPointWGS84(new Coordinate(17.8094, 43.301, 67.0));
-        weatherStation.setAltitude(67.0);
-        weatherStation.setLongitude(17.8094);
-        weatherStation.setLatitude(43.301);
-        weatherStation.setGisGeom(p);
-        YrWeatherForecastProvider instance = new YrWeatherForecastProvider();
-        try
-        {
-            List<WeatherObservation> result = instance.getWeatherForecasts(weatherStation);
-            /*Collections.sort(result);
-            for(WeatherObservation obs:result)
-            {
-                System.out.println(obs.toString());
-            }*/
-            assertNotNull(result);
+        weatherStation.setLongitude(11.39);
+        weatherStation.setLatitude(59.388);
+        weatherStation.setAltitude(102.0);
+        weatherStation.setGisGeom(new GISUtil().createPointWGS84(new Coordinate(11.39, 59.388, 102.0)));
 
-            // Testing in Norway
-            //weatherStation.setAltitude(110.0);
-            //weatherStation.setLongitude(10.83474668);
-            //weatherStation.setLatitude(59.63851390);
-            weatherStation.setAltitude(102.0);
-            weatherStation.setLongitude(11.39);
-            weatherStation.setLatitude(59.388);
-            result = instance.getWeatherForecasts(weatherStation);
-            assertNotNull(result);
-            Collections.sort(result);
-            /*
-            for(WeatherObservation obs:result)
-            {
-                if(obs.getElementMeasurementTypeId().equals("TM"))
-                System.out.println(obs.toString());
-            }*/
-            
-            WeatherUtil wUtil = new WeatherUtil();
-            //wUtil.checkForAndFixHourlyTimeSeriesHoles(result);
-            
-            // Testing Jablanica (Republika Srpska, Bosnia)
-            weatherStation.setAltitude(219.0);
-            weatherStation.setLongitude(16.988056);
-            weatherStation.setLatitude(45.115);
-            //result = instance.getWeatherForecasts(weatherStation);
-            assertNotNull(result);
-            
-            /**Collections.sort(result);
-            for(WeatherObservation obs:result)
-            {
-                System.out.println(obs.toString());
-            }*/
-        }
-        catch(ParseWeatherDataException ex)
-        {
-            if(ex.getMessage().contains("FileNotFoundException"))
-            {
-                System.out.println("WARNING: YR URL Not active");
-            }
-        }
-        
-        
+        List<WeatherObservation> result = new YrWeatherForecastProvider().getWeatherForecasts(weatherStation);
+        Collections.sort(result);
+
+        WeatherObservation first = result.get(0);
+        WeatherObservation last = result.get(result.size() - 1);
+        long spanHours = (last.getTimeMeasured().getTime() - first.getTimeMeasured().getTime()) / (3600L * 1000L);
+
+        System.out.println("observations=" + result.size());
+        System.out.println("first=" + first.getElementMeasurementTypeId() + " " + first.getTimeMeasured() + " " + first.getValue());
+        System.out.println("last=" + last.getElementMeasurementTypeId() + " " + last.getTimeMeasured() + " " + last.getValue());
+        System.out.println("spanHours=" + spanHours);
+
+        assertFalse(result.isEmpty());
+        assertTrue(spanHours > 24);
+        assertTrue(spanHours < 72);
     }
-    
 }
