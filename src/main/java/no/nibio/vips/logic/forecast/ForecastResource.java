@@ -152,4 +152,18 @@ public class ForecastResource {
                 ? Response.ok().entity(retVal).build()
                 : Response.status(Response.Status.NOT_FOUND).entity("ERROR: Could not find model with id=" + modelId).build();
     }
+
+    /**
+     * Retrieves information about all models available in the system.
+     * @return
+     */
+    @GET
+    @Path("model")
+    @Produces("application/json;charset=UTF-8")
+    @TypeHint(ModelInformation.class)
+    public Response getAllModelInformation() {
+        return Response.ok()
+                .entity(forecastService.getAllModelInformation())
+                .build();
+    }
 }

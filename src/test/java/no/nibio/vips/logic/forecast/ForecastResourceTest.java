@@ -134,6 +134,17 @@ public class ForecastResourceTest {
         assertSame(model, response.getEntity());
     }
 
+    @Test 
+    public void getAllModelInformationReturnsOk() {
+        List<ModelInformation> models = List.of(new ModelInformation());
+        when(forecastService.getAllModelInformation()).thenReturn(models);
+
+        Response response = forecastResource.getAllModelInformation();
+
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertSame(models, response.getEntity());
+    }
+
     @Test
     public void updateForecastCachesReturnsUnauthorizedForNonLocalClient() {
         try (MockedStatic<ServletUtil> servletUtil = Mockito.mockStatic(ServletUtil.class)) {

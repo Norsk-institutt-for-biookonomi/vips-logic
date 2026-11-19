@@ -196,6 +196,12 @@ public class JpaForecastRepository implements ForecastRepository {
             return null;
         }
     }
+    
+    @Override
+    public List<ModelInformation> getAllModelInformation() {
+        return em.createNamedQuery("ModelInformation.findAll", ModelInformation.class)
+                .getResultList();
+    }
 
     @Override
     @SuppressWarnings("unchecked")

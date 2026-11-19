@@ -36,5 +36,7 @@ public interface ForecastRepository {
 
     ModelInformation findModelInformationById(String modelId);
 
+    public List<ModelInformation> getAllModelInformation();
+
     List<ForecastConfiguration> findByModelIdAndYear(String modelId, Integer year);
 }
