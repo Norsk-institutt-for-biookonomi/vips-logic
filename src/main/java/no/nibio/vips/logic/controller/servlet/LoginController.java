@@ -128,6 +128,7 @@ public class LoginController extends HttpServlet {
                     VipsLogicUser user = userBean.authenticateUser(creds);
 
                     if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED)) {
+                        userBean.recordSuccessfulLogin(user);
                         UserUuid uUUID = userBean.createAndPersistUserUuid(user);
                         user.setUserUuid(uUUID.getUserUuidPK().getUserUuid());
                         request.getSession().setAttribute("user", user);
@@ -147,6 +148,10 @@ public class LoginController extends HttpServlet {
                         request.getRequestDispatcher("/login.ftl").forward(request, response);
                     } else if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL)) {
                         request.setAttribute("errorMessageKey", "pleaseAwaitApproval");
+                        request.getRequestDispatcher("/login.ftl").forward(request, response);
+                    } else if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_INACTIVE)) {
+                        userBean.requestReactivation(user);
+                        request.setAttribute("errorMessageKey", "accountDisabledDueToInactivity");
                         request.getRequestDispatcher("/login.ftl").forward(request, response);
                     } else {
                         request.setAttribute("errorMessageKey", "invalidcredentials");
@@ -172,6 +177,7 @@ public class LoginController extends HttpServlet {
             VipsLogicUser user = userBean.authenticateUser(creds);
             PrintWriter out = response.getWriter();
             if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_APPROVED)) {
+                userBean.recordSuccessfulLogin(user);
                 request.getSession().setAttribute("user", user);
                 UserUuid uUUID = userBean.createAndPersistUserUuid(user);
                 user.setUserUuid(uUUID.getUserUuidPK().getUserUuid());
@@ -188,6 +194,9 @@ public class LoginController extends HttpServlet {
                 } else if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_AWAITING_APPROVAL)) {
                     out.print(SessionLocaleUtil.getI18nText(request, "pleaseAwaitApproval"));
                     request.getRequestDispatcher("/login.ftl").forward(request, response);
+                } else if (user != null && user.getUserStatusId().equals(Globals.USER_STATUS_INACTIVE)) {
+                    userBean.requestReactivation(user);
+                    out.print(SessionLocaleUtil.getI18nText(request, "accountDisabledDueToInactivity"));
                 } else {
                     out.print(SessionLocaleUtil.getI18nText(request, "invalidcredentials"));
                 }

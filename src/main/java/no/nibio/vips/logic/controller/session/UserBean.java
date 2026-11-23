@@ -596,8 +596,37 @@ public class UserBean {
             Globals.USER_STATUS_AWAITING_APPROVAL,
             Globals.USER_STATUS_REJECTED,
             Globals.USER_STATUS_APPROVED,
-            Globals.USER_STATUS_DISABLED
+            Globals.USER_STATUS_DISABLED,
+            Globals.USER_STATUS_INACTIVE
             };
+    }
+
+    public void recordSuccessfulLogin(VipsLogicUser user) {
+        user.setLastLogin(new Date());
+        em.merge(user);
+    }
+
+    public int disableUsersInactiveForTwoYears() {
+        Calendar cutoff = Calendar.getInstance();
+        cutoff.add(Calendar.YEAR, -2);
+        return em.createQuery("UPDATE VipsLogicUser u SET u.userStatusId = :inactive "
+                + "WHERE u.userStatusId = :approved AND u.lastLogin < :cutoff")
+                .setParameter("inactive", Globals.USER_STATUS_INACTIVE)
+                .setParameter("approved", Globals.USER_STATUS_APPROVED)
+                .setParameter("cutoff", cutoff.getTime())
+                .executeUpdate();
+    }
+
+    public void requestReactivation(VipsLogicUser user) {
+        user.setUserStatusId(Globals.USER_STATUS_AWAITING_APPROVAL);
+        user.setApprovalApplication("Reactivation requested after more than two years without login.");
+        em.merge(user);
+        String link = Globals.PROTOCOL + "://" + Globals.SERVER_NAME + "/user?action=viewUser&userId=" + user.getUserId();
+        String body = user.getFirstName() + " " + user.getLastName() + " (" + user.getEmail() + ") "
+                + "tried to log in after more than two years of inactivity.\n"
+                + "The user is now waiting for approval.\n"
+                + link;
+        mailSender.sendMail("noreply@" + Globals.SERVER_NAME, "vips@nibio.no", "VIPS: reaktivering av inaktiv bruker", body);
     }
 
     /**
