@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.webcohesion.enunciate.metadata.rs.TypeHint;
 import no.nibio.vips.logic.controller.session.UserBean;
+import no.nibio.vips.logic.util.Globals;
 
 import no.nibio.vips.logic.entity.UserUuid;
 import no.nibio.vips.logic.entity.VipsLogicUser;
@@ -84,8 +85,16 @@ public class AuthenticationService {
         ObjectMapper objectMapper = new ObjectMapper();
         
         ObjectNode result = objectMapper.createObjectNode();
+        if(user != null && Globals.USER_STATUS_INACTIVE.equals(user.getUserStatusId()))
+        {
+            userBean.requestReactivation(user);
+            result.put("success", false);
+            result.put("message", "accountDisabledDueToInactivity");
+            return Response.status(Status.FORBIDDEN).entity(result).build();
+        }
         if(user != null)
         {
+            userBean.recordSuccessfulLogin(user);
         	UserUuid uuid = userBean.createAndPersistUserUuid(user);
         	result.put("success", true);
         	result.put("UUID", uuid.getUserUuidPK().getUserUuid().toString());

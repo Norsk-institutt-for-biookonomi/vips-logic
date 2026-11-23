@@ -41,7 +41,10 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Date;
 import java.util.UUID;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /**
  * @copyright 2019 <a href="http://www.nibio.no/">NIBIO</a>
@@ -88,6 +91,7 @@ public class VipsLogicUser implements Serializable, Comparable{
     private Set<UserAuthentication> userAuthenticationSet;
     private Organization organizationId;
     private Integer userStatusId;
+    private Date lastLogin;
     private String emailVerificationCode;
     private Set<VipsLogicRole> vipsLogicRoles;
     private Integer vipsCoreUserId;
@@ -247,6 +251,16 @@ public class VipsLogicUser implements Serializable, Comparable{
      */
     public void setUserStatusId(Integer userStatusId) {
         this.userStatusId = userStatusId;
+    }
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_login")
+    public Date getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(Date lastLogin) {
+        this.lastLogin = lastLogin;
     }
 
     /**

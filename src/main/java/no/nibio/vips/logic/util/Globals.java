@@ -62,6 +62,7 @@ public class Globals {
     public static Integer USER_STATUS_REJECTED = 3;
     public static Integer USER_STATUS_APPROVED = 4;
     public static Integer USER_STATUS_DISABLED = 5;
+    public static Integer USER_STATUS_INACTIVE = 6;
 
     public static String defaultTimestampFormat = "yyyy-MM-dd HH:mm:ssXXX";
     public static String defaultDateFormat = "yyyy-MM-dd";

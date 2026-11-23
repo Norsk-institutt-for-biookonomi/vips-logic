@@ -178,6 +178,7 @@ public class SchedulingBean {
         
         VIPSLogicTaskCollector deleteAllExpiredUserUuidsCollector = new VIPSLogicTaskCollector(-1);
         deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DELETE_ALL_EXPIRED_UUIDS_TASK));
+        deleteAllExpiredUserUuidsCollector.getTasks().add(everyNightPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.DISABLE_USERS_INACTIVE_FOR_TWO_YEARS_TASK));
         
         VIPSLogicTaskCollector sendForecastNotificationsCollector = new VIPSLogicTaskCollector(-1);
         sendForecastNotificationsCollector.getTasks().add(morningAndAfternoonPattern, VipsLogicTaskFactory.createVipsLogicTask(VipsLogicTaskFactory.SEND_FORECAST_EVENT_NOTIFICATIONS_TASK));
